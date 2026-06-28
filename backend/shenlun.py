@@ -15,8 +15,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # ── 导入真实 LLM 批改模块 ──
-from src.grader import grade as llm_grade, chat as llm_chat
-from src.models import Question
+from src.grader import grade as llm_grade, chat as llm_chat  # noqa: E402
+from src.models import Question  # noqa: E402
 
 router = APIRouter(prefix="/api/shenlun", tags=["shenlun"])
 
@@ -400,7 +400,7 @@ async def analyze_weakness(request: Request):
             result = json.loads(json_match.group())
         else:
             raise RuntimeError("LLM未返回有效JSON")
-    except TimeoutError as e:
+    except TimeoutError:
         logger.warning("Analyze timeout")
         result = {
             "recordsReviewed": len(texts),
