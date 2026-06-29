@@ -388,6 +388,16 @@ async def serve_mindmap():
         return f.read()
 
 
+@app.get("/geometry", response_class=HTMLResponse)
+async def serve_geometry():
+    """空间几何实验室"""
+    path = os.path.join(PARENT_DIR, "geometry.html")
+    if not os.path.exists(path):
+        raise HTTPException(404, "空间几何实验室文件不存在")
+    with open(path, "r", encoding="utf-8") as f:
+        return f.read()
+
+
 @app.get("/shenlun", response_class=HTMLResponse)
 async def serve_shenlun():
     """申论批改"""
