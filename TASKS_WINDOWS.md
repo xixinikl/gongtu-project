@@ -22,7 +22,7 @@
 | 2 | Windows 启动入口 + 依赖适配 | ✅ 已完成 |
 | 3 | Electron 跨平台化（去硬编码） | ✅ 已完成 |
 | 4 | CI/CD 在三道机器人下全绿 | ✅ 已合并 main (PR #2) |
-| 5 | Windows 上实际跑通验证 | ⬜ 待你在 Win 上测试 |
+| 5 | Windows 上实际跑通验证 | ✅ CI 自动验证通过 (PR #3) |
 | 6 | 两端自动打包 .dmg + .exe | ⬜ 远期 |
 
 ---
@@ -81,6 +81,14 @@
   - Ruff 静态检查 ✅
   - mypy 类型检查 ✅
   - Bandit 安全检查 ✅
+
+- [x] **P4-1：Windows CI 集成测试 (PR #3)**
+  - GitHub Actions `windows-latest` 上自动验证
+  - 依赖安装 → 8 模块导入 → 语法检查 → 服务启动 & /api/health 响应
+  - 全部 4/4 通过，补充 `python-multipart` 到 requirements.txt
+  - Workflow：`.github/workflows/windows-test.yml`
+  - 测试脚本：`tests/test_windows_ci.py`
+  - 提交：`911d4a5`
 
 ---
 
