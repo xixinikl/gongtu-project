@@ -4,10 +4,9 @@ import re
 import time
 import logging
 import os
-from datetime import datetime, timezone, timedelta
 from openai import OpenAI
 
-from src.models import GradingResult, GradingRequest, ChatResponse
+from src.models import GradingResult
 from src.prompt_builder import build_grading_prompt, build_chat_prompt
 
 logger = logging.getLogger("grader")
@@ -96,7 +95,7 @@ def grade(question, student_answer: str) -> GradingResult:
                     continue
                 else:
                     # Last attempt failed - return raw text
-                    logger.error(f"JSON parse failed after 3 attempts")
+                    logger.error("JSON parse failed after 3 attempts")
                     return GradingResult(
                         dimensions={},
                         overallComment=f"AI返回格式异常，以下是原始回复：\n\n{raw_output}",
@@ -122,6 +121,7 @@ def grade(question, student_answer: str) -> GradingResult:
                 raise RuntimeError(f"LLM调用失败（已重试3次）: {error_msg}") from e
 
             time.sleep(2 ** attempt)
+    raise RuntimeError("Unreachable")
 
 
 def call_llm_api(prompt: str, system_prompt: str | None = None) -> str:
@@ -164,6 +164,7 @@ def call_llm_api(prompt: str, system_prompt: str | None = None) -> str:
             elif attempt >= 2:
                 raise RuntimeError(f"LLM调用失败: {error_msg}") from e
             time.sleep(2 ** attempt)  # Exponential backoff: 1s, 2s, 4s
+    raise RuntimeError("Unreachable")
 
 
 def chat(question, user_message: str) -> str:
@@ -215,45 +216,4 @@ def chat(question, user_message: str) -> str:
                 raise RuntimeError(f"LLM调用失败（已重试3次）: {error_msg}") from e
 
             time.sleep(2 ** attempt)
-
-
-def call_llm_api(prompt: str, system_prompt: str | None = None) -> str:
-    """Generic LLM API call for arbitrary prompts (used by analyze etc.).
-
-    Args:
-        prompt: The user message content
-        system_prompt: Optional system prompt override
-
-    Returns:
-        Raw text response from the LLM
-
-    Raises:
-        RuntimeError: If LLM fails
-        TimeoutError: If LLM times out
-    """
-    if not API_KEY or API_KEY == "your-api-key-here":
-        raise RuntimeError("LLM API key not configured. Set LLM_API_KEY in .env file.")
-
-    client = OpenAI(api_key=API_KEY, base_url=BASE_URL, timeout=TIMEOUT)
-
-    for attempt in range(3):
-        try:
-            response = client.chat.completions.create(
-                model=MODEL,
-                messages=[
-                    {"role": "system", "content": system_prompt or "你是一个专业的AI助手。请根据用户要求给出详细、准确的回答。"},
-                    {"role": "user", "content": prompt},
-                ],
-                temperature=0.5,
-                max_tokens=2000,
-            )
-            return response.choices[0].message.content
-        except Exception as e:
-            error_msg = str(e)
-            logger.error(f"call_llm_api failed attempt {attempt+1}: {error_msg}")
-            if "timeout" in error_msg.lower() or "timed out" in error_msg.lower():
-                if attempt >= 2:
-                    raise TimeoutError(f"LLM请求超时（{TIMEOUT}秒）") from e
-            elif attempt >= 2:
-                raise RuntimeError(f"LLM调用失败: {error_msg}") from e
-            time.sleep(2 ** attempt)
+    raise RuntimeError("Unreachable")

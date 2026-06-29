@@ -6,10 +6,9 @@ import json
 import os
 import secrets
 import time
-from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPBearer
 from pydantic import BaseModel
 
 # ── Config ─────────────────────────────────────────────────────
@@ -150,6 +149,7 @@ def register(body: RegisterIn):
         )
         conn.commit()
         user_id = cur.lastrowid
+    assert user_id is not None, "INSERT should return a valid rowid"
     token = create_token(user_id, body.username, is_admin=0)
     return AuthOut(token=token, user_id=user_id, username=body.username, is_admin=0)
 

@@ -19,3 +19,7 @@ backend/data.db-wal
 
 # 日志
 backend/logs/
+
+# Electron
+desktop/node_modules/
+desktop/dist/

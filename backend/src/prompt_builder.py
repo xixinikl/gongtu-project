@@ -7,7 +7,6 @@ Architecture:
     Modify the skill → system upgrades automatically, zero code changes.
 """
 
-import os
 from pathlib import Path
 from src.models import Question
 

@@ -10,7 +10,6 @@ from typing import Optional
 from openai import OpenAI
 
 from src.models import MistakeRecord, MistakeAnalysis
-from src.prompt_builder import CHAT_SYSTEM_PROMPT
 
 logger = logging.getLogger("mistake_tracker")
 
@@ -160,7 +159,7 @@ def analyze_with_ai() -> MistakeAnalysis:
 def export_to_word(analysis: Optional[MistakeAnalysis] = None) -> str:
     """导出错题分析和记录为Word文档，返回文件路径。"""
     from docx import Document
-    from docx.shared import Pt, Inches, RGBColor
+    from docx.shared import Pt, RGBColor
     from docx.enum.text import WD_ALIGN_PARAGRAPH
 
     os.makedirs(EXPORT_DIR, exist_ok=True)

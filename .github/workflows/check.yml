@@ -1,0 +1,56 @@
+name: 代码检查
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: 安装 Ruff
+        run: pip install ruff
+
+      - name: 静态检查 (Ruff)
+        run: ruff check backend/ --select=E,F --ignore=E501
+
+  type-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: 安装 mypy
+        run: pip install mypy
+
+      - name: 类型检查 (mypy)
+        run: mypy backend/ --ignore-missing-imports --follow-imports=skip --disable-error-code var-annotated
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: 安装 Bandit
+        run: pip install bandit
+
+      - name: 安全检查 (Bandit)
+        run: bandit -r backend/ -ll --exclude '**/venv/**'

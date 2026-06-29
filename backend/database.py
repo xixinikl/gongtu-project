@@ -3,6 +3,7 @@ import os
 import sqlite3
 import logging
 from contextlib import contextmanager
+from typing import Generator
 
 DB_PATH = os.environ.get("GONTU_DB_PATH", os.path.join(os.path.dirname(__file__), "data.db"))
 
@@ -10,7 +11,7 @@ logger = logging.getLogger("gontu.db")
 
 
 @contextmanager
-def get_db() -> sqlite3.Connection:
+def get_db() -> Generator[sqlite3.Connection, None, None]:
     """Context manager — guarantees connection close even on exceptions."""
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row

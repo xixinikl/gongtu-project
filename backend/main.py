@@ -1,7 +1,9 @@
 """
+
 智学成语 · 后端 API 服务
 统一版：所有端点接入 JWT 认证
 """
+import sqlite3
 import json
 import logging
 import time
@@ -15,7 +17,7 @@ from fastapi.responses import JSONResponse, FileResponse, HTMLResponse
 
 from database import get_db, init_db, cleanup_old_events
 from models import CardOut, QuizItemOut, SyncIn, SyncOut, VocabOut
-from auth import router as auth_router, get_current_user, require_user, require_admin
+from auth import router as auth_router, require_user, require_admin
 from mindmap import router as mindmap_router
 from shenlun import router as shenlun_router
 
@@ -318,7 +320,7 @@ async def upload_custom_vocab(request: Request, user: dict = Depends(require_use
                     (user_id, source_name, word, meaning, "自定义"),
                 )
                 added += 1
-            except sqlite3.IntegrityError:
+            except sqlite3.IntegrityError:  # noqa: F821
                 skipped += 1
         conn.commit()
 
@@ -553,7 +555,7 @@ async def admin_delete_user(user_id: int, admin: dict = Depends(require_admin)):
 
 
 # ── Catch-all static file server (for JS/CSS/images in parent dir) ──
-import mimetypes
+import mimetypes  # noqa: E402
 
 
 @app.get("/{filename:path}")
