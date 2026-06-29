@@ -1,0 +1,25 @@
+name: Windows 集成测试
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  windows-test:
+    runs-on: windows-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: 运行 Windows CI 集成测试
+        run: python tests/test_windows_ci.py
