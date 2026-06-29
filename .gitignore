@@ -23,3 +23,5 @@ backend/logs/
 # Electron
 desktop/node_modules/
 desktop/dist/
+node_modules/
+output/
