@@ -1,5 +1,6 @@
 import * as THREE from "/node_modules/three/build/three.module.js";
 import { OrbitControls } from "/node_modules/three/examples/jsm/controls/OrbitControls.js";
+import { createCuttingPlane } from "/geometry/cutting-plane.js";
 
 const canvas = document.querySelector("#geometryCanvas");
 const viewport = canvas?.closest(".viewport");
@@ -159,6 +160,9 @@ helpers.add(zLabel);
 
 scene.add(helpers);
 
+const cuttingPlane = createCuttingPlane({ size: 7 });
+scene.add(cuttingPlane.visual);
+
 function resizeRenderer() {
   const { width, height } = viewport.getBoundingClientRect();
   const safeWidth = Math.max(1, Math.round(width));
@@ -215,6 +219,10 @@ canvas.dataset.clipping = String(renderer.localClippingEnabled);
 canvas.dataset.orbitControls = "true";
 canvas.dataset.zoomRange = `${controls.minDistance},${controls.maxDistance}`;
 canvas.dataset.coordinateHelpers = "grid,axes,origin,x-label,y-label,z-label";
+canvas.dataset.cuttingPlane = "visible";
+canvas.dataset.cuttingPlaneExtent = cuttingPlane.visual.userData.mathematicalExtent;
+canvas.dataset.cuttingPlaneNormal = cuttingPlane.plane.normal.toArray().join(",");
+canvas.dataset.cuttingPlaneConstant = String(cuttingPlane.plane.constant);
 
 const geometryLab = Object.freeze({
   THREE,
@@ -223,6 +231,7 @@ const geometryLab = Object.freeze({
   renderer,
   controls,
   helpers,
+  cuttingPlane,
   lights: Object.freeze({
     hemisphere: hemisphereLight,
     key: keyLight,
@@ -251,6 +260,7 @@ window.addEventListener(
     grid.material.dispose();
     axes.geometry.dispose();
     axes.material.dispose();
+    cuttingPlane.dispose();
     resizeObserver.disconnect();
     renderer.setAnimationLoop(null);
     renderer.dispose();

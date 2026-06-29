@@ -186,6 +186,10 @@ geometry/scene.js
 - `data-coordinate-helpers`
 - `data-active-model`
 - `data-active-model-bounds`
+- `data-cutting-plane`
+- `data-cutting-plane-extent`
+- `data-cutting-plane-normal`
+- `data-cutting-plane-constant`
 
 后续模块可以使用页面主世界的只读入口：
 
@@ -211,7 +215,7 @@ window.geometryLab
 新 Agent 必须以 `TASKS.md` 为准。写下本文件时，计划中的下一项产品任务是：
 
 ```text
-CUT-001 feat: 在三维场景显示无限切割平面
+CUT-002 feat: 拖动切面时实时剖开模型
 ```
 
 如果看板已经推进到更后的任务，禁止退回本处重复实现。
