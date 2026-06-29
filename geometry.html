@@ -855,8 +855,24 @@
       if (!window.geometryLab) return;
       removeActiveModel();
       const model = buildModel();
+      const bounds = new window.geometryLab.THREE.Box3().setFromObject(model);
+      model.position.y += -1.5 - bounds.min.y;
       window.geometryLab.scene.add(model);
       activeModel = model;
+
+      const placedBounds = new window.geometryLab.THREE.Box3().setFromObject(model);
+      const canvas = document.getElementById("geometryCanvas");
+      if (canvas) {
+        canvas.dataset.activeModel = model.userData.type;
+        canvas.dataset.activeModelBounds = [
+          placedBounds.min.x,
+          placedBounds.min.y,
+          placedBounds.min.z,
+          placedBounds.max.x,
+          placedBounds.max.y,
+          placedBounds.max.z,
+        ].map((value) => value.toFixed(3)).join(",");
+      }
     }
 
     /* ── 渲染当前模型类型的参数控件 ── */
@@ -950,9 +966,11 @@
     renderParams();
     updateOpacityDisplay();
 
-    window.addEventListener("geometry:scene-ready", () => {
+    if (window.geometryLab) {
       placeModel();
-    });
+    } else {
+      window.addEventListener("geometry:scene-ready", placeModel, { once: true });
+    }
   </script>
 </body>
 </html>

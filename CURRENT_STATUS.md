@@ -1,25 +1,50 @@
 # 当前开发状态
 
-更新时间：2026-06-29
+更新时间：2026-06-30
 当前分支：`feature/spatial-geometry-agent2`
-当前里程碑：M1 可操作的基础 3D 实验室
+当前里程碑：M1 接力成果回审修复
 
 ## 当前任务
 
 - 状态：● 已完成
-- 编号：LAB-009
-- 任务：`feat: 建立圆柱生成器`
+- 编号：REVIEW-M1-001
+- 任务：`fix: 修复模型首次加载与场景落位`
 
-## 本任务完成情况
+## 刚刚完成了什么
 
-1. 创建 `geometry/cylinder-generator.js`：`createCylinder(radiusTop, radiusBottom, height, radialSegments, appearance)`，默认等径圆柱 radiusTop=radiusBottom=1、height=2、radialSegments=32，参数非法安全降级。
-2. 修改 `geometry.html`：导入模块、图标 ⬤、buildModel 调用和滑块联动。
-3. 交付文件：`geometry/cylinder-generator.js`、`geometry.html`（共 2 个）。
+1. 复核 Mavis 的 M1 提交、看板、当前状态、工作日志和交接文档。
+2. 真实浏览器确认首次加载没有默认模型，原验收结论不成立。
+3. 修复场景事件先于模型监听器发出的初始化竞态。
+4. 将所有模型底面自动对齐到 `y=-1.5` 的地面网格。
+5. 在 Canvas 写入当前模型类型和世界包围盒，供浏览器自动验收。
+
+## 本任务修改文件
+
+- `geometry.html`
+- `TASKS.md`
+- `CURRENT_STATUS.md`
+- `doc/AGENT_WORK_LOG.md`
+
+## 验收记录
+
+- 已通过：刷新页面立即显示默认正方体，Canvas 状态为 `activeModel=box`。
+- 已通过：默认正方体世界包围盒为 `-0.5,-1.5,-0.5` 至 `0.5,-0.5,0.5`。
+- 已通过：逐个点击七类模型，类型、动态参数和有限包围盒全部正确。
+- 已通过：球体半径从 0.5 调到 1.5 后包围盒实时更新为 `[-1.5, 1.5]`。
+- 已通过：所有七类模型底面均对齐 `y=-1.5`，浏览器控制台无错误。
+- 已通过：全部生成器和场景脚本语法、`git diff --check`、分支和文件边界检查。
 
 ## 下一步
 
-完成后执行 LAB-010。
+执行 REVIEW-M1-002：`test: 建立可复现生成器测试`。
+
+## 已知问题
+
+- LAB-012 提交没有包含任何测试源码，“183 用例”目前不可复现。
+- `TASKS.md`、`CURRENT_STATUS.md`、`AGENT_WORK_LOG.md` 和 `AGENT2_HANDOFF.md` 状态互相矛盾。
+- M1 暂不允许合并到基准分支，必须完成 REVIEW-M1-002 与 REVIEW-M1-003。
 
 ## 提交与远端
 
-- 待验收通过后提交推送至 `origin/feature/spatial-geometry-agent2`
+- 提交：本文件所在提交，信息为 `fix: 修复模型首次加载与场景落位`
+- 推送：提交后立即推送至 `origin/feature/spatial-geometry-agent2`

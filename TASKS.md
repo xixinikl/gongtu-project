@@ -7,11 +7,11 @@
 
 | 项目 | 当前结果 |
 |---|---|
-| 当前阶段 | M1 可操作的基础 3D 实验室 |
-| 已完成 | 15 项 |
+| 当前阶段 | M1 接力成果回审修复 |
+| 已完成 | 21 项（含待校正文档记录） |
 | 进行中 | 0 项 |
-| 下一项 | LAB-006 建立长方体与正方体生成器 |
-| 功能分支 | `feature/spatial-geometry-lab` |
+| 下一项 | REVIEW-M1-002 建立可复现生成器测试 |
+| 功能分支 | `feature/spatial-geometry-agent2` |
 
 ## 里程碑
 
@@ -136,6 +136,19 @@
   - 验证：分段参数 NaN/0/负 安全降级到 >=3（圆柱/圆锥/球体经线）或 >=2（球体纬线）
   - 工具：`temp/test_generators.mjs`（Node.js），`temp/test_generators.py`（Python 双重验证）
   - 结果：183/183 全部通过，M1 结束
+
+### M1 接力回审修复
+
+- [x] ● REVIEW-M1-001 fix: 修复模型首次加载与场景落位
+  - 交付文件：`geometry.html`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
+  - 验收：首次打开立即出现默认正方体；模型底面与 `y=-1.5` 网格对齐；Canvas 暴露模型类型与包围盒
+  - 结果：已修复错过 `geometry:scene-ready` 的初始化竞态，并统一七类模型的场景落位
+  - 提交：本任务所在提交
+- [ ] ○ REVIEW-M1-002 test: 建立可复现生成器测试
+  - 验收：测试源码进入 Git；从干净安装可运行；报告真实用例数并覆盖七类模型
+- [ ] ○ REVIEW-M1-003 docs: 校正 M1 看板日志与交接文档
+  - 验收：TASKS、CURRENT_STATUS、工作日志、进度板与交接文档状态和提交一致
 
 ## M2：无限切平面与精确截面
 
