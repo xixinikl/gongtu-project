@@ -117,8 +117,12 @@
   - 验收：`createBox(width, height, depth)` 和 `createCube(size)` 返回 Three.js Group；含实体网格 + 棱线；支持颜色/透明度外观配置；参数非法时安全降级为最小值；正方体/长方体按钮与尺寸/透明度滑块联动；语法检查通过；git diff 无冲突
   - 结果：已建立参数化生成器，页面首次加载自动创建默认正方体，切换按钮/拖动滑块实时重建模型
   - 提交：`54a7e9f`
-- [ ] ○ LAB-007 feat: 建立三棱柱生成器
-- [ ] ○ LAB-008 feat: 建立三棱锥生成器
+- [ ] ◐ LAB-007 feat: 建立三棱柱生成器
+- [x] ● LAB-008 feat: 建立三棱锥生成器
+  - 文件：`geometry/pyramid-generator.js`、`geometry.html`
+  - 验收：createTriangularPyramid(baseSize, height, appearance) 基于 ConeGeometry(radialSegments=3) 生成三棱锥；语法检查通过；按钮与滑块联动
+  - 结果：已建立参数化三棱锥生成器，Group 含实体+棱线，支持颜色/透明度配置，参数安全降级
+  - 提交：待提交
 - [ ] ○ LAB-009 feat: 建立圆柱生成器
 - [ ] ○ LAB-010 feat: 建立圆锥与球体生成器
 - [ ] ○ LAB-011 feat: 建立基础模型参数控制面板

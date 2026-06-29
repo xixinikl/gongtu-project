@@ -16,9 +16,11 @@
   - 提交：`54a7e9f`
   - 验收：语法检查通过；createBox/createCube 返回 Group(实体+棱线)；按钮与滑块联动；参数安全降级
 
-- [ ] ○ LAB-007 feat: 建立三棱柱生成器
+- [ ] ◐ LAB-007 feat: 建立三棱柱生成器
 
-- [ ] ○ LAB-008 feat: 建立三棱锥生成器
+- [x] ● LAB-008 feat: 建立三棱锥生成器
+  - 提交：待提交
+  - 验收：createTriangularPyramid 基于 ConeGeometry(radialSegments=3) 生成三棱锥；语法检查通过；按钮与滑块联动
 
 - [ ] ○ LAB-009 feat: 建立圆柱生成器
 

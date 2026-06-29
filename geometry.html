@@ -741,6 +741,8 @@
   <script type="module" src="/geometry/scene.js"></script>
   <script type="module">
     import { createBox, createCube } from "/geometry/box-generator.js";
+    import { createTriangularPrism } from "/geometry/prism-generator.js";
+    import { createTriangularPyramid } from "/geometry/pyramid-generator.js";
 
     const modelButtons = document.querySelectorAll(".model-button");
     const sizeSlider = document.querySelector('.field input[aria-label="模型尺寸"]');
@@ -782,6 +784,12 @@
       if (currentType === "cube") {
         return createCube(currentSize, appearance);
       }
+      if (currentType === "triangularPrism") {
+        return createTriangularPrism(currentSize, currentSize, appearance);
+      }
+      if (currentType === "triangularPyramid") {
+        return createTriangularPyramid(currentSize, currentSize, appearance);
+      }
       return createBox(currentSize, currentSize * 1.5, currentSize * 0.8, appearance);
     }
 
@@ -815,6 +823,10 @@
           currentType = "cube";
         } else if (label === "长方体") {
           currentType = "box";
+        } else if (label === "三棱柱") {
+          currentType = "triangularPrism";
+        } else if (label === "三棱锥") {
+          currentType = "triangularPyramid";
         } else {
           return;
         }
@@ -825,7 +837,7 @@
     sizeSlider?.addEventListener("input", () => {
       currentSize = parseFloat(sizeSlider.value) || 1;
       updateSizeDisplay();
-      if (currentType === "cube" || currentType === "box") {
+      if (currentType === "cube" || currentType === "box" || currentType === "triangularPrism" || currentType === "triangularPyramid") {
         placeModel();
       }
     });
@@ -833,7 +845,7 @@
     opacitySlider?.addEventListener("input", () => {
       currentOpacity = parseInt(opacitySlider.value, 10) / 100;
       updateOpacityDisplay();
-      if (currentType === "cube" || currentType === "box") {
+      if (currentType === "cube" || currentType === "box" || currentType === "triangularPrism" || currentType === "triangularPyramid") {
         placeModel();
       }
     });
