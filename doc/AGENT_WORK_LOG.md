@@ -97,3 +97,16 @@
 - 已推送远端：提交后立即推送并等待 CI
 - 遗留风险：CI 未绿前禁止整合到主功能分支
 - 建议下一任务：`INT-M1-001 merge: 整合已回审 M1 到主功能分支`
+
+## 2026-06-30 · Agent 1 回审 · CI-M1-002
+
+- 分支：`feature/spatial-geometry-agent2`
+- 基线提交：`e3b6655`
+- 完成任务：`ci: 升级 GitHub Actions Node 24 运行时`
+- 修改的交付文件：`.github/workflows/check.yml`
+- 执行的测试：YAML 解析、GitHub Actions 四作业和运行注解检查
+- 测试结果：待本任务最终验收后填写
+- 任务提交：本任务所在提交
+- 已推送远端：提交后立即推送并等待 CI
+- 遗留风险：远端 runner 兼容性必须以实际运行结果确认
+- 建议下一任务：`INT-M1-001 merge: 整合已回审 M1 到主功能分支`

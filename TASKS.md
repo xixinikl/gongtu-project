@@ -8,7 +8,7 @@
 | 项目 | 当前结果 |
 |---|---|
 | 当前阶段 | M1 已完成并通过接力回审 |
-| 已完成 | 26 项 |
+| 已完成 | 27 项 |
 | 进行中 | 0 项 |
 | 下一项 | INT-M1-001 整合已回审 M1 到主功能分支 |
 | 功能分支 | `feature/spatial-geometry-agent2` |
@@ -171,6 +171,12 @@
   - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
   - 验收：工作流配置三个推送分支与手动触发；生成器测试作为独立步骤；本地 CI 等价检查通过
   - 结果：工作流已增加手动触发、两个功能分支触发和 `npm run test:geometry`
+  - 提交：本任务所在提交
+- [x] ● CI-M1-002 ci: 升级 GitHub Actions Node 24 运行时
+  - 交付文件：`.github/workflows/check.yml`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
+  - 验收：checkout、setup-node、setup-python 使用官方 Node 24 主版本；远端四作业全绿且无旧 Node 20 警告
+  - 结果：已升级到 checkout v6、setup-node v6、setup-python v6
   - 提交：本任务所在提交
 - [ ] ○ INT-M1-001 merge: 整合已回审 M1 到主功能分支
   - 验收：Agent 2 CI 全绿；创建回审备份；无冲突合并；合并后全量测试通过并推送
