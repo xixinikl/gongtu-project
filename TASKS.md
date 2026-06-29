@@ -122,7 +122,7 @@
   - 文件：`geometry/pyramid-generator.js`、`geometry.html`
   - 验收：createTriangularPyramid(baseSize, height, appearance) 基于 ConeGeometry(radialSegments=3) 生成三棱锥；语法检查通过；按钮与滑块联动
   - 结果：已建立参数化三棱锥生成器，Group 含实体+棱线，支持颜色/透明度配置，参数安全降级
-  - 提交：待提交
+  - 提交：`b5d770d`
 - [ ] ○ LAB-009 feat: 建立圆柱生成器
 - [ ] ○ LAB-010 feat: 建立圆锥与球体生成器
 - [ ] ○ LAB-011 feat: 建立基础模型参数控制面板

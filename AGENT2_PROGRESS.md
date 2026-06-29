@@ -19,7 +19,7 @@
 - [ ] ◐ LAB-007 feat: 建立三棱柱生成器
 
 - [x] ● LAB-008 feat: 建立三棱锥生成器
-  - 提交：待提交
+  - 提交：`b5d770d`
   - 验收：createTriangularPyramid 基于 ConeGeometry(radialSegments=3) 生成三棱锥；语法检查通过；按钮与滑块联动
 
 - [ ] ○ LAB-009 feat: 建立圆柱生成器
