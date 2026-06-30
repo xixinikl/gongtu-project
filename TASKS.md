@@ -8,9 +8,9 @@
 | 项目 | 当前结果 |
 |---|---|
 | 当前阶段 | M3 组合模型与空间视图题 |
-| 已完成 | 49 项 |
+| 已完成 | 50 项 |
 | 进行中 | 0 项 |
-| 下一项 | COM-004 建立组合柱体模型 |
+| 下一项 | COM-006 建立前后左右俯仰视图切换 |
 | 功能分支 | `feature/spatial-geometry-cut011-agent` |
 
 ## 里程碑
@@ -302,8 +302,15 @@
   - 验收：colorScheme uniform/layered/自定义函数；addBlockLabels Sprite 编号标签（Canvas 纹理）；removeBlockLabels；16 项新测试
   - 结果：209/209 全通过
   - 提交：`9674f3c`
-- [ ] ○ COM-004 feat: 建立组合柱体模型
-- [ ] ○ COM-005 feat: 建立布尔组合几何能力
+- [x] ● COM-004 feat: 建立组合柱体模型
+  - 文件：`geometry/composite-generator.js`、`tests/composite-generator.test.mjs`
+  - 验收：6 种组合体生成器 createStackedCylinder / createConeTopCylinder / createDoubleCone / createFrustum / createHalfCylinderOnBox / createCylinderArray；recolorAssembly / computeAssemblyBBox 工具；20 项新测试
+  - 结果：229/229 全通过
+  - 提交：`ba1d6c3`
+- [x] ● COM-005 feat: 建立布尔组合几何能力
+  - 文件：`geometry/csg-operations.js`、`tests/csg-operations.test.mjs`
+  - 验收：csgUnion / csgSubtract / csgIntersect 三运算；csgChain 链式多步；csgFromGeometry 从 Geometry/Mesh/Group 创建 Brush；csgToShape 结果包装；csgComputeVolume / csgFaceCount / csgIsEmpty 度量；36 项新测试
+  - 结果：265/265 全通过
 - [ ] ○ COM-006 feat: 建立前后左右俯仰视图切换
 - [ ] ○ COM-007 feat: 建立正投影轮廓显示
 - [ ] ○ COM-008 test: 验证积木视图题固定样例
