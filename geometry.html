@@ -837,8 +837,9 @@
           <button class="mode-button" type="button" aria-pressed="true">自由切割 · 连续拖动与倾斜</button>
           <button class="mode-button" type="button" aria-pressed="false">题目切割 · 由 A、B、C 三点锁定</button>
         </div>
-        <div class="section-placeholder cutaway-toggle" aria-label="被切侧显示">
-          <button class="mode-button" type="button" data-cutaway-mode="hidden" aria-pressed="true">隐藏被切侧</button>
+        <div class="section-placeholder cutaway-toggle" aria-label="截面显示模式">
+          <button class="mode-button" type="button" data-cutaway-mode="teaching" aria-pressed="true">教学模式 · 完整模型</button>
+          <button class="mode-button" type="button" data-cutaway-mode="hidden" aria-pressed="false">真实剖开 · 隐藏被切侧</button>
           <button class="mode-button" type="button" data-cutaway-mode="transparent" aria-pressed="false">透明显示被切侧</button>
         </div>
         <div id="cut-free-inputs">
@@ -882,7 +883,7 @@
           </div>
           <p class="cut-lock-status" id="cut-lock-status"></p>
         </div>
-        <p class="cut-note">切面结果不需要另开页面：刀移动到哪里，模型就实时剖到哪里；被切开的封口会直接在三维场景中高亮。</p>
+        <p class="cut-note">教学模式保留完整模型：刀移动到哪里，真实相交区域就在哪里以蓝色截面实时高亮；需要观察剖开效果时再切换辅助模式。</p>
         <div class="section-metrics" id="sectionMetrics" aria-live="polite">
           <h3>截面信息</h3>
           <div id="sectionMetricsContent">
@@ -914,6 +915,10 @@
     } from "/geometry/plane-intersections.js";
     import { createSectionVisual } from "/geometry/section-visual.js";
     import { createCutawayVisual } from "/geometry/cutaway-visual.js";
+    import {
+      getSectionDisplayPolicy,
+      isSectionDisplayMode,
+    } from "/geometry/section-mode.js";
     import { projectSectionTo2D, svgPointString } from "/geometry/section-2d.js";
     import {
       calculateSectionMetrics,
@@ -973,7 +978,7 @@
     const cutLockStatus = document.getElementById("cut-lock-status");
     const cutModeButtons = document.querySelectorAll('[aria-label="切割模式"] .mode-button');
     const cutawayModeButtons = document.querySelectorAll(
-      '[aria-label="被切侧显示"] [data-cutaway-mode]',
+      '[aria-label="截面显示模式"] [data-cutaway-mode]',
     );
     const section2dToggle = document.querySelector(
       'button[aria-label="切换二维截面辅助图"]',
@@ -992,7 +997,7 @@
     let paramValues = {};
     let sectionVisual = null;
     let cutawayVisual = null;
-    let cutawayMode = "hidden";
+    let cutawayMode = "teaching";
     let latestSectionPolygon = null;
     let section2dVisible = false;
 
@@ -1099,23 +1104,35 @@
       if (!activeModel || !window.geometryLab) return;
       const { cuttingPlane } = window.geometryLab;
       const plane = cuttingPlane.plane;
+      const policy = getSectionDisplayPolicy(cutawayMode);
       activeModel.traverse((child) => {
         if (child.isMesh && child.material) {
           const materials = Array.isArray(child.material) ? child.material : [child.material];
           materials.forEach((mat) => {
-            const alreadyBound = mat.clippingPlanes?.length === 1
-              && mat.clippingPlanes[0] === plane;
+            const nextPlanes = policy.clipModel ? [plane] : [];
+            const alreadyBound = policy.clipModel
+              ? mat.clippingPlanes?.length === 1 && mat.clippingPlanes[0] === plane
+              : !mat.clippingPlanes?.length;
             if (!alreadyBound) {
-              mat.clippingPlanes = [plane];
+              mat.clippingPlanes = nextPlanes;
               mat.needsUpdate = true;
             }
-            mat.clipShadows = true;
+            mat.clipShadows = policy.clipModel;
           });
         }
       });
       const canvas = document.querySelector("#geometryCanvas");
-      if (canvas) canvas.dataset.modelClipping = "true";
-      syncCutawayVisual();
+      if (canvas) {
+        canvas.dataset.modelClipping = String(policy.clipModel);
+        canvas.dataset.sectionDisplayMode = cutawayMode;
+        canvas.dataset.modelComplete = String(!policy.clipModel);
+      }
+      if (policy.clipModel) {
+        syncCutawayVisual();
+      } else {
+        cutawayVisual?.clear();
+        if (canvas) canvas.dataset.cutawayVisible = "false";
+      }
       updateSectionVisual();
     }
 
@@ -1129,10 +1146,15 @@
 
     function syncCutawayVisual() {
       if (!activeModel || !window.geometryLab) return;
+      const policy = getSectionDisplayPolicy(cutawayMode);
+      if (!policy.clipModel) {
+        cutawayVisual?.clear();
+        return;
+      }
       const visual = ensureCutawayVisual();
       visual.setSource(activeModel);
       visual.setPlane(window.geometryLab.cuttingPlane.plane);
-      visual.setMode(cutawayMode);
+      visual.setMode(policy.ghostMode);
       const canvas = document.querySelector("#geometryCanvas");
       if (canvas) {
         canvas.dataset.cutawayMode = cutawayMode;
@@ -1142,7 +1164,13 @@
 
     function ensureSectionVisual() {
       if (!sectionVisual && window.geometryLab) {
-        sectionVisual = createSectionVisual();
+        sectionVisual = createSectionVisual({
+          fillColor: 0x4f6df5,
+          outlineColor: 0x2446d8,
+          fillOpacity: 0.72,
+        });
+        sectionVisual.fill.material.depthTest = false;
+        sectionVisual.fill.material.needsUpdate = true;
         window.geometryLab.scene.add(sectionVisual.group);
       }
       return sectionVisual;
@@ -1390,11 +1418,13 @@
 
     cutawayModeButtons.forEach((button) => {
       button.addEventListener("click", () => {
-        cutawayMode = button.dataset.cutawayMode;
+        const nextMode = button.dataset.cutawayMode;
+        if (!isSectionDisplayMode(nextMode)) return;
+        cutawayMode = nextMode;
         cutawayModeButtons.forEach((candidate) => {
           candidate.setAttribute("aria-pressed", String(candidate === button));
         });
-        syncCutawayVisual();
+        applyClipping();
       });
     });
 

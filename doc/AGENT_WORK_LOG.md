@@ -361,6 +361,33 @@
 
 任务完成，等待原 Agent（Codex）回审。
 
+## CUT-FIX-003 feat: 建立默认蓝色截面教学模式
+
+- **日期**：2026-06-30
+- **Agent**：Codex 主协调 Agent
+- **分支**：`feature/spatial-geometry-cutfix003`
+- **基线**：`feature/spatial-geometry-cutfix-plan` @ `f599fe6`
+
+### 修改摘要
+
+| 文件 | 变更 |
+|---|---|
+| `geometry/section-mode.js` | 定义教学、隐藏剖开、透明剖开三种确定性显示策略 |
+| `geometry.html` | 默认保留完整模型；真实交集使用蓝色截面；接入三模式切换与可观测状态 |
+| `tests/section-mode.test.mjs` | 新增 5 项显示策略专项测试 |
+
+### 验收
+
+- 专项测试：5/5 通过
+- 全量 JavaScript：285/285 通过
+- 浏览器默认教学状态：完整模型、无源模型裁剪、蓝色四边截面、面积 1
+- 浏览器模式往返：教学→隐藏剖开→教学，状态正确恢复
+- `git diff --check`：通过
+
+### 继续点
+
+`CUT-FIX-004 feat: 缩小并弱化切割平面视觉`
+
 ---
 
 ## 2026-06-30 · Marvis · CUT-FIX-002 补证 amend

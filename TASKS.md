@@ -8,10 +8,10 @@
 | 项目 | 当前结果 |
 |---|---|
 | 当前阶段 | M2 实时截面教学体验纠偏 |
-| 已完成 | 52 项 |
+| 已完成 | 54 项 |
 | 进行中 | 0 项 |
-| 下一项 | CUT-FIX-003 建立默认蓝色截面教学模式 |
-| 功能分支 | `feature/spatial-geometry-cutfix-plan` |
+| 下一项 | CUT-FIX-004 缩小并弱化切割平面视觉 |
+| 功能分支 | `feature/spatial-geometry-cutfix003` |
 
 ## 里程碑
 
@@ -306,8 +306,12 @@
   - 录屏：`output/page@*.webm`（581 KB），展示正方体进入/穿过/离开、长方体高度变更、圆柱切换
   - 截图：`output/01-cube-top-outside.png`、`output/02-cube-inside.png`、`output/03-cube-bottom-outside.png`、`output/04-box-default-range.png`、`output/05-cylinder-default-range.png`
   - 提交：补证 amend，原 `0fa759e` 将被替换
-- [ ] ○ CUT-FIX-003 feat: 建立默认蓝色截面教学模式
+- [x] ● CUT-FIX-003 feat: 建立默认蓝色截面教学模式
+  - 交付文件：`geometry/section-mode.js`、`geometry.html`、`tests/section-mode.test.mjs`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
   - 验收：模型保持完整或半透明；只填充真实交集区域；截面蓝色填充与轮廓随平移和倾斜逐帧更新
+  - 结果：默认教学模式不裁剪模型、不显示被切侧镜像；真实交集使用蓝色填充和深蓝轮廓；隐藏/透明真实剖开仍可主动切换；285/285 测试及浏览器状态验收通过
+  - 提交：本任务所在提交
 - [ ] ○ CUT-FIX-004 feat: 缩小并弱化切割平面视觉
   - 验收：数学平面保持无限；视觉载体限制在模型包围盒附近且不遮挡截面；允许隐藏视觉刀面
 - [ ] ○ CUT-FIX-005 feat: 保留真实剖开辅助模式
