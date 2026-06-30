@@ -7,6 +7,8 @@ const viewport = canvas?.closest(".viewport");
 const placeholder = document.querySelector("#stagePlaceholder");
 const statusChip = document.querySelector(".status-chip");
 const resetViewButton = document.querySelector('[aria-label="复位视角"]');
+const zoomInButton = document.querySelector('[aria-label="放大三维视图"]');
+const zoomOutButton = document.querySelector('[aria-label="缩小三维视图"]');
 
 if (!(canvas instanceof HTMLCanvasElement) || !(viewport instanceof HTMLElement)) {
   throw new Error("空间几何实验室缺少必要的三维视口元素");
@@ -60,6 +62,7 @@ controls.target.copy(defaultTarget);
 controls.enableDamping = true;
 controls.dampingFactor = 0.07;
 controls.enablePan = true;
+controls.enableZoom = false;
 controls.screenSpacePanning = true;
 controls.minDistance = 2.8;
 controls.maxDistance = 18;
@@ -200,8 +203,32 @@ function resetView() {
   updateCameraState();
 }
 
+function zoomView(scale) {
+  const offset = camera.position.clone().sub(controls.target);
+  const nextDistance = THREE.MathUtils.clamp(
+    offset.length() * scale,
+    controls.minDistance,
+    controls.maxDistance,
+  );
+
+  offset.setLength(nextDistance);
+  camera.position.copy(controls.target).add(offset);
+  controls.update();
+  updateCameraState();
+}
+
+function zoomIn() {
+  zoomView(0.82);
+}
+
+function zoomOut() {
+  zoomView(1 / 0.82);
+}
+
 controls.addEventListener("change", updateCameraState);
 resetViewButton?.addEventListener("click", resetView);
+zoomInButton?.addEventListener("click", zoomIn);
+zoomOutButton?.addEventListener("click", zoomOut);
 updateCameraState();
 
 if (placeholder) {
@@ -217,6 +244,8 @@ canvas.dataset.camera = camera.name;
 canvas.dataset.lightCount = "3";
 canvas.dataset.clipping = String(renderer.localClippingEnabled);
 canvas.dataset.orbitControls = "true";
+canvas.dataset.wheelZoom = String(controls.enableZoom);
+canvas.dataset.zoomControls = "buttons";
 canvas.dataset.zoomRange = `${controls.minDistance},${controls.maxDistance}`;
 canvas.dataset.coordinateHelpers = "grid,axes,origin,x-label,y-label,z-label";
 canvas.dataset.cuttingPlane = "visible";
@@ -246,6 +275,8 @@ window.addEventListener(
   "pagehide",
   () => {
     resetViewButton?.removeEventListener("click", resetView);
+    zoomInButton?.removeEventListener("click", zoomIn);
+    zoomOutButton?.removeEventListener("click", zoomOut);
     controls.removeEventListener("change", updateCameraState);
     controls.dispose();
     originGeometry.dispose();
