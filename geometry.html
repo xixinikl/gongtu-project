@@ -125,6 +125,7 @@
 
     .workspace {
       width: min(1560px, 100%);
+      min-height: calc(100vh - 72px);
       margin: 0 auto;
       padding: clamp(16px, 2.4vw, 34px);
       display: grid;
@@ -211,7 +212,7 @@
     .stage-column {
       min-width: 0;
       display: grid;
-      grid-template-rows: auto minmax(380px, 58vh) auto;
+      grid-template-rows: auto minmax(420px, 50vh) auto;
       gap: 14px;
     }
 
@@ -685,7 +686,7 @@
 
       .stage-column {
         order: 1;
-        grid-template-rows: auto minmax(380px, 58vh) auto;
+        grid-template-rows: auto minmax(420px, 50vh) auto;
       }
 
       .controls {

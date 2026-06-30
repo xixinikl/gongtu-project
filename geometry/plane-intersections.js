@@ -168,27 +168,58 @@ export function orderAndCloseSection(points, plane, { epsilon } = {}) {
     };
   }
 
-  const centroid = uniquePoints
-    .reduce((sum, point) => sum.add(point), new THREE.Vector3())
-    .multiplyScalar(1 / uniquePoints.length);
   const { u, v } = polygonBasis(safePlane.normal);
-  const orderedPoints = uniquePoints
-    .map((point) => ({
-      point,
-      angle: Math.atan2(
-        point.clone().sub(centroid).dot(v),
-        point.clone().sub(centroid).dot(u),
-      ),
-    }))
-    .sort((left, right) => left.angle - right.angle)
-    .map(({ point }) => point.clone());
-  const signedArea = signedProjectedArea(orderedPoints, u, v);
+
+  // Compute centroid (always needed by downstream projectSectionTo2D)
+  const centroid = uniquePoints
+    .reduce((sum, pt) => sum.add(pt), new THREE.Vector3())
+    .multiplyScalar(1 / uniquePoints.length);
+
+  // Project to 2D coordinates for polygon ordering
+  const pts2d = uniquePoints.map((p) => ({
+    x: p.dot(u),
+    y: p.dot(v),
+  }));
+
+  // Try concave-aware ordering; fall back to angle sort for convex cases
+  let ordered2d;
+  try {
+    ordered2d = traceConcavePolygon(pts2d, tolerance);
+  } catch (_) {
+    // Fallback: original angle-sorting around centroid
+    ordered2d = pts2d
+      .map((item) => ({
+        ...item,
+        angle: Math.atan2(item.y - centroid.dot(v), item.x - centroid.dot(u)),
+      }))
+      .sort((l, r) => l.angle - r.angle)
+      .map(({ x, y }) => ({ x, y }));
+  }
+
+  // Map 2D ordering back to original Vector3 objects (nearest-neighbor match)
+  const finalOrdered = ordered2d.map((pt2d) => {
+    let bestIdx = 0;
+    let bestDist = Infinity;
+    for (let i = 0; i < uniquePoints.length; i++) {
+      const up = uniquePoints[i];
+      const dx = up.dot(u) - pt2d.x;
+      const dy = up.dot(v) - pt2d.y;
+      const d = dx * dx + dy * dy;
+      if (d < bestDist) {
+        bestDist = d;
+        bestIdx = i;
+      }
+    }
+    return uniquePoints[bestIdx].clone();
+  });
+
+  const signedArea = signedProjectedArea(finalOrdered, u, v);
 
   if (Math.abs(signedArea) <= tolerance * tolerance) {
     return {
       status: "degenerate",
       reason: "collinear-points",
-      points: orderedPoints,
+      points: finalOrdered,
       closedPoints: [],
       centroid,
       normal: safePlane.normal.clone(),
@@ -197,19 +228,152 @@ export function orderAndCloseSection(points, plane, { epsilon } = {}) {
   }
 
   if (signedArea < 0) {
-    orderedPoints.reverse();
+    finalOrdered.reverse();
   }
 
   return {
     status: "polygon",
-    points: orderedPoints,
-    closedPoints: [...orderedPoints.map((point) => point.clone()), orderedPoints[0].clone()],
+    points: finalOrdered,
+    closedPoints: [...finalOrdered.map((p) => p.clone()), finalOrdered[0].clone()],
     centroid,
     normal: safePlane.normal.clone(),
     signedArea: Math.abs(signedArea),
     basis: { u, v },
     epsilon: tolerance,
   };
+}
+
+/**
+ * 用可见性追踪法对 2D 点集排序，生成简单（不自交）多边形。
+ * 支持凹形（concave）截面，如阶梯组合体的 L 形截面。
+ *
+ * 算法：从最左下角点出发，每次选"最左转且不与已有边相交"的下一个顶点，
+ * 直到回到起点。O(n³)，n 通常 < 50，可接受。
+ */
+function traceConcavePolygon(pts2d, eps) {
+  const n = pts2d.length;
+  if (n < 3) throw new Error("need >= 3 points");
+
+  // Find lowest-leftmost starting point
+  let startIdx = 0;
+  for (let i = 1; i < n; i++) {
+    const a = pts2d[startIdx];
+    const b = pts2d[i];
+    if (
+      b.y < a.y - eps ||
+      (Math.abs(b.y - a.y) <= eps && b.x < a.x - eps)
+    ) {
+      startIdx = i;
+    }
+  }
+
+  const visited = new Set([startIdx]);
+  const order = [startIdx];
+  let prevDir = { x: 1, y: 0 }; // initial direction: east
+
+  while (order.length < n) {
+    const currIdx = order[order.length - 1];
+    const curr = pts2d[currIdx];
+
+    let bestIdx = -1;
+    let bestTurn = Infinity; // smaller = more left-turn (better)
+
+    for (let i = 0; i < n; i++) {
+      if (visited.has(i)) continue;
+      const cand = pts2d[i];
+
+      // Direction to candidate
+      const dx = cand.x - curr.x;
+      const dy = cand.y - curr.y;
+      const lenSq = dx * dx + dy * dy;
+      if (lenSq < eps * eps) continue;
+
+      // Cross product with previous direction: positive = left turn
+      const cross = prevDir.x * dy - prevDir.y * dx;
+      const dotProduct = prevDir.x * dx + prevDir.y * dy;
+
+      // Compute turn angle (-PI..PI), prefer left turns (positive)
+      let turn = Math.atan2(cross, dotProduct);
+
+      // Check if segment (curr -> cand) crosses any existing edge
+      if (segmentCrossesExisting(curr, cand, order, pts2d, eps)) {
+        turn += 10; // penalize crossing heavily
+      }
+
+      if (turn < bestTurn - eps) {
+        bestTurn = turn;
+        bestIdx = i;
+      }
+    }
+
+    if (bestIdx === -1) throw new Error("cannot find next vertex");
+    visited.add(bestIdx);
+    order.push(bestIdx);
+
+    const best = pts2d[bestIdx];
+    const bdx = best.x - curr.x;
+    const bdy = best.y - curr.y;
+    const bLen = Math.sqrt(bdx * bdx + bdy * bdy);
+    prevDir = { x: bdx / bLen, y: bdy / bLen };
+  }
+
+  return order.map((idx) => ({ ...pts2d[idx] }));
+}
+
+/**
+ * 检查线段 (a,b) 是否与已有多边形边（由 order 和 pts 定义）相交。
+ * 忽略在端点处的接触（共享顶点是允许的）。
+ */
+function segmentCrossesExisting(a, b, order, pts, eps) {
+  for (let i = 0; i < order.length - 1; i++) {
+    const p1 = pts[order[i]];
+    const p2 = pts[order[i + 1]];
+    // Skip edges sharing endpoint with (a,b)
+    if (
+      distSq(a, p1) < eps * eps ||
+      distSq(a, p2) < eps * eps ||
+      distSq(b, p1) < eps * eps ||
+      distSq(b, p2) < eps * eps
+    ) {
+      continue;
+    }
+    if (segmentsIntersect(a, b, p1, p2, eps)) return true;
+  }
+  return false;
+}
+
+function distSq(a, b) {
+  const dx = a.x - b.x;
+  const dy = a.y - b.y;
+  return dx * dx + dy * dy;
+}
+
+function segmentsIntersect(a, b, c, d, eps) {
+  const ab = { x: b.x - a.x, y: b.y - a.y };
+  const ac = { x: c.x - a.x, y: c.y - a.y };
+  const ad = { x: d.x - a.x, y: d.y - a.y };
+
+  const crossAB_AC = ab.x * ac.y - ab.y * ac.x;
+  const crossAB_AD = ab.x * ad.y - ab.y * ad.x;
+
+  // c and d on same side of AB?
+  if ((crossAB_AC > eps && crossAB_AD > eps) || (crossAB_AC < -eps && crossAB_AD < -eps)) {
+    return false;
+  }
+
+  const cd = { x: d.x - c.x, y: d.y - c.y };
+  const ca = { x: a.x - c.x, y: a.y - c.y };
+  const cb = { x: b.x - c.x, y: b.y - c.y };
+
+  const crossCD_CA = cd.x * ca.y - cd.y * ca.x;
+  const crossCD_CB = cd.x * cb.y - cd.y * cb.x;
+
+  if ((crossCD_CA > eps && crossCD_CB > eps) || (crossCD_CA < -eps && crossCD_CB < -eps)) {
+    return false;
+  }
+
+  // Collinear case: check overlap of projections
+  return true;
 }
 
 /**
