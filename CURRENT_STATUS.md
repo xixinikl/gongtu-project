@@ -7,36 +7,40 @@
 ## 当前任务
 
 - 状态：● 已完成
-- 编号：SEC2-002
-- 任务：`feat: 实现三角面与平面求交线段`
+- 编号：SEC2-002A
+- 任务：`docs: 冻结 SEC2-003 接力基线`
 
-## 刚刚完成了什么
+## 当前稳定成果
 
-新增单三角面与无限平面的确定性求交模块。结果始终带 `status`、`triangleId` 和 `segment`；
-`segment` 只会是空或一条按 x/y/z 字典序排列端点的线段。点接触和整面共面不会被伪造成线段，
-共面边会作为唯一交线输出。
+- SEC2-001：10 个独立推导黄金样例。
+- UX2-001：页面滚轮已释放，保留旋转并增加按钮缩放。
+- SEC2-002：单三角面稳定输出零或一条规范截面线段，退化状态明确。
+- SEC2-003 专用接力手册：`doc/SECTION_ENGINE_V2_HANDOFF.md`。
 
-## 本任务修改文件
-
-- `geometry/triangle-plane-slice.js`
-- `tests/triangle-plane-slice.test.mjs`
-- 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
-
-## 验收记录
+## SEC2-002 验收证据
 
 - 聚焦测试：9/9 通过。
 - `npm run test:geometry`：375/375 通过。
 - `node --check geometry/triangle-plane-slice.js`：通过。
 - `git diff --check`：通过。
 
+## 冻结与远端
+
+- 算法提交：`a6e43d4`
+- 冻结标签：`section-engine-v2-sec2-002-handoff-v1`
+- 本状态与接力手册位于冻结标签指向的提交。
+- 当前功能分支和标签应推送到 `origin`。
+
 ## 下一步
 
-先完成本轮接力文档和冻结标签；之后唯一算法任务是 SEC2-003：
-合并近似端点，删除零长度和重复/反向重复线段，不得拼轮廓。
+下一位 Agent 必须从冻结标签建立隔离分支，只执行 SEC2-003：
+`geometry/section-segment-normalizer.js` 与对应专项测试。完成后停止，等待回审。
 
-## 已知风险
+## 关键注意事项
 
-- 整个三角面共面时返回 `status="coplanar"` 且不选择任意边；未来网格级调用者必须显式处理共面面。
-- SEC2-003 必须消费 `result.segment`，不能把 `point` 或 coplanar triangle 当成边。
-- 凹截面生产路径尚未切换，旧页面结果仍不能作为 V2 数学正确性证据。
 - 禁止合并 `cutfix006a-experimental-do-not-merge-v1`。
+- 禁止跳到 SEC2-004 或提前拼轮廓。
+- 只消费 SEC2-002 返回的非空 `result.segment`。
+- `point` 和整个共面三角面都不是线段。
+- 生产页面仍走旧路径，不能用当前凹截面画面证明 V2 正确。
+- UX2-001 尚缺真实浏览器手势截图验收。
