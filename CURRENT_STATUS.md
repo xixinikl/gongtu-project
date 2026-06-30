@@ -1,47 +1,49 @@
 # 当前开发状态
 
 更新时间：2026-07-01
-当前分支：`feature/spatial-geometry-cutfix-plan`
+当前分支：`feature/spatial-geometry-sec2-004-agent`
 当前里程碑：M2 截面引擎 V2 纠偏
 
 ## 当前任务
 
-- 状态：● 已完成
-- 编号：SEC2-003A
-- 任务：`docs: 冻结 SEC2-004 接力基线`
+- 状态：● 已完成（等待回审）
+- 编号：SEC2-004
+- 任务：`feat: 将截面线段链接为闭合轮廓`
 
 ## 当前稳定成果
 
 - SEC2-001：10 个独立推导黄金样例。
 - SEC2-002：单三角面输出零或一条规范截面线段，退化状态明确。
 - SEC2-003：端点归一化，清除零长与双向重复边，来源稳定聚合。
+- SEC2-004：邻接图链接闭合轮廓，支持凹环和多轮廓，非流形明确报错。
 - UX2-001：页面滚轮已释放，保留旋转并增加按钮缩放。
-- SEC2-004 专用接力手册：`doc/SECTION_ENGINE_V2_HANDOFF.md`。
 
 ## 最新验收证据
 
-- SEC2-003 聚焦测试：10/10 通过。
-- `npm run test:geometry`：385/385 通过。
-- `node --check geometry/section-segment-normalizer.js`：通过。
+- SEC2-004 聚焦测试：26/26 通过。
+- `npm run test:geometry`：411/411 通过（385 基线 + 26 新增）。
+- `node --check geometry/section-contour-builder.js`：通过。
 - `git diff --check`：通过。
 
 ## 冻结与远端
 
-- SEC2-003 算法提交：`574a344`
-- 新冻结标签：`section-engine-v2-sec2-003-handoff-v1`
-- 上一冻结标签 `section-engine-v2-sec2-002-handoff-v1` 保留不动。
-- 本状态与更新后的接力手册位于新标签指向的提交。
+- SEC2-004 算法提交：本任务所在提交
+- 隔离分支：`feature/spatial-geometry-sec2-004-agent`
+- 基线标签：`section-engine-v2-sec2-003-handoff-v1`
+- 未合并、未推送远端（等待回审）
 
 ## 下一步
 
-下一位 Agent 必须从新冻结标签建立隔离分支，只执行 SEC2-004：
-用规范线段的真实邻接关系链接一个或多个闭环；完成后停止等待回审。
+等待主协调 Agent 回审。回审通过后：
+- 冻结 SEC2-005 接力基线
+- 下一位 Agent 从新标签建立隔离分支执行 SEC2-005（外环/孔洞拓扑与 Earcut 三角化）
 
 ## 关键注意事项
 
-- 禁止质心极角排序；必须沿邻接边走环。
+- 禁止质心极角排序；SEC2-004 沿真实边邻接关系走环。
 - 合法闭环节点度数必须为 2。
 - 开链、分叉和非流形输入必须明确报错，不得猜答案。
 - 不做外环/孔洞分类和 Earcut；这些属于 SEC2-005。
 - 禁止合并 `cutfix006a-experimental-do-not-merge-v1`。
 - 生产页面仍走旧路径，不能用当前画面证明 V2 正确。
+- 未开始 SEC2-005，未修改生产页面。
