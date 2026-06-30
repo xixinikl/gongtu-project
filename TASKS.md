@@ -311,7 +311,10 @@
   - 文件：`geometry/csg-operations.js`、`tests/csg-operations.test.mjs`
   - 验收：csgUnion / csgSubtract / csgIntersect 三运算；csgChain 链式多步；csgFromGeometry 从 Geometry/Mesh/Group 创建 Brush；csgToShape 结果包装；csgComputeVolume / csgFaceCount / csgIsEmpty 度量；36 项新测试
   - 结果：265/265 全通过
-- [ ] ○ COM-006 feat: 建立前后左右俯仰视图切换
+- [x] ● COM-006 feat: 建立前后左右俯仰视图切换
+  - 文件：`geometry/view-controller.js`、`tests/view-controller.test.mjs`、`geometry.html`（新增仰视按钮+事件绑定）
+  - 验收：7 个预设视角（透视/正视/后视/左视/右视/俯视/仰视）；ease-out quad 动画过渡；按钮 aria-pressed 状态同步；11 项新测试
+  - 结果：11/11 全通过，浏览器视觉验证 7/7 通过
 - [ ] ○ COM-007 feat: 建立正投影轮廓显示
 - [ ] ○ COM-008 test: 验证积木视图题固定样例
 - [ ] ○ COM-009 test: 验证组合体切面固定样例

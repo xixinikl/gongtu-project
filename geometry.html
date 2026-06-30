@@ -812,6 +812,7 @@
         <button class="view-button" type="button" aria-pressed="false">左视</button>
         <button class="view-button" type="button" aria-pressed="false">右视</button>
         <button class="view-button" type="button" aria-pressed="false">俯视</button>
+        <button class="view-button" type="button" aria-pressed="false">仰视</button>
       </div>
     </section>
 
@@ -919,6 +920,7 @@
       calculateSectionMetrics,
       formatSectionNumber,
     } from "/geometry/section-metrics.js";
+    import { switchToLabel } from "/geometry/view-controller.js";
 
     /* ── 每个模型类型对应的参数控件定义 ── */
     const PARAM_DEFS = {
@@ -1462,6 +1464,14 @@
       lockDebounceTimer = setTimeout(() => {
         if (cutModeLocked) lockPlaneFromThreePoints();
       }, 100);
+    });
+
+    /* ── 预设视角切换按钮 ── */
+    document.querySelectorAll(".view-button").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        if (!window.geometryLab) return;
+        switchToLabel(btn.textContent.trim(), window.geometryLab);
+      });
     });
 
     /* ── 初始化：支持 URL hash 切换初始模型 ── */
