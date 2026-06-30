@@ -125,7 +125,6 @@
 
     .workspace {
       width: min(1560px, 100%);
-      min-height: calc(100vh - 72px);
       margin: 0 auto;
       padding: clamp(16px, 2.4vw, 34px);
       display: grid;
@@ -212,7 +211,7 @@
     .stage-column {
       min-width: 0;
       display: grid;
-      grid-template-rows: auto minmax(460px, 1fr) auto;
+      grid-template-rows: auto minmax(380px, 58vh) auto;
       gap: 14px;
     }
 
@@ -1593,6 +1592,91 @@
       placeModel();
     } else {
       window.addEventListener("geometry:scene-ready", placeModel, { once: true });
+    }
+
+    /* ── 切面自由拖拽：在 3D 场景内直接拖拽切面沿法线滑动或旋转 ── */
+    const canvas = document.getElementById("geometryCanvas");
+    {
+      let dragActive = false;
+      let dragStart = { x: 0, y: 0 };
+      let dragInitOffset = 0;
+      let dragInitHTilt = 0;
+      let dragInitVTilt = 0;
+      let raycaster = null;
+
+      function ensureRaycaster() {
+        if (!raycaster && window.geometryLab) {
+          raycaster = new window.geometryLab.THREE.Raycaster();
+        }
+        return raycaster;
+      }
+
+      function getMouseNDC(e) {
+        const r = canvas.getBoundingClientRect();
+        return new window.geometryLab.THREE.Vector2(
+          ((e.clientX - r.left) / r.width) * 2 - 1,
+          -((e.clientY - r.top) / r.height) * 2 + 1,
+        );
+      }
+
+      function planeUnderPointer(e) {
+        if (!window.geometryLab) return false;
+        const rc = ensureRaycaster();
+        if (!rc) return false;
+        const mouse = getMouseNDC(e);
+        rc.setFromCamera(mouse, window.geometryLab.camera);
+        const g = window.geometryLab.cuttingPlane?.visual;
+        if (!g || !g.visible) return false;
+        return rc.intersectObjects(g.children, true).length > 0;
+      }
+
+      canvas.addEventListener("pointerdown", (e) => {
+        if (!window.geometryLab || e.button !== 0) return;
+        if (!planeUnderPointer(e)) return;
+        e.stopPropagation();
+        e.preventDefault();
+        window.geometryLab.controls.enabled = false;
+        dragActive = true;
+        dragStart = { x: e.clientX, y: e.clientY };
+        dragInitOffset = cutSlider ? parseFloat(cutSlider.value) : 0;
+        dragInitHTilt = hTiltSlider ? parseFloat(hTiltSlider.value) : 0;
+        dragInitVTilt = vTiltSlider ? parseFloat(vTiltSlider.value) : 0;
+        canvas.style.cursor = "grabbing";
+      }, { capture: true });
+
+      window.addEventListener("pointermove", (e) => {
+        if (!dragActive || !cutSlider) return;
+        const dx = e.clientX - dragStart.x;
+        const dy = e.clientY - dragStart.y;
+        const sensitivity = 0.015;
+
+        if (e.shiftKey) {
+          // 旋转模式：Shift+拖拽改变切面朝向
+          const newH = Math.max(-89, Math.min(89, dragInitHTilt + dy * 0.5));
+          const newV = Math.max(-89, Math.min(89, dragInitVTilt + dx * 0.5));
+          if (hTiltSlider) hTiltSlider.value = String(Math.round(newH));
+          if (vTiltSlider) vTiltSlider.value = String(Math.round(newV));
+        } else {
+          // 平移模式：沿法线方向滑动切面
+          const newOffset = dragInitOffset + dy * sensitivity;
+          const lo = parseFloat(cutSlider.min);
+          const hi = parseFloat(cutSlider.max);
+          cutSlider.value = String(Math.max(lo, Math.min(hi, +newOffset.toFixed(2))));
+        }
+        updateCuttingPlane();
+      }, { passive: true });
+
+      window.addEventListener("pointerup", () => {
+        if (!dragActive) return;
+        dragActive = false;
+        if (window.geometryLab) window.geometryLab.controls.enabled = true;
+        canvas.style.cursor = "";
+      });
+
+      canvas.addEventListener("pointermove", (e) => {
+        if (dragActive || !window.geometryLab) return;
+        canvas.style.cursor = planeUnderPointer(e) ? "grab" : "";
+      }, { passive: true });
     }
   </script>
 </body>
