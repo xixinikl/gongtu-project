@@ -10,7 +10,7 @@
 | 当前阶段 | M2 实时截面教学体验纠偏 |
 | 已完成 | 55 项 |
 | 进行中 | 0 项 |
-| 下一项 | CUT-FIX-004 缩小并弱化切割平面视觉 |
+| 下一项 | 等待主协调 Agent 回审 |
 | 冻结基线 | `cutfix004-handoff-v1` |
 
 ## 里程碑
@@ -318,8 +318,20 @@
   - 验收：新 Agent 的唯一基线、独立分支、受保护范围、文件预算、测试证据和停止点完整
   - 结果：已将 CUT-FIX-003 纳入纠偏基线，并建立不可漂移标签 `cutfix004-handoff-v1`；新 Agent 只能另开 `feature/spatial-geometry-cutfix004-agent`
   - 提交：本任务所在提交
-- [ ] ○ CUT-FIX-004 feat: 缩小并弱化切割平面视觉
+- [x] ● CUT-FIX-004 feat: 缩小并弱化切割平面视觉
+  - 交付文件：`geometry/cutting-plane.js`、`geometry.html`、`tests/cut-fix-004.test.mjs`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
   - 验收：数学平面保持无限；视觉载体限制在模型包围盒附近且不遮挡截面；允许隐藏视觉刀面
+  - 结果：
+    - 视觉纹理填充从 0.28 降至 0.08，网格线从 0.20 降至 0.22，边框从 0.65 降至 0.25，整体素材透明度由纹理直接控制；
+    - 新增 `computeCutPlaneVisualSize(bounds, planeNormal, scaleFactor)`：构建切面局部正交基 (u,v)，将包围盒 8 个顶点投影到切面二维坐标系，取最大轴向跨度计算自适应尺寸——高窄长方体双轴 45° 倾斜也能正确覆盖；
+    - 新增 `computeCutPlaneVisualCenter(bounds, planeNormal, planeOrConstant)`：8 顶点投影取中值 + 法向位移，确保视觉刀面中心精确落在切面上；
+    - 新增 `resizeCutPlaneVisual(visual, targetSize)` 按 unitSize 等比缩放；
+    - 模型切换、尺寸变化或切面倾斜时自动调用 `updateCutPlaneVisualScale` 同步尺寸和中心；
+    - 添加"显示/隐藏视觉刀面"checkbox 控件，所有恢复路径（自由切割、题目三点锁定、模式切换）均尊重用户选择；
+    - 全量测试 329/329 通过（285 基线 + 44 专项），`git diff --check` 无空白问题；
+    - 浏览器验收：5 张 Playwright 截图 + 1 段连续操作录屏，覆盖正方体默认、长方体双轴 45° 倾斜、隐藏刀面、题目模式隐藏保持、非零 offset 中心；
+    - 提交：`24d2e35`，force-with-lease 已推送 `origin/feature/spatial-geometry-cutfix004-agent`
 - [ ] ○ CUT-FIX-005 feat: 保留真实剖开辅助模式
   - 验收：用户主动切换后才隐藏或透明显示被切侧；切回教学模式时完整模型与蓝色截面恢复
 - [ ] ○ CUT-FIX-006 test: 验证基础与阶梯组合体连续截面

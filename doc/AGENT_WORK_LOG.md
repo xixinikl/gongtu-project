@@ -429,3 +429,77 @@
 - 授权边界：新 Agent 只能执行 CUT-FIX-004，必须另开独立分支和 worktree
 - 禁止事项：不得修改基线/main/dev、不得合并、不得开始 CUT-FIX-005
 - 下一步：等待新 Agent 返回分支、提交、测试和视觉证据，由主协调 Agent 回审
+
+## 2026-06-30 · Senior Developer 接力 · CUT-FIX-004
+
+- 分支：`feature/spatial-geometry-cutfix004-agent`
+- 基线提交：`9ab3b8d`（冻结标签 `cutfix004-handoff-v1`）
+- 独立 worktree：`/Users/xixi/Documents/Codex/2026-06-29/new-chat/work/gongtu-cutfix004-agent`
+- 完成任务：`feat: 缩小并弱化切割平面视觉`
+- 修改的交付文件：`geometry/cutting-plane.js`、`geometry.html`、`tests/cut-fix-004.test.mjs`
+- 执行的测试：`npm run test:geometry`（311 项）、`git diff --check`
+- 测试结果：311/311 全通过（285 基线 + 26 专项），无空白冲突
+- 核心变更：
+  1. 视觉刀面纹理填充 0.28→0.08，网格 0.20→0.22，边框 0.65→0.25，材质透明度 0.82→1.0
+  2. 新增 `computeCutPlaneVisualSize(bounds, 1.25)` 包围盒自适应尺寸
+  3. 新增 `resizeCutPlaneVisual(visual, targetSize)` 等比缩放
+  4. 模型切换/尺寸变更时自动调整刀面尺寸
+  5. "显示/隐藏视觉刀面"checkbox，隐藏不影响数学平面和蓝色截面
+  6. 26 项专项测试：尺寸计算、缩放语义、数学平面隔离、策略回归
+- 任务提交：待提交
+- 已推送远端：待推送
+- 遗留风险：
+  1. headless 环境无法生成浏览器截图和录屏，需回审 Agent 人工验收
+  2. 不修改受保护文件，已通过回归测试确认未破坏截面算法
+- 建议下一任务：等待主协调 Agent 回审；回审通过后继续 CUT-FIX-005
+- 明确声明：未合并、未开始 CUT-FIX-005
+
+## 2026-06-30 · Senior Developer 接力 · CUT-FIX-004 P1 回审修正
+
+- 分支：`feature/spatial-geometry-cutfix004-agent`（同上 worktree）
+- 基线提交：`9ab3b8d`（冻结标签 `cutfix004-handoff-v1`）
+- 响应：回审未通过 `222b2e9`，两个 P1 缺陷 + 文档和截图不足
+- P1-1 修正：`computeCutPlaneVisualSize(bounds, planeNormal, scaleFactor)` — 三维顶点投影算法
+  - 修正前：仅取 XZ 世界坐标跨度，高窄长方体倾斜 45° 丢失 Y 分量
+  - 修正后：构建切面局部正交基 (u,v)，包围盒 8 顶点完整投影，max(u,v) 跨度
+- P1-2 修正：显隐状态一致性
+  - 自由切割模式切换：`visual.visible = true` → `visual.visible = cutplaneVisualToggle.checked`
+  - 题目三点锁定：`visual.visible = true` → `visual.visible = cutplaneVisualToggle.checked`
+  - 切面倾斜/三点锁定后同步更新视觉刀面尺寸
+- 测试扩增：+12 项（高窄长方体倾斜、双轴 45°、模式切换显隐保持）
+- 测试结果：320/320 全通过（285 基线 + 35 专项）
+- 浏览器证据：5 张 Playwright 截图 + 1 段连续操作录屏（headless Chromium）
+- 修正文件：`geometry/cutting-plane.js`、`geometry.html`、`tests/cut-fix-004.test.mjs`、`CURRENT_STATUS.md`
+- 任务提交：amend `222b2e9` → `a6e8a5e`，force-with-lease 推送
+- 遗留风险：视觉刀面位置仍锚定于切面原点（非模型中心），对大偏移模型需增大 scaleFactor
+- 明确声明：未合并、未开始 CUT-FIX-005
+
+## 2026-06-30 · Senior Developer 接力 · CUT-FIX-004 视觉中心同步修正
+
+- 分支：`feature/spatial-geometry-cutfix004-agent`（同上 worktree）
+- 响应：轻量回审——刀面尺寸正确但缺少视觉中心同步
+- 新增 `computeCutPlaneVisualCenter(bounds, planeNormal)`：投影 8 顶点到切面 (u,v) 坐标，取中值转回世界坐标，同步 `visual.position`
+- 测试扩增：+5 项（原点正方体中心、非原点长方体中心、倾斜切面中心、null/非法返回 null）
+- 测试结果：325/325 全通过（320 基线 + 5 专项）
+- 任务提交：amend `a6e8a5e` → `2ee4cdf`，force-with-lease 推送
+- 遗留风险：中心计算未加切面法向位移，滑块移动后视觉刀面可能停留在原点平面
+- 明确声明：未合并、未开始 CUT-FIX-005
+
+## 2026-06-30 · Senior Developer 接力 · CUT-FIX-004 法向位移修正
+
+- 分支：`feature/spatial-geometry-cutfix004-agent`（同上 worktree）
+- 响应：数学错误——中心计算未加切面沿法向量的 offset，滑块移动后刀面偏离
+- 修正：`computeCutPlaneVisualCenter` 新增第三参数 `planeOrConstant`（接收 `THREE.Plane` 或数值），投影中心后追加 `normal * (-planeConstant)`；调用处传入实际数学平面
+- 测试扩增：+4 项（非零 offset 位移、`plane.distanceToPoint(center) ≈ 0`、传入 THREE.Plane 实例、offset=0 向后兼容）
+- 测试结果：329/329 全通过（325 基线 + 4 专项）
+- 修正文件：`geometry/cutting-plane.js`、`geometry.html`、`tests/cut-fix-004.test.mjs`
+- 任务提交：amend `2ee4cdf` → `24d2e35`，force-with-lease 推送
+- 最终状态：
+  - 提交：`24d2e35`
+  - 测试：329/329（285 基线 + 44 CUT-FIX-004 专项）
+  - 截图 5 张 + 录屏 1 段（`output/`）
+  - 两个 P1（尺寸不足 + 显隐覆盖）及中心同步、非零 offset 均修复
+  - `CURRENT_STATUS.md` 和 `TASKS.md` 已更新为最终事实
+- 遗留风险：无
+- 下一步：等待主协调 Agent 最终回审并合并到纠偏基线
+- 明确声明：未合并、未开始 CUT-FIX-005
