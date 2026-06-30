@@ -11,6 +11,7 @@ import {
 } from "../geometry/plane-intersections.js";
 import { createSectionVisual } from "../geometry/section-visual.js";
 import { createCutawayVisual } from "../geometry/cutaway-visual.js";
+import { projectSectionTo2D, svgPointString } from "../geometry/section-2d.js";
 
 const X_ZERO_PLANE = new THREE.Plane(new THREE.Vector3(1, 0, 0), 0);
 
@@ -281,4 +282,46 @@ test("cutaway visual updates the shared reverse plane without rebuilding its gho
   assert.equal(visual.reversePlane.constant, 0.4);
   assert.throws(() => visual.setMode("unsupported"), /unsupported cutaway mode/);
   visual.dispose();
+});
+
+test("2D section projection preserves aspect ratio and viewport padding", () => {
+  const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+  const polygon = orderAndCloseSection(
+    [
+      vector(-2, -1, 0),
+      vector(2, -1, 0),
+      vector(2, 1, 0),
+      vector(-2, 1, 0),
+    ],
+    plane,
+  );
+  const projected = projectSectionTo2D(polygon, {
+    width: 220,
+    height: 160,
+    padding: 20,
+  });
+
+  assert.equal(projected.status, "polygon");
+  assert.equal(projected.points.length, 4);
+  assert.equal(projected.closedPoints.length, 5);
+  assert.ok(projected.points.every(({ x, y }) => (
+    x >= 20 && x <= 200 && y >= 20 && y <= 140
+  )));
+  const screenWidth = Math.max(...projected.points.map(({ x }) => x)
+    ) - Math.min(...projected.points.map(({ x }) => x));
+  const screenHeight = Math.max(...projected.points.map(({ y }) => y)
+    ) - Math.min(...projected.points.map(({ y }) => y));
+  assert.equal(screenWidth / screenHeight, 2);
+});
+
+test("2D projection reports empty input and serializes SVG points deterministically", () => {
+  assert.deepEqual(projectSectionTo2D(null), {
+    status: "empty",
+    points: [],
+    closedPoints: [],
+  });
+  assert.equal(
+    svgPointString([{ x: 1 / 3, y: 2 / 3 }, { x: 10, y: 20 }]),
+    "0.33,0.67 10.00,20.00",
+  );
 });

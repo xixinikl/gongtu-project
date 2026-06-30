@@ -345,6 +345,41 @@
       cursor: pointer;
     }
 
+    .section-2d-card {
+      position: absolute;
+      right: 16px;
+      bottom: 58px;
+      z-index: 3;
+      width: min(220px, calc(100% - 32px));
+      padding: 10px;
+      border: 1px solid rgba(193, 82, 59, 0.28);
+      border-radius: 14px;
+      background: rgba(255, 253, 248, 0.94);
+      box-shadow: 0 12px 36px rgba(63, 47, 28, 0.14);
+      backdrop-filter: blur(10px);
+    }
+
+    .section-2d-card[hidden] {
+      display: none;
+    }
+
+    .section-2d-card strong,
+    .section-2d-card small {
+      display: block;
+    }
+
+    .section-2d-card small {
+      margin-top: 2px;
+      color: var(--ink-soft);
+    }
+
+    .section-2d-card svg {
+      width: 100%;
+      height: auto;
+      margin-top: 6px;
+      display: block;
+    }
+
     .live-section-card {
       position: absolute;
       left: 16px;
@@ -697,7 +732,15 @@
         </div>
         <div class="viewport-tools" aria-label="视图工具">
           <button class="tool-button" type="button" aria-label="复位视角">↺</button>
+          <button class="tool-button" type="button" aria-label="切换二维截面辅助图" aria-pressed="false">2D</button>
           <button class="tool-button" type="button" aria-label="切换全屏">⛶</button>
+        </div>
+        <div class="section-2d-card" id="section2dCard" aria-label="二维截面辅助图" hidden>
+          <strong>二维截面辅助</strong>
+          <small id="section2dMeta">暂无有效截面</small>
+          <svg viewBox="0 0 220 160" role="img" aria-label="当前截面二维轮廓">
+            <polygon id="section2dPolygon" fill="rgba(242,184,75,.48)" stroke="#c1523b" stroke-width="3" vector-effect="non-scaling-stroke"></polygon>
+          </svg>
         </div>
         <div class="live-section-card" aria-label="实时截面状态">
           <span>LIVE SECTION</span>
@@ -813,6 +856,7 @@
     } from "/geometry/plane-intersections.js";
     import { createSectionVisual } from "/geometry/section-visual.js";
     import { createCutawayVisual } from "/geometry/cutaway-visual.js";
+    import { projectSectionTo2D, svgPointString } from "/geometry/section-2d.js";
 
     /* ── 每个模型类型对应的参数控件定义 ── */
     const PARAM_DEFS = {
@@ -869,6 +913,12 @@
     const cutawayModeButtons = document.querySelectorAll(
       '[aria-label="被切侧显示"] [data-cutaway-mode]',
     );
+    const section2dToggle = document.querySelector(
+      'button[aria-label="切换二维截面辅助图"]',
+    );
+    const section2dCard = document.getElementById("section2dCard");
+    const section2dPolygon = document.getElementById("section2dPolygon");
+    const section2dMeta = document.getElementById("section2dMeta");
     let cutModeLocked = false;
 
     /* ── 状态 ── */
@@ -880,6 +930,8 @@
     let sectionVisual = null;
     let cutawayVisual = null;
     let cutawayMode = "hidden";
+    let latestSectionPolygon = null;
+    let section2dVisible = false;
 
     /* 从 PARAM_DEFS 初始化各模型类型的默认参数 */
     function initParamValues() {
@@ -1032,12 +1084,35 @@
     }
 
     function clearSectionVisual(status = "empty") {
+      latestSectionPolygon = null;
       ensureSectionVisual()?.clear();
       const canvas = document.querySelector("#geometryCanvas");
       if (canvas) {
         canvas.dataset.sectionStatus = status;
         canvas.dataset.sectionVertexCount = "0";
         canvas.dataset.sectionArea = "0";
+      }
+      renderSection2D();
+    }
+
+    function renderSection2D() {
+      const projected = projectSectionTo2D(latestSectionPolygon);
+      if (section2dPolygon) {
+        section2dPolygon.setAttribute(
+          "points",
+          projected.status === "polygon" ? svgPointString(projected.points) : "",
+        );
+      }
+      if (section2dMeta) {
+        section2dMeta.textContent = latestSectionPolygon?.status === "polygon"
+          ? `${latestSectionPolygon.points.length} 个顶点 · 面积 ${latestSectionPolygon.signedArea.toFixed(3)}`
+          : "暂无有效截面";
+      }
+      if (section2dCard) section2dCard.hidden = !section2dVisible;
+      const canvas = document.querySelector("#geometryCanvas");
+      if (canvas) {
+        canvas.dataset.section2dVisible = String(section2dVisible);
+        canvas.dataset.section2dStatus = projected.status;
       }
     }
 
@@ -1057,7 +1132,9 @@
           clearSectionVisual(polygon.reason);
           return;
         }
+        latestSectionPolygon = polygon;
         ensureSectionVisual().update(polygon);
+        renderSection2D();
         const canvas = document.querySelector("#geometryCanvas");
         if (canvas) {
           canvas.dataset.sectionStatus = "visible";
@@ -1208,6 +1285,12 @@
         });
         syncCutawayVisual();
       });
+    });
+
+    section2dToggle?.addEventListener("click", () => {
+      section2dVisible = !section2dVisible;
+      section2dToggle.setAttribute("aria-pressed", String(section2dVisible));
+      renderSection2D();
     });
 
     /* ── 切割模式切换：自由切割 ↔ 题目三点锁定 ── */
