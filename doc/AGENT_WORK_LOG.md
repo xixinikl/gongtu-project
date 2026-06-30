@@ -555,3 +555,13 @@
 - 冻结标签：`cutfix006a-handoff-v1`
 - 授权分支：`feature/spatial-geometry-cutfix006a-agent`
 - 停止点：完成入口与冒烟证据后停止，不开始 CUT-FIX-006
+## 2026-07-01 · 主协调 Agent · SEC2-000
+
+- 任务：`docs: 重构凹截面算法任务链`
+- 用户纠偏：当前效果与参考实现差距较大，先拆小任务再分别派发
+- 参考材料：`/Users/xixi/Desktop/给codex看/`
+- 根因：无序交点加极角排序无法恢复凹截面拓扑；Earcut 无法修复错误边界
+- 技术决策：三角面切片、线段归一化、邻接图轮廓、拓扑三角化、稳定视觉更新
+- 实验留档：`cutfix006a-experimental-do-not-merge-v1`，禁止合并
+- 任务拆分：SEC2-001 至 SEC2-009；UX2-001 至 UX2-003
+- 下一步：先派 SEC2-001；UX2-001 可在独立分支并行
