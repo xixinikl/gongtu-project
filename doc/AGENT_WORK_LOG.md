@@ -309,3 +309,16 @@
 - 已推送远端：提交后立即推送
 - 遗留风险：headless Chromium 偶发 WebGL shader 环境错误（非业务算法故障）；顶点列表不支持选中/复制
 - 建议下一任务：`CUT-011 test: 验证立方体典型切面`
+
+## 2026-06-30 · Agent 2 · CUT-011
+
+- 分支：`feature/spatial-geometry-cut011-agent`（从 `feature/spatial-geometry-lab` @ `0a940fd` 创建）
+- 基线提交：`0a940fd`
+- 完成任务：`test: 验证立方体典型切面`
+- 修改的交付文件：`tests/cube-sections.test.mjs`（新增）
+- 执行的测试：`node --check` 语法检查、`npm run deps:check`、`npm run test:geometry`（154 项）、`git diff --check`
+- 测试结果：154/154 全部通过，覆盖正方形(4)、三角形(3)、正六边形(6)、五边形(5)、矩形偏移、无截面空状态、棱线计数、边长一致性
+- 任务提交：本任务所在提交
+- 已推送远端：提交后立即推送
+- 遗留风险：无；本任务仅新增测试，未修改业务代码
+- 建议下一任务：`CUT-012 test: 验证柱锥体典型切面`

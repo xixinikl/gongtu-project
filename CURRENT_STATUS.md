@@ -1,54 +1,51 @@
 # 当前开发状态
 
 更新时间：2026-06-30
-当前分支：`feature/spatial-geometry-lab`
+当前分支：`feature/spatial-geometry-cut011-agent`（从 `feature/spatial-geometry-lab` 的 `0a940fd` 创建）
 当前里程碑：M2 无限切平面与精确截面
 
 ## 当前任务
 
 - 状态：● 已完成
-- 编号：CUT-010
-- 任务：`feat: 建立截面边数面积与顶点信息`
+- 编号：CUT-011
+- 任务：`test: 验证立方体典型切面`
 
 ## 刚刚完成了什么
 
-1. 新增 `geometry/section-metrics.js`，从截面多边形计算边数、精确投影面积、周长（含闭合边）和有序三维顶点坐标。
-2. 在 `geometry.html` UI 面板实时展示边数、面积、周长和 P1…Pn 顶点列表。
-3. 无有效截面时显示"暂无有效截面"，旧顶点不残留。
-4. Canvas 暴露 `data-section-edge-count`、`data-section-perimeter` 和 `data-section-vertices-json` 状态。
-5. 数字格式化稳定，消除 `-0.000`。
-6. 390px 窄屏顶点列表可滚动，页面无横向溢出。
+1. 在 `tests/cube-sections.test.mjs` 中新增 8 项立方体典型切面验证测试。
+2. 覆盖正方体、三角形、正六边形、五边形、矩形偏移、无截面空状态、棱线计数和边长一致性。
+3. 所有测试通过正确的三维平面与多面体边求交→排序闭合→截面度量计算流水线进行端到端验证。
+4. 全部 154/154 JavaScript 测试通过。
 
 ## 本任务修改文件
 
-- `geometry/section-metrics.js`（新增）
-- `geometry.html`
-- `tests/section-metrics.test.mjs`（新增）
+- `tests/cube-sections.test.mjs`（新增）
 - `TASKS.md`
 - `CURRENT_STATUS.md`
 - `doc/AGENT_WORK_LOG.md`
 
 ## 验收记录
 
-- 已通过：146/146 JavaScript 测试（`npm run test:geometry`）。
-- 已通过：JavaScript 语法检查（`find geometry -name '*.js' -print0 | xargs -0 -n1 node --check`）。
-- 已通过：Git 差异无空白错误（`git diff --check`）。
-- 已通过：依赖树完整（`npm run deps:check`）。
-- 已通过：浏览器切面倾斜时边数/面积/周长实时更新。
-- 已通过：切面离开模型后显示"暂无有效截面"。
-- 已通过：390px 窄屏顶点列表可滚动，无横向溢出。
+- 已通过：正方形截面（4 边，面积 1，周长 4）。
+- 已通过：三角形截面（3 边，等边，面积 √3/2）。
+- 已通过：正六边形截面（6 边，边长一致 √2/2）。
+- 已通过：五边形截面（5 边，x+2y+0.5z=0.5）。
+- 已通过：矩形偏移（z=0.25，面积 1）。
+- 已通过：平面在立方体外返回空（0 交点）。
+- 已通过：立方体棱线数正好 12。
+- 已通过：正六边形所有边长一致。
+- 已通过：154/154 JavaScript 测试，语法检查、依赖树检查和 Git 差异检查。
 - 待执行：提交推送并等待远端 CI。
 
 ## 下一步
 
-远端 CI 全绿后执行 CUT-011：`test: 验证立方体典型切面`。
+远端 CI 全绿后执行 CUT-012：`test: 验证柱锥体典型切面`。
 
 ## 已知问题
 
-- headless Chromium 测试环境偶发 WebGL shader 环境错误，非本次业务算法故障。
-- 顶点列表仅展示而不支持选中/复制，属于以后 UX 增强。
+- 无；本任务仅编写测试，未修改业务代码。
 
 ## 提交与远端
 
-- 提交：本文件所在提交，信息为 `feat: 建立截面边数面积与顶点信息`
-- 推送：提交后立即推送至 `origin/feature/spatial-geometry-lab`
+- 提交：本文件所在提交，信息为 `test: 验证立方体典型切面`
+- 推送：提交后立即推送至 `origin/feature/spatial-geometry-cut011-agent`
