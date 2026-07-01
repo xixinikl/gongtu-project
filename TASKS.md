@@ -8,10 +8,10 @@
 | 项目 | 当前结果 |
 |---|---|
 | 当前阶段 | M4 参数化题库与管理工具 |
-| 已完成 | 82 项 |
+| 已完成 | 83 项 |
 | 进行中 | 0 项 |
-| 下一项 | QDB-001 定义 Geometry JSON 版本一协议 |
-| 冻结基线 | `section-engine-v2-com009-verified` |
+| 下一项 | QDB-002 建立 Geometry JSON Schema 校验 |
+| 冻结基线 | `section-engine-v2-qdb001-verified` |
 
 ## 里程碑
 
@@ -517,7 +517,10 @@
 
 ## M4：参数化题库与管理工具
 
-- [ ] ○ QDB-001 docs: 定义 Geometry JSON 版本一协议
+- [x] ● QDB-001 docs: 定义 Geometry JSON 版本一协议
+  - 交付文件：`spec/geometry-json-v1.md`
+  - 内容：version、id、type、positions、appearance、grid、cutPlane、question 8 个字段定义
+  - 含约束验证规则、4 个完整示例、BlockArray 互转、未来版本扩展点
 - [ ] ○ QDB-002 feat: 建立 Geometry JSON Schema 校验
 - [ ] ○ QDB-003 test: 验证合法和非法模型协议
 - [ ] ○ QDB-004 feat: 建立空间几何题库数据表
