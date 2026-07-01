@@ -1,49 +1,60 @@
 # 当前开发状态
 
 更新时间：2026-07-01
-当前分支：`feature/spatial-geometry-cutfix-plan`
+当前分支：`feature/spatial-geometry-sec2-005-agent`（隔离分支）
+基准标签：`section-engine-v2-sec2-004-handoff-v1`
 当前里程碑：M2 截面引擎 V2 纠偏
 
 ## 当前任务
 
 - 状态：● 已完成
-- 编号：SEC2-004A
-- 任务：`docs: 冻结 SEC2-005 接力基线`
+- 编号：SEC2-005
+- 任务：`feat: 建立截面轮廓拓扑与三角化`
 
-## 当前稳定成果
+## 本次成果
 
-- SEC2-001：10 个独立推导黄金样例。
-- SEC2-002：单三角面输出零或一条规范截面线段。
-- SEC2-003：端点归一化，清除零长与双向重复边。
-- SEC2-004：沿真实邻接边链接凹环、阶梯环和多个闭环。
-- UX2-001：页面滚轮已释放，保留旋转并增加按钮缩放。
-- SEC2-005 专用接力手册：`doc/SECTION_ENGINE_V2_HANDOFF.md`。
+- `geometry/section-contour-topology.js`：358行，二维投影 + 外环/孔洞拓扑
+  - 确定性正交基选择（选法向量最不平行世界轴 × 法向量，u×v=n）
+  - 鞋带有符号面积判断 CCW/CW，外环强制 CCW，孔洞强制 CW
+  - centroid 射线投射法建立父子归属，depth 偶数 = outer，奇数 = hole
+  - 洞中岛（depth 2）成为独立 polygon group
+  - 环自交/相交/相触、degenerate 零面积、离面点均明确拒绝
+- `geometry/section-triangulation.js`：213行，ShapeUtils.triangulateShape（内部 Earcut）
+  - 使用 Vector2[] 输入，[[i0,i1,i2]] 输出，展平为全局索引
+  - 外环顶点先于孔洞展平，本地索引 + vertexStart 映射
+  - 面积极守恒、退化三角形、索引范围三重验证
+- `tests/section-triangulation.test.mjs`：695行，29项测试
 
-## 最新验收证据
+## 验收证据
 
-- SEC2-004 聚焦测试：26/26 通过。
-- `npm run test:geometry`：411/411 通过。
-- `node --check geometry/section-contour-builder.js`：通过。
-- `git diff --check`：通过。
-- 主协调回审补充了非法 `triangleIds` 拒绝契约。
+- 聚焦测试 `--test tests/section-triangulation.test.mjs`：**29/29 通过**
+- 全量 `npm run test:geometry`：**440/440 通过**（411 基线 + 29 新增）
+- `node --check`：全部 3 个文件通过
+- `git diff --check`：通过
 
-## 冻结与远端
+## 关键设计决策
 
-- SEC2-004 集成提交：`51f07dc`
-- 新冻结标签：`section-engine-v2-sec2-004-handoff-v1`
-- 上一冻结标签全部保留不动。
-- 本状态与 SEC2-005 接力手册位于新标签指向的提交。
+- 二维基选择：和法向量最不平行的世界轴 × n → u，n × u → v（确定性）
+- 洞中岛成为独立 polygon group，holes2D = []，由三角化单独处理
+- 环相触/相交在拓扑阶段立即拒绝，不交由 Earcut 静默消化
+- 点在边界检测在 centroid 射线投射中同样被拒绝
+
+## 尚未解决的数学边界
+
+- 整个三角面共面时 SEC2-002 不输出任意边（SEC2-002 契约）
+- 网格级共面面策略仍待后续集成明确
+- 生产页面仍使用旧截面路径，V2 尚未集成
 
 ## 下一步
 
-下一位 Agent 必须从新冻结标签建立隔离分支，只执行 SEC2-005：
-共享切面二维基、外环/孔洞/洞中岛拓扑和 ShapeUtils/Earcut 三角化。完成后停止等待回审。
+SEC2-006：建立稳定的多轮廓截面视觉。需复用 BufferGeometry、避免每帧 dispose/new，实现脏标记和空截面不闪烁。
 
-## 关键注意事项
+## 声明
 
-- SEC2-005 只接受 SEC2-004 的成功闭环，不重新链接或排序边。
-- 同一次截面的所有环必须共享同一二维 basis。
-- 点在边界、环相交、相触、自交必须在三角化前明确拒绝。
-- 外环为 CCW、孔洞为 CW；嵌套深度偶数是 outer，奇数是 hole。
-- 不修改页面、视觉和生产路径；这些属于 SEC2-006 以后。
-- 禁止合并 `cutfix006a-experimental-do-not-merge-v1`。
+- ✅ 未合并任何分支
+- ✅ 未开始 SEC2-006
+- ✅ 未修改生产页面
+- ✅ 未使用质心极角排序
+- ✅ 未重新链接线段或重新聚类端点
+- ✅ 未合并 `cutfix006a-experimental-do-not-merge-v1`
+- 临时 node_modules 符号链接：存在于工作树（gitignored）

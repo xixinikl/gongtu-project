@@ -8,9 +8,9 @@
 | 项目 | 当前结果 |
 |---|---|
 | 当前阶段 | M2 实时截面教学体验纠偏 |
-| 已完成 | 68 项 |
+| 已完成 | 69 项 |
 | 进行中 | 0 项 |
-| 下一项 | SEC2-005 建立截面轮廓拓扑与三角化 |
+| 下一项 | SEC2-006 建立稳定的多轮廓截面视觉 |
 | 冻结基线 | `section-engine-v2-plan-v1` |
 
 ## 里程碑
@@ -414,8 +414,24 @@
   - 结果：接力手册已固定共享二维基、父环深度奇偶、洞中岛分组、ShapeUtils/Earcut 全局索引和面积守恒
   - 冻结标签：`section-engine-v2-sec2-004-handoff-v1`
   - 提交：本任务所在提交
-- [ ] ○ SEC2-005 feat: 建立截面轮廓拓扑与三角化
+- [x] ● SEC2-005 feat: 建立截面轮廓拓扑与三角化
+  - 交付文件：`geometry/section-contour-topology.js`、`geometry/section-triangulation.js`、`tests/section-triangulation.test.mjs`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
   - 验收：外环/内环和 Earcut 索引正确，不依赖 DOM
+  - 结果：
+    - 二维投影使用共享确定性正交基 u,v（选法向量最不平行世界轴 × 法向量，u×v=n）
+    - 鞋带有符号面积判 CCW/CW，外环强制 CCW（positive），孔洞强制 CW（negative）
+    - 父环归属通过 centroid 射线投射法，depth 偶数 = outer，奇数 = hole
+    - 洞中岛（depth 2）成为独立 polygon group
+    - 环自交、环相交、环相触、degenerate 零面积均在拓扑阶段明确拒绝
+    - 点离面超 epsilon、非法 plane、非法 Vector3、非法 epsilon 全部抛出
+    - 三角化使用 THREE.ShapeUtils.triangulateShape（Vector2[] 输入，[[i0,i1,i2]] 输出）
+    - 外环顶点先于孔洞顶点展平，本地索引 + vertexStart 映射到全局
+    - 面积极守恒验证：三角面积和 = 外环面积 - 孔洞面积和
+    - 退化三角形检测、索引范围验证
+    - 专项 29/29 通过；全量 440/440 通过（411 基线 + 29 新增）
+    - `node --check` 全通过；`git diff --check` 通过
+  - 提交：本任务所在提交
 - [ ] ○ SEC2-006 feat: 建立稳定的多轮廓截面视觉
   - 验收：复用 BufferGeometry，相同数据跳过更新，空截面不闪烁
 - [ ] ○ SEC2-007 feat: 集成截面引擎 V2 影子模式
