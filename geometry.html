@@ -649,6 +649,7 @@
     @media (max-width: 1080px) {
       .workspace {
         grid-template-columns: minmax(210px, 250px) minmax(0, 1fr);
+        min-height: calc(100vh - 72px);
       }
 
       .controls {
@@ -664,6 +665,139 @@
         padding-left: 22px;
         border-top: 0;
         border-left: 1px solid var(--line);
+      }
+    }
+
+    @media (min-width: 1081px) {
+      .app-header {
+        min-height: 56px;
+        height: 56px;
+        padding-block: 7px;
+      }
+
+      .brand-mark {
+        width: 38px;
+        height: 38px;
+      }
+
+      .brand-copy span,
+      .header-actions .button:first-child {
+        display: none;
+      }
+
+      .workspace {
+        height: calc(100dvh - 56px);
+        min-height: 0;
+        padding: 12px;
+        grid-template-columns: minmax(210px, 240px) minmax(480px, 1fr) minmax(270px, 310px);
+        gap: 12px;
+        overflow: hidden;
+      }
+
+      .sidebar,
+      .controls {
+        min-height: 0;
+        padding: 14px;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        scrollbar-width: thin;
+      }
+
+      .controls {
+        align-self: stretch;
+      }
+
+      .sidebar h1 {
+        margin-bottom: 6px;
+        font-size: 24px;
+      }
+
+      .intro {
+        margin-bottom: 12px;
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .model-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px;
+      }
+
+      .model-button {
+        padding: 9px 10px;
+        font-size: 13px;
+      }
+
+      .stage-column {
+        min-height: 0;
+        grid-template-rows: 52px minmax(0, 1fr) 48px;
+        gap: 8px;
+      }
+
+      .stage-heading {
+        padding: 0 4px;
+        align-items: center;
+      }
+
+      .stage-heading .eyebrow,
+      .stage-heading h1 {
+        margin-bottom: 2px;
+      }
+
+      .stage-heading h1 {
+        font-size: 24px;
+      }
+
+      .viewport {
+        min-height: 0;
+      }
+
+      .view-strip {
+        padding: 6px;
+        gap: 4px;
+      }
+
+      .view-button {
+        padding: 6px 4px;
+      }
+
+      .controls h2 {
+        margin-bottom: 10px;
+      }
+
+      .control-section + .control-section {
+        margin-top: 14px;
+        padding-top: 14px;
+      }
+
+      .field {
+        gap: 5px;
+        margin-bottom: 10px;
+      }
+
+      .section-placeholder {
+        padding: 7px;
+        gap: 4px;
+      }
+
+      .mode-button {
+        min-height: 34px;
+        padding: 6px 8px;
+        font-size: 12px;
+      }
+
+      .cutaway-toggle {
+        margin: 8px 0 10px;
+      }
+
+      .cut-note {
+        margin-top: 8px;
+        line-height: 1.45;
+      }
+
+      .section-metrics {
+        margin-top: 10px;
+        padding: 10px;
       }
     }
 
