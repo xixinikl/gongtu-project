@@ -8,9 +8,9 @@
 | 项目 | 当前结果 |
 |---|---|
 | 当前阶段 | M2 实时截面教学体验纠偏 |
-| 已完成 | 76 项 |
+| 已完成 | 77 项 |
 | 进行中 | 0 项 |
-| 下一项 | CUT-FIX-007 录制实时截面体验验收视频 |
+| 下一项 | 关闭旧 CUT-FIX-006 阻塞项并恢复 COM-007 |
 | 冻结基线 | `section-engine-v2-plan-v1` |
 
 ## 里程碑
@@ -363,9 +363,17 @@
 - [ ] ⛔ CUT-FIX-006 test: 验证基础与阶梯组合体连续截面
   - 验收：正方体、圆柱、阶梯组合体覆盖进入、穿过、离开，以及平移、旋转和两轴倾斜
   - 阻塞：旧交点极角排序无法表达凹截面，由 SEC2 任务链取代
-- [ ] ⛔ CUT-FIX-007 test: 录制实时截面体验验收视频
+- [x] ● CUT-FIX-007 test: 录制实时截面体验验收视频
   - 验收：录屏逐项对照用户提供的 42 秒参考视频；用户可直接看到截面连续变化；通过后解除 COM-007 暂停
-  - 阻塞：必须先完成截面引擎 V2
+  - 结果：
+    - Playwright headless Chromium 录制脚本 `tests/cut-fix-007-recording.mjs`，4 个验证场景全部通过
+    - 场景1：默认教学模式保留完整模型（aria-pressed=teaching, 完整立方体可见）
+    - 场景2：切面从模型外进入(空截面)→连续穿过(蓝色截面实时更新)→离开(空截面)，14 步动画无闪烁
+    - 场景3：plane 模式画布纵向拖拽改变切面 offset → orbit 模式恢复视角旋转 → aria-pressed 状态正确
+    - 场景4：1280×720 页面 scrollHeight=720（一屏不滚动），3D Canvas/Section Metrics/Cutting Plane Title/Orbit/Plane 按钮全部首屏可见，section data 有效
+    - 截屏 7 张 + 录像 1 段 (webm)
+    - 全量测试 483/483 通过
+    - 提交：本任务所在提交
 - [x] ● SEC2-000 docs: 重构凹截面算法任务链
   - 交付文件：`doc/SECTION_ENGINE_V2_PLAN.md`
   - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`

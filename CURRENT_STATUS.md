@@ -2,47 +2,52 @@
 
 更新时间：2026-07-01
 当前分支：`feature/spatial-geometry-cutfix-plan`
-当前里程碑：M2 截面引擎 V2 与核心体验收口
+当前里程碑：M2 截面引擎 V2 与核心体验收口 — CUT-FIX-007 体验验收
 
 ## 当前任务
 
 - 状态：● 已完成
-- 编号：UX2-004
-- 任务：`docs: 冻结体验任务交接`
+- 编号：CUT-FIX-007
+- 任务：`test: 录制实时截面体验验收视频`
 
 ## 已冻结成果
 
 - SEC2-001～009：截面引擎 V2 完成，冻结标签 `section-engine-v2-sec2-009-handoff-v1`。
-- UX2-001：页面滚轮不再被 3D 视图劫持。
-- UX2-002：桌面首屏布局压缩，提交 `7e9afe2`，标签 `section-engine-v2-ux2-002-handoff-v1`。
-- UX2-003：orbit/plane 互斥状态机，提交 `9eb075a`，标签 `section-engine-v2-ux2-003-handoff-v1`。
+- UX2-001～003：滚轮劫持修复、首屏布局压缩、拖拽状态机。
+- UX2-004：体验任务交接，标签 `section-engine-v2-ux2-003-final-handoff-v1`。
+- CUT-FIX-007：参考视频体验验收通过。
 
-## 最终验收证据
+## CUT-FIX-007 验收证据
 
-- 全量 `npm run test:geometry`：483/483 通过。
-- 1280×720：页面不纵向滚动，3D 画布 682×524，实时状态和切面控制首屏可见。
-- 760×800：恢复自然页面滚动。
-- plane 手势：offset `-0.50 → -1.19`，camera 不变。
-- orbit 手势：camera 改变，offset 保持 `-1.19`。
-- locked + plane：camera 和 offset 均不变。
-- 工作树在交接提交后应保持干净。
+| 验证项 | 结果 |
+|---|:---|
+| 默认教学模式保留完整模型 | ✓ teaching 按钮激活，完整立方体 + 蓝色截面可见 |
+| 切面进入→穿过→离开无闪烁 | ✓ 14步动画，顶部/底部空截面，中间实时蓝色截面 |
+| orbit/plane 模式切换无冲突 | ✓ plane模式拖拽改变offset → orbit恢复旋转，状态正确 |
+| 页面构图一屏可见 | ✓ 1280×720 scrollHeight=720，全部控件首屏可见 |
+
+**输出文件** (`output/`)：
+- `cf7-00-full-recording-1280x720.webm` (1.4MB) — 完整操作录屏
+- `cf7-01-teaching-default.png` — 默认教学模式截图
+- `cf7-02-above-model.png` — 切面在模型上方（空截面）
+- `cf7-03-below-model.png` — 切面在模型下方（空截面）
+- `cf7-04-plane-drag.png` — plane 模式拖拽后
+- `cf7-05-orbit-restored.png` — orbit 恢复后
+- `cf7-06-full-layout-1280x720.png` — 1280×720 全屏布局
+- `cf7-07-narrow-layout.png` — 760×800 窄屏布局
+
+## 测试证据
+
+| 命令 | 结果 |
+|---|---|
+| `npm run test:geometry` | **483/483 通过** |
 
 ## 唯一下一项
 
-CUT-FIX-007：按用户提供的 42 秒参考视频录制实时截面体验验收视频。
-
-这一步难度中等，不再写新截面算法。重点验证：
-
-1. 默认教学模式保留完整模型。
-2. 切面从模型外进入、连续穿过、离开时蓝色截面肉眼无闪烁和残留。
-3. orbit/plane 模式切换清楚，不发生手势冲突。
-4. 页面构图、主要控件和实时状态在录屏中可见。
-
-通过视频验收后，再关闭旧 CUT-FIX-006 阻塞项并恢复 COM-007。
+关闭旧 CUT-FIX-006 / CUT-FIX-006A 阻塞项，恢复 COM-007 组合体体验。
 
 ## 禁止事项
 
 - 禁止重写 SEC2 算法或恢复质心极角排序。
 - 禁止合并 `cutfix006a-experimental-do-not-merge-v1`。
 - 禁止删除 `?sectionEngine=v1` 临时回退。
-- 禁止跳过 CUT-FIX-007 直接宣称体验验收完成。
