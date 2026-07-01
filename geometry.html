@@ -987,6 +987,32 @@
     .builder-footer button:hover {
       background: var(--paper-deep);
     }
+
+    .builder-presets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-bottom: 10px;
+    }
+
+    .builder-preset-btn {
+      padding: 3px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--panel);
+      color: var(--ink-soft);
+      cursor: pointer;
+      transition: background 0.12s, color 0.12s, border-color 0.12s;
+      white-space: nowrap;
+    }
+
+    .builder-preset-btn:hover {
+      background: var(--ink);
+      color: #fffaf0;
+      border-color: var(--ink);
+    }
   </style>
 </head>
 <body>
@@ -1111,6 +1137,7 @@
         <div id="builder-panel" class="builder-grid-panel" style="display:none">
           <div class="field-row"><span>Y 层选择</span></div>
           <div class="builder-layer-bar" id="builder-layer-bar"></div>
+          <div class="builder-presets" id="builder-presets"></div>
           <div class="builder-grid" id="builder-grid"></div>
           <div class="builder-footer">
             <span>方块数: <output id="builder-count">0</output> / 125</span>
@@ -1221,8 +1248,10 @@
       fillAll as builderFillAll,
       blockCount,
       getLayerGrid,
+      setPositions,
       GRID_RANGE,
     } from "/geometry/builder-5x5.js";
+    import { BLOCK_PRESETS } from "/geometry/block-presets.js";
     import {
       collectWorldEdges,
       intersectEdgesWithPlane,
@@ -1940,6 +1969,25 @@
           renderBuilderGrid();
         });
         layerBar.appendChild(btn);
+      }
+
+      /* 预设按钮 */
+      const presetsEl = document.getElementById("builder-presets");
+      if (presetsEl) {
+        presetsEl.innerHTML = "";
+        BLOCK_PRESETS.forEach((p) => {
+          const btn = document.createElement("button");
+          btn.className = "builder-preset-btn";
+          btn.type = "button";
+          btn.textContent = p.name;
+          btn.title = p.desc;
+          btn.addEventListener("click", () => {
+            setPositions(p.blocks);
+            placeModel();
+            renderBuilderGrid();
+          });
+          presetsEl.appendChild(btn);
+        });
       }
 
       /* 5×5 网格 */
