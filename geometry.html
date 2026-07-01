@@ -887,6 +887,104 @@
         grid-template-columns: repeat(3, 1fr);
       }
     }
+
+    /* ── 5×5×5 搭建器网格 ── */
+    .builder-grid-panel {
+      margin-top: 16px;
+    }
+
+    .builder-layer-bar {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .builder-layer-btn {
+      width: 34px;
+      height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .builder-layer-btn[aria-pressed="true"] {
+      background: var(--ink);
+      color: #fffaf0;
+      border-color: var(--ink);
+    }
+
+    .builder-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      grid-template-rows: repeat(5, 1fr);
+      gap: 3px;
+      margin-bottom: 10px;
+    }
+
+    .builder-cell {
+      aspect-ratio: 1;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: var(--panel);
+      cursor: pointer;
+      transition: background 0.12s, transform 0.12s;
+      padding: 0;
+    }
+
+    .builder-cell:hover {
+      transform: scale(1.08);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    }
+
+    .builder-cell.filled {
+      border-color: var(--gold);
+    }
+
+    .builder-cell.filled.layer-0 { background: #6baed6; }
+    .builder-cell.filled.layer-1 { background: #fd8d3c; }
+    .builder-cell.filled.layer-2 { background: #74c476; }
+    .builder-cell.filled.layer-3 { background: #9e9ac8; }
+    .builder-cell.filled.layer-4 { background: #f768a1; }
+
+    .builder-cell.empty {
+      background: transparent;
+      border-style: dashed;
+    }
+
+    .builder-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--ink-soft);
+    }
+
+    .builder-footer output {
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .builder-footer button {
+      padding: 4px 12px;
+      font-size: 12px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--panel);
+      color: var(--ink);
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+
+    .builder-footer button:hover {
+      background: var(--paper-deep);
+    }
   </style>
 </head>
 <body>
@@ -934,6 +1032,9 @@
         </button>
         <button class="model-button" type="button" aria-pressed="false">
           <span>阶梯组合体</span><span class="model-icon">⏌</span>
+        </button>
+        <button class="model-button" type="button" aria-pressed="false">
+          <span>5×5×5 搭建器</span><span class="model-icon">▦</span>
         </button>
       </nav>
     </aside>
@@ -1005,6 +1106,16 @@
         <p class="eyebrow">Object</p>
         <h2 id="model-settings-title">模型参数</h2>
         <div id="model-params"></div>
+        <div id="builder-panel" class="builder-grid-panel" style="display:none">
+          <div class="field-row"><span>Y 层选择</span></div>
+          <div class="builder-layer-bar" id="builder-layer-bar"></div>
+          <div class="builder-grid" id="builder-grid"></div>
+          <div class="builder-footer">
+            <span>方块数: <output id="builder-count">0</output> / 125</span>
+            <button id="builder-clear" type="button">清空</button>
+            <button id="builder-fill" type="button">填满</button>
+          </div>
+        </div>
         <label class="field">
           <span class="field-row"><span>颜色</span></span>
           <input type="color" value="#f5f1e8" aria-label="模型颜色" style="width:100%;height:34px;border:1px solid var(--color-border);border-radius:6px;cursor:pointer;">
@@ -1101,6 +1212,16 @@
     import { createSphere } from "/geometry/sphere-generator.js";
     import { createStaircaseModel } from "/geometry/staircase-fixture.js";
     import {
+      createBuilderModel,
+      toggleBlock,
+      hasBlock,
+      clearAll as builderClearAll,
+      fillAll as builderFillAll,
+      blockCount,
+      getLayerGrid,
+      GRID_RANGE,
+    } from "/geometry/builder-5x5.js";
+    import {
       collectWorldEdges,
       intersectEdgesWithPlane,
       orderAndCloseSection,
@@ -1161,6 +1282,7 @@
         heightSegments: { label: "纬线", min: 2, max: 64, step: 1, default: 16 },
       },
       staircase: {},
+      builder5x5: {},
     };
 
     /* ── DOM 引用 ── */
@@ -1380,6 +1502,8 @@
           return createSphere(p.radius ?? 0.5, p.widthSegments ?? 32, p.heightSegments ?? 16, appearance);
         case "staircase":
           return createStaircaseModel(appearance);
+        case "builder5x5":
+          return createBuilderModel();
         default:
           return createCube(1, appearance);
       }
@@ -1390,6 +1514,19 @@
       removeActiveModel();
       const model = buildModel();
       const bounds = new window.geometryLab.THREE.Box3().setFromObject(model);
+
+      /* 空模型（如搭建器清空后）跳过落位 */
+      if (bounds.isEmpty()) {
+        activeModel = model;
+        window.geometryLab.scene.add(model);
+        const canvas = document.getElementById("geometryCanvas");
+        if (canvas) {
+          canvas.dataset.activeModel = "empty";
+          canvas.dataset.activeModelBounds = "";
+        }
+        return;
+      }
+
       model.position.y += -1.5 - bounds.min.y;
 
       activeModel = model;
@@ -1695,6 +1832,28 @@
     /* ── 渲染当前模型类型的参数控件 ── */
     function renderParams() {
       if (!modelParamsEl) return;
+
+      /* 搭建器模式：显示网格面板，隐藏参数/颜色/透明度 */
+      const builderPanel = document.getElementById("builder-panel");
+      const colorField = colorInput?.closest(".field");
+      const opacityField = opacitySlider?.closest(".field");
+
+      if (currentType === "builder5x5") {
+        modelParamsEl.innerHTML = "";
+        modelParamsEl.style.display = "none";
+        if (builderPanel) builderPanel.style.display = "block";
+        if (colorField) colorField.style.display = "none";
+        if (opacityField) opacityField.style.display = "none";
+        renderBuilderGrid();
+        return;
+      }
+
+      /* 非搭建器：显示参数面板，隐藏搭建器 */
+      modelParamsEl.style.display = "block";
+      if (builderPanel) builderPanel.style.display = "none";
+      if (colorField) colorField.style.display = "";
+      if (opacityField) opacityField.style.display = "";
+
       const defs = PARAM_DEFS[currentType];
       if (!defs) return;
       const p = paramValues[currentType] || {};
@@ -1748,12 +1907,79 @@
           "圆锥": "cone",
           "球体": "sphere",
           "阶梯组合体": "staircase",
+          "5×5×5 搭建器": "builder5x5",
         };
         if (!map[label]) return;
         currentType = map[label];
         renderParams();
         placeModel();
       });
+    });
+
+    /* ── 5×5×5 搭建器网格交互 ── */
+    let builderCurrentLayer = 0;
+
+    function renderBuilderGrid() {
+      const layerBar = document.getElementById("builder-layer-bar");
+      const grid = document.getElementById("builder-grid");
+      const countEl = document.getElementById("builder-count");
+      if (!layerBar || !grid) return;
+
+      /* 层选择按钮 */
+      layerBar.innerHTML = "";
+      for (let y of GRID_RANGE) {
+        const btn = document.createElement("button");
+        btn.className = "builder-layer-btn";
+        btn.type = "button";
+        btn.textContent = `第${y + 1}层`;
+        btn.setAttribute("aria-pressed", y === builderCurrentLayer ? "true" : "false");
+        btn.addEventListener("click", () => {
+          builderCurrentLayer = y;
+          renderBuilderGrid();
+        });
+        layerBar.appendChild(btn);
+      }
+
+      /* 5×5 网格 */
+      grid.innerHTML = "";
+      const layerGrid = getLayerGrid(builderCurrentLayer);
+      for (let x of GRID_RANGE) {
+        for (let z of GRID_RANGE) {
+          const cell = document.createElement("button");
+          cell.className = "builder-cell";
+          cell.type = "button";
+          if (layerGrid[x][z]) {
+            cell.classList.add("filled", `layer-${builderCurrentLayer}`);
+            cell.setAttribute("aria-label", `已放置 (${x},${builderCurrentLayer},${z})`);
+          } else {
+            cell.classList.add("empty");
+            cell.setAttribute("aria-label", `空 (${x},${builderCurrentLayer},${z})`);
+          }
+          const cx = x, cz = z, cy = builderCurrentLayer;
+          cell.addEventListener("click", () => {
+            toggleBlock(cx, cy, cz);
+            placeModel();
+            renderBuilderGrid();
+          });
+          grid.appendChild(cell);
+        }
+      }
+
+      /* 方块数 */
+      if (countEl) countEl.textContent = String(blockCount());
+    }
+
+    /* 清空 / 填满按钮 */
+    document.getElementById("builder-clear")?.addEventListener("click", () => {
+      builderClearAll();
+      placeModel();
+      renderBuilderGrid();
+    });
+
+    document.getElementById("builder-fill")?.addEventListener("click", () => {
+      builderFillAll();
+      placeModel();
+      renderBuilderGrid();
     });
 
     /* ── 颜色与透明度 ── */
@@ -1932,7 +2158,7 @@
     /* ── 初始化：支持 URL hash 切换初始模型 ── */
     function applyHashModel() {
       const hash = window.location.hash?.replace("#", "");
-      const reverse = { cube: "正方体", box: "长方体", triangularPrism: "三棱柱", triangularPyramid: "三棱锥", cylinder: "圆柱", cone: "圆锥", sphere: "球体" };
+      const reverse = { cube: "正方体", box: "长方体", triangularPrism: "三棱柱", triangularPyramid: "三棱锥", cylinder: "圆柱", cone: "圆锥", sphere: "球体", staircase: "阶梯组合体", builder5x5: "5×5×5 搭建器" };
       if (reverse[hash]) {
         currentType = hash;
         modelButtons.forEach((b) => {
