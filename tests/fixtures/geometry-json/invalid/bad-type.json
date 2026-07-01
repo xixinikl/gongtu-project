@@ -1,0 +1,7 @@
+{
+  "version": "1.0",
+  "id": "bad-type",
+  "name": "类型错误",
+  "type": "parametric",
+  "positions": [[0,0,0]]
+}

@@ -1,0 +1,7 @@
+{
+  "version": "1.0",
+  "id": "minimal-cube",
+  "name": "单方块",
+  "type": "unitCubeArray",
+  "positions": [[2, 2, 2]]
+}

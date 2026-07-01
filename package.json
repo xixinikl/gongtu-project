@@ -13,6 +13,7 @@
     "test:geometry": "node --experimental-loader ./tests/three-absolute-loader.mjs --test ./tests/*.test.mjs"
   },
   "dependencies": {
+    "ajv": "^8.20.0",
     "three": "0.185.0",
     "three-bvh-csg": "0.0.18",
     "three-mesh-bvh": "0.9.10"

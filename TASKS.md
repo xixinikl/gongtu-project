@@ -8,10 +8,10 @@
 | 项目 | 当前结果 |
 |---|---|
 | 当前阶段 | M4 参数化题库与管理工具 |
-| 已完成 | 83 项 |
+| 已完成 | 85 项 |
 | 进行中 | 0 项 |
-| 下一项 | QDB-002 建立 Geometry JSON Schema 校验 |
-| 冻结基线 | `section-engine-v2-qdb001-verified` |
+| 下一项 | QDB-004 建立空间几何题库数据表 |
+| 冻结基线 | `section-engine-v2-qdb003-verified` |
 
 ## 里程碑
 
@@ -521,8 +521,12 @@
   - 交付文件：`spec/geometry-json-v1.md`
   - 内容：version、id、type、positions、appearance、grid、cutPlane、question 8 个字段定义
   - 含约束验证规则、4 个完整示例、BlockArray 互转、未来版本扩展点
-- [ ] ○ QDB-002 feat: 建立 Geometry JSON Schema 校验
-- [ ] ○ QDB-003 test: 验证合法和非法模型协议
+- [x] ● QDB-002 feat: 建立 Geometry JSON Schema 校验
+  - 交付文件：`spec/geometry-json-v1.schema.json`（Draft-07）、`geometry/geometry-json-validator.js`
+  - 功能：ajv 编译 + Schema 校验 + 网格范围业务校验
+- [x] ● QDB-003 test: 验证合法和非法模型协议
+  - 交付文件：`tests/geometry-json.test.mjs`（30 项）、`tests/fixtures/geometry-json/valid/`（5 个）、`tests/fixtures/geometry-json/invalid/`（9 个）
+  - 验收：524/524 全绿（+30 新增），0 回归
 - [ ] ○ QDB-004 feat: 建立空间几何题库数据表
 - [ ] ○ QDB-005 test: 验证题库迁移和回滚
 - [ ] ○ QDB-006 feat: 建立空间几何题目查询接口
