@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSG 立体截面 — 考公图推题型验证</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f0f1a;
+    --surface: #1a1a2e;
+    --surface2: #22223a;
+    --border: #2d2d50;
+    --text: #e0e6f0;
+    --text-muted: #7a7a9e;
+    --accent: #5dade2;
+    --accent2: #f39c12;
+    --danger: #e74c3c;
+    --success: #2ecc71;
+    --warn: #f1c40f;
+    --radius: 12px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ── Canvas ── */
+  #canvas-wrap {
+    flex: 1;
+    position: relative;
+    background: radial-gradient(ellipse at center, #141430 0%, #0a0a18 100%);
+    min-width: 0;
+  }
+  #canvas-wrap canvas { display: block; }
+
+  #loading-bar {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 16px;
+    background: rgba(15,15,26,0.9);
+    z-index: 10;
+    transition: opacity 0.4s;
+  }
+  #loading-bar.hidden { opacity: 0; pointer-events: none; }
+  #loading-bar .spinner {
+    width: 40px; height: 40px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #loading-bar .msg { font-size: 14px; color: var(--text-muted); }
+
+  #stats-bar {
+    position: absolute;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 20px;
+    font-size: 13px;
+    display: flex;
+    gap: 24px;
+    box-shadow: var(--shadow);
+    z-index: 5;
+  }
+  #stats-bar span { color: var(--text-muted); }
+  #stats-bar strong { color: var(--accent); font-weight: 600; margin-left: 4px; }
+
+  /* ── Panels ── */
+  #left-panel {
+    width: 320px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    flex-shrink: 0;
+  }
+  #left-panel .section {
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--border);
+  }
+  #left-panel .section:last-child { border-bottom: none; }
+  #left-panel h3 {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 10px;
+  }
+
+  .cat-label {
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 600;
+    margin: 10px 0 6px;
+    padding: 0 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .cat-label:first-child { margin-top: 0; }
+
+  .tpl-btn {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 13px;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 6px;
+  }
+  .tpl-btn:hover { border-color: var(--accent); background: #252545; }
+  .tpl-btn.active { border-color: var(--accent); background: rgba(93,173,226,0.12); }
+  .tpl-btn .tags { font-size: 10px; color: var(--accent2); margin-left: 6px; }
+
+  .param-row { margin-bottom: 12px; }
+  .param-row:last-child { margin-bottom: 0; }
+  .param-row label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+  .param-row label .val { color: var(--accent); font-weight: 600; }
+  .param-row input[type="range"] {
+    width: 100%;
+    -webkit-appearance: none;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    cursor: pointer;
+  }
+  .param-row input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--surface);
+  }
+
+  /* ── Right Panel (Section Data) ── */
+  #right-panel {
+    width: 280px;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 20px 18px;
+    gap: 16px;
+    flex-shrink: 0;
+    overflow-y: auto;
+  }
+  #right-panel h3 {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+
+  .data-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+  }
+  .data-card .row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 13px;
+  }
+  .data-card .row:not(:last-child) { border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .data-card .label { color: var(--text-muted); }
+  .data-card .value { font-weight: 600; color: var(--text); }
+  .data-card .value.ok { color: var(--success); }
+  .data-card .value.warn { color: var(--warn); }
+  .data-card .value.err { color: var(--danger); }
+
+  /* ── Cut Plane Toolbar ── */
+  #cut-toolbar {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: var(--shadow);
+    z-index: 5;
+  }
+  #cut-toolbar .axis-group {
+    display: flex;
+    gap: 4px;
+  }
+  #cut-toolbar .axis-btn {
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface2);
+    color: var(--text);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  #cut-toolbar .axis-btn:hover { border-color: var(--accent); }
+  #cut-toolbar .axis-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  #cut-toolbar .offset-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  #cut-toolbar .offset-label { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+  #cut-toolbar input[type="range"] {
+    width: 180px;
+    -webkit-appearance: none;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+  }
+  #cut-toolbar input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--accent2);
+    border: 2px solid var(--surface);
+  }
+  #cut-toolbar .offset-val {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent2);
+    min-width: 42px;
+    text-align: right;
+  }
+
+  .none-hint {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 20px 0;
+  }
+</style>
+</head>
+<body>
+
+<div id="canvas-wrap">
+  <canvas id="canvas"></canvas>
+  <div id="loading-bar">
+    <div class="spinner"></div>
+    <div class="msg">加载 Manifold WASM 引擎…</div>
+  </div>
+  <div id="stats-bar" style="display:none">
+    <span>三角面 <strong id="tri-count">—</strong></span>
+    <span>截面 <strong id="sec-status">—</strong></span>
+  </div>
+  <div id="cut-toolbar" style="display:none">
+    <span class="offset-label">切面轴</span>
+    <div class="axis-group" id="axis-group"></div>
+    <div class="offset-wrap">
+      <span class="offset-label">偏移</span>
+      <input type="range" id="cut-offset" min="-200" max="200" value="0" step="1">
+      <span class="offset-val" id="offset-val">0.00</span>
+    </div>
+  </div>
+</div>
+
+<div id="left-panel">
+  <div class="section">
+    <h3>📐 题型模板</h3>
+    <div id="template-list"></div>
+  </div>
+  <div class="section" id="params-section" style="display:none">
+    <h3>🎛️ 参数调节</h3>
+    <div id="params-panel"></div>
+  </div>
+</div>
+
+<div id="right-panel">
+  <h3>📊 截面数据</h3>
+  <div id="section-data">
+    <div class="none-hint">选择模板后自动计算</div>
+  </div>
+  <h3 style="margin-top:8px">🔄 管线状态</h3>
+  <div id="pipeline-data">
+    <div class="none-hint">等待首次计算…</div>
+  </div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "/node_modules/three/build/three.module.js",
+    "three/addons/": "/node_modules/three/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+  import * as THREE from 'three';
+  import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+  import {
+    initManifold, isReady, getTemplatesByCategory,
+    createCSGMesh, getTemplateIds, CSG_TEMPLATES,
+  } from '/geometry/csg-engine.js';
+
+  import { computeSectionV2, toSectionVisualV2Data } from '/geometry/section-engine-v2.js';
+  import { createSectionVisualV2 } from '/geometry/section-visual-v2.js';
+
+  // ── Scene Setup ──
+  const canvas = document.getElementById('canvas');
+  const loadingBar = document.getElementById('loading-bar');
+  const statsBar = document.getElementById('stats-bar');
+  const cutToolbar = document.getElementById('cut-toolbar');
+
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.0;
+
+  const scene = new THREE.Scene();
+
+  const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 50);
+  camera.position.set(4, 3.5, 5);
+  camera.lookAt(0, 0, 0);
+
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.target.set(0, 0, 0);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.08;
+  controls.minDistance = 2;
+  controls.maxDistance = 15;
+  controls.update();
+
+  // Lights
+  const ambientLight = new THREE.AmbientLight(0x334466, 0.8);
+  scene.add(ambientLight);
+  const keyLight = new THREE.DirectionalLight(0xffffff, 1.2);
+  keyLight.position.set(8, 12, 6);
+  keyLight.castShadow = true;
+  keyLight.shadow.mapSize.set(1024, 1024);
+  keyLight.shadow.camera.near = 0.5;
+  keyLight.shadow.camera.far = 50;
+  keyLight.shadow.camera.left = -10;
+  keyLight.shadow.camera.right = 10;
+  keyLight.shadow.camera.top = 10;
+  keyLight.shadow.camera.bottom = -10;
+  scene.add(keyLight);
+  const fillLight = new THREE.DirectionalLight(0x8899cc, 0.4);
+  fillLight.position.set(-4, 2, -2);
+  scene.add(fillLight);
+  const rimLight = new THREE.DirectionalLight(0xffffff, 0.3);
+  rimLight.position.set(0, -1, 6);
+  scene.add(rimLight);
+
+  // Grid
+  const gridHelper = new THREE.PolarGridHelper(6, 32, 24, 64, 0x2a2a4a, 0x1a1a2e);
+  scene.add(gridHelper);
+
+  // Cut plane visual (semi-transparent disk)
+  const cutPlaneGeo = new THREE.CircleGeometry(3, 64);
+  const cutPlaneMat = new THREE.MeshBasicMaterial({
+    color: 0xf39c12,
+    side: THREE.DoubleSide,
+    transparent: true,
+    opacity: 0.15,
+    depthWrite: false,
+  });
+  const cutPlaneMesh = new THREE.Mesh(cutPlaneGeo, cutPlaneMat);
+  cutPlaneMesh.visible = false;
+  scene.add(cutPlaneMesh);
+
+  // Model group (root for section engine)
+  const modelGroup = new THREE.Group();
+  scene.add(modelGroup);
+
+  // Section overlay group + singleton visual
+  const sectionGroup = new THREE.Group();
+  sectionGroup.visible = false;
+  scene.add(sectionGroup);
+  let sectionVisual = null;
+
+  function getOrCreateSectionVisual() {
+    if (!sectionVisual || sectionVisual.disposed) {
+      sectionVisual = createSectionVisualV2({
+        fillColor: 0x5dade2, outlineColor: 0x2e86c1, fillOpacity: 0.55,
+      });
+      sectionGroup.add(sectionVisual.group);
+    }
+    return sectionVisual;
+  }
+
+  function disposeSectionVisual() {
+    if (sectionVisual && !sectionVisual.disposed) {
+      sectionVisual.dispose();
+      while (sectionGroup.children.length > 0) sectionGroup.remove(sectionGroup.children[0]);
+      sectionVisual = null;
+    }
+  }
+
+  // ── State ──
+  let currentTemplate = 'cube-minus-cone';
+  let currentParams = {};
+  let currentModel = null;
+  let cutAxis = 'z';
+  let cutOffset = 0;
+
+  // ── Resize ──
+  function resize() {
+    const wrap = document.getElementById('canvas-wrap');
+    const w = wrap.clientWidth;
+    const h = wrap.clientHeight;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / Math.max(h, 1);
+    camera.updateProjectionMatrix();
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // ── Update cut plane visual ──
+  function updateCutPlaneVisual() {
+    const axisVec = { x: [1,0,0], y: [0,1,0], z: [0,0,1] }[cutAxis];
+    cutPlaneMesh.position.set(0, 0, 0);
+    cutPlaneMesh.position.x += axisVec[0] * cutOffset;
+    cutPlaneMesh.position.y += axisVec[1] * cutOffset;
+    cutPlaneMesh.position.z += axisVec[2] * cutOffset;
+    const q = new THREE.Quaternion();
+    if (cutAxis === 'x') q.setFromUnitVectors(new THREE.Vector3(0,0,1), new THREE.Vector3(1,0,0));
+    else if (cutAxis === 'y') q.setFromUnitVectors(new THREE.Vector3(0,0,1), new THREE.Vector3(0,1,0));
+    cutPlaneMesh.setRotationFromQuaternion(q);
+    cutPlaneMesh.visible = true;
+  }
+
+  // ── Compute section ──
+  function computeSection() {
+    const normalMap = { x: [1,0,0], y: [0,1,0], z: [0,0,1] };
+    const [nx, ny, nz] = normalMap[cutAxis];
+    const plane = new THREE.Plane(new THREE.Vector3(nx, ny, nz), -cutOffset);
+
+    // Update visual
+    disposeSectionVisual();
+
+    const result = computeSectionV2(modelGroup, plane, {});
+
+    // Update info panels
+    updateSectionData(result);
+    updatePipelineData(result);
+
+    if (result.status === 'ok' || result.status === 'empty') {
+      try {
+        const visData = toSectionVisualV2Data(result);
+        const vis = getOrCreateSectionVisual();
+        vis.update(visData);
+        sectionGroup.visible = result.status === 'ok';
+        document.getElementById('sec-status').textContent = result.status === 'ok' ? '✅ OK' : '○ 空';
+        document.getElementById('sec-status').style.color = result.status === 'ok' ? 'var(--success)' : 'var(--warn)';
+      } catch (e) {
+        console.error('Visual error:', e);
+        document.getElementById('sec-status').textContent = '⚠ 可视化失败';
+        document.getElementById('sec-status').style.color = 'var(--warn)';
+      }
+    } else {
+      sectionGroup.visible = false;
+      document.getElementById('sec-status').textContent = '❌ 错误';
+      document.getElementById('sec-status').style.color = 'var(--danger)';
+    }
+  }
+
+  // ── Update section data panel ──
+  function updateSectionData(result) {
+    const el = document.getElementById('section-data');
+    const diag = result.diagnostics || {};
+    let area = 0;
+
+    if (result.contourCount > 0 && result.triangulation?.vertices3D?.length > 0) {
+      area = result.area || 0;
+    }
+
+    el.innerHTML = `
+      <div class="data-card">
+        <div class="row"><span class="label">状态</span><span class="value ${result.status === 'ok' ? 'ok' : result.status === 'empty' ? 'warn' : 'err'}">${result.status}</span></div>
+        <div class="row"><span class="label">轮廓数</span><span class="value">${result.contourCount ?? 0}</span></div>
+        <div class="row"><span class="label">截面面积</span><span class="value">${area.toFixed(4)}</span></div>
+        ${result.topology?.groups ? `<div class="row"><span class="label">拓扑组</span><span class="value">${result.topology.groups.length}</span></div>` : ''}
+        ${result.triangulation?.indices ? `<div class="row"><span class="label">三角化索引</span><span class="value">${result.triangulation.indices.length}</span></div>` : ''}
+        ${result.stage ? `<div class="row"><span class="label">完成阶段</span><span class="value">${result.stage}</span></div>` : ''}
+      </div>
+    `;
+  }
+
+  function updatePipelineData(result) {
+    const d = result.diagnostics || {};
+    const rel = d.sliceRelations || {};
+    const el = document.getElementById('pipeline-data');
+    el.innerHTML = `
+      <div class="data-card">
+        <div class="row"><span class="label">Mesh 数量</span><span class="value">${d.meshCount ?? '—'}</span></div>
+        <div class="row"><span class="label">三角形总数</span><span class="value">${d.triangleCount ?? '—'}</span></div>
+        <div class="row"><span class="label">原始交线段</span><span class="value">${d.rawSegmentCount ?? '—'}</span></div>
+        <div class="row"><span class="label">归一化后</span><span class="value">${d.normalizedSegmentCount ?? '—'}</span></div>
+        <div class="row"><span class="label">被移除段</span><span class="value">${d.removedSegments ?? '—'}</span></div>
+        <div class="row"><span class="label">消耗边数</span><span class="value">${d.consumedSegmentCount ?? '—'}</span></div>
+      </div>
+    `;
+  }
+
+  // ── Build / Rebuild Model ──
+  async function rebuild() {
+    if (!isReady()) return;
+
+    // Clear old
+    if (currentModel) {
+      currentModel.geometry.dispose();
+      currentModel.material.dispose();
+      modelGroup.remove(currentModel);
+      currentModel = null;
+    }
+    if (sectionVisual) {
+      disposeSectionVisual();
+    }
+
+    try {
+      const { mesh, triangleCount } = createCSGMesh(currentTemplate, currentParams, THREE);
+      currentModel = mesh;
+      modelGroup.add(mesh);
+      document.getElementById('tri-count').textContent = triangleCount.toLocaleString();
+
+      // Recompute section
+      computeSection();
+    } catch (err) {
+      console.error('Build error:', err);
+      document.getElementById('tri-count').textContent = 'ERR';
+      document.getElementById('sec-status').textContent = '❌';
+      document.getElementById('sec-status').style.color = 'var(--danger)';
+    }
+  }
+
+  // ── Render loop ──
+  function animate() {
+    requestAnimationFrame(animate);
+    controls.update();
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  // ── Cut plane UI ──
+  function renderCutToolbar() {
+    const group = document.getElementById('axis-group');
+    group.innerHTML = '';
+    for (const ax of ['x', 'y', 'z']) {
+      const btn = document.createElement('button');
+      btn.className = 'axis-btn' + (ax === cutAxis ? ' active' : '');
+      btn.textContent = ax.toUpperCase() + '轴';
+      btn.addEventListener('click', () => {
+        cutAxis = ax;
+        cutOffset = 0;
+        document.getElementById('cut-offset').value = 0;
+        document.getElementById('offset-val').textContent = '0.00';
+        renderCutToolbar();
+        updateCutPlaneVisual();
+        computeSection();
+      });
+      group.appendChild(btn);
+    }
+    cutToolbar.style.display = 'flex';
+    updateCutPlaneVisual();
+  }
+
+  document.getElementById('cut-offset').addEventListener('input', (e) => {
+    const range = parseFloat(e.target.max) - parseFloat(e.target.min);
+    cutOffset = parseFloat(e.target.value) / 100 * (range / 100 * 4);
+    document.getElementById('offset-val').textContent = cutOffset.toFixed(2);
+    updateCutPlaneVisual();
+    computeSection();
+  });
+
+  // ── Template list ──
+  function renderTemplateList() {
+    const cats = getTemplatesByCategory();
+    const container = document.getElementById('template-list');
+    container.innerHTML = '';
+
+    for (const [cat, templates] of Object.entries(cats)) {
+      const label = document.createElement('div');
+      label.className = 'cat-label';
+      label.textContent = cat;
+      container.appendChild(label);
+
+      for (const tpl of templates) {
+        const btn = document.createElement('button');
+        btn.className = 'tpl-btn' + (tpl.id === currentTemplate ? ' active' : '');
+        btn.innerHTML = `${tpl.name}<span class="tags">${(tpl.tags || []).join(' ')}</span>`;
+        btn.addEventListener('click', () => {
+          currentTemplate = tpl.id;
+          currentParams = {};
+          renderTemplateList();
+          renderParams();
+          rebuild();
+        });
+        container.appendChild(btn);
+      }
+    }
+  }
+
+  // ── Params panel ──
+  function renderParams() {
+    const tpl = CSG_TEMPLATES[currentTemplate];
+    if (!tpl?.params || Object.keys(tpl.params).length === 0) {
+      document.getElementById('params-section').style.display = 'none';
+      return;
+    }
+    document.getElementById('params-section').style.display = '';
+    const panel = document.getElementById('params-panel');
+    panel.innerHTML = '';
+
+    for (const [key, spec] of Object.entries(tpl.params)) {
+      const val = currentParams[key] ?? spec.default;
+      const row = document.createElement('div');
+      row.className = 'param-row';
+      row.innerHTML = `
+        <label><span>${spec.label}</span><span class="val">${val}</span></label>
+        <input type="range" min="${spec.min}" max="${spec.max}" step="${spec.step}" value="${val}" data-key="${key}">
+      `;
+      const slider = row.querySelector('input');
+      slider.addEventListener('input', () => {
+        const v = parseFloat(slider.value);
+        currentParams[key] = v;
+        row.querySelector('.val').textContent = v;
+        rebuild();
+      });
+      panel.appendChild(row);
+    }
+  }
+
+  // ── Init ──
+  async function init() {
+    // Default params
+    const tpl = CSG_TEMPLATES[currentTemplate];
+    if (tpl?.params) {
+      for (const [k, s] of Object.entries(tpl.params)) currentParams[k] = s.default;
+    }
+
+    loadingBar.querySelector('.msg').textContent = '加载 Manifold WASM 引擎 (~1.5MB)…';
+    await initManifold();
+
+    loadingBar.querySelector('.msg').textContent = '构建 3D 模型…';
+    await rebuild();
+
+    loadingBar.classList.add('hidden');
+    statsBar.style.display = 'flex';
+    renderCutToolbar();
+    renderTemplateList();
+    renderParams();
+  }
+
+  init().catch(err => {
+    loadingBar.querySelector('.msg').textContent = '加载失败: ' + err.message;
+    console.error(err);
+  });
+</script>
+</body>
+</html>
