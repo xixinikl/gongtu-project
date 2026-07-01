@@ -11,7 +11,7 @@
 | 已完成 | 81 项 |
 | 进行中 | 0 项 |
 | 下一项 | COM-009 验证组合体切面固定样例
-| 冻结基线 | `section-engine-v2-com008-verified` (待创建) |
+| 冻结基线 | `section-engine-v2-com008-verified` |
 
 ## 里程碑
 
