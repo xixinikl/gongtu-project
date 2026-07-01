@@ -29,14 +29,16 @@ git diff
 
 ## 2. 当前冻结状态
 
-截面引擎 V2 的 SEC2-001～009 已依序完成。关键冻结点：
+截面引擎 V2 的 SEC2-001～009 与体验任务 UX2-001～003 已依序完成。关键冻结点：
 
 | 冻结标签 | 内容 |
 |---|---|
 | `section-engine-v2-plan-v1` | 原始施工图，提交 `b93ca9d` |
 | `section-engine-v2-sec2-007-handoff-v1` | V1/V2 影子比较，提交 `ca351cb` |
 | `section-engine-v2-sec2-008-handoff-v1` | V2 切换生产，提交 `4e18190` |
-| `section-engine-v2-sec2-009-handoff-v1` | 连续性终验，以 Git 标签为准 |
+| `section-engine-v2-sec2-009-handoff-v1` | 连续性终验，提交 `b3a92bc` |
+| `section-engine-v2-ux2-002-handoff-v1` | 首屏布局压缩，提交 `7e9afe2` |
+| `section-engine-v2-ux2-003-handoff-v1` | 交互状态机，提交 `9eb075a` |
 
 生产页面默认使用 V2。临时回退入口：
 
@@ -96,9 +98,25 @@ data-section-v2-status="ok|empty|error"
 data-section-v2-contour-count
 data-section-v2-area
 data-section-v2-error
+data-interaction-mode="orbit|plane"
+data-interaction-dragging="true|false"
+data-orbit-enabled="true|false"
 ```
 
-## 5. 已验证范围
+## 5. 视角与切面拖拽状态机
+
+`geometry/viewport-interaction-mode.js` 是唯一交互模式状态机：
+
+- `orbit`：OrbitControls enabled；画布拖拽只旋转相机。
+- `plane`：OrbitControls disabled；只接受一个活动 pointerId，纵向位移按画布高度归一化后映射到
+  切面滑块范围。
+- `pointerup/pointercancel`：结束活动拖拽并释放 pointer capture。
+- 从 plane 切回 orbit：立即取消未完成拖拽。
+- 三点锁定模式：拒绝切面拖动，不覆盖 A/B/C 定义的平面。
+
+不得让 OrbitControls 与切面 pointer 监听同时 enabled，也不得在两个文件各维护一份交互模式。
+
+## 6. 已验证范围
 
 - 10 类真实三角网格黄金样例：正方体水平/斜切、16 边圆柱、18 方块三阶阶梯、L 形、
   折线凹棱柱、两个分离长方体、顶点相切、过三个顶点、共面顶面。
@@ -106,6 +124,9 @@ data-section-v2-error
 - 生命周期：进入模型显示、模型内无非法空帧、离开后 fill/outline drawRange 均为 0。
 - GPU 稳定性：Mesh/LineSegments 的 BufferGeometry 身份不变，扩容受控，相同帧不重复写 attribute。
 - 浏览器：默认入口为 V2 production；`?sectionEngine=v1` 为 forced-legacy；两者无控制台错误。
+- 1280×720 首屏：页面 scrollHeight=720，3D 画布 682×524，实时截面状态和切面控制标题可见；
+  760×800 恢复自然页面滚动。
+- 真实手势：plane 模式只改变 offset，orbit 模式只改变 camera，三点锁定拒绝切面拖动。
 
 常用测试：
 
@@ -114,16 +135,16 @@ node --experimental-loader ./tests/three-absolute-loader.mjs \
   --test tests/section-engine-v2.integration.test.mjs
 node --experimental-loader ./tests/three-absolute-loader.mjs \
   --test tests/section-engine-v2-continuity.test.mjs
+node --test tests/ux2-layout.test.mjs
+node --test tests/viewport-interaction-mode.test.mjs
 npm run test:geometry
 git diff --check
 ```
 
-## 6. 后续任务难度与建议顺序
+## 7. 后续任务难度与唯一顺序
 
 | 后续任务 | 难度 | 原因与边界 |
 |---|---:|---|
-| UX2-002 压缩首屏布局 | 低 | 主要是 CSS/布局；不得改算法和 3D 状态 |
-| UX2-003 视角与切面拖拽模式 | 高 | OrbitControls 与切面拖拽会争抢指针；必须先写明确状态机 |
 | CUT-FIX-007 参考视频体验验收 | 中 | 算法已稳定，重点是连续操作、构图和录屏证据 |
 | 关闭旧 CUT-FIX-006 阻塞项 | 低 | 只核对 V2 证据并更新看板，不再写第二套算法 |
 | COM-007 恢复组合体验收 | 中高 | 需验证分层配色产生的多 Mesh 接缝；不能假设所有组合都是单壳体 |
@@ -131,9 +152,10 @@ git diff --check
 | 任意重叠壳体布尔并集截面 | 很高 | 当前重叠封闭壳体会明确报 topology error；若要支持，应先做可靠并集表面 |
 | 洞、内腔与复杂 CSG 回归 | 高 | 拓扑已支持孔洞，但真实 CSG 网格质量和共面碎片需要独立黄金样例 |
 
-建议先做 UX2-002，再做 UX2-003，随后录制 CUT-FIX-007；不要立刻扩张到任意 CSG。
+唯一下一项是 CUT-FIX-007：按 42 秒参考视频执行并录制体验验收。通过后再关闭旧阻塞项并恢复
+COM-007；不要立刻扩张到任意 CSG。
 
-## 7. 已知边界
+## 8. 已知边界
 
 - 相互重叠但未布尔合并的多个封闭 Mesh 会形成相交轮廓，V2 会返回 topology/error 并自动回退 V1。
 - `BlockAssembly` 的统一配色模式会生成外表面网格，已通过阶梯测试；分层配色会拆成多个 Mesh，
@@ -142,7 +164,7 @@ git diff --check
 - 自动测试不能替代最终参考视频的人工体验验收。
 - Electron 依赖打包尚未在本轮验证。
 
-## 8. 禁止事项
+## 9. 禁止事项
 
 - 禁止合并 `cutfix006a-experimental-do-not-merge-v1`。
 - 禁止删除 V1 临时回退，除非另有任务、完整回归和用户批准。
