@@ -177,29 +177,38 @@ export function triangulateSectionTopology(topology, options = {}) {
       allIndices.push(vertexStart + localIdx);
     }
 
-    // Validate no degenerate triangles
+    // Filter out degenerate triangles instead of rejecting the entire result.
+    // Degenerate triangles (area ≈ 0) contribute no visible area; discarding them
+    // prevents unnecessary fallback to V1 which causes visual flickering.
+    const filteredIndices = [];
+    let degenerateCount = 0;
     for (let j = 0; j < localIndices.length; j += 3) {
-      const i0 = vertexStart + localIndices[j];
-      const i1 = vertexStart + localIndices[j + 1];
-      const i2 = vertexStart + localIndices[j + 2];
-      const v0 = allVertices2D[i0];
-      const v1 = allVertices2D[i1];
-      const v2 = allVertices2D[i2];
+      const li0 = localIndices[j];
+      const li1 = localIndices[j + 1];
+      const li2 = localIndices[j + 2];
+      const v0 = allVertices2D[vertexStart + li0];
+      const v1 = allVertices2D[vertexStart + li1];
+      const v2 = allVertices2D[vertexStart + li2];
 
-      // Shoelace area of this triangle
-      const triArea = Math.abs(
-        0.5 * (v0.x * (v1.y - v2.y) + v1.x * (v2.y - v0.y) + v2.x * (v0.y - v1.y)),
-      );
+      const triArea =
+        0.5 *
+        Math.abs(
+          v0.x * (v1.y - v2.y) +
+          v1.x * (v2.y - v0.y) +
+          v2.x * (v0.y - v1.y),
+        );
 
       if (triArea <= areaEpsilon) {
-        return {
-          status: "error",
-          error: "degenerate-triangle",
-          message: `triangle ${j / 3} in group ${group.outerContourIndex} has area ${triArea.toExponential(2)}`,
-          groupIndex: group.outerContourIndex,
-          triangleIndex: j / 3,
-        };
+        degenerateCount++;
+        continue;
       }
+      filteredIndices.push(vertexStart + li0, vertexStart + li1, vertexStart + li2);
+    }
+
+    // Replace original indices with filtered set
+    allIndices.length = indexStart; // remove previously-pushed indices for this group
+    for (const idx of filteredIndices) {
+      allIndices.push(idx);
     }
 
     groupInfos.push({
@@ -208,7 +217,7 @@ export function triangulateSectionTopology(topology, options = {}) {
       vertexStart,
       vertexCount,
       indexStart,
-      indexCount: localIndexCount,
+      indexCount: filteredIndices.length,
     });
   }
 
