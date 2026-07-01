@@ -3,314 +3,524 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CSG 立体截面 — 考公图推题型验证</title>
+<title>CSG 立体截面 · 考公图推</title>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
   :root {
-    --bg: #0f0f1a;
-    --surface: #1a1a2e;
-    --surface2: #22223a;
-    --border: #2d2d50;
-    --text: #e0e6f0;
-    --text-muted: #7a7a9e;
-    --accent: #5dade2;
-    --accent2: #f39c12;
-    --danger: #e74c3c;
-    --success: #2ecc71;
-    --warn: #f1c40f;
-    --radius: 12px;
-    --shadow: 0 4px 24px rgba(0,0,0,0.4);
+    --ink: #252018;
+    --ink-soft: #655d52;
+    --paper: #f7f3ea;
+    --paper-deep: #ece3d3;
+    --panel: rgba(255, 253, 248, 0.92);
+    --line: rgba(91, 74, 51, 0.16);
+    --gold: #a77a38;
+    --gold-light: #d8b777;
+    --teal: #39736b;
+    --teal-soft: #dceae6;
+    --shadow: 0 12px 40px rgba(63, 47, 28, 0.1);
+    --radius-lg: 20px;
+    --radius-md: 14px;
+    --accent: #c15c2a;
+    --accent-soft: rgba(193, 92, 42, 0.12);
+    --section-fill: #e8754a;   /* 截面填充 — 亮橙色 */
+    --section-stroke: #8b3a1a; /* 截面轮廓 — 深棕红 */
   }
 
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
-    background: var(--bg);
-    color: var(--text);
+    font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    color: var(--ink);
+    background:
+      radial-gradient(circle at 10% 8%, rgba(216, 183, 119, 0.18), transparent 34%),
+      radial-gradient(circle at 90% 85%, rgba(57, 115, 107, 0.1), transparent 36%),
+      var(--paper);
     display: flex;
+    flex-direction: row;
     height: 100vh;
     overflow: hidden;
   }
 
-  /* ── Canvas ── */
-  #canvas-wrap {
-    flex: 1;
-    position: relative;
-    background: radial-gradient(ellipse at center, #141430 0%, #0a0a18 100%);
-    min-width: 0;
+  button, select, input { font: inherit; }
+  button:focus-visible, input:focus-visible, select:focus-visible {
+    outline: 2px solid rgba(57, 115, 107, 0.4);
+    outline-offset: 2px;
   }
-  #canvas-wrap canvas { display: block; }
 
-  #loading-bar {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    gap: 16px;
-    background: rgba(15,15,26,0.9);
-    z-index: 10;
-    transition: opacity 0.4s;
-  }
-  #loading-bar.hidden { opacity: 0; pointer-events: none; }
-  #loading-bar .spinner {
-    width: 40px; height: 40px;
-    border: 3px solid var(--border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  #loading-bar .msg { font-size: 14px; color: var(--text-muted); }
-
-  #stats-bar {
-    position: absolute;
-    top: 16px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 10px 20px;
-    font-size: 13px;
-    display: flex;
-    gap: 24px;
+  .panel {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--panel);
     box-shadow: var(--shadow);
-    z-index: 5;
   }
-  #stats-bar span { color: var(--text-muted); }
-  #stats-bar strong { color: var(--accent); font-weight: 600; margin-left: 4px; }
 
-  /* ── Panels ── */
+  .eyebrow {
+    color: var(--gold);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
   #left-panel {
-    width: 320px;
-    background: var(--surface);
-    border-right: 1px solid var(--border);
+    width: 248px;
+    min-width: 210px;
+    flex-shrink: 0;
+    padding: 16px 14px;
     display: flex;
     flex-direction: column;
+    gap: 4px;
     overflow-y: auto;
-    flex-shrink: 0;
-  }
-  #left-panel .section {
-    padding: 16px 18px;
-    border-bottom: 1px solid var(--border);
-  }
-  #left-panel .section:last-child { border-bottom: none; }
-  #left-panel h3 {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    margin-bottom: 10px;
+    z-index: 2;
+    order: -1;
+    margin: 14px 0 14px 14px;
+    align-self: stretch;
   }
 
   .cat-label {
     font-size: 11px;
-    color: var(--accent);
-    font-weight: 600;
-    margin: 10px 0 6px;
-    padding: 0 2px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    color: var(--teal);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    margin: 12px 0 6px 2px;
   }
-  .cat-label:first-child { margin-top: 0; }
+  .cat-label:first-child { margin-top: 4px; }
 
   .tpl-btn {
-    display: block;
     width: 100%;
     text-align: left;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 10px 12px;
+    padding: 8px 10px;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    color: var(--ink);
+    background: transparent;
+    cursor: pointer;
     font-size: 13px;
-    color: var(--text);
-    cursor: pointer;
-    transition: all 0.2s;
-    margin-bottom: 6px;
-  }
-  .tpl-btn:hover { border-color: var(--accent); background: #252545; }
-  .tpl-btn.active { border-color: var(--accent); background: rgba(93,173,226,0.12); }
-  .tpl-btn .tags { font-size: 10px; color: var(--accent2); margin-left: 6px; }
-
-  .param-row { margin-bottom: 12px; }
-  .param-row:last-child { margin-bottom: 0; }
-  .param-row label {
+    transition: all 0.15s ease;
+    margin-bottom: 2px;
     display: flex;
+    align-items: center;
     justify-content: space-between;
-    font-size: 12px;
-    color: var(--text-muted);
-    margin-bottom: 4px;
   }
-  .param-row label .val { color: var(--accent); font-weight: 600; }
+  .tpl-btn:hover {
+    border-color: rgba(57, 115, 107, 0.22);
+    background: var(--teal-soft);
+  }
+  .tpl-btn.active {
+    border-color: var(--teal);
+    background: var(--teal-soft);
+    font-weight: 600;
+  }
+  .tpl-btn .tags { font-size: 10px; color: var(--gold); font-weight: 500; }
+
+  .param-row { margin-bottom: 9px; }
+  .param-row label {
+    display: flex; justify-content: space-between;
+    font-size: 12px; color: var(--ink-soft); margin-bottom: 3px;
+  }
+  .param-row label .val { color: var(--teal); font-weight: 600; }
   .param-row input[type="range"] {
-    width: 100%;
-    -webkit-appearance: none;
-    height: 4px;
-    background: var(--border);
-    border-radius: 2px;
-    cursor: pointer;
+    width: 100%; -webkit-appearance: none;
+    height: 5px; background: var(--paper-deep); border-radius: 3px; cursor: pointer;
   }
   .param-row input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 14px; height: 14px;
-    border-radius: 50%;
-    background: var(--accent);
-    border: 2px solid var(--surface);
+    -webkit-appearance: none; width: 16px; height: 16px;
+    border-radius: 50%; background: var(--teal); border: 2px solid var(--paper); cursor: grab;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
   }
 
-  /* ── Right Panel (Section Data) ── */
+  #canvas-wrap {
+    flex: 1; min-width: 0;
+    position: relative;
+    margin: 14px;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background:
+      linear-gradient(rgba(37,32,24,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(37,32,24,0.03) 1px, transparent 1px),
+      linear-gradient(145deg, #fffdf8, #eee7db);
+    background-size: 28px 28px, 28px 28px, auto;
+    box-shadow: inset 0 0 60px rgba(77, 57, 33, 0.07);
+    z-index: 1;
+  }
+  #canvas-wrap canvas { display: block; width: 100% !important; height: 100% !important; cursor: grab; }
+  #canvas-wrap canvas:active { cursor: grabbing; }
+
+  /* 模式指示器 — 右上角小标签 */
+  #mode-indicator {
+    position: absolute; top: 12px; right: 56px;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 11px; font-weight: 600;
+    color: white;
+    background: var(--teal);
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 15;
+    pointer-events: none;
+  }
+  #mode-indicator.visible { opacity: 0.85; }
+
+  #loading-bar {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 14px;
+    background: rgba(247,243,234,0.94);
+    z-index: 100; transition: opacity 0.35s;
+  }
+  #loading-bar.hidden { opacity: 0; pointer-events: none !important; }
+  #loading-bar .spinner {
+    width: 36px; height: 36px;
+    border: 3px solid var(--paper-deep);
+    border-top-color: var(--teal);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #loading-bar .msg { font-size: 13px; color: var(--ink-soft); }
+
+  #stats-bar {
+    position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+    background: rgba(255,253,248,0.92); backdrop-filter: blur(12px);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 6px 18px;
+    font-size: 12px;
+    display: flex; gap: 18px;
+    box-shadow: var(--shadow);
+    z-index: 10;
+  }
+  #stats-bar span { color: var(--ink-soft); }
+  #stats-bar strong { color: var(--teal); font-weight: 700; margin-left: 3px; }
+
+  #viz-options {
+    position: absolute; top: 16px; left: 16px;
+    display: flex; gap: 6px;
+    padding: 5px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: rgba(255, 253, 248, 0.9);
+    box-shadow: 0 8px 24px rgba(63, 47, 28, 0.08);
+    backdrop-filter: blur(10px);
+    z-index: 10;
+  }
+  #viz-options button {
+    min-height: 34px;
+    padding: 6px 10px;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    color: var(--ink-soft);
+    background: transparent;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.15s;
+  }
+  #viz-options button:hover { color: var(--teal); border-color: rgba(57, 115, 107, 0.2); }
+  #viz-options button.active {
+    color: var(--teal);
+    border-color: rgba(57, 115, 107, 0.2);
+    background: var(--teal-soft);
+    font-weight: 700;
+  }
+
+  #reset-view-btn {
+    position: absolute; top: 16px; right: 16px;
+    width: 40px; height: 40px;
+    display: grid; place-items: center;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    color: var(--ink);
+    background: rgba(255, 253, 248, 0.88);
+    cursor: pointer;
+    font-size: 16px;
+    z-index: 10;
+    transition: all 0.15s;
+  }
+  #reset-view-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+  /* ═══ 切面状态栏 — 左下角紧凑条 ═══ */
+  #cut-status {
+    position: absolute; bottom: 16px; left: 16px;
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 14px;
+    background: rgba(255, 253, 248, 0.94);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: 0 10px 30px rgba(90, 51, 37, 0.1);
+    z-index: 10;
+    font-size: 12px;
+  }
+  #cut-status .status-item {
+    display: flex; align-items: center; gap: 4px;
+    color: var(--ink-soft);
+  }
+  #cut-status .status-item .val {
+    font-weight: 700; color: var(--accent);
+    font-variant-numeric: tabular-nums;
+    min-width: 32px;
+  }
+  #cut-status .axis-btn {
+    padding: 3px 8px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--paper);
+    cursor: pointer;
+    font-size: 11px; font-weight: 600;
+    color: var(--ink-soft);
+    transition: all 0.15s;
+  }
+  #cut-status .axis-btn:hover { color: var(--teal); border-color: var(--teal); }
+  #cut-status .axis-btn.active {
+    color: white; background: var(--teal); border-color: var(--teal);
+  }
+  #cut-status .divider { width: 1px; height: 18px; background: var(--line); }
+
+  /* ═══ 操作提示面板 ═══ */
+  #help-panel {
+    position: absolute; bottom: 16px; right: 16px;
+    max-width: 260px;
+    padding: 14px 16px;
+    background: rgba(255, 253, 248, 0.95);
+    backdrop-filter: blur(14px);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    box-shadow: 0 10px 30px rgba(63, 47, 28, 0.1);
+    z-index: 10;
+    font-size: 12px;
+    line-height: 1.7;
+    transition: opacity 0.3s, transform 0.3s;
+  }
+  #help-panel.collapsed {
+    opacity: 0;
+    transform: translateY(10px);
+    pointer-events: none;
+  }
+  #help-panel .help-title {
+    font-size: 11px; font-weight: 700; color: var(--gold);
+    letter-spacing: 0.1em; text-transform: uppercase;
+    margin-bottom: 8px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  #help-panel .help-title .close-btn {
+    cursor: pointer; color: var(--ink-soft); font-size: 14px;
+    padding: 0 4px; border-radius: 4px;
+  }
+  #help-panel .help-title .close-btn:hover { color: var(--accent); }
+  #help-panel .help-row {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 5px; color: var(--ink-soft);
+  }
+  #help-panel .key-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 22px; height: 22px;
+    padding: 0 5px;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    background: var(--paper);
+    font-size: 11px; font-weight: 600;
+    color: var(--ink);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    font-family: "SF Mono", "Menlo", monospace;
+  }
+  #help-panel .help-text { flex: 1; }
+  #help-panel .tip-alt {
+    color: var(--accent); font-weight: 600;
+  }
+
+  #help-toggle {
+    position: absolute; bottom: 16px; right: 16px;
+    width: 36px; height: 36px;
+    display: none;
+    place-items: center;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: rgba(255, 253, 248, 0.9);
+    cursor: pointer;
+    font-size: 16px;
+    z-index: 10;
+  }
+  #help-toggle.visible { display: grid; }
+  #help-toggle:hover { border-color: var(--gold); color: var(--gold); }
+
+  /* ═══ 偏移微调滑块（底部居中）═══ */
+  #offset-slider-wrap {
+    position: absolute; bottom: 56px; left: 50%;
+    transform: translateX(-50%);
+    display: none;
+    align-items: center; gap: 10px;
+    padding: 8px 18px;
+    background: rgba(255, 253, 248, 0.94);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    box-shadow: 0 8px 24px rgba(63, 47, 28, 0.1);
+    z-index: 10;
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
+  #offset-slider-wrap.visible { display: flex; }
+  #offset-slider-wrap label { white-space: nowrap; font-weight: 600; color: var(--ink); }
+  #offset-slider-wrap input[type="range"] {
+    width: 160px; -webkit-appearance: none;
+    height: 4px; background: var(--paper-deep); border-radius: 2px; cursor: pointer;
+  }
+  #offset-slider-wrap input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 14px; height: 14px;
+    border-radius: 50%; background: var(--accent); border: 2px solid var(--paper);
+    cursor: grab; box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  }
+  #offset-slider-val {
+    min-width: 42px; text-align: right;
+    font-weight: 700; color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+
   #right-panel {
-    width: 280px;
-    background: var(--surface);
-    border-left: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    padding: 20px 18px;
-    gap: 16px;
+    width: 220px; min-width: 190px;
     flex-shrink: 0;
+    padding: 16px 12px;
+    display: flex; flex-direction: column; gap: 10px;
     overflow-y: auto;
+    z-index: 2;
+    margin: 14px 14px 14px 0;
+    align-self: stretch;
   }
   #right-panel h3 {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--gold);
+    letter-spacing: 0.14em;
     text-transform: uppercase;
-    letter-spacing: 0.8px;
   }
 
   .data-card {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 14px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 10px;
   }
   .data-card .row {
-    display: flex;
-    justify-content: space-between;
-    padding: 6px 0;
-    font-size: 13px;
+    display: flex; justify-content: space-between;
+    padding: 3px 0; font-size: 12px;
   }
-  .data-card .row:not(:last-child) { border-bottom: 1px solid rgba(255,255,255,0.04); }
-  .data-card .label { color: var(--text-muted); }
-  .data-card .value { font-weight: 600; color: var(--text); }
-  .data-card .value.ok { color: var(--success); }
-  .data-card .value.warn { color: var(--warn); }
-  .data-card .value.err { color: var(--danger); }
+  .data-card .row:not(:last-child) { border-bottom: 1px solid rgba(91,74,51,0.08); }
+  .data-card .label { color: var(--ink-soft); }
+  .data-card .value { font-weight: 600; color: var(--ink); font-size: 12px; }
+  .data-card .value.ok { color: var(--teal); }
+  .data-card .value.warn { color: var(--gold); }
+  .data-card .value.err { color: #c0392b; }
 
-  /* ── Cut Plane Toolbar ── */
-  #cut-toolbar {
-    position: absolute;
-    bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 14px 20px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    box-shadow: var(--shadow);
-    z-index: 5;
-  }
-  #cut-toolbar .axis-group {
-    display: flex;
-    gap: 4px;
-  }
-  #cut-toolbar .axis-btn {
-    padding: 6px 14px;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    background: var(--surface2);
-    color: var(--text);
-    font-size: 13px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  #cut-toolbar .axis-btn:hover { border-color: var(--accent); }
-  #cut-toolbar .axis-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-  #cut-toolbar .offset-wrap {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  #cut-toolbar .offset-label { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
-  #cut-toolbar input[type="range"] {
-    width: 180px;
-    -webkit-appearance: none;
-    height: 4px;
-    background: var(--border);
-    border-radius: 2px;
-  }
-  #cut-toolbar input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 14px; height: 14px;
-    border-radius: 50%;
-    background: var(--accent2);
-    border: 2px solid var(--surface);
-  }
-  #cut-toolbar .offset-val {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--accent2);
-    min-width: 42px;
-    text-align: right;
-  }
+  .none-hint { font-size: 12px; color: var(--ink-soft); text-align: center; padding: 12px 0; }
 
-  .none-hint {
-    font-size: 12px;
-    color: var(--text-muted);
-    text-align: center;
-    padding: 20px 0;
-  }
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--paper-deep); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--gold-light); }
 </style>
 </head>
 <body>
 
-<div id="canvas-wrap">
-  <canvas id="canvas"></canvas>
-  <div id="loading-bar">
-    <div class="spinner"></div>
-    <div class="msg">加载 Manifold WASM 引擎…</div>
-  </div>
-  <div id="stats-bar" style="display:none">
-    <span>三角面 <strong id="tri-count">—</strong></span>
-    <span>截面 <strong id="sec-status">—</strong></span>
-  </div>
-  <div id="cut-toolbar" style="display:none">
-    <span class="offset-label">切面轴</span>
-    <div class="axis-group" id="axis-group"></div>
-    <div class="offset-wrap">
-      <span class="offset-label">偏移</span>
-      <input type="range" id="cut-offset" min="-200" max="200" value="0" step="1">
-      <span class="offset-val" id="offset-val">0.00</span>
-    </div>
-  </div>
-</div>
-
 <div id="left-panel">
-  <div class="section">
-    <h3>📐 题型模板</h3>
-    <div id="template-list"></div>
-  </div>
-  <div class="section" id="params-section" style="display:none">
-    <h3>🎛️ 参数调节</h3>
+  <div class="eyebrow">题型模板</div>
+  <div id="template-list"></div>
+  <div id="params-section" style="display:none;margin-top:8px;">
+    <div class="eyebrow">参数调节</div>
     <div id="params-panel"></div>
   </div>
 </div>
 
+<div id="canvas-wrap">
+  <canvas id="canvas"></canvas>
+
+  <!-- 模式指示器：按住Option时显示 -->
+  <div id="mode-indicator">⌥ 视角模式</div>
+
+  <div id="loading-bar">
+    <div class="spinner"></div>
+    <div class="msg">加载 Manifold WASM 引擎…</div>
+  </div>
+
+  <div id="stats-bar" style="display:none">
+    <span>三角面 <strong id="tri-count">—</strong></span>
+    <span>截面 <strong id="sec-status">—</strong></span>
+  </div>
+
+  <div id="viz-options" style="display:none">
+    <button id="btn-wireframe" title="线框叠加">线框</button>
+    <button id="btn-xray" title="透视模式">透视</button>
+    <button id="btn-reset-viz" title="重置视角">复位</button>
+  </div>
+
+  <button id="reset-view-btn" style="display:none" title="重置相机位置">⟲</button>
+
+  <!-- 切面状态：轴/偏移/角度 -->
+  <div id="cut-status" style="display:none">
+    <div class="status-item">
+      <span>法向</span>
+      <button class="axis-btn active" data-axis="z">Z</button>
+      <button class="axis-btn" data-axis="y">Y</button>
+      <button class="axis-btn" data-axis="x">X</button>
+    </div>
+    <div class="divider"></div>
+    <div class="status-item">
+      <span>偏移</span><span class="val" id="offset-display">0.00</span>
+    </div>
+    <div class="divider"></div>
+    <div class="status-item">
+      <span>俯仰</span><span class="val" id="pitch-display">0°</span>
+    </div>
+    <div class="status-item">
+      <span>偏航</span><span class="val" id="yaw-display">0°</span>
+    </div>
+  </div>
+
+  <!-- 偏移微调滑块 -->
+  <div id="offset-slider-wrap">
+    <label>截面偏移</label>
+    <input type="range" id="offset-slider" min="-3" max="3" step="0.01" value="0">
+    <span id="offset-slider-val">0.00</span>
+  </div>
+
+  <!-- 操作提示 -->
+  <div id="help-panel" style="display:none">
+    <div class="help-title">
+      <span>操作指南</span>
+      <span class="close-btn" id="help-close">×</span>
+    </div>
+    <div class="help-row">
+      <span class="key-badge">拖拽</span>
+      <span class="help-text">画面任意位置上下拖动 → 移动截面位置</span>
+    </div>
+    <div class="help-row">
+      <span class="key-badge">↑↓</span>
+      <span class="help-text">切面前后倾斜（俯仰角）</span>
+    </div>
+    <div class="help-row">
+      <span class="key-badge">←→</span>
+      <span class="help-text">切面左右偏转（偏航角）</span>
+    </div>
+    <div class="help-row">
+      <span class="key-badge">Q</span><span class="key-badge">E</span>
+      <span class="help-text">微调截面前后移动</span>
+    </div>
+    <div class="help-row">
+      <span class="key-badge">空格</span>
+      <span class="help-text">重置切面到中心</span>
+    </div>
+    <div class="help-row tip-alt">
+      <span class="key-badge">⌥ Option</span>
+      <span class="help-text">按住 → 切换为旋转视角（松开恢复拖拽截面）</span>
+    </div>
+  </div>
+  <button id="help-toggle">?</button>
+</div>
+
 <div id="right-panel">
-  <h3>📊 截面数据</h3>
-  <div id="section-data">
-    <div class="none-hint">选择模板后自动计算</div>
-  </div>
-  <h3 style="margin-top:8px">🔄 管线状态</h3>
-  <div id="pipeline-data">
-    <div class="none-hint">等待首次计算…</div>
-  </div>
+  <h3>截面数据</h3>
+  <div id="section-data"><div class="none-hint">选择模板后自动计算</div></div>
+  <h3>管线状态</h3>
+  <div id="pipeline-data"><div class="none-hint">等待首次计算…</div></div>
 </div>
 
 <script type="importmap">
@@ -328,82 +538,125 @@
 
   import {
     initManifold, isReady, getTemplatesByCategory,
-    createCSGMesh, getTemplateIds, CSG_TEMPLATES,
+    createCSGMesh, CSG_TEMPLATES,
   } from '/geometry/csg-engine.js';
 
   import { computeSectionV2, toSectionVisualV2Data } from '/geometry/section-engine-v2.js';
   import { createSectionVisualV2 } from '/geometry/section-visual-v2.js';
 
-  // ── Scene Setup ──
+  // ═══ DOM refs ═══
   const canvas = document.getElementById('canvas');
+  const wrap   = document.getElementById('canvas-wrap');
   const loadingBar = document.getElementById('loading-bar');
-  const statsBar = document.getElementById('stats-bar');
-  const cutToolbar = document.getElementById('cut-toolbar');
+  const statsBar   = document.getElementById('stats-bar');
+  const cutStatus  = document.getElementById('cut-status');
+  const helpPanel  = document.getElementById('help-panel');
+  const helpToggle = document.getElementById('help-toggle');
+  const vizOptions = document.getElementById('viz-options');
+  const resetBtn   = document.getElementById('reset-view-btn');
+  const modeIndicator = document.getElementById('mode-indicator');
+  const offsetSliderWrap = document.getElementById('offset-slider-wrap');
+  const offsetSlider = document.getElementById('offset-slider');
+  const offsetSliderVal = document.getElementById('offset-slider-val');
 
+  // ═══ Scene Setup ═══
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.0;
 
   const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xfaf7f1);
 
-  const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 50);
-  camera.position.set(4, 3.5, 5);
-  camera.lookAt(0, 0, 0);
+  const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
+  const DEFAULT_CAMERA_POS = new THREE.Vector3(5.4, 4.2, 6.8);
+  camera.position.copy(DEFAULT_CAMERA_POS);
 
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.target.set(0, 0, 0);
   controls.enableDamping = true;
   controls.dampingFactor = 0.08;
-  controls.minDistance = 2;
-  controls.maxDistance = 15;
+  controls.minDistance = 2.8;
+  controls.maxDistance = 18;
+  // ★ 默认禁用旋转 — 鼠标拖拽留给切面偏移用
+  // 按住 Option/Alt 才启用旋转
+  controls.enableRotate = false;
   controls.update();
 
-  // Lights
-  const ambientLight = new THREE.AmbientLight(0x334466, 0.8);
-  scene.add(ambientLight);
-  const keyLight = new THREE.DirectionalLight(0xffffff, 1.2);
-  keyLight.position.set(8, 12, 6);
-  keyLight.castShadow = true;
-  keyLight.shadow.mapSize.set(1024, 1024);
-  keyLight.shadow.camera.near = 0.5;
-  keyLight.shadow.camera.far = 50;
-  keyLight.shadow.camera.left = -10;
-  keyLight.shadow.camera.right = 10;
-  keyLight.shadow.camera.top = 10;
-  keyLight.shadow.camera.bottom = -10;
+  // ═══ Lights — 明亮均匀 ═══
+  scene.add(new THREE.AmbientLight(0xfff8f0, 1.05));
+
+  const keyLight = new THREE.DirectionalLight(0xfff5e6, 0.95);
+  keyLight.position.set(5, 8, 6);
   scene.add(keyLight);
-  const fillLight = new THREE.DirectionalLight(0x8899cc, 0.4);
-  fillLight.position.set(-4, 2, -2);
+
+  const fillLight = new THREE.DirectionalLight(0xd8e8f0, 0.5);
+  fillLight.position.set(-4, 3, -3);
   scene.add(fillLight);
-  const rimLight = new THREE.DirectionalLight(0xffffff, 0.3);
-  rimLight.position.set(0, -1, 6);
+
+  const rimLight = new THREE.DirectionalLight(0xfff0e0, 0.35);
+  rimLight.position.set(-6, 4, -4);
   scene.add(rimLight);
 
+  const topLight = new THREE.DirectionalLight(0xffeedd, 0.4);
+  topLight.position.set(0, 8, 2);
+  scene.add(topLight);
+
   // Grid
-  const gridHelper = new THREE.PolarGridHelper(6, 32, 24, 64, 0x2a2a4a, 0x1a1a2e);
+  const gridHelper = new THREE.PolarGridHelper(6, 32, 24, 64, 0xc8baa8, 0xddd0c0);
   scene.add(gridHelper);
 
-  // Cut plane visual (semi-transparent disk)
-  const cutPlaneGeo = new THREE.CircleGeometry(3, 64);
-  const cutPlaneMat = new THREE.MeshBasicMaterial({
-    color: 0xf39c12,
-    side: THREE.DoubleSide,
+  // ═══ 切面指示器 — 极简：只有一条细线，不碍眼 ═══
+  // 用细十字线表示切面位置，而不是大圆盘
+  const cutIndicatorGroup = new THREE.Group();
+  cutIndicatorGroup.visible = false;
+  scene.add(cutIndicatorGroup);
+
+  // 十字线材质
+  const lineMat = new THREE.LineBasicMaterial({
+    color: 0xcc6633,
     transparent: true,
-    opacity: 0.15,
+    opacity: 0.45,
     depthWrite: false,
   });
-  const cutPlaneMesh = new THREE.Mesh(cutPlaneGeo, cutPlaneMat);
-  cutPlaneMesh.visible = false;
-  scene.add(cutPlaneMesh);
 
-  // Model group (root for section engine)
+  function createCutCrosshair(size) {
+    const group = new THREE.Group();
+    const half = size / 2;
+    // 水平线
+    const hGeo = new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(-half, 0, 0), new THREE.Vector3(half, 0, 0)
+    ]);
+    group.add(new THREE.Line(hGeo, lineMat));
+    // 垂直线
+    const vGeo = new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(0, -half, 0), new THREE.Vector3(0, half, 0)
+    ]);
+    group.add(new THREE.Line(vGeo, lineMat));
+    return group;
+  }
+
+  const cutCrosshair = createCutCrosshair(3.0);
+  cutIndicatorGroup.add(cutCrosshair);
+
+  // 小圆点标记中心
+  const dotGeo = new THREE.CircleGeometry(0.06, 16);
+  const dotMat = new THREE.MeshBasicMaterial({
+    color: 0xe8754a,
+    side: THREE.DoubleSide,
+    depthWrite: false,
+  });
+  const cutDot = new THREE.Mesh(dotGeo, dotMat);
+  cutIndicatorGroup.add(cutDot);
+
+  // Model / wireframe / section groups
   const modelGroup = new THREE.Group();
   scene.add(modelGroup);
 
-  // Section overlay group + singleton visual
+  const wireGroup = new THREE.Group();
+  wireGroup.visible = false;
+  scene.add(wireGroup);
+
   const sectionGroup = new THREE.Group();
   sectionGroup.visible = false;
   scene.add(sectionGroup);
@@ -412,7 +665,10 @@
   function getOrCreateSectionVisual() {
     if (!sectionVisual || sectionVisual.disposed) {
       sectionVisual = createSectionVisualV2({
-        fillColor: 0x5dade2, outlineColor: 0x2e86c1, fillOpacity: 0.55,
+        fillColor: 0xe8754a,       /* 亮橙色填充 */
+        outlineColor: 0x5c2010,    /* 深红棕轮廓 — 重！*/
+        fillOpacity: 0.92,         /* 几乎不透 */
+        outlineWidth: 4,           /* 粗轮廓线 */
       });
       sectionGroup.add(sectionVisual.group);
     }
@@ -427,51 +683,131 @@
     }
   }
 
-  // ── State ──
+  // ═══ State ═══
   let currentTemplate = 'cube-minus-cone';
   let currentParams = {};
   let currentModel = null;
+  let wireframeModel = null;
   let cutAxis = 'z';
   let cutOffset = 0;
+  let cutPitch = 0;
+  let cutYaw = 0;
+  let xrayMode = false;
+  let modelBoundingBox = null;
+  let altPressed = false;  // Option/Alt 键是否按下
 
-  // ── Resize ──
+  function resetCamera() {
+    camera.position.copy(DEFAULT_CAMERA_POS);
+    controls.target.set(0, 0, 0);
+    controls.update();
+  }
+
+  function autoFitCamera(meshObj) {
+    if (!meshObj) return;
+    const box = new THREE.Box3().setFromObject(meshObj);
+    const size = box.getSize(new THREE.Vector3());
+    const center = box.getCenter(new THREE.Vector3());
+    controls.target.copy(center);
+    modelBoundingBox = box;
+
+    const maxDim = Math.max(size.x, size.y, size.z, 1);
+    const fov = camera.fov * (Math.PI / 180);
+    const distance = (maxDim * 3.0) / (2 * Math.tan(fov / 2));
+
+    camera.position.set(
+      center.x + distance * 0.55,
+      center.y + distance * 0.43,
+      center.z + distance * 0.70
+    );
+    controls.update();
+
+    const dist = camera.position.distanceTo(center);
+    if (dist < controls.minDistance) {
+      const dir = camera.position.clone().sub(center).normalize().multiplyScalar(controls.minDistance);
+      camera.position.copy(center).add(dir);
+      controls.update();
+    }
+  }
+
+  // ═══ Resize ═══
   function resize() {
-    const wrap = document.getElementById('canvas-wrap');
     const w = wrap.clientWidth;
     const h = wrap.clientHeight;
+    if (!w || !h) return;
     renderer.setSize(w, h, false);
     camera.aspect = w / Math.max(h, 1);
     camera.updateProjectionMatrix();
   }
   window.addEventListener('resize', resize);
-  resize();
 
-  // ── Update cut plane visual ──
-  function updateCutPlaneVisual() {
-    const axisVec = { x: [1,0,0], y: [0,1,0], z: [0,0,1] }[cutAxis];
-    cutPlaneMesh.position.set(0, 0, 0);
-    cutPlaneMesh.position.x += axisVec[0] * cutOffset;
-    cutPlaneMesh.position.y += axisVec[1] * cutOffset;
-    cutPlaneMesh.position.z += axisVec[2] * cutOffset;
-    const q = new THREE.Quaternion();
-    if (cutAxis === 'x') q.setFromUnitVectors(new THREE.Vector3(0,0,1), new THREE.Vector3(1,0,0));
-    else if (cutAxis === 'y') q.setFromUnitVectors(new THREE.Vector3(0,0,1), new THREE.Vector3(0,1,0));
-    cutPlaneMesh.setRotationFromQuaternion(q);
-    cutPlaneMesh.visible = true;
+  // ═══ Material ═══
+  function createCSGMaterial(baseColor) {
+    return new THREE.MeshPhongMaterial({
+      color: baseColor || 0x3fa89a,
+      specular: 0xaaaaaa,
+      shininess: 45,
+      transparent: true,
+      opacity: xrayMode ? 0.12 : 0.42,
+      side: THREE.DoubleSide,
+      depthWrite: !xrayMode,
+      polygonOffset: true,
+      polygonOffsetFactor: 1,
+      polygonOffsetUnits: 1,
+    });
   }
 
-  // ── Compute section ──
-  function computeSection() {
-    const normalMap = { x: [1,0,0], y: [0,1,0], z: [0,0,1] };
-    const [nx, ny, nz] = normalMap[cutAxis];
-    const plane = new THREE.Plane(new THREE.Vector3(nx, ny, nz), -cutOffset);
+  function createWireframeMaterial() {
+    return new THREE.LineBasicMaterial({
+      color: 0x2a7a6e,
+      transparent: true,
+      opacity: 0.25,
+    });
+  }
 
-    // Update visual
+  // ═══ 计算当前切面法向量 ═══
+  function getCutNormal() {
+    const baseNormals = { x: [1,0,0], y: [0,1,0], z: [0,0,1] };
+    let n = new THREE.Vector3(...baseNormals[cutAxis]);
+
+    if (Math.abs(cutPitch) > 0.001) {
+      n.applyAxisAngle(new THREE.Vector3(1, 0, 0), THREE.MathUtils.degToRad(cutPitch)).normalize();
+    }
+    if (Math.abs(cutYaw) > 0.001) {
+      n.applyAxisAngle(new THREE.Vector3(0, 1, 0), THREE.MathUtils.degToRad(cutYaw)).normalize();
+    }
+    return n;
+  }
+
+  // ═══ 更新极简切面指示器（十字线+圆点）═══
+  function updateCutPlaneVisual() {
+    const n = getCutNormal();
+    const pos = n.clone().multiplyScalar(cutOffset);
+
+    cutIndicatorGroup.position.copy(pos);
+
+    // 十字线朝向切面法向（垂直于视线）
+    const q = new THREE.Quaternion();
+    q.setFromUnitVectors(new THREE.Vector3(0, 0, 1), n);
+    cutCrosshair.setRotationFromQuaternion(q);
+
+    cutIndicatorGroup.visible = true;
+
+    // 更新UI显示
+    document.getElementById('offset-display').textContent = cutOffset.toFixed(2);
+    document.getElementById('pitch-display').textContent = cutPitch.toFixed(0) + '°';
+    document.getElementById('yaw-display').textContent = cutYaw.toFixed(0) + '°';
+    offsetSlider.value = cutOffset;
+    offsetSliderVal.textContent = cutOffset.toFixed(2);
+  }
+
+  // ═══ Compute section ═══
+  function computeSection() {
+    const n = getCutNormal();
+    const plane = new THREE.Plane(n, -cutOffset);
+
     disposeSectionVisual();
 
     const result = computeSectionV2(modelGroup, plane, {});
-
-    // Update info panels
     updateSectionData(result);
     updatePipelineData(result);
 
@@ -481,45 +817,35 @@
         const vis = getOrCreateSectionVisual();
         vis.update(visData);
         sectionGroup.visible = result.status === 'ok';
-        document.getElementById('sec-status').textContent = result.status === 'ok' ? '✅ OK' : '○ 空';
-        document.getElementById('sec-status').style.color = result.status === 'ok' ? 'var(--success)' : 'var(--warn)';
+        document.getElementById('sec-status').textContent = result.status === 'ok' ? '✓' : '空';
+        document.getElementById('sec-status').style.color = result.status === 'ok' ? '#2d8658' : 'var(--gold)';
       } catch (e) {
         console.error('Visual error:', e);
-        document.getElementById('sec-status').textContent = '⚠ 可视化失败';
-        document.getElementById('sec-status').style.color = 'var(--warn)';
+        document.getElementById('sec-status').textContent = '失败';
       }
     } else {
       sectionGroup.visible = false;
-      document.getElementById('sec-status').textContent = '❌ 错误';
-      document.getElementById('sec-status').style.color = 'var(--danger)';
+      document.getElementById('sec-status').textContent = '错误';
     }
   }
 
-  // ── Update section data panel ──
+  // ═══ Data panels ═══
   function updateSectionData(result) {
     const el = document.getElementById('section-data');
-    const diag = result.diagnostics || {};
     let area = 0;
-
-    if (result.contourCount > 0 && result.triangulation?.vertices3D?.length > 0) {
-      area = result.area || 0;
-    }
+    if (result.contourCount > 0 && result.triangulation?.vertices3D?.length > 0) area = result.area || 0;
 
     el.innerHTML = `
       <div class="data-card">
-        <div class="row"><span class="label">状态</span><span class="value ${result.status === 'ok' ? 'ok' : result.status === 'empty' ? 'warn' : 'err'}">${result.status}</span></div>
+        <div class="row"><span class="label">状态</span><span class="value ${result.status==='ok'?'ok':result.status==='empty'?'warn':'err'}">${result.status}</span></div>
         <div class="row"><span class="label">轮廓数</span><span class="value">${result.contourCount ?? 0}</span></div>
         <div class="row"><span class="label">截面面积</span><span class="value">${area.toFixed(4)}</span></div>
         ${result.topology?.groups ? `<div class="row"><span class="label">拓扑组</span><span class="value">${result.topology.groups.length}</span></div>` : ''}
-        ${result.triangulation?.indices ? `<div class="row"><span class="label">三角化索引</span><span class="value">${result.triangulation.indices.length}</span></div>` : ''}
-        ${result.stage ? `<div class="row"><span class="label">完成阶段</span><span class="value">${result.stage}</span></div>` : ''}
-      </div>
-    `;
+      </div>`;
   }
 
   function updatePipelineData(result) {
     const d = result.diagnostics || {};
-    const rel = d.sliceRelations || {};
     const el = document.getElementById('pipeline-data');
     el.innerHTML = `
       <div class="data-card">
@@ -527,44 +853,55 @@
         <div class="row"><span class="label">三角形总数</span><span class="value">${d.triangleCount ?? '—'}</span></div>
         <div class="row"><span class="label">原始交线段</span><span class="value">${d.rawSegmentCount ?? '—'}</span></div>
         <div class="row"><span class="label">归一化后</span><span class="value">${d.normalizedSegmentCount ?? '—'}</span></div>
-        <div class="row"><span class="label">被移除段</span><span class="value">${d.removedSegments ?? '—'}</span></div>
-        <div class="row"><span class="label">消耗边数</span><span class="value">${d.consumedSegmentCount ?? '—'}</span></div>
-      </div>
-    `;
+      </div>`;
   }
 
-  // ── Build / Rebuild Model ──
+  // ═══ Build Model ═══
   async function rebuild() {
     if (!isReady()) return;
 
-    // Clear old
     if (currentModel) {
-      currentModel.geometry.dispose();
-      currentModel.material.dispose();
-      modelGroup.remove(currentModel);
-      currentModel = null;
+      currentModel.geometry.dispose(); currentModel.material.dispose();
+      modelGroup.remove(currentModel); currentModel = null;
     }
-    if (sectionVisual) {
-      disposeSectionVisual();
+    if (wireframeModel) {
+      wireframeModel.geometry.dispose(); wireframeModel.material.dispose();
+      wireGroup.remove(wireframeModel); wireframeModel = null;
     }
+    disposeSectionVisual();
 
     try {
-      const { mesh, triangleCount } = createCSGMesh(currentTemplate, currentParams, THREE);
+      const mat = createCSGMaterial();
+      const { mesh, triangleCount } = createCSGMesh(currentTemplate, currentParams, THREE, mat);
       currentModel = mesh;
       modelGroup.add(mesh);
-      document.getElementById('tri-count').textContent = triangleCount.toLocaleString();
 
-      // Recompute section
+      const wireMat = createWireframeMaterial();
+      const wireGeo = new THREE.WireframeGeometry(mesh.geometry);
+      wireframeModel = new THREE.LineSegments(wireGeo, wireMat);
+      wireGroup.add(wireframeModel);
+
+      document.getElementById('tri-count').textContent = triangleCount.toLocaleString();
+      autoFitCamera(mesh);
       computeSection();
+
+      // 设置滑块范围
+      if (modelBoundingBox) {
+        const size = modelBoundingBox.getSize(new THREE.Vector3());
+        const r = Math.max(size.x, size.y, size.z) * 0.8;
+        offsetSlider.min = -r;
+        offsetSlider.max = r;
+        offsetSlider.step = Math.max(0.01, r / 200);
+      }
+      offsetSliderWrap.classList.add('visible');
+
     } catch (err) {
       console.error('Build error:', err);
       document.getElementById('tri-count').textContent = 'ERR';
-      document.getElementById('sec-status').textContent = '❌';
-      document.getElementById('sec-status').style.color = 'var(--danger)';
     }
   }
 
-  // ── Render loop ──
+  // ═══ Render loop ═══
   function animate() {
     requestAnimationFrame(animate);
     controls.update();
@@ -572,42 +909,210 @@
   }
   animate();
 
-  // ── Cut plane UI ──
-  function renderCutToolbar() {
-    const group = document.getElementById('axis-group');
-    group.innerHTML = '';
-    for (const ax of ['x', 'y', 'z']) {
-      const btn = document.createElement('button');
-      btn.className = 'axis-btn' + (ax === cutAxis ? ' active' : '');
-      btn.textContent = ax.toUpperCase() + '轴';
-      btn.addEventListener('click', () => {
-        cutAxis = ax;
-        cutOffset = 0;
-        document.getElementById('cut-offset').value = 0;
-        document.getElementById('offset-val').textContent = '0.00';
-        renderCutToolbar();
-        updateCutPlaneVisual();
-        computeSection();
-      });
-      group.appendChild(btn);
-    }
-    cutToolbar.style.display = 'flex';
-    updateCutPlaneVisual();
-  }
+  // ═══════════════════════════════════════════════════════════
+  //  ★★★ 核心交互系统 v6 ★★★
+  //  默认模式：鼠标拖拽 → 截面跟着前后移动（屏幕空间，不需要点中任何东西）
+  //  Option按住：启用旋转视角（OrbitControls接管）
+  //  方向键：旋转切面角度
+  //  滚轮：缩放（始终可用）
+  // ═══════════════════════════════════════════════════════════
 
-  document.getElementById('cut-offset').addEventListener('input', (e) => {
-    const range = parseFloat(e.target.max) - parseFloat(e.target.min);
-    cutOffset = parseFloat(e.target.value) / 100 * (range / 100 * 4);
-    document.getElementById('offset-val').textContent = cutOffset.toFixed(2);
+  let isDragging = false;
+  let dragStartY = 0;
+  let dragStartOffset = 0;
+  let dragSensitivity = 0.02;
+
+  // ── Option/Alt 键检测 ──
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Alt' || e.key === 'Option') {
+      altPressed = true;
+      modeIndicator.classList.add('visible');
+      controls.enableRotate = true;   // 启用旋转
+      canvas.style.cursor = 'move';
+      // 如果正在拖拽切面，立刻释放
+      if (isDragging) {
+        isDragging = false;
+      }
+    }
+  });
+  window.addEventListener('keyup', (e) => {
+    if (e.key === 'Alt' || e.key === 'Option') {
+      altPressed = false;
+      modeIndicator.classList.remove('visible');
+      controls.enableRotate = false;  // 禁用旋转，回到拖拽切面模式
+      canvas.style.cursor = 'grab';
+    }
+  });
+
+  // ── 鼠标按下：开始拖拽切面（只要没按Option就行）──
+  renderer.domElement.addEventListener('pointerdown', (e) => {
+    if (altPressed) return;  // Option按下时交给OrbitControls
+    if (e.button !== 0) return;  // 只响应左键
+
+    isDragging = true;
+    dragStartY = e.clientY;
+    dragStartOffset = cutOffset;
+
+    // 根据模型大小计算灵敏度：模型越大，每像素移动的世界距离越大
+    if (modelBoundingBox) {
+      const size = modelBoundingBox.getSize(new THREE.Vector3());
+      const maxDim = Math.max(size.x, size.y, size.z, 1);
+      dragSensitivity = maxDim / 250;  // 大约250像素拖完全程
+    }
+
+    canvas.style.cursor = 'grabbing';
+    e.preventDefault();
+  });
+
+  // ── 鼠标移动：拖拽切面 ──
+  renderer.domElement.addEventListener('pointermove', (e) => {
+    if (!isDragging) return;
+
+    const deltaY = e.clientY - dragStartY;
+    // 向下拖 → offset减小（截面往后退）；向上拖 → offset增大（截面往前推）
+    cutOffset = dragStartOffset - deltaY * dragSensitivity;
+    clampOffset();
     updateCutPlaneVisual();
     computeSection();
   });
 
-  // ── Template list ──
+  // ── 鼠标松开 ──
+  renderer.domElement.addEventListener('pointerup', () => {
+    if (isDragging) {
+      isDragging = false;
+      canvas.style.cursor = altPressed ? 'move' : 'grab';
+    }
+  });
+  renderer.domElement.addEventListener('pointerleave', () => {
+    if (isDragging) {
+      isDragging = false;
+      canvas.style.cursor = altPressed ? 'move' : 'grab';
+    }
+  });
+
+  // ── 偏移滑块 ──
+  offsetSlider.addEventListener('input', () => {
+    cutOffset = parseFloat(offsetSlider.value);
+    offsetSliderVal.textContent = cutOffset.toFixed(2);
+    updateCutPlaneVisual();
+    computeSection();
+  });
+
+  // ── 键盘控制 ──
+  const KEY_STEP_PITCH = 3;
+  const KEY_STEP_YAW = 3;
+  const KEY_STEP_OFFSET = 0.06;
+
+  document.addEventListener('keydown', (e) => {
+    const tag = e.target.tagName;
+    if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
+    if (altPressed) return; // Option键按下时不拦截方向键
+
+    let handled = false;
+
+    switch (e.key) {
+      case 'ArrowUp':
+        cutPitch = Math.min(90, cutPitch + KEY_STEP_PITCH);
+        handled = true;
+        break;
+      case 'ArrowDown':
+        cutPitch = Math.max(-90, cutPitch - KEY_STEP_PITCH);
+        handled = true;
+        break;
+      case 'ArrowLeft':
+        cutYaw = Math.max(-180, cutYaw - KEY_STEP_YAW);
+        handled = true;
+        break;
+      case 'ArrowRight':
+        cutYaw = Math.min(180, cutYaw + KEY_STEP_YAW);
+        handled = true;
+        break;
+      case 'q': case 'Q':
+        cutOffset -= KEY_STEP_OFFSET;
+        handled = true;
+        break;
+      case 'e': case 'E':
+        cutOffset += KEY_STEP_OFFSET;
+        handled = true;
+        break;
+      case ' ':
+        cutOffset = 0; cutPitch = 0; cutYaw = 0;
+        handled = true;
+        break;
+    }
+
+    if (handled) {
+      e.preventDefault();
+      clampOffset();
+      updateCutPlaneVisual();
+      computeSection();
+    }
+  });
+
+  function clampOffset() {
+    if (modelBoundingBox) {
+      const size = modelBoundingBox.getSize(new THREE.Vector3());
+      const maxRange = Math.max(size.x, size.y, size.z) * 0.8;
+      cutOffset = Math.max(-maxRange, Math.min(maxRange, cutOffset));
+    }
+  }
+
+  // ═══ 轴切换按钮 ═══
+  document.querySelectorAll('#cut-status .axis-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      cutAxis = btn.dataset.axis;
+      cutOffset = 0; cutPitch = 0; cutYaw = 0;
+      document.querySelectorAll('#cut-status .axis-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      updateCutPlaneVisual();
+      computeSection();
+    });
+  });
+
+  // ═══ Viz toggles ═══
+  document.getElementById('btn-wireframe').addEventListener('click', function() {
+    this.classList.toggle('active');
+    wireGroup.visible = this.classList.contains('active');
+  });
+
+  document.getElementById('btn-xray').addEventListener('click', function() {
+    xrayMode = !xrayMode;
+    this.classList.toggle('active', xrayMode);
+    if (currentModel?.material) {
+      currentModel.material.opacity = xrayMode ? 0.12 : 0.42;
+      currentModel.material.depthWrite = !xrayMode;
+    }
+  });
+
+  document.getElementById('btn-reset-viz').addEventListener('click', function() {
+    resetCamera();
+    document.getElementById('btn-wireframe').classList.remove('active');
+    document.getElementById('btn-xray').classList.remove('active');
+    wireGroup.visible = false;
+    xrayMode = false;
+    if (currentModel?.material) {
+      currentModel.material.opacity = 0.42;
+      currentModel.material.depthWrite = true;
+    }
+  });
+
+  resetBtn.addEventListener('click', resetCamera);
+
+  // ═══ Help panel toggle ═══
+  document.getElementById('help-close').addEventListener('click', () => {
+    helpPanel.classList.add('collapsed');
+    helpToggle.classList.add('visible');
+  });
+  helpToggle.addEventListener('click', () => {
+    helpPanel.classList.remove('collapsed');
+    helpToggle.classList.remove('visible');
+  });
+
+  // ═══ Template list ═══
   function renderTemplateList() {
     const cats = getTemplatesByCategory();
     const container = document.getElementById('template-list');
-    container.innerHTML = '';
+    while (container.firstChild) container.removeChild(container.firstChild);
 
     for (const [cat, templates] of Object.entries(cats)) {
       const label = document.createElement('div');
@@ -618,10 +1123,16 @@
       for (const tpl of templates) {
         const btn = document.createElement('button');
         btn.className = 'tpl-btn' + (tpl.id === currentTemplate ? ' active' : '');
-        btn.innerHTML = `${tpl.name}<span class="tags">${(tpl.tags || []).join(' ')}</span>`;
-        btn.addEventListener('click', () => {
-          currentTemplate = tpl.id;
+        btn.dataset.tplId = tpl.id;
+        btn.innerHTML = `<span>${tpl.name}</span><span class="tags">${(tpl.tags||[]).join(' ')}</span>`;
+        btn.addEventListener('click', (evt) => {
+          evt.stopPropagation();
+          currentTemplate = evt.currentTarget.dataset.tplId;
           currentParams = {};
+          cutAxis = 'z'; cutOffset = 0; cutPitch = 0; cutYaw = 0;
+          document.querySelectorAll('#cut-status .axis-btn').forEach(b => {
+            b.classList.toggle('active', b.dataset.axis === 'z');
+          });
           renderTemplateList();
           renderParams();
           rebuild();
@@ -631,7 +1142,7 @@
     }
   }
 
-  // ── Params panel ──
+  // ═══ Params panel ═══
   function renderParams() {
     const tpl = CSG_TEMPLATES[currentTemplate];
     if (!tpl?.params || Object.keys(tpl.params).length === 0) {
@@ -640,7 +1151,7 @@
     }
     document.getElementById('params-section').style.display = '';
     const panel = document.getElementById('params-panel');
-    panel.innerHTML = '';
+    while (panel.firstChild) panel.removeChild(panel.firstChild);
 
     for (const [key, spec] of Object.entries(tpl.params)) {
       const val = currentParams[key] ?? spec.default;
@@ -648,28 +1159,25 @@
       row.className = 'param-row';
       row.innerHTML = `
         <label><span>${spec.label}</span><span class="val">${val}</span></label>
-        <input type="range" min="${spec.min}" max="${spec.max}" step="${spec.step}" value="${val}" data-key="${key}">
-      `;
+        <input type="range" min="${spec.min}" max="${spec.max}" step="${spec.step}" value="${val}" data-key="${key}">`;
       const slider = row.querySelector('input');
       slider.addEventListener('input', () => {
-        const v = parseFloat(slider.value);
-        currentParams[key] = v;
-        row.querySelector('.val').textContent = v;
+        currentParams[key] = parseFloat(slider.value);
+        row.querySelector('.val').textContent = slider.value;
         rebuild();
       });
       panel.appendChild(row);
     }
   }
 
-  // ── Init ──
+  // ═══ Init ═══
   async function init() {
-    // Default params
     const tpl = CSG_TEMPLATES[currentTemplate];
     if (tpl?.params) {
       for (const [k, s] of Object.entries(tpl.params)) currentParams[k] = s.default;
     }
 
-    loadingBar.querySelector('.msg').textContent = '加载 Manifold WASM 引擎 (~1.5MB)…';
+    loadingBar.querySelector('.msg').textContent = '加载 Manifold WASM (~1.5MB)…';
     await initManifold();
 
     loadingBar.querySelector('.msg').textContent = '构建 3D 模型…';
@@ -677,9 +1185,16 @@
 
     loadingBar.classList.add('hidden');
     statsBar.style.display = 'flex';
-    renderCutToolbar();
+    vizOptions.style.display = 'flex';
+    resetBtn.style.display = 'grid';
+    cutStatus.style.display = 'flex';
+    helpPanel.style.display = 'block';
+
+    updateCutPlaneVisual();
     renderTemplateList();
     renderParams();
+
+    setTimeout(resize, 80);
   }
 
   init().catch(err => {
