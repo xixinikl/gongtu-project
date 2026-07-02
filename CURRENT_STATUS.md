@@ -7,32 +7,33 @@
 ## 当前任务
 
 - 状态：● 已完成
-- 编号：LESSON-004
-- 任务：`feat: 建立选项验证状态机`
+- 编号：LESSON-005
+- 任务：`feat: 建立相机与切面讲解时间线`
 
 ## 本任务完成
 
-- 建立六阶段显式状态机：ready、validating、playing、paused、exploring、completed。
-- 选项选择只改变验证上下文，不会改写标准答案。
-- 播放、暂停、步进、手动探索和返回讲解均通过受控事件转换。
-- 未知选项、越界关键帧和未知事件立即拒绝。
-- 只有 COMPLETE 事件可以揭晓人工标准答案。
+- 相机位置、观察目标和切平面使用确定性三次缓动同步补间。
+- 切平面法向量在补间全过程保持归一化。
+- 播放、暂停、前后步进、复位和探索中断均可恢复精确关键帧。
+- 截面在补间期间持续由 V2 重算，不使用伪造的选项形状动画。
+- 浏览器验证跨帧后显示真实截面且无控制台错误。
 
 ## 交付文件
 
-- `geometry/lesson-state-machine.js`
+- `geometry/lesson-timeline.js`
 - `reasoning-lesson.js`
-- `tests/lesson-state-machine.test.mjs`
+- `tests/lesson-timeline.test.mjs`
 - 审计：`TASKS.md`、`CURRENT_STATUS.md`
 
 ## 验收证据
 
 - 两个 JavaScript 文件语法检查通过。
-- 状态机专项与布局测试：10/10 通过。
+- 时间线与状态机专项测试：11/11 通过。
+- 浏览器播放、暂停、跨帧字幕与真实截面同步通过。
 - `git diff --check`：通过。
 
 ## 唯一下一项
 
-LESSON-005：完善相机与切面时间线的播放、暂停、逐步前进和复位。
+LESSON-006：完善逐项几何约束讲解与学生可读反馈。
 
-重点处理补间动画、暂停恢复和避免截面闪烁。
+当前 MVP 主链已跑通，下一项主要是精细化讲解表达。

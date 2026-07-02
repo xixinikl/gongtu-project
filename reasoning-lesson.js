@@ -11,6 +11,10 @@ import {
   publicLessonState,
   transitionLesson,
 } from "./geometry/lesson-state-machine.js";
+import {
+  interpolateTeachingFrame,
+  transitionProgress,
+} from "./geometry/lesson-timeline.js";
 
 const CASE_URLS = {
   "cone-box-001": "/data/reasoning-cases/cone-box-001.json",
@@ -61,6 +65,7 @@ const state = {
   playing: false,
   playTimer: null,
   machine: null,
+  transitionFrame: null,
 };
 
 function dispatch(event) {
@@ -292,6 +297,65 @@ function normalizedPlane(normal, constant) {
   return new THREE.Plane(vector.divideScalar(length), constant / length);
 }
 
+function currentTeachingFrame() {
+  return {
+    camera: {
+      position: camera.position.toArray(),
+      target: controls.target.toArray(),
+    },
+    plane: planeHelper.visible
+      ? {
+          normal: sectionPlane.normal.toArray(),
+          constant: sectionPlane.constant,
+        }
+      : null,
+  };
+}
+
+function renderTeachingFrame(frame) {
+  camera.position.fromArray(frame.camera.position);
+  controls.target.fromArray(frame.camera.target);
+  controls.update();
+  if (frame.plane) {
+    sectionPlane.copy(
+      normalizedPlane(frame.plane.normal, frame.plane.constant),
+    );
+    planeHelper.visible = true;
+  } else {
+    sectionPlane.set(new THREE.Vector3(1, 0, 0), 99);
+    planeHelper.visible = false;
+  }
+  updateSection();
+}
+
+function cancelTeachingTransition() {
+  if (state.transitionFrame !== null) {
+    cancelAnimationFrame(state.transitionFrame);
+    state.transitionFrame = null;
+  }
+}
+
+function animateTeachingFrame(target, durationMs = 760) {
+  cancelTeachingTransition();
+  const start = currentTeachingFrame();
+  const startedAt = performance.now();
+  return new Promise((resolve) => {
+    const tick = (now) => {
+      const progress = transitionProgress(startedAt, now, durationMs);
+      renderTeachingFrame(
+        interpolateTeachingFrame(start, target, progress),
+      );
+      if (progress < 1 && !state.exploring) {
+        state.transitionFrame = requestAnimationFrame(tick);
+      } else {
+        state.transitionFrame = null;
+        resolve();
+      }
+    };
+    state.transitionFrame = requestAnimationFrame(tick);
+  });
+}
+
 function syncPlaneHelper() {
   const normal = sectionPlane.normal;
   const point = normal.clone().multiplyScalar(-sectionPlane.constant);
@@ -471,7 +535,7 @@ function renderConstraints(option) {
   }
 }
 
-function applyKeyframe(index) {
+function applyKeyframe(index, { animate = false } = {}) {
   const keyframes = state.caseData.keyframes;
   const safeIndex = Math.max(0, Math.min(index, keyframes.length - 1));
   if (safeIndex !== state.machine.currentKeyframe) {
@@ -487,19 +551,12 @@ function applyKeyframe(index) {
 
   if (keyframe.optionId) selectOption(keyframe.optionId, false);
   if (!state.exploring) {
-    camera.position.fromArray(keyframe.camera.position);
-    controls.target.fromArray(keyframe.camera.target);
-    controls.update();
-    if (keyframe.plane) {
-      sectionPlane.copy(
-        normalizedPlane(keyframe.plane.normal, keyframe.plane.constant),
-      );
-      planeHelper.visible = true;
+    if (animate) {
+      animateTeachingFrame(keyframe);
     } else {
-      sectionPlane.set(new THREE.Vector3(1, 0, 0), 99);
-      planeHelper.visible = false;
+      cancelTeachingTransition();
+      renderTeachingFrame(keyframe);
     }
-    updateSection();
   }
 }
 
@@ -541,6 +598,7 @@ function selectOption(optionId, jumpToKeyframe = true) {
 }
 
 function setExploring(exploring) {
+  cancelTeachingTransition();
   dispatch({ type: exploring ? "ENTER_EXPLORE" : "EXIT_EXPLORE" });
   elements.explore.setAttribute("aria-pressed", String(exploring));
   elements.explore.textContent = exploring ? "返回讲解" : "手动探索";
@@ -570,7 +628,7 @@ function scheduleNextFrame() {
       stopPlayback();
       return;
     }
-    applyKeyframe(state.currentKeyframe + 1);
+    applyKeyframe(state.currentKeyframe + 1, { animate: true });
     scheduleNextFrame();
   }, 3000);
 }
@@ -591,6 +649,7 @@ function togglePlayback() {
 
 async function loadCase(caseId) {
   stopPlayback();
+  cancelTeachingTransition();
   elements.loading.classList.remove("is-hidden");
   elements.engineStatus.textContent = "正在读取人工核验题目";
   const url = CASE_URLS[caseId];
@@ -683,6 +742,7 @@ loadCase(CASE_URLS[initialCase] ? initialCase : "cone-box-001")
 
 window.addEventListener("beforeunload", () => {
   stopPlayback();
+  cancelTeachingTransition();
   cancelAnimationFrame(frameRequest);
   resizeObserver?.disconnect();
   sectionVisual.dispose();
