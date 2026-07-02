@@ -1,0 +1,221 @@
+{
+  "schemaVersion": "1.0-draft",
+  "id": "pyramid-cylinder-001",
+  "title": "四棱锥与圆柱组合截面",
+  "source": {
+    "kind": "user-provided-video",
+    "videoFileName": "@公考志远（立体图推数资分享） 棱锥+圆柱组合截面考察 1080P.mp4",
+    "questionFrameSeconds": 3,
+    "explanationRangeSeconds": [3, 56],
+    "prompt": "哪一个不是该模型截面图？",
+    "optionOrder": ["A", "B", "C", "D"],
+    "transcriptionStatus": "human-reviewed-from-video",
+    "taskBoardCorrection": "视频实际为四个选项，不是旧任务描述中的五个选项。"
+  },
+  "model": {
+    "kind": "composite-primitives",
+    "operation": "union",
+    "coordinateSystem": "y-up",
+    "objects": [
+      {
+        "id": "square-pyramid",
+        "type": "square-pyramid",
+        "dimensions": {
+          "baseWidth": 3.2,
+          "baseDepth": 3.2,
+          "height": 3.4
+        },
+        "transform": {
+          "position": [-0.85, 0, 0],
+          "rotationDegrees": [0, 0, -90],
+          "scale": [1, 1, 1]
+        }
+      },
+      {
+        "id": "side-cylinder",
+        "type": "cylinder",
+        "dimensions": {
+          "radius": 0.9,
+          "height": 1.9,
+          "radialSegments": 96
+        },
+        "transform": {
+          "position": [0.55, 0, 0],
+          "rotationDegrees": [0, 0, 90],
+          "scale": [1, 1, 1]
+        }
+      }
+    ],
+    "contact": {
+      "type": "cylinder-end-on-pyramid-side",
+      "centered": true
+    },
+    "parameterStatus": "representative-not-source-dimensioned"
+  },
+  "constraints": [
+    {
+      "id": "plane-is-infinite",
+      "label": "一个截面只能来自同一个无限平面",
+      "rule": "切面不能为得到某个局部图形而在组合体中途转向或停止。"
+    },
+    {
+      "id": "pyramid-section-is-polygon",
+      "label": "棱锥截痕由直线段组成",
+      "rule": "平面与四棱锥各平面的交线是直线段，截到不同侧面时在棱上连接。"
+    },
+    {
+      "id": "cylinder-section-family",
+      "label": "圆柱截痕受切面方向约束",
+      "rule": "垂直轴线可得圆，斜切可得椭圆，平行轴线可得矩形或两条母线组成的边界。"
+    },
+    {
+      "id": "shared-plane-angle-coupling",
+      "label": "圆柱与棱锥共享同一切面倾角",
+      "rule": "为了在圆柱上得到斜切椭圆而倾斜切面时，同一倾角也会改变棱锥上的截痕。"
+    },
+    {
+      "id": "pyramid-edge-clips-rectangle",
+      "label": "倾斜切面经过棱锥棱时矩形会缺角",
+      "rule": "候选图若要求圆柱上出现椭圆，切面斜穿组合体后会碰到棱锥侧棱，棱锥一侧不可能仍是完整矩形。"
+    },
+    {
+      "id": "contact-continuity",
+      "label": "两部分截痕在接触处连续",
+      "rule": "切面同时切到圆柱和棱锥时，边界必须在真实连接区域连续。"
+    }
+  ],
+  "options": [
+    {
+      "id": "A",
+      "label": "狭长三角形",
+      "outlineClass": "narrow-triangle",
+      "outline": {
+        "kind": "normalized-polyline",
+        "closed": true,
+        "points": [[-0.16, 1], [0.16, 1], [0, -1]]
+      },
+      "verdict": "possible",
+      "reason": "切面可以只穿过四棱锥的一条棱及相邻侧面而避开圆柱，得到狭长三角形。",
+      "satisfies": ["plane-is-infinite", "pyramid-section-is-polygon"],
+      "violates": []
+    },
+    {
+      "id": "B",
+      "label": "不规则四边形",
+      "outlineClass": "pyramid-quadrilateral",
+      "outline": {
+        "kind": "normalized-polyline",
+        "closed": true,
+        "points": [[-0.74, 0.75], [0.52, 0.58], [0.82, -0.68], [-0.96, -0.88]]
+      },
+      "verdict": "possible",
+      "reason": "调整视角后用斜平面只切四棱锥的四个侧面，可以得到由四条直线段组成的不规则四边形。",
+      "satisfies": ["plane-is-infinite", "pyramid-section-is-polygon"],
+      "violates": []
+    },
+    {
+      "id": "C",
+      "label": "圆柱曲线与棱锥三角形相连",
+      "outlineClass": "conic-plus-triangle",
+      "outline": {
+        "kind": "mixed-outline",
+        "closed": true,
+        "segments": [
+          {"type": "arc", "from": [-0.8, 0.38], "to": [0.8, 0.38], "bulge": 0.62},
+          {"type": "line", "from": [0.8, 0.38], "to": [0, -1]},
+          {"type": "line", "from": [0, -1], "to": [-0.8, 0.38]}
+        ]
+      },
+      "verdict": "possible",
+      "reason": "切面可以同时切过圆柱侧面和四棱锥相邻侧面，圆柱贡献椭圆弧，棱锥贡献直线段，并在连接处闭合。",
+      "satisfies": ["cylinder-section-family", "pyramid-section-is-polygon", "contact-continuity"],
+      "violates": []
+    },
+    {
+      "id": "D",
+      "label": "完整圆或椭圆连接完整矩形",
+      "outlineClass": "ellipse-plus-full-rectangle",
+      "outline": {
+        "kind": "compound",
+        "parts": [
+          {"type": "ellipse", "center": [-0.55, 0.18], "radius": [0.62, 0.74]},
+          {"type": "rectangle", "bounds": [0, -0.72, 0.82, 0.72]}
+        ]
+      },
+      "verdict": "impossible",
+      "reason": "候选图要求圆柱端呈椭圆，说明切面相对圆柱轴线发生倾斜；同一斜平面继续进入四棱锥时会切到一条侧棱，因此右侧多边形必然缺角，不能保持完整矩形。",
+      "satisfies": ["cylinder-section-family"],
+      "violates": ["shared-plane-angle-coupling", "pyramid-edge-clips-rectangle"]
+    }
+  ],
+  "answer": {
+    "questionMode": "select-impossible",
+    "correctOptionId": "D",
+    "source": "manual-video-review",
+    "revealedRangeSeconds": [39, 56],
+    "aiGenerated": false
+  },
+  "keyframes": [
+    {
+      "id": "overview",
+      "timeSeconds": 0,
+      "caption": "左侧是四棱锥，右侧圆柱连接在棱锥侧面。",
+      "camera": {"position": [5.6, 3.8, 6.2], "target": [0, 0, 0]},
+      "plane": null
+    },
+    {
+      "id": "confirm-a",
+      "timeSeconds": 4,
+      "optionId": "A",
+      "caption": "切面贴近一条棱并避开圆柱，可得到狭长三角形。",
+      "camera": {"position": [4.8, 4.1, 5.3], "target": [-0.7, 0, 0]},
+      "plane": {"normal": [0.12, 0.88, 0.46], "constant": 0.7}
+    },
+    {
+      "id": "confirm-c",
+      "timeSeconds": 8,
+      "optionId": "C",
+      "caption": "同时斜切圆柱与棱锥，可由椭圆弧和直线段组成闭合轮廓。",
+      "camera": {"position": [5.4, 2.9, 5.8], "target": [0, 0, 0]},
+      "plane": {"normal": [0.44, 0.68, 0.59], "constant": 0}
+    },
+    {
+      "id": "confirm-b",
+      "timeSeconds": 12,
+      "optionId": "B",
+      "caption": "斜切四棱锥四个侧面，可以得到不规则四边形。",
+      "camera": {"position": [-4.2, 4.5, 5.5], "target": [-0.65, 0, 0]},
+      "plane": {"normal": [0.66, 0.66, 0.36], "constant": 0.65}
+    },
+    {
+      "id": "reject-d",
+      "timeSeconds": 16,
+      "optionId": "D",
+      "caption": "为了得到圆柱椭圆而倾斜后，切面会碰到棱锥侧棱，所谓完整矩形必然缺角。",
+      "camera": {"position": [5.9, 3.2, 4.6], "target": [0, 0, 0]},
+      "plane": {"normal": [0.67, 0.23, 0.7], "constant": -0.05}
+    }
+  ],
+  "verification": {
+    "status": "human-verified",
+    "verifiedBy": "manual-review",
+    "verifiedDate": "2026-07-02",
+    "notes": [
+      "正确答案 D 来自用户提供视频 39 至 56 秒的人工复核。",
+      "视频题图实际只有 A 至 D 四个选项，旧看板中的五选项描述已按事实纠正。",
+      "关键帧参数用于教学演示；上线前仍需用真实 V2 截面微调到与结构化选项相符。"
+    ]
+  },
+  "uncertainties": [
+    {
+      "field": "model.contact",
+      "reason": "示意图没有给出圆柱与四棱锥的精确嵌入深度。",
+      "impact": "影响组合模型的视觉比例，不影响 D 的同平面倾角矛盾。"
+    },
+    {
+      "field": "keyframes.plane",
+      "reason": "视频没有公开切面法向量，当前数值是后续页面调试的初始候选。",
+      "impact": "LESSON-003 必须用 V2 真实截面验证并微调，不能仅凭数值声明匹配选项。"
+    }
+  ]
+}

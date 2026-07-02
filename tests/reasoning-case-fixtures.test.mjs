@@ -2,13 +2,19 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const fixtureUrl = new URL(
-  "../data/reasoning-cases/cone-box-001.json",
-  import.meta.url,
-);
+const fixtureUrls = {
+  coneBox: new URL(
+    "../data/reasoning-cases/cone-box-001.json",
+    import.meta.url,
+  ),
+  pyramidCylinder: new URL(
+    "../data/reasoning-cases/pyramid-cylinder-001.json",
+    import.meta.url,
+  ),
+};
 
-async function loadFixture() {
-  return JSON.parse(await readFile(fixtureUrl, "utf8"));
+async function loadFixture(name = "coneBox") {
+  return JSON.parse(await readFile(fixtureUrls[name], "utf8"));
 }
 
 test("cone-box-001 freezes the manually verified source and answer", async () => {
@@ -91,4 +97,58 @@ test("cone-box-001 explicitly preserves source ambiguities", async () => {
     assert.ok(uncertainty.reason);
     assert.ok(uncertainty.impact);
   }
+});
+
+test("pyramid-cylinder-001 corrects the source to four options and answer D", async () => {
+  const fixture = await loadFixture("pyramidCylinder");
+
+  assert.equal(fixture.id, "pyramid-cylinder-001");
+  assert.deepEqual(fixture.source.optionOrder, ["A", "B", "C", "D"]);
+  assert.match(fixture.source.taskBoardCorrection, /四个选项/);
+  assert.equal(fixture.answer.questionMode, "select-impossible");
+  assert.equal(fixture.answer.correctOptionId, "D");
+  assert.equal(fixture.answer.source, "manual-video-review");
+  assert.equal(fixture.answer.aiGenerated, false);
+});
+
+test("pyramid-cylinder-001 freezes three possible options and one impossible option", async () => {
+  const fixture = await loadFixture("pyramidCylinder");
+  const verdicts = Object.fromEntries(
+    fixture.options.map((option) => [option.id, option.verdict]),
+  );
+
+  assert.deepEqual(verdicts, {
+    A: "possible",
+    B: "possible",
+    C: "possible",
+    D: "impossible",
+  });
+
+  for (const option of fixture.options) {
+    assert.ok(option.outline);
+    assert.ok(option.reason.length >= 20);
+  }
+});
+
+test("pyramid-cylinder-001 ties option D to the coupled-plane edge constraint", async () => {
+  const fixture = await loadFixture("pyramidCylinder");
+  const optionD = fixture.options.find((option) => option.id === "D");
+
+  assert.ok(optionD.violates.includes("shared-plane-angle-coupling"));
+  assert.ok(optionD.violates.includes("pyramid-edge-clips-rectangle"));
+  assert.match(optionD.reason, /倾斜/);
+  assert.match(optionD.reason, /缺角/);
+});
+
+test("pyramid-cylinder-001 keyframes cover every option deterministically", async () => {
+  const fixture = await loadFixture("pyramidCylinder");
+  const covered = new Set(
+    fixture.keyframes
+      .map((keyframe) => keyframe.optionId)
+      .filter(Boolean),
+  );
+
+  assert.deepEqual([...covered].sort(), ["A", "B", "C", "D"]);
+  assert.equal(fixture.verification.status, "human-verified");
+  assert.ok(fixture.uncertainties.length >= 1);
 });
