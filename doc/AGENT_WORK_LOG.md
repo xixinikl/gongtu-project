@@ -586,3 +586,13 @@
 - 开源候选：OpenCV、PaddleOCR、Tesseract.js、Transformers.js、Transformers/llama.cpp、Ollama；
   具体模型权重必须在 OSS-001 单独登记许可证和资源预算
 - 下一项：CASE-001 固化圆锥方体参考题黄金答案
+
+## 2026-07-02 · 主协调 Agent · CASE-001
+
+- 任务：`test: 固化圆锥方体参考题黄金答案`
+- 来源：用户提供的“圆锥+方体经典模型”视频，人工复核，不使用 AI 判题
+- 交付：`data/reasoning-cases/cone-box-001.json`、`tests/reasoning-case-fixtures.test.mjs`
+- 固定内容：四个选项轮廓、答案 A、五条几何约束、逐项理由、五个相机/切面关键帧
+- 诚实边界：视频没有精确尺寸，模型尺寸标记为教学代表参数；低分辨率曲线转写保留 uncertainty
+- 验收：聚焦测试 5/5 通过；`git diff --check` 通过
+- 下一项：CASE-002 固化棱锥圆柱参考题黄金答案

@@ -1,0 +1,217 @@
+{
+  "schemaVersion": "1.0-draft",
+  "id": "cone-box-001",
+  "title": "倒圆锥与方体经典截面",
+  "source": {
+    "kind": "user-provided-video",
+    "videoFileName": "@公考志远（立体图推数资分享） 圆锥+方体经典模型 1080P.mp4",
+    "questionFrameSeconds": 5,
+    "explanationRangeSeconds": [5, 69],
+    "prompt": "哪一个是该模型正确的截面？",
+    "optionOrder": ["A", "B", "C", "D"],
+    "transcriptionStatus": "human-reviewed-from-video"
+  },
+  "model": {
+    "kind": "composite-primitives",
+    "operation": "union",
+    "coordinateSystem": "y-up",
+    "objects": [
+      {
+        "id": "inverted-cone",
+        "type": "cone",
+        "dimensions": {
+          "height": 3,
+          "radiusBottom": 1.55,
+          "radialSegments": 96
+        },
+        "transform": {
+          "position": [0, -1.5, 0],
+          "rotationDegrees": [180, 0, 0],
+          "scale": [1, 1, 1]
+        }
+      },
+      {
+        "id": "top-box",
+        "type": "box",
+        "dimensions": {
+          "width": 0.9,
+          "height": 1.15,
+          "depth": 0.9
+        },
+        "transform": {
+          "position": [0, 0.575, 0],
+          "rotationDegrees": [0, 0, 0],
+          "scale": [1, 1, 1]
+        }
+      }
+    ],
+    "contact": {
+      "type": "box-bottom-on-cone-base",
+      "planeY": 0,
+      "centered": true
+    },
+    "parameterStatus": "representative-not-source-dimensioned"
+  },
+  "constraints": [
+    {
+      "id": "plane-is-infinite",
+      "label": "截面来自同一个无限平面",
+      "rule": "所有截面边界必须同时落在同一平面内，不能只截取想要的局部。"
+    },
+    {
+      "id": "cone-generator-or-conic",
+      "label": "圆锥截痕类型受切面方向约束",
+      "rule": "过锥顶的轴向平面在圆锥上形成两条母线；不过锥顶且切过单侧锥面的平面形成圆锥曲线。"
+    },
+    {
+      "id": "box-face-lines",
+      "label": "方体截痕由直线段构成",
+      "rule": "平面与方体平面的交线只能是直线段，并在被切到的棱或接触边处连接。"
+    },
+    {
+      "id": "shared-contact-continuity",
+      "label": "组合体接触处必须连续",
+      "rule": "切面同时经过方体和圆锥时，两部分截痕必须在真实接触区域连续闭合。"
+    },
+    {
+      "id": "full-ellipse-cannot-ignore-box",
+      "label": "完整椭圆不能穿过方体占据区",
+      "rule": "若切面在圆锥上形成完整闭合椭圆，其位置与方体接触区冲突时，轮廓必须同时反映方体的截痕，不能保留一条未被打断的内椭圆。"
+    }
+  ],
+  "options": [
+    {
+      "id": "A",
+      "label": "直杆连接向下锥形轮廓",
+      "outlineClass": "box-stem-plus-axial-cone",
+      "outline": {
+        "kind": "normalized-polyline",
+        "closed": true,
+        "points": [[-0.22, 1], [0.22, 1], [0.22, 0.45], [0.78, 0.45], [0, -1], [-0.78, 0.45], [-0.22, 0.45]]
+      },
+      "verdict": "correct",
+      "reason": "存在过圆锥轴线与方体中部的同一竖直平面：方体贡献矩形直杆，倒圆锥贡献由两条母线围成的向下三角形，接触处连续形成该轮廓。",
+      "satisfies": ["plane-is-infinite", "cone-generator-or-conic", "box-face-lines", "shared-contact-continuity"],
+      "violates": []
+    },
+    {
+      "id": "B",
+      "label": "凸六边形",
+      "outlineClass": "convex-hexagon",
+      "outline": {
+        "kind": "normalized-polyline",
+        "closed": true,
+        "points": [[-0.5, 0.86], [0.5, 0.86], [1, 0], [0.5, -0.86], [-0.5, -0.86], [-1, 0]]
+      },
+      "verdict": "impossible",
+      "reason": "圆锥轴向直截面是三角形，方体截面加入后会保留方体直杆及接触处转折；它不能把组合体外轮廓变成一个没有接触转折的凸六边形。",
+      "satisfies": ["box-face-lines"],
+      "violates": ["cone-generator-or-conic", "shared-contact-continuity"]
+    },
+    {
+      "id": "C",
+      "label": "直杆连接曲边盾形轮廓",
+      "outlineClass": "box-stem-plus-curved-shield",
+      "outline": {
+        "kind": "mixed-outline",
+        "closed": true,
+        "segments": [
+          {"type": "line", "from": [-0.22, 1], "to": [0.22, 1]},
+          {"type": "line", "from": [0.22, 1], "to": [0.22, 0.45]},
+          {"type": "line", "from": [0.22, 0.45], "to": [0.68, 0.25]},
+          {"type": "quadratic", "from": [0.68, 0.25], "control": [0.55, -0.65], "to": [0, -1]},
+          {"type": "quadratic", "from": [0, -1], "control": [-0.55, -0.65], "to": [-0.68, 0.25]},
+          {"type": "line", "from": [-0.68, 0.25], "to": [-0.22, 0.45]},
+          {"type": "line", "from": [-0.22, 0.45], "to": [-0.22, 1]}
+        ]
+      },
+      "verdict": "impossible",
+      "reason": "轮廓要求切面在方体上保持对称直杆，同时在圆锥上得到向锥顶收束的弯曲边；前者对应中部轴向切法，后者却要求非轴向圆锥曲线，两种条件不能由同一平面同时满足。",
+      "satisfies": ["box-face-lines"],
+      "violates": ["plane-is-infinite", "cone-generator-or-conic"]
+    },
+    {
+      "id": "D",
+      "label": "矩形内含完整椭圆",
+      "outlineClass": "rectangle-with-full-ellipse",
+      "outline": {
+        "kind": "compound",
+        "outer": {"type": "rectangle", "bounds": [-1, -0.65, 1, 0.65]},
+        "inner": {"type": "ellipse", "center": [0, 0], "radius": [0.72, 0.42]}
+      },
+      "verdict": "impossible",
+      "reason": "若平面在圆锥上得到完整椭圆，切面必须绕圆锥形成闭合曲线；题图所示方体与圆锥在顶面中央接触，候选图却让完整椭圆不受方体截痕影响，违反同一无限平面和接触连续性。",
+      "satisfies": [],
+      "violates": ["plane-is-infinite", "shared-contact-continuity", "full-ellipse-cannot-ignore-box"]
+    }
+  ],
+  "answer": {
+    "correctOptionId": "A",
+    "source": "manual-video-review",
+    "revealedNearSeconds": 65,
+    "aiGenerated": false
+  },
+  "keyframes": [
+    {
+      "id": "overview",
+      "timeSeconds": 0,
+      "caption": "先识别组合体：上方方体与下方倒圆锥共用中央接触区。",
+      "camera": {"position": [4.8, 3.8, 6.5], "target": [0, -0.8, 0]},
+      "plane": null
+    },
+    {
+      "id": "reject-c",
+      "timeSeconds": 4,
+      "optionId": "C",
+      "caption": "同一切面不能让方体保持轴向直截，同时让圆锥边界变成另一类曲线。",
+      "camera": {"position": [5.2, 2.8, 5.6], "target": [0, -0.8, 0]},
+      "plane": {"normal": [0.52, 0.14, 0.84], "constant": 0}
+    },
+    {
+      "id": "reject-b",
+      "timeSeconds": 8,
+      "optionId": "B",
+      "caption": "圆锥截痕不会把方体与圆锥的组合外轮廓抹成单一凸六边形。",
+      "camera": {"position": [-4.8, 3.2, 5.4], "target": [0, -0.8, 0]},
+      "plane": {"normal": [0.3, 0.18, 0.94], "constant": 0}
+    },
+    {
+      "id": "reject-d",
+      "timeSeconds": 12,
+      "optionId": "D",
+      "caption": "完整椭圆若经过组合体接触区域，必须与方体截痕共同构成真实边界。",
+      "camera": {"position": [4.2, 4.6, 4.8], "target": [0, -0.5, 0]},
+      "plane": {"normal": [0.16, 0.98, 0.11], "constant": 0.34}
+    },
+    {
+      "id": "confirm-a",
+      "timeSeconds": 16,
+      "optionId": "A",
+      "caption": "过轴竖直平面同时切过方体和圆锥，得到直杆连接向下三角形。",
+      "camera": {"position": [4.7, 2.4, 6.2], "target": [0, -0.8, 0]},
+      "plane": {"normal": [1, 0, 0], "constant": 0}
+    }
+  ],
+  "verification": {
+    "status": "human-verified",
+    "verifiedBy": "manual-review",
+    "verifiedDate": "2026-07-02",
+    "notes": [
+      "正确答案和逐项结论来自用户提供视频的人工复核，不由 AI 生成。",
+      "模型尺寸与教学关键帧是用于复现相对关系的代表参数，不声称是视频中的真实尺寸。",
+      "正式学生页必须保留原视频出处说明，不得将代表参数描述成题目已知量。"
+    ]
+  },
+  "uncertainties": [
+    {
+      "field": "model.dimensions",
+      "reason": "原题为示意图，没有给出方体、圆锥的精确尺寸比例。",
+      "impact": "不影响选项 A 的存在性判断，但会影响演示截面的具体比例。"
+    },
+    {
+      "field": "options.C.outline",
+      "reason": "视频题图分辨率有限，曲边轮廓按可见线稿人工转写。",
+      "impact": "学生页应显示原题图与结构化示意，不把示意轮廓当作像素级复刻。"
+    }
+  ]
+}
