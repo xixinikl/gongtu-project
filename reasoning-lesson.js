@@ -6,6 +6,11 @@ import {
   toSectionVisualV2Data,
 } from "./geometry/section-engine-v2.js";
 import { createSectionVisualV2 } from "./geometry/section-visual-v2.js";
+import {
+  createLessonState,
+  publicLessonState,
+  transitionLesson,
+} from "./geometry/lesson-state-machine.js";
 
 const CASE_URLS = {
   "cone-box-001": "/data/reasoning-cases/cone-box-001.json",
@@ -55,7 +60,17 @@ const state = {
   exploring: false,
   playing: false,
   playTimer: null,
+  machine: null,
 };
+
+function dispatch(event) {
+  state.machine = transitionLesson(state.machine, event);
+  state.currentKeyframe = state.machine.currentKeyframe;
+  state.selectedOptionId = state.machine.selectedOptionId;
+  state.exploring = state.machine.phase === "exploring";
+  state.playing = state.machine.phase === "playing";
+  return state.machine;
+}
 
 function assertRequiredElements() {
   for (const [name, element] of Object.entries(elements)) {
@@ -458,7 +473,11 @@ function renderConstraints(option) {
 
 function applyKeyframe(index) {
   const keyframes = state.caseData.keyframes;
-  state.currentKeyframe = Math.max(0, Math.min(index, keyframes.length - 1));
+  const safeIndex = Math.max(0, Math.min(index, keyframes.length - 1));
+  if (safeIndex !== state.machine.currentKeyframe) {
+    dispatch({ type: "GO_TO_KEYFRAME", index: safeIndex });
+  }
+  state.currentKeyframe = safeIndex;
   const keyframe = keyframes[state.currentKeyframe];
   elements.stepCounter.textContent =
     `${state.currentKeyframe + 1} / ${keyframes.length}`;
@@ -504,12 +523,25 @@ function selectOption(optionId, jumpToKeyframe = true) {
     const index = state.caseData.keyframes.findIndex(
       (keyframe) => keyframe.optionId === optionId,
     );
-    if (index >= 0) applyKeyframe(index);
+    if (index >= 0) {
+      dispatch({
+        type: "SELECT_OPTION",
+        optionId,
+        keyframeIndex: index,
+      });
+      applyKeyframe(index);
+    }
+  } else if (state.machine.selectedOptionId !== optionId) {
+    dispatch({
+      type: "SELECT_OPTION",
+      optionId,
+      keyframeIndex: state.currentKeyframe,
+    });
   }
 }
 
 function setExploring(exploring) {
-  state.exploring = exploring;
+  dispatch({ type: exploring ? "ENTER_EXPLORE" : "EXIT_EXPLORE" });
   elements.explore.setAttribute("aria-pressed", String(exploring));
   elements.explore.textContent = exploring ? "返回讲解" : "手动探索";
   elements.planePosition.disabled = !exploring;
@@ -518,7 +550,11 @@ function setExploring(exploring) {
 }
 
 function stopPlayback() {
-  state.playing = false;
+  if (state.machine && state.machine.phase === "playing") {
+    dispatch({ type: "PAUSE" });
+  } else {
+    state.playing = false;
+  }
   clearTimeout(state.playTimer);
   state.playTimer = null;
   elements.play.textContent = "播放讲解";
@@ -530,6 +566,7 @@ function scheduleNextFrame() {
     if (state.currentKeyframe >= state.caseData.keyframes.length - 1) {
       elements.answer.textContent =
         `答案 ${state.caseData.answer.correctOptionId}`;
+      dispatch({ type: "COMPLETE" });
       stopPlayback();
       return;
     }
@@ -544,7 +581,7 @@ function togglePlayback() {
     return;
   }
   setExploring(false);
-  state.playing = true;
+  dispatch({ type: "PLAY" });
   elements.play.textContent = "暂停讲解";
   if (state.currentKeyframe >= state.caseData.keyframes.length - 1) {
     applyKeyframe(0);
@@ -566,8 +603,14 @@ async function loadCase(caseId) {
   }
 
   state.caseData = caseData;
-  state.currentKeyframe = 0;
-  state.selectedOptionId = null;
+  state.machine = createLessonState({
+    caseId: caseData.id,
+    keyframeCount: caseData.keyframes.length,
+    optionIds: caseData.options.map((option) => option.id),
+    correctOptionId: caseData.answer.correctOptionId,
+  });
+  state.currentKeyframe = state.machine.currentKeyframe;
+  state.selectedOptionId = state.machine.selectedOptionId;
   state.exploring = false;
   elements.questionHeading.textContent = caseData.title;
   elements.prompt.textContent = caseData.source.prompt;
@@ -593,6 +636,7 @@ elements.next.addEventListener("click", () => {
   stopPlayback();
   applyKeyframe(state.currentKeyframe + 1);
   if (state.currentKeyframe === state.caseData.keyframes.length - 1) {
+    dispatch({ type: "COMPLETE" });
     elements.answer.textContent =
       `答案 ${state.caseData.answer.correctOptionId}`;
   }
@@ -648,10 +692,10 @@ window.addEventListener("beforeunload", () => {
 
 window.__reasoningLesson = {
   getState: () => ({
-    caseId: state.caseData?.id ?? null,
-    currentKeyframe: state.currentKeyframe,
-    selectedOptionId: state.selectedOptionId,
-    exploring: state.exploring,
+    ...(state.machine ? publicLessonState(state.machine) : {
+      caseId: null,
+      phase: "loading",
+    }),
     sectionStatus: sectionVisual.group.userData.status ?? "empty",
   }),
   loadCase,
