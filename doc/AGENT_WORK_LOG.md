@@ -565,3 +565,24 @@
 - 实验留档：`cutfix006a-experimental-do-not-merge-v1`，禁止合并
 - 任务拆分：SEC2-001 至 SEC2-009；UX2-001 至 UX2-003
 - 下一步：先派 SEC2-001；UX2-001 可在独立分支并行
+
+## 2026-07-02 · 主协调 Agent · PRD-001
+
+- 分支：`feature/csg-v2-integration`
+- 基线：`csg-section-v6-interactive` / `5fae59f`
+- 用户纠偏：保留实验室和 CSG 工作台，新增独立的考公图推动态解题与讲解入口
+- 参考视频：
+  - 倒圆锥 + 方体经典模型
+  - 棱锥 + 圆柱组合截面
+- 交付：
+  - `doc/SPATIAL_REASONING_PRODUCT_PLAN.md`
+  - `doc/AGENT_HANDOFF.md`
+  - `doc/AGENT_WORK_LOG.md`
+- 技术边界：
+  - 两道参考题先手工建立黄金答案
+  - AI 不生成数学答案
+  - 图片能力默认本地、免费、开源，只输出待确认草稿
+  - 现有 Section Engine V2、Manifold/CSG、Geometry JSON 和两个工具入口全部保留
+- 开源候选：OpenCV、PaddleOCR、Tesseract.js、Transformers.js、Transformers/llama.cpp、Ollama；
+  具体模型权重必须在 OSS-001 单独登记许可证和资源预算
+- 下一项：CASE-001 固化圆锥方体参考题黄金答案

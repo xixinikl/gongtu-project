@@ -1,53 +1,46 @@
 # 当前开发状态
 
-更新时间：2026-07-01
-当前分支：`feature/spatial-geometry-cutfix-plan`
-当前里程碑：M2 截面引擎 V2 与核心体验收口 — CUT-FIX-007 体验验收
+更新时间：2026-07-02
+当前分支：`feature/csg-v2-integration`
+当前里程碑：M5A 考公立体图推动态解题与讲解
 
 ## 当前任务
 
 - 状态：● 已完成
-- 编号：CUT-FIX-007
-- 任务：`test: 录制实时截面体验验收视频`
+- 编号：PRD-001
+- 任务：`docs: 重构考公立体图推产品路线`
 
-## 已冻结成果
+## 已完成规划
 
-- SEC2-001～009：截面引擎 V2 完成，冻结标签 `section-engine-v2-sec2-009-handoff-v1`。
-- UX2-001～003：滚轮劫持修复、首屏布局压缩、拖拽状态机。
-- UX2-004：体验任务交接，标签 `section-engine-v2-ux2-003-final-handoff-v1`。
-- CUT-FIX-007：参考视频体验验收通过。
+- 保留三个独立入口：考公图推解题、空间几何实验室、CSG 建模工作台。
+- 第一批固定两道视频参考题，答案和排除理由全部人工建立。
+- 新增 CASE、LESSON、AUTHOR、VISION 四段依赖链。
+- 图片辅助录题必须晚于手工录题和两题动态讲解验收。
+- AI 只能输出候选基本体、CSG 关系、参数和不确定项，不得输出正式答案。
 
-## CUT-FIX-007 验收证据
+## 免费开源技术边界
 
-| 验证项 | 结果 |
-|---|:---|
-| 默认教学模式保留完整模型 | ✓ teaching 按钮激活，完整立方体 + 蓝色截面可见 |
-| 切面进入→穿过→离开无闪烁 | ✓ 14步动画，顶部/底部空截面，中间实时蓝色截面 |
-| orbit/plane 模式切换无冲突 | ✓ plane模式拖拽改变offset → orbit恢复旋转，状态正确 |
-| 页面构图一屏可见 | ✓ 1280×720 scrollHeight=720，全部控件首屏可见 |
+- 图像预处理：OpenCV/OpenCV.js（Apache-2.0）。
+- 中文 OCR：PaddleOCR（Apache-2.0）。
+- 浏览器 OCR 降级：Tesseract.js（Apache-2.0）。
+- 可选本地推理：Transformers.js、Transformers、llama.cpp 或 Ollama。
+- 不依赖付费云 API；模型权重许可证和最低资源在 OSS-001 单独冻结。
 
-**输出文件** (`output/`)：
-- `cf7-00-full-recording-1280x720.webm` (1.4MB) — 完整操作录屏
-- `cf7-01-teaching-default.png` — 默认教学模式截图
-- `cf7-02-above-model.png` — 切面在模型上方（空截面）
-- `cf7-03-below-model.png` — 切面在模型下方（空截面）
-- `cf7-04-plane-drag.png` — plane 模式拖拽后
-- `cf7-05-orbit-restored.png` — orbit 恢复后
-- `cf7-06-full-layout-1280x720.png` — 1280×720 全屏布局
-- `cf7-07-narrow-layout.png` — 760×800 窄屏布局
+## 交付文件
 
-## 测试证据
+- `doc/SPATIAL_REASONING_PRODUCT_PLAN.md`
+- `doc/AGENT_HANDOFF.md`
+- `doc/AGENT_WORK_LOG.md`
+- 审计：`TASKS.md`、`CURRENT_STATUS.md`
 
-| 命令 | 结果 |
-|---|---|
-| `npm run test:geometry` | **483/483 通过** |
+## 验收证据
+
+- 三个产品入口、两道参考题、概念协议、任务依赖和停止点已写入规划。
+- GitHub 官方仓库已核对主要候选代码许可证。
+- `git diff --check` 通过后提交。
 
 ## 唯一下一项
 
-关闭旧 CUT-FIX-006 / CUT-FIX-006A 阻塞项，恢复 COM-007 组合体体验。
+CASE-001：固化“倒圆锥 + 方体”参考题黄金答案。
 
-## 禁止事项
-
-- 禁止重写 SEC2 算法或恢复质心极角排序。
-- 禁止合并 `cutfix006a-experimental-do-not-merge-v1`。
-- 禁止删除 `?sectionEngine=v1` 临时回退。
+本任务只建立人工答案和夹具，不开发 AI，不修改截面算法。
