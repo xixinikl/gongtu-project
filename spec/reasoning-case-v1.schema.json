@@ -1,0 +1,267 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://gongtu.local/schema/reasoning-case-v1.json",
+  "title": "ReasoningCase v1 draft",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "id",
+    "title",
+    "source",
+    "model",
+    "constraints",
+    "options",
+    "answer",
+    "keyframes",
+    "verification",
+    "uncertainties"
+  ],
+  "properties": {
+    "schemaVersion": {"const": "1.0-draft"},
+    "id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"},
+    "title": {"type": "string", "minLength": 1},
+    "source": {"$ref": "#/definitions/source"},
+    "model": {"$ref": "#/definitions/model"},
+    "constraints": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/definitions/constraint"}
+    },
+    "options": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 8,
+      "items": {"$ref": "#/definitions/option"}
+    },
+    "answer": {"$ref": "#/definitions/answer"},
+    "keyframes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/definitions/keyframe"}
+    },
+    "verification": {"$ref": "#/definitions/verification"},
+    "uncertainties": {
+      "type": "array",
+      "items": {"$ref": "#/definitions/uncertainty"}
+    }
+  },
+  "definitions": {
+    "vector3": {
+      "type": "array",
+      "items": {"type": "number"},
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "videoFileName",
+        "questionFrameSeconds",
+        "explanationRangeSeconds",
+        "prompt",
+        "optionOrder",
+        "transcriptionStatus"
+      ],
+      "properties": {
+        "kind": {"enum": ["user-provided-video", "image", "manual"]},
+        "videoFileName": {"type": "string", "minLength": 1},
+        "questionFrameSeconds": {"type": "number", "minimum": 0},
+        "explanationRangeSeconds": {
+          "type": "array",
+          "items": {"type": "number", "minimum": 0},
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "prompt": {"type": "string", "minLength": 1},
+        "optionOrder": {
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^[A-Z]$"}
+        },
+        "transcriptionStatus": {"type": "string", "minLength": 1},
+        "taskBoardCorrection": {"type": "string", "minLength": 1}
+      }
+    },
+    "transform": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["position", "rotationDegrees", "scale"],
+      "properties": {
+        "position": {"$ref": "#/definitions/vector3"},
+        "rotationDegrees": {"$ref": "#/definitions/vector3"},
+        "scale": {"$ref": "#/definitions/vector3"}
+      }
+    },
+    "modelObject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "dimensions", "transform"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "type": {"enum": ["box", "cone", "cylinder", "square-pyramid"]},
+        "dimensions": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {"type": "number", "exclusiveMinimum": 0}
+        },
+        "transform": {"$ref": "#/definitions/transform"}
+      }
+    },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "operation",
+        "coordinateSystem",
+        "objects",
+        "contact",
+        "parameterStatus"
+      ],
+      "properties": {
+        "kind": {"const": "composite-primitives"},
+        "operation": {"enum": ["union", "visual-union"]},
+        "coordinateSystem": {"const": "y-up"},
+        "objects": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/definitions/modelObject"}
+        },
+        "contact": {
+          "type": "object",
+          "required": ["type"],
+          "properties": {"type": {"type": "string", "minLength": 1}},
+          "additionalProperties": {
+            "type": ["string", "number", "boolean"]
+          }
+        },
+        "parameterStatus": {
+          "enum": ["verified", "representative-not-source-dimensioned"]
+        }
+      }
+    },
+    "constraint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "rule"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"},
+        "label": {"type": "string", "minLength": 1},
+        "rule": {"type": "string", "minLength": 10}
+      }
+    },
+    "option": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "outlineClass",
+        "outline",
+        "verdict",
+        "reason",
+        "satisfies",
+        "violates"
+      ],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[A-Z]$"},
+        "label": {"type": "string", "minLength": 1},
+        "outlineClass": {"type": "string", "minLength": 1},
+        "outline": {"type": "object", "minProperties": 1},
+        "verdict": {"enum": ["correct", "possible", "impossible"]},
+        "reason": {"type": "string", "minLength": 10},
+        "satisfies": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string"}
+        },
+        "violates": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string"}
+        }
+      }
+    },
+    "answer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["correctOptionId", "source", "aiGenerated"],
+      "properties": {
+        "questionMode": {"enum": ["select-correct", "select-impossible"]},
+        "correctOptionId": {"type": "string", "pattern": "^[A-Z]$"},
+        "source": {"enum": ["manual-video-review", "deterministic-geometry"]},
+        "revealedNearSeconds": {"type": "number", "minimum": 0},
+        "revealedRangeSeconds": {
+          "type": "array",
+          "items": {"type": "number", "minimum": 0},
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "aiGenerated": {"const": false}
+      }
+    },
+    "camera": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["position", "target"],
+      "properties": {
+        "position": {"$ref": "#/definitions/vector3"},
+        "target": {"$ref": "#/definitions/vector3"}
+      }
+    },
+    "plane": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["normal", "constant"],
+      "properties": {
+        "normal": {"$ref": "#/definitions/vector3"},
+        "constant": {"type": "number"}
+      }
+    },
+    "keyframe": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "timeSeconds", "caption", "camera", "plane"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "timeSeconds": {"type": "number", "minimum": 0},
+        "optionId": {"type": "string", "pattern": "^[A-Z]$"},
+        "caption": {"type": "string", "minLength": 1},
+        "camera": {"$ref": "#/definitions/camera"},
+        "plane": {"$ref": "#/definitions/plane"}
+      }
+    },
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "verifiedBy", "verifiedDate", "notes"],
+      "properties": {
+        "status": {"enum": ["draft", "human-verified", "geometry-verified"]},
+        "verifiedBy": {"type": "string", "minLength": 1},
+        "verifiedDate": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "notes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "uncertainty": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["field", "reason", "impact"],
+      "properties": {
+        "field": {"type": "string", "minLength": 1},
+        "reason": {"type": "string", "minLength": 1},
+        "impact": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}

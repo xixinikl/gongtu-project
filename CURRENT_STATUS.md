@@ -7,31 +7,32 @@
 ## 当前任务
 
 - 状态：● 已完成
-- 编号：CASE-002
-- 任务：`test: 固化棱锥圆柱参考题黄金答案`
+- 编号：LESSON-001
+- 任务：`feat: 定义动态讲解题目协议`
 
 ## 本任务完成
 
-- 已从第二段视频人工复核四棱锥 + 圆柱题。
-- 视频实际是四个选项，纠正了旧任务中的“五个选项”描述。
-- A、B、C 为可能截面，D 为不可能截面。
-- D 的核心矛盾：圆柱椭圆要求斜切，同一平面会切到棱锥侧棱，使矩形缺角。
-- 所有尺寸和切面数值仍诚实标记为后续需用 V2 验证的教学候选值。
+- 已建立 `ReasoningCase 1.0-draft` JSON Schema。
+- 已建立 Ajv 校验器和跨字段语义校验。
+- 校验选项、约束、标准答案、关键帧覆盖和时间顺序。
+- 正式答案字段强制 `aiGenerated: false`。
+- 两道人工黄金题均通过完整协议校验。
 
 ## 交付文件
 
-- `data/reasoning-cases/pyramid-cylinder-001.json`
+- `spec/reasoning-case-v1.schema.json`
+- `geometry/reasoning-case-validator.js`
 - `tests/reasoning-case-fixtures.test.mjs`
-- `doc/AGENT_WORK_LOG.md`
 - 审计：`TASKS.md`、`CURRENT_STATUS.md`
 
 ## 验收证据
 
-- `node --test tests/reasoning-case-fixtures.test.mjs`：9/9 通过。
+- `node --check geometry/reasoning-case-validator.js`：通过。
+- `node --test tests/reasoning-case-fixtures.test.mjs`：11/11 通过。
 - `git diff --check`：通过。
 
 ## 唯一下一项
 
-LESSON-001：把两题共同字段冻结为可校验的动态讲解题目协议。
+LESSON-002：建立学生端解题页面骨架。
 
-不开发 AI，不修改截面算法。
+原题与选项、三维模型、当前截面和推理区必须同屏。

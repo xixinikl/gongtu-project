@@ -1,6 +1,12 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import {
+  initReasoningCaseValidator,
+  validateReasoningCase,
+} from "../geometry/reasoning-case-validator.js";
+
+await initReasoningCaseValidator();
 
 const fixtureUrls = {
   coneBox: new URL(
@@ -151,4 +157,42 @@ test("pyramid-cylinder-001 keyframes cover every option deterministically", asyn
   assert.deepEqual([...covered].sort(), ["A", "B", "C", "D"]);
   assert.equal(fixture.verification.status, "human-verified");
   assert.ok(fixture.uncertainties.length >= 1);
+});
+
+test("both golden cases satisfy the ReasoningCase schema and semantics", async () => {
+  for (const name of Object.keys(fixtureUrls)) {
+    const fixture = await loadFixture(name);
+    const result = validateReasoningCase(fixture);
+    assert.equal(
+      result.valid,
+      true,
+      `${name}: ${JSON.stringify(result.errors)}`,
+    );
+  }
+});
+
+test("ReasoningCase validator rejects AI answers and broken references", async () => {
+  const aiAnswer = await loadFixture();
+  aiAnswer.answer.aiGenerated = true;
+  assert.equal(validateReasoningCase(aiAnswer).valid, false);
+
+  const missingConstraint = await loadFixture();
+  missingConstraint.options[0].satisfies.push("invented-constraint");
+  const missingResult = validateReasoningCase(missingConstraint);
+  assert.equal(missingResult.valid, false);
+  assert.match(
+    missingResult.errors.map((error) => error.message).join("\n"),
+    /不存在的约束/,
+  );
+
+  const missingKeyframe = await loadFixture();
+  missingKeyframe.keyframes = missingKeyframe.keyframes.filter(
+    (keyframe) => keyframe.optionId !== "B",
+  );
+  const keyframeResult = validateReasoningCase(missingKeyframe);
+  assert.equal(keyframeResult.valid, false);
+  assert.match(
+    keyframeResult.errors.map((error) => error.message).join("\n"),
+    /缺少选项 B/,
+  );
 });
