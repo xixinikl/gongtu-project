@@ -39,7 +39,7 @@
           "depth": 0.9
         },
         "transform": {
-          "position": [0, 0.575, 0],
+          "position": [0, 0.52, 0],
           "rotationDegrees": [0, 0, 0],
           "scale": [1, 1, 1]
         }
@@ -47,7 +47,7 @@
     ],
     "contact": {
       "type": "box-bottom-on-cone-base",
-      "planeY": 0,
+      "planeY": -0.055,
       "centered": true
     },
     "parameterStatus": "representative-not-source-dimensioned"

@@ -27,7 +27,7 @@
         },
         "transform": {
           "position": [-0.85, 0, 0],
-          "rotationDegrees": [0, 0, -90],
+          "rotationDegrees": [0, 0, 90],
           "scale": [1, 1, 1]
         }
       },
@@ -193,7 +193,7 @@
       "optionId": "D",
       "caption": "为了得到圆柱椭圆而倾斜后，切面会碰到棱锥侧棱，所谓完整矩形必然缺角。",
       "camera": {"position": [5.9, 3.2, 4.6], "target": [0, 0, 0]},
-      "plane": {"normal": [0.67, 0.23, 0.7], "constant": -0.05}
+      "plane": {"normal": [0.67, 0.23, 0.7], "constant": 0.19}
     }
   ],
   "verification": {
