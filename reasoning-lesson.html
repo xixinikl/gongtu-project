@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f2ea">
+  <title>立体图推 · 动态验证课</title>
+  <link rel="stylesheet" href="/reasoning-lesson.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "/node_modules/three/build/three.module.js",
+        "three/addons/": "/node_modules/three/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="返回公途首页">
+      <span class="brand-mark">公途</span>
+      <span>
+        <strong>立体图推动态课</strong>
+        <small>看懂切面，而不是背答案</small>
+      </span>
+    </a>
+    <nav class="product-links" aria-label="空间几何产品">
+      <a class="active" href="/reasoning-lesson.html">动态解题</a>
+      <a href="/geometry.html">几何实验室</a>
+      <a href="/csg-section.html">CSG 工作台</a>
+    </nav>
+    <label class="case-switcher">
+      <span>当前题目</span>
+      <select id="case-select" aria-label="选择题目">
+        <option value="cone-box-001">01 · 倒圆锥与方体</option>
+        <option value="pyramid-cylinder-001">02 · 四棱锥与圆柱</option>
+      </select>
+    </label>
+  </header>
+
+  <main class="lesson-shell">
+    <section class="question-panel panel" aria-labelledby="question-heading">
+      <div class="panel-heading">
+        <span class="eyebrow">原题</span>
+        <span id="verification-badge" class="verified-badge">人工核验</span>
+      </div>
+      <h1 id="question-heading">正在载入题目…</h1>
+      <p id="question-prompt" class="question-prompt"></p>
+      <div id="source-figure" class="source-figure" role="img" aria-label="题目组合体示意图">
+        <div class="source-placeholder">
+          <span>题目结构图</span>
+          <small>载入标准组合体后可旋转观察</small>
+        </div>
+      </div>
+      <div class="option-heading">
+        <h2>逐项验证</h2>
+        <span>先猜，再看空间证据</span>
+      </div>
+      <div id="option-list" class="option-list" role="list"></div>
+    </section>
+
+    <section class="stage-panel panel" aria-labelledby="stage-heading">
+      <div class="stage-toolbar">
+        <div>
+          <span class="eyebrow">三维验证台</span>
+          <h2 id="stage-heading">拖动模型，观察同一切面</h2>
+        </div>
+        <div class="stage-actions" role="group" aria-label="演示控制">
+          <button id="reset-view" class="quiet-button" type="button">复位视角</button>
+          <button id="explore-toggle" class="quiet-button" type="button" aria-pressed="false">手动探索</button>
+        </div>
+      </div>
+      <div id="lesson-viewport" class="lesson-viewport">
+        <canvas id="lesson-canvas" aria-label="题目三维模型与真实截面"></canvas>
+        <div id="viewport-loading" class="viewport-loading">
+          <span class="loading-orbit"></span>
+          <strong>正在建立标准模型</strong>
+          <small>组合体与切面会在这里出现</small>
+        </div>
+        <div class="viewport-legend" aria-label="图例">
+          <span><i class="legend-model"></i>标准模型</span>
+          <span><i class="legend-plane"></i>切平面</span>
+          <span><i class="legend-section"></i>真实截面</span>
+        </div>
+        <div id="engine-status" class="engine-status">等待题目数据</div>
+      </div>
+      <div class="plane-strip">
+        <label for="plane-position">切面位置</label>
+        <input id="plane-position" type="range" min="-100" max="100" value="0" disabled>
+        <output id="plane-position-output" for="plane-position">0%</output>
+      </div>
+    </section>
+
+    <aside class="reasoning-panel panel" aria-labelledby="reasoning-heading">
+      <div class="reasoning-head">
+        <span class="eyebrow">当前推理</span>
+        <span id="step-counter" class="step-counter">0 / 0</span>
+      </div>
+      <h2 id="reasoning-heading">选择一个选项开始</h2>
+      <p id="reasoning-caption" class="reasoning-caption">
+        我们会让同一个无限平面穿过模型，观察候选轮廓是否真的能出现。
+      </p>
+      <div id="constraint-list" class="constraint-list" aria-live="polite"></div>
+      <div id="verdict-card" class="verdict-card is-hidden" aria-live="polite">
+        <span id="verdict-label"></span>
+        <strong id="verdict-title"></strong>
+        <p id="verdict-reason"></p>
+      </div>
+      <div class="timeline">
+        <div class="timeline-track" aria-hidden="true">
+          <span id="timeline-progress"></span>
+        </div>
+        <div class="timeline-controls">
+          <button id="previous-step" class="icon-button" type="button" aria-label="上一步">←</button>
+          <button id="play-lesson" class="play-button" type="button">播放讲解</button>
+          <button id="next-step" class="icon-button" type="button" aria-label="下一步">→</button>
+        </div>
+      </div>
+      <div class="answer-guard">
+        <span>标准答案</span>
+        <strong id="answer-display">完成验证后揭晓</strong>
+        <small>答案来自人工核验，AI 不参与判题</small>
+      </div>
+    </aside>
+  </main>
+
+  <footer class="lesson-footer">
+    <span>本页用于考公图推学习；模型参数与原题未标尺寸处会明确注明。</span>
+    <span id="case-source-note">题目来源载入中</span>
+  </footer>
+
+  <noscript>此动态课需要启用 JavaScript。</noscript>
+</body>
+</html>

@@ -7,32 +7,31 @@
 ## 当前任务
 
 - 状态：● 已完成
-- 编号：LESSON-001
-- 任务：`feat: 定义动态讲解题目协议`
+- 编号：LESSON-002
+- 任务：`feat: 建立考公图推解题页面骨架`
 
 ## 本任务完成
 
-- 已建立 `ReasoningCase 1.0-draft` JSON Schema。
-- 已建立 Ajv 校验器和跨字段语义校验。
-- 校验选项、约束、标准答案、关键帧覆盖和时间顺序。
-- 正式答案字段强制 `aiGenerated: false`。
-- 两道人工黄金题均通过完整协议校验。
+- 已建立独立的学生端动态解题页面。
+- 桌面端原题/选项、三维舞台、推理区三栏同屏。
+- 窄屏按题目、舞台、推理自然纵向重排。
+- 保留动态解题、几何实验室和 CSG 工作台三个独立入口。
+- 页面只展示学习信息，不暴露 WASM、三角面数量等开发诊断。
 
 ## 交付文件
 
-- `spec/reasoning-case-v1.schema.json`
-- `geometry/reasoning-case-validator.js`
-- `tests/reasoning-case-fixtures.test.mjs`
+- `reasoning-lesson.html`
+- `reasoning-lesson.css`
+- `tests/reasoning-lesson-layout.test.mjs`
 - 审计：`TASKS.md`、`CURRENT_STATUS.md`
 
 ## 验收证据
 
-- `node --check geometry/reasoning-case-validator.js`：通过。
-- `node --test tests/reasoning-case-fixtures.test.mjs`：11/11 通过。
+- `node --test tests/reasoning-lesson-layout.test.mjs`：4/4 通过。
 - `git diff --check`：通过。
 
 ## 唯一下一项
 
-LESSON-002：建立学生端解题页面骨架。
+LESSON-003：加载题目数据、标准组合模型与真实截面。
 
-原题与选项、三维模型、当前截面和推理区必须同屏。
+必须复用 Three.js 和 Section Engine V2，不另写截面算法。
