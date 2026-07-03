@@ -8,21 +8,32 @@
 
 - 状态：● 已完成
 - 状态：● 已完成
-- 编号：ARCH-002
-- 任务：`docs: 重写当前空间推理产品架构`
+- 状态：● 已完成
+- 编号：LESSON-006
+- 任务：`feat: 建立逐项几何约束讲解`
 
 ## 本任务完成
 
-- 已用当前已落地代码替换 2026-06-29 的早期架构设想。
-- 已明确动态解题、几何实验室、CSG 工作台三条独立产品线。
-- 已固定共享 Section Engine V2、ReasoningCase、人工答案与 AI 草稿边界。
-- 已将旧质心极角排序标记为废弃，并写清作者工具到 AI 辅助录题的顺序。
+- 候选轮廓违反的关键规则优先展示，满足条件随后展示。
+- 每条规则明确标识“排除依据”或“可行条件”，形成可读核对顺序。
+- 无冲突项显示可行条件数量，有冲突项显示违反规则数量。
+- 完成整段验证前隐藏正确选项身份，COMPLETE 后才揭晓人工答案。
 
 ## 交付文件
 
-- `doc/GEOMETRY_ARCHITECTURE.md`
+- `reasoning-lesson.js`
+- `reasoning-lesson.css`
+- `tests/reasoning-lesson-layout.test.mjs`
 - 审计：`TASKS.md`、`CURRENT_STATUS.md`
 
 ## 唯一下一项
 
-LESSON-006：完善逐项几何约束讲解与学生可读反馈。
+LESSON-007：对照两段参考视频验收动态讲解并留档。
+
+## 验收证据
+
+- `node --check reasoning-lesson.js`：通过。
+- 约束讲解与状态机专项测试：12/12 通过。
+- 浏览器验证 A 可行路径、D 冲突优先路径和答案保护：通过。
+- 浏览器控制台错误：0。
+- `git diff --check`：通过。

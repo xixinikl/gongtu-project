@@ -474,6 +474,21 @@ h2 { margin-bottom: 0; font-size: 16px; }
   margin: 3px 0 14px;
 }
 
+.constraint-summary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 10px;
+}
+
+.constraint-summary strong { font-size: 11px; }
+.constraint-summary span { color: var(--muted); text-align: right; }
+.constraint-summary.has-conflict { background: #fbefed; color: var(--danger); }
+.constraint-summary.is-consistent { background: var(--green-soft); color: var(--green); }
+
 .constraint-item {
   display: grid;
   grid-template-columns: 25px 1fr;
@@ -493,11 +508,21 @@ h2 { margin-bottom: 0; font-size: 16px; }
   font-weight: 900;
 }
 
+.constraint-item small {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 800;
+}
+
 .constraint-item strong { display: block; font-size: 11px; line-height: 1.35; }
 .constraint-item p { margin: 4px 0 0; color: var(--muted); font-size: 10px; line-height: 1.45; }
 .constraint-item.is-satisfied > span { color: var(--green); background: var(--green-soft); }
+.constraint-item.is-satisfied small { color: var(--green); }
 .constraint-item.is-violated { border-color: rgba(182, 74, 66, 0.18); }
 .constraint-item.is-violated > span { color: var(--danger); background: #f7e2df; }
+.constraint-item.is-violated small { color: var(--danger); }
 
 .verdict-card {
   padding: 14px;

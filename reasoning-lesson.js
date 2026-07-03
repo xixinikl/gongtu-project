@@ -510,7 +510,10 @@ function renderOptions(caseData) {
 }
 
 function verdictText(option) {
-  if (option.id === state.caseData.answer.correctOptionId) {
+  if (
+    state.machine?.answerRevealed
+    && option.id === state.caseData.answer.correctOptionId
+  ) {
     return state.caseData.answer.questionMode === "select-impossible"
       ? ["本题答案", "这个截面不可能出现"]
       : ["本题答案", "这个截面可以出现"];
@@ -525,17 +528,42 @@ function renderConstraints(option) {
     state.caseData.constraints.map((constraint) => [constraint.id, constraint]),
   );
   elements.constraints.replaceChildren();
-  for (const id of [...option.satisfies, ...option.violates]) {
+  const orderedIds = [...option.violates, ...option.satisfies];
+  const summary = document.createElement("div");
+  summary.className = `constraint-summary ${
+    option.violates.length ? "has-conflict" : "is-consistent"
+  }`;
+  summary.innerHTML = option.violates.length
+    ? `<strong>先找关键矛盾</strong><span>${option.violates.length} 条规则不满足，逐条排除</span>`
+    : `<strong>逐条核对可行条件</strong><span>${option.satisfies.length} 条规则均能同时成立</span>`;
+  elements.constraints.append(summary);
+  orderedIds.forEach((id, index) => {
     const constraint = constraints.get(id);
-    if (!constraint) continue;
+    if (!constraint) return;
     const item = document.createElement("article");
     const violated = option.violates.includes(id);
     item.className = `constraint-item ${violated ? "is-violated" : "is-satisfied"}`;
     item.innerHTML = `
-      <span>${violated ? "×" : "✓"}</span>
-      <div><strong>${constraint.label}</strong><p>${constraint.rule}</p></div>`;
+      <span>${index + 1}</span>
+      <div>
+        <small>${violated ? "不满足 · 排除依据" : "满足 · 可行条件"}</small>
+        <strong>${constraint.label}</strong>
+        <p>${constraint.rule}</p>
+      </div>`;
     elements.constraints.append(item);
-  }
+  });
+}
+
+function refreshSelectedOptionVerdict() {
+  if (!state.selectedOptionId) return;
+  const option = state.caseData.options.find(
+    (item) => item.id === state.selectedOptionId,
+  );
+  if (!option) return;
+  const [label, title] = verdictText(option);
+  elements.verdictLabel.textContent = label;
+  elements.verdictTitle.textContent = title;
+  elements.verdictReason.textContent = option.reason;
 }
 
 function applyKeyframe(index, { animate = false } = {}) {
@@ -574,10 +602,7 @@ function selectOption(optionId, jumpToKeyframe = true) {
   }
   elements.reasoningHeading.textContent = `验证 ${option.id}：${option.label}`;
   renderConstraints(option);
-  const [label, title] = verdictText(option);
-  elements.verdictLabel.textContent = label;
-  elements.verdictTitle.textContent = title;
-  elements.verdictReason.textContent = option.reason;
+  refreshSelectedOptionVerdict();
   elements.verdictCard.classList.remove("is-hidden");
   if (jumpToKeyframe) {
     const index = state.caseData.keyframes.findIndex(
@@ -667,6 +692,7 @@ function scheduleNextFrame() {
       elements.answer.textContent =
         `答案 ${state.caseData.answer.correctOptionId}`;
       dispatch({ type: "COMPLETE" });
+      refreshSelectedOptionVerdict();
       stopPlayback();
       return;
     }
@@ -740,6 +766,7 @@ elements.next.addEventListener("click", () => {
     dispatch({ type: "COMPLETE" });
     elements.answer.textContent =
       `答案 ${state.caseData.answer.correctOptionId}`;
+    refreshSelectedOptionVerdict();
   }
 });
 elements.play.addEventListener("click", togglePlayback);
