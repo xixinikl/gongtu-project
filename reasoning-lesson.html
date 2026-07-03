@@ -87,7 +87,17 @@
         <div id="engine-status" class="engine-status">等待题目数据</div>
       </div>
       <div class="plane-strip">
-        <label for="plane-position">切面位置</label>
+        <div class="plane-rotate" aria-label="旋转切平面">
+          <span>切面旋转</span>
+          <div class="plane-arrow-pad">
+            <button class="plane-arrow arrow-up" type="button" data-plane-direction="up" aria-label="切面向上旋转" disabled>↑</button>
+            <button class="plane-arrow arrow-left" type="button" data-plane-direction="left" aria-label="切面向左旋转" disabled>←</button>
+            <button class="plane-arrow arrow-down" type="button" data-plane-direction="down" aria-label="切面向下旋转" disabled>↓</button>
+            <button class="plane-arrow arrow-right" type="button" data-plane-direction="right" aria-label="切面向右旋转" disabled>→</button>
+          </div>
+          <small>也可用键盘方向键</small>
+        </div>
+        <label for="plane-position">切面位置（偏移）</label>
         <input id="plane-position" type="range" min="-100" max="100" value="0" disabled>
         <output id="plane-position-output" for="plane-position">0%</output>
       </div>

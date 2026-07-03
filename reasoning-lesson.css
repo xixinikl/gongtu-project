@@ -396,18 +396,66 @@ h2 { margin-bottom: 0; font-size: 16px; }
 
 .plane-strip {
   display: grid;
-  grid-template-columns: auto 1fr 44px;
+  grid-template-columns: minmax(180px, auto) auto 1fr 44px;
   align-items: center;
   gap: 12px;
-  min-height: 58px;
-  padding: 0 18px;
+  min-height: 76px;
+  padding: 8px 18px;
   border-top: 1px solid var(--line);
   color: var(--muted);
   font-size: 11px;
 }
 
+.plane-rotate {
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  gap: 2px 10px;
+}
+
+.plane-rotate > span { color: var(--ink); }
+.plane-rotate > small {
+  grid-column: 1 / -1;
+  font-size: 9px;
+}
+
+.plane-arrow-pad {
+  display: grid;
+  grid-template-areas:
+    ". up ."
+    "left down right";
+  gap: 3px;
+}
+
+.plane-arrow {
+  width: 25px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid #b9c9db;
+  border-radius: 6px;
+  color: var(--blue);
+  background: #f7fbff;
+  cursor: pointer;
+}
+
+.plane-arrow:hover:not(:disabled) { background: #e7f1ff; }
+.plane-arrow:active:not(:disabled) { transform: translateY(1px); }
+.plane-arrow:disabled { cursor: not-allowed; opacity: 0.35; }
+.arrow-up { grid-area: up; }
+.arrow-left { grid-area: left; }
+.arrow-down { grid-area: down; }
+.arrow-right { grid-area: right; }
+
 .plane-strip input { width: 100%; accent-color: var(--blue); }
 .plane-strip output { text-align: right; color: var(--ink); }
+
+@media (max-width: 760px) {
+  .plane-strip {
+    grid-template-columns: auto 1fr 42px;
+  }
+
+  .plane-rotate { grid-column: 1 / -1; }
+}
 
 .reasoning-panel { display: flex; flex-direction: column; }
 .step-counter { color: var(--muted); font-size: 11px; }

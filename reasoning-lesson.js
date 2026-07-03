@@ -38,6 +38,7 @@ const elements = {
   loading: document.querySelector("#viewport-loading"),
   next: document.querySelector("#next-step"),
   optionList: document.querySelector("#option-list"),
+  planeArrows: [...document.querySelectorAll("[data-plane-direction]")],
   planePosition: document.querySelector("#plane-position"),
   planePositionOutput: document.querySelector("#plane-position-output"),
   play: document.querySelector("#play-lesson"),
@@ -66,6 +67,8 @@ const state = {
   playTimer: null,
   machine: null,
   transitionFrame: null,
+  explorationPlane: null,
+  planeOffsetPercent: 0,
 };
 
 function dispatch(event) {
@@ -603,8 +606,47 @@ function setExploring(exploring) {
   elements.explore.setAttribute("aria-pressed", String(exploring));
   elements.explore.textContent = exploring ? "返回讲解" : "手动探索";
   elements.planePosition.disabled = !exploring;
+  for (const button of elements.planeArrows) button.disabled = !exploring;
   controls.enablePan = exploring;
-  if (!exploring) applyKeyframe(state.currentKeyframe);
+  if (exploring) {
+    state.explorationPlane = sectionPlane.clone();
+    state.planeOffsetPercent = 0;
+    elements.planePosition.value = "0";
+    elements.planePositionOutput.textContent = "0%";
+  } else {
+    state.explorationPlane = null;
+    state.planeOffsetPercent = 0;
+    applyKeyframe(state.currentKeyframe);
+  }
+}
+
+const PLANE_ROTATION_STEP = THREE.MathUtils.degToRad(6);
+
+function applyExplorationPlane() {
+  if (!state.explorationPlane) return;
+  sectionPlane.copy(state.explorationPlane);
+  sectionPlane.constant += state.planeOffsetPercent * 0.012;
+  updateSection();
+}
+
+function rotateExplorationPlane(direction) {
+  if (!state.exploring || !state.explorationPlane) return;
+  const cameraUp = camera.up.clone().applyQuaternion(camera.quaternion).normalize();
+  const cameraRight = new THREE.Vector3(1, 0, 0)
+    .applyQuaternion(camera.quaternion)
+    .normalize();
+  const rotations = {
+    up: [cameraRight, PLANE_ROTATION_STEP],
+    down: [cameraRight, -PLANE_ROTATION_STEP],
+    left: [cameraUp, PLANE_ROTATION_STEP],
+    right: [cameraUp, -PLANE_ROTATION_STEP],
+  };
+  const rotation = rotations[direction];
+  if (!rotation) return;
+  state.explorationPlane.normal
+    .applyAxisAngle(rotation[0], rotation[1])
+    .normalize();
+  applyExplorationPlane();
 }
 
 function stopPlayback() {
@@ -710,14 +752,30 @@ elements.resetView.addEventListener("click", () => {
 });
 elements.planePosition.addEventListener("input", (event) => {
   const percent = Number(event.target.value);
-  const base = state.caseData.keyframes[state.currentKeyframe].plane;
-  if (base) {
-    const plane = normalizedPlane(base.normal, base.constant);
-    plane.constant += percent * 0.012;
-    sectionPlane.copy(plane);
-    updateSection();
-  }
+  state.planeOffsetPercent = percent;
+  applyExplorationPlane();
   elements.planePositionOutput.textContent = `${percent}%`;
+});
+for (const button of elements.planeArrows) {
+  button.addEventListener("click", () => {
+    rotateExplorationPlane(button.dataset.planeDirection);
+  });
+}
+window.addEventListener("keydown", (event) => {
+  if (!state.exploring || event.metaKey || event.ctrlKey || event.altKey) return;
+  const direction = {
+    ArrowUp: "up",
+    ArrowDown: "down",
+    ArrowLeft: "left",
+    ArrowRight: "right",
+  }[event.key];
+  if (!direction) return;
+  const tagName = event.target?.tagName;
+  if (tagName === "INPUT" || tagName === "SELECT" || tagName === "TEXTAREA") {
+    return;
+  }
+  event.preventDefault();
+  rotateExplorationPlane(direction);
 });
 
 function showFatalError(error) {
