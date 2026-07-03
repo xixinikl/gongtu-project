@@ -23,9 +23,9 @@ const CASE_URLS = {
 };
 
 const MODEL_APPEARANCE = {
-  color: 0xd2a56f,
-  opacity: 0.76,
-  wireframe: 0x6a4c35,
+  color: 0xe0b36f,
+  opacity: 0.46,
+  wireframe: 0x263746,
 };
 
 const elements = {
@@ -137,9 +137,9 @@ modelRoot.name = "ReasoningCaseModel";
 scene.add(modelRoot);
 
 const sectionVisual = createSectionVisualV2({
-  fillColor: 0x3977dc,
-  outlineColor: 0x124caa,
-  fillOpacity: 0.72,
+  fillColor: 0xf28a3c,
+  outlineColor: 0xc94d16,
+  fillOpacity: 0.64,
 });
 scene.add(sectionVisual.group);
 
@@ -150,7 +150,7 @@ const planeHelper = new THREE.Mesh(
   new THREE.MeshBasicMaterial({
     color: 0x5b95ef,
     transparent: true,
-    opacity: 0.13,
+    opacity: 0.065,
     side: THREE.DoubleSide,
     depthWrite: false,
   }),
@@ -278,10 +278,13 @@ function buildModel(caseData) {
     new THREE.LineBasicMaterial({
       color: MODEL_APPEARANCE.wireframe,
       transparent: true,
-      opacity: 0.72,
+      opacity: 0.78,
+      depthTest: false,
+      depthWrite: false,
     }),
   );
   edges.name = `${caseData.id}-union-edges`;
+  edges.renderOrder = 3;
   edges.position.copy(result.position);
   edges.quaternion.copy(result.quaternion);
   edges.scale.copy(result.scale);
