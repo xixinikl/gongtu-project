@@ -7,34 +7,30 @@
 ## 当前任务
 
 - 状态：● 已完成
-- 编号：LESSON-009
-- 任务：`feat: 增加实时二维截面图`
+- 编号：HANDOFF-LESSON-001
+- 任务：`docs: 更新动态解题交接与操作说明`
 
 ## 本任务完成
 
-- 三维视口下增加独立橙色二维截面卡片。
-- 直接使用 V2 topology 的 outerPoints2D 和 holes2D，不复制截面算法。
-- 自动按轮廓边界等比缩放并居中，显示外环、孔洞和顶点。
-- 关键帧、方向键、屏幕方向按钮和偏移滑条变化都会同步刷新。
-- 显示轮廓数、面积以及空截面/组合边界提示。
+- 已清理 CASE/LESSON 尚未完成和 CASE-001 下一项等过时内容。
+- 已写清学生页三维/二维截面数据链、三个交互职责和浏览器验收清单。
+- 已记录 LESSON-008/009 提交、测试和真实交互证据。
+- 已明确 AUTHOR-001/002 顺序、AI 人工确认边界和禁止重写 V2/手绘真实截面。
 
 ## 交付文件
 
-- `reasoning-lesson.html`
-- `reasoning-lesson.css`
-- `reasoning-lesson.js`
+- `doc/AGENT_HANDOFF.md`
+- `doc/AGENT_WORK_LOG.md`
 - 审计：`TASKS.md`、`CURRENT_STATUS.md`
 
 ## 唯一下一项
 
-HANDOFF-LESSON-001：更新动态解题交接与操作说明。
+AUTHOR-001：建立不依赖 AI 的手工题目讲解编辑器。
 
 ## 验收证据
 
-- `node --check reasoning-lesson.js`：通过。
-- 页面、状态机和时间线专项测试：17/17 通过。
-- 浏览器：A 截面显示 1 个轮廓、7 个顶点、面积 5.64。
-- 浏览器：方向按钮旋转后二维 SVG path 实际变化。
-- 浏览器：偏移滑条后轮廓和面积同步变化。
-- 浏览器控制台错误：0。
+- 交接手册当前日期、产品状态和下一项与 TASKS 一致。
+- V2 topology → 二维 SVG 数据链与代码实现一致。
+- 操作说明覆盖相机、切面旋转和切面偏移。
+- 工作日志追加 LESSON-008/009 实际提交与验收证据。
 - `git diff --check`：通过。
