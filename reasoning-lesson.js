@@ -48,6 +48,9 @@ const elements = {
   reasoningCaption: document.querySelector("#reasoning-caption"),
   reasoningHeading: document.querySelector("#reasoning-heading"),
   resetView: document.querySelector("#reset-view"),
+  sectionPreviewMeta: document.querySelector("#section-preview-meta"),
+  sectionPreviewStatus: document.querySelector("#section-preview-status"),
+  sectionPreviewSvg: document.querySelector("#section-preview-svg"),
   sourceFigure: document.querySelector("#source-figure"),
   sourceNote: document.querySelector("#case-source-note"),
   stepCounter: document.querySelector("#step-counter"),
@@ -372,6 +375,64 @@ function syncPlaneHelper() {
   );
 }
 
+function svgNumber(value) {
+  return Number(value.toFixed(3));
+}
+
+function renderSectionPreview(result) {
+  if (result?.status !== "ok" || !result.topology?.groups?.length) {
+    const message = result?.status === "error"
+      ? "当前切面处于组合边界"
+      : "切面暂未经过模型";
+    elements.sectionPreviewSvg.innerHTML =
+      `<text x="160" y="88" text-anchor="middle">${message}</text>`;
+    elements.sectionPreviewMeta.textContent = "暂无轮廓";
+    elements.sectionPreviewStatus.textContent =
+      result?.status === "error" ? "请稍微旋转或移动切面" : "拖动切面后实时显示";
+    return;
+  }
+
+  const rings = result.topology.groups.flatMap(
+    (group) => [group.outerPoints2D, ...group.holes2D],
+  );
+  const points = rings.flat();
+  const minX = Math.min(...points.map((point) => point.x));
+  const maxX = Math.max(...points.map((point) => point.x));
+  const minY = Math.min(...points.map((point) => point.y));
+  const maxY = Math.max(...points.map((point) => point.y));
+  const width = Math.max(maxX - minX, 1e-6);
+  const height = Math.max(maxY - minY, 1e-6);
+  const scale = Math.min(270 / width, 126 / height);
+  const centerX = (minX + maxX) / 2;
+  const centerY = (minY + maxY) / 2;
+  const project = (point) => [
+    svgNumber(160 + (point.x - centerX) * scale),
+    svgNumber(85 - (point.y - centerY) * scale),
+  ];
+  const ringPath = (ring) => ring.map((point, index) => {
+    const [x, y] = project(point);
+    return `${index === 0 ? "M" : "L"} ${x} ${y}`;
+  }).join(" ") + " Z";
+
+  const paths = result.topology.groups.map((group) => {
+    const path = [
+      ringPath(group.outerPoints2D),
+      ...group.holes2D.map(ringPath),
+    ].join(" ");
+    return `<path class="section-shape" d="${path}" fill="#f5a15f" fill-opacity="0.32" fill-rule="evenodd" stroke="#d85418" stroke-width="4" stroke-linejoin="round"/>`;
+  }).join("");
+  const markers = rings.flatMap((ring) => ring.map((point) => {
+    const [cx, cy] = project(point);
+    return `<circle class="section-point" cx="${cx}" cy="${cy}" r="3.2" fill="#fffdf9" stroke="#d85418" stroke-width="2"/>`;
+  })).join("");
+
+  elements.sectionPreviewSvg.innerHTML = `${paths}${markers}`;
+  elements.sectionPreviewMeta.textContent =
+    `${result.contourCount} 个轮廓 · 面积 ${result.area.toFixed(2)}`;
+  elements.sectionPreviewStatus.textContent =
+    "与三维橙色截面同步 · 外环、孔洞和顶点均来自 V2";
+}
+
 function updateSection() {
   try {
     modelRoot.updateMatrixWorld(true);
@@ -380,17 +441,20 @@ function updateSection() {
     });
     if (result.status === "error") {
       sectionVisual.clear();
+      renderSectionPreview(result);
       elements.engineStatus.textContent = "当前切面处于组合边界";
       elements.engineStatus.dataset.status = "warning";
       return;
     }
     sectionVisual.update(toSectionVisualV2Data(result));
+    renderSectionPreview(result);
     elements.engineStatus.textContent = result.status === "ok"
       ? `真实截面 · ${result.contourCount} 个轮廓`
       : "切面暂未经过模型";
     elements.engineStatus.dataset.status = result.status;
   } catch (error) {
     sectionVisual.clear();
+    renderSectionPreview({ status: "error" });
     elements.engineStatus.textContent = "截面计算已安全停止";
     elements.engineStatus.dataset.status = "error";
     console.error("Section Engine V2:", error);
