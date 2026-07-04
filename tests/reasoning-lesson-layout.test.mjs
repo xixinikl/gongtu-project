@@ -208,6 +208,12 @@ test("foundation page uses an interactive 3D section viewer", async () => {
   assert.match(html, /"three": "\/node_modules\/three\/build\/three\.module\.js"/);
   assert.match(script, /import \* as THREE from "three"/);
   assert.match(script, /SECTION_3D_PRESETS/);
+  assert.match(script, /collectPlaneSectionPoints/);
+  assert.match(script, /makeSectionGeometryFromPoints/);
+  assert.match(script, /updateRealSectionGeometry/);
+  assert.match(script, /dataset\.realSection = "true"/);
+  assert.match(script, /dataset\.sectionVertexCount/);
+  assert.match(script, /"直角三角形": \{ normal: \[0\.02, 0\.017, 1\]/);
   assert.match(script, /POSITION_RULES/);
   assert.match(script, /先看蓝色刀片/);
   assert.match(script, /把刀片斜着放/);

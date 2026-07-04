@@ -718,6 +718,12 @@
   - 结果：已删除右栏 `demo-buttons`；右栏标题改为“这刀怎么摆”；默认六边形说明改为“从上面三个面穿进去、从下面三个面穿出来”；等边三角形说明改为“只削掉一个顶角、碰到 3 个面”；不可行圆说明改为“没有圆滚滚的曲面，碰到的边都是直的”
   - 验收证据：已启动 `python3 -m http.server 8089`；`curl http://localhost:8089/section-foundation.html` 返回 200 且包含“这刀怎么摆”；反向检查确认旧的“切法选择 / demo-buttons / 当前切面位置 / 切面放在哪里”均不存在；专项测试 13/13 通过
   - 提交：本任务所在提交
+- [x] ● LESSON-014I fix: 基础截面 3D 改为真实相交截面
+  - 依赖：LESSON-014H
+  - 验收：右侧 3D 橙色截面不能再用预设图形贴到切面上；必须由蓝色切面和当前立体真实相交点生成；正方体“直角三角形”默认状态必须显示 3 个真实边界点且贴在正方体面/边界上；六边形必须显示 6 个真实边界点；不可行“圆”不能在 3D 里假装画圆
+  - 结果：已新增 `collectPlaneSectionPoints`、`makeSectionGeometryFromPoints`、`updateRealSectionGeometry`，从 Three.js 几何体三角面边界收集切面交点生成橙色截面；正方体直角三角形参数改为贴近边角的真实三点截面；不可行圆状态在 3D 中显示实际直边截面，实时截面仍提示“不能直接截出”
+  - 验收证据：Chrome + Playwright 打开 `/section-foundation.html`，点击“直角三角形”后 `data-real-section=true` 且 `data-section-vertex-count=3`；点击“六边形”后顶点数为 6；点击不可行“圆”后顶点数为 4 且状态为 `cannot`；专项测试 13/13 通过
+  - 提交：本任务所在提交
 - [ ] ○ LESSON-015 feat: 重做手动探索为滑动式截面验证
   - 依赖：LESSON-014R
   - 验收：上下滑/滚轮连续扫截面，左右滑连续旋转切面；方向键只作为备用；候选图、真实截面和模型同步更新且不卡顿
