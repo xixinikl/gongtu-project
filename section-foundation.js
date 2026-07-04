@@ -770,7 +770,7 @@ function classifyQuadrilateral(points, selectedLabel) {
   return "四边形";
 }
 
-function classifyTriangle(points) {
+function classifyTriangle(points, solidId) {
   const edges = points.map((point, index) => {
     const next = points[(index + 1) % points.length];
     return { x: next.x - point.x, y: next.y - point.y };
@@ -779,16 +779,17 @@ function classifyTriangle(points) {
   const maxLength = Math.max(...lengths);
   const minLength = Math.min(...lengths);
   const hasRightAngle = edges.some((edge, index) => isRightAngle2d(edge, edges[(index + 1) % edges.length]));
+  const boxTriangleCannotBeRight = solidId === "cube" || solidId === "cuboid";
 
-  if (hasRightAngle) return "直角三角形";
+  if (!boxTriangleCannotBeRight && hasRightAngle) return "直角三角形";
   if (maxLength / Math.max(minLength, 0.000001) < 1.08) return "等边三角形";
   return "三角形";
 }
 
-function classifySectionPoints(points, normal, selectedLabel) {
+function classifySectionPoints(points, normal, selectedLabel, solidId) {
   if (points.length < 3) return "没有截到";
   const local = sectionPointsToLocal2d(points, normal);
-  if (points.length === 3) return classifyTriangle(local);
+  if (points.length === 3) return classifyTriangle(local, solidId);
   if (points.length === 4) return classifyQuadrilateral(local, selectedLabel);
   if (points.length === 5) return "五边形";
   if (points.length === 6) return "六边形";
@@ -877,7 +878,7 @@ function renderLiveSection() {
   const sectionPoints = viewer.currentSectionPoints ?? [];
   const livePoints = fitSectionPoints(sectionPointsToLocal2d(sectionPoints, viewer.normal));
   const path = sectionPath(livePoints);
-  const actualName = viewer.currentSectionName || classifySectionPoints(sectionPoints, viewer.normal, state.selectedLabel);
+  const actualName = viewer.currentSectionName || classifySectionPoints(sectionPoints, viewer.normal, state.selectedLabel, state.solidId);
   const targetText = actualName === state.selectedLabel ? actualName : `${actualName}（目标：${state.selectedLabel}）`;
 
   elements.liveSectionCard.dataset.verdict = state.selectedVerdict;
@@ -994,7 +995,7 @@ function updateRealSectionGeometry(totalOffset) {
   const sectionGeometry = makeSectionGeometryFromPoints(points, viewer.normal);
   const outlineGeometry = makeSectionOutlineGeometry(points, viewer.normal);
   viewer.currentSectionPoints = points;
-  viewer.currentSectionName = classifySectionPoints(points, viewer.normal, state.selectedLabel);
+  viewer.currentSectionName = classifySectionPoints(points, viewer.normal, state.selectedLabel, state.solidId);
 
   viewer.section.geometry?.dispose?.();
   viewer.section.geometry = sectionGeometry;

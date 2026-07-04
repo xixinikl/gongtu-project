@@ -742,6 +742,12 @@
   - 结果：已把正方体/长方体“直角三角形”移入不能直接截出，并让三角形分类读取真实角度而不是按钮名称；点击“直角三角形”时 3D/实时截面显示真实削角等边三角形并提示“不是直角三角形”；五边形讲清通常不是正五边形；六边形讲清垂直体对角线、穿过六条棱中点且六边等长；梯形切面参数改为 `[0.15, 0.5, 0.5] / offset 0.36 / limit 0.18`，默认和上下拖动到限制位置都保持真实梯形
   - 验收证据：`git diff --check` 通过；`node --check section-foundation.js` 通过；`node --experimental-loader ./tests/three-absolute-loader.mjs --test tests/reasoning-lesson-layout.test.mjs` 13/13 通过；应用浏览器加载 `/section-foundation.html` 的 `v=20260705b`；直角三角形在不能直接截出列表，点击后大 3D `actual=等边三角形`、实时截面提示“不是直角三角形”；五边形为 5 点且文案包含“不是正五边形”；六边形为 6 点且文案包含“六条棱的中点”；梯形默认 4 点，拖到 `偏移 +18` 后仍为 4 点梯形；浏览器控制台 error/warning 为空
   - 提交：本任务所在提交
+- [x] ● LESSON-014M fix: 补项目错误复盘并收紧盒体直角三角形验证
+  - 依赖：LESSON-014L
+  - 验收：项目根目录必须有 `错误复盘.md` 记录“页面验证不等于数学事实验证”；正方体/长方体三角截面分类不得因接近 90 度被误判成“直角三角形”；专项测试必须覆盖盒体三角形禁用直角误判；状态文件写清上一轮哪里没改完
+  - 结果：已新增项目根目录 `错误复盘.md`，记录上一轮把页面验收说成数学事实验收的错误；`classifyTriangle` 增加 `solidId` 参数，正方体/长方体三角截面不再因接近 90 度被误判为“直角三角形”；`classifySectionPoints` 调用已传入 `state.solidId`；专项测试新增盒体禁用直角误判源码断言
+  - 验收证据：`git diff --check` 通过；`node --check section-foundation.js` 通过；`node --experimental-loader ./tests/three-absolute-loader.mjs --test tests/reasoning-lesson-layout.test.mjs` 13/13 通过；应用浏览器点击正方体“直角三角形”后 `actual=等边三角形`、实时截面提示“不是直角三角形”、控制台 error/warning 为空
+  - 提交：本任务所在提交
 - [ ] ○ LESSON-015 feat: 重做手动探索为滑动式截面验证
   - 依赖：LESSON-014R
   - 验收：上下滑/滚轮连续扫截面，左右滑连续旋转切面；方向键只作为备用；候选图、真实截面和模型同步更新且不卡顿

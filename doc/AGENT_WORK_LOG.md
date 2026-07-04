@@ -730,3 +730,25 @@
   - `node --experimental-loader ./tests/three-absolute-loader.mjs --test tests/reasoning-lesson-layout.test.mjs` 13/13 通过
   - 应用浏览器验证直角三角形、五边形、六边形、梯形与拖动同步，控制台 error/warning 为空
 - 唯一下一项：LESSON-015 重做手动探索为滑动式截面验证
+
+## 2026-07-05 · 主协调 Agent · LESSON-014M
+
+- 任务：`fix: 补项目错误复盘并收紧盒体直角三角形验证`
+- 用户纠偏：
+  - 上一轮只把错误写入 Skill 仓库，没有把公途项目内的错误复盘和代码边界补完
+  - “验证过”必须区分页面验证、算法验证和数学事实验证
+- 交付：
+  - `section-foundation.js`
+  - `tests/reasoning-lesson-layout.test.mjs`
+  - `错误复盘.md`
+- 结果：
+  - 新增项目根目录 `错误复盘.md`
+  - `classifyTriangle` 接收 `solidId`
+  - 正方体/长方体三角截面不再因接近 90 度被误判成“直角三角形”
+  - 专项测试增加盒体禁用直角误判的源码断言
+- 验收：
+  - `git diff --check` 通过
+  - `node --check section-foundation.js` 通过
+  - `node --experimental-loader ./tests/three-absolute-loader.mjs --test tests/reasoning-lesson-layout.test.mjs` 13/13 通过
+  - 应用浏览器验证正方体“直角三角形”实际显示为等边三角形且控制台无 error/warning
+- 唯一下一项：LESSON-015 重做手动探索为滑动式截面验证

@@ -225,6 +225,10 @@ test("foundation page uses an interactive 3D section viewer", async () => {
   assert.match(script, /dataset\.actualSection/);
   assert.match(script, /dataset\.sectionVertexCount/);
   assert.match(script, /classifyTriangle/);
+  assert.match(script, /boxTriangleCannotBeRight/);
+  assert.match(script, /solidId === "cube" \|\| solidId === "cuboid"/);
+  assert.match(script, /!boxTriangleCannotBeRight && hasRightAngle/);
+  assert.match(script, /classifySectionPoints\(points, viewer\.normal, state\.selectedLabel, state\.solidId\)/);
   assert.match(script, /cannot: \["直角三角形", "圆", "椭圆", "曲边图形", "超过 6 条边"\]/);
   assert.match(script, /这个不能当成正方体的真实截面/);
   assert.match(script, /"直角三角形": \{ normal: \[1, 1, 1\]/);
