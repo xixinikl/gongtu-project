@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#eef4f2">
   <title>基础截面 · 立体图推</title>
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="/section-foundation.css?v=20260704d">
+  <link rel="stylesheet" href="/section-foundation.css?v=20260704e">
   <script type="importmap">
     {
       "imports": {
@@ -63,10 +63,20 @@
       <h2 id="demo-heading">看截面为什么成立</h2>
       <div id="demo-buttons" class="demo-buttons" role="list"></div>
       <div class="demo-stage demo-stage-3d">
-        <canvas id="foundation-3d" aria-label="基础截面三维验证"></canvas>
-        <div class="viewer-tools" aria-label="三维截面操作">
-          <button id="reset-section" type="button">复位</button>
-          <span id="drag-status">上下拖动切面</span>
+        <div class="viewer-pane">
+          <canvas id="foundation-3d" aria-label="基础截面三维验证"></canvas>
+          <div class="viewer-tools" aria-label="三维截面操作">
+            <button id="reset-section" type="button">复位</button>
+            <span id="drag-status">上下拖动切面</span>
+          </div>
+        </div>
+        <div class="live-section-card" aria-label="实时截面图">
+          <div class="live-section-head">
+            <span>实时截面</span>
+            <strong id="live-section-verdict">能截出</strong>
+          </div>
+          <svg id="live-section-svg" viewBox="0 0 220 180" role="img" aria-label="当前截面轮廓"></svg>
+          <p id="live-section-caption">当前截面</p>
         </div>
       </div>
       <article class="explain-card">
@@ -77,7 +87,7 @@
     </section>
   </main>
 
-  <script type="module" src="/section-foundation.js?v=20260704d"></script>
+  <script type="module" src="/section-foundation.js?v=20260704e"></script>
   <noscript>基础截面训练需要启用 JavaScript。</noscript>
 </body>
 </html>

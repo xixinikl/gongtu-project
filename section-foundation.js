@@ -348,6 +348,10 @@ const elements = {
   canvas: document.querySelector("#foundation-3d"),
   resetSection: document.querySelector("#reset-section"),
   dragStatus: document.querySelector("#drag-status"),
+  liveSectionCard: document.querySelector(".live-section-card"),
+  liveSectionSvg: document.querySelector("#live-section-svg"),
+  liveSectionVerdict: document.querySelector("#live-section-verdict"),
+  liveSectionCaption: document.querySelector("#live-section-caption"),
   demoLabel: document.querySelector("#demo-label"),
   demoTitle: document.querySelector("#demo-title"),
   demoCopy: document.querySelector("#demo-copy"),
@@ -449,28 +453,13 @@ function makeShapeGeometry(type, sx = 1, sy = 1) {
   }
 
   const shape = new THREE.Shape();
-  const pointsByType = {
-    triangle: [[0, 0.58], [-0.58, -0.42], [0.58, -0.42]],
-    rightTriangle: [[-0.48, 0.52], [-0.48, -0.48], [0.58, -0.48]],
-    square: [[-0.5, 0.5], [0.5, 0.5], [0.5, -0.5], [-0.5, -0.5]],
-    rectangle: [[-0.72, 0.42], [0.72, 0.42], [0.72, -0.42], [-0.72, -0.42]],
-    trapezoid: [[-0.42, 0.48], [0.42, 0.48], [0.65, -0.46], [-0.65, -0.46]],
-    parallelogram: [[-0.48, 0.42], [0.68, 0.42], [0.45, -0.42], [-0.7, -0.42]],
-    pentagon: [[0, 0.55], [0.52, 0.16], [0.34, -0.48], [-0.34, -0.48], [-0.52, 0.16]],
-    hexagon: [[-0.58, 0], [-0.34, 0.48], [0.34, 0.48], [0.58, 0], [0.34, -0.48], [-0.34, -0.48]],
-    many: [[0, 0.58], [0.35, 0.48], [0.58, 0.18], [0.55, -0.2], [0.28, -0.5], [-0.12, -0.56], [-0.48, -0.34], [-0.58, 0.08], [-0.34, 0.45]],
-    quad: [[-0.52, 0.3], [0.14, 0.55], [0.6, -0.12], [-0.24, -0.5]],
-    arc: [[-0.58, -0.38], [-0.42, 0.36], [0, 0.52], [0.42, 0.36], [0.58, -0.38]],
-    ellipse: [],
-  };
-
   if (type === "ellipse") {
     const geometry = new THREE.CircleGeometry(0.5, 96);
     geometry.scale(sx, sy * 0.58, 1);
     return geometry;
   }
 
-  const points = pointsByType[type] ?? pointsByType.rectangle;
+  const points = shapePoints(type);
   points.forEach(([x, y], index) => {
     const px = x * sx;
     const py = y * sy;
@@ -503,9 +492,33 @@ const viewer = {
   normal: new THREE.Vector3(0, 1, 0),
   baseOffset: 0,
   limit: 0.6,
+  preset: null,
   dragging: false,
   lastY: 0,
 };
+
+function shapePoints(type) {
+  if (type === "circle" || type === "ellipse") {
+    return Array.from({ length: 72 }, (_, index) => {
+      const angle = (index / 72) * Math.PI * 2;
+      return [Math.cos(angle) * 0.5, Math.sin(angle) * 0.5];
+    });
+  }
+  const pointsByType = {
+    triangle: [[0, 0.58], [-0.58, -0.42], [0.58, -0.42]],
+    rightTriangle: [[-0.48, 0.52], [-0.48, -0.48], [0.58, -0.48]],
+    square: [[-0.5, 0.5], [0.5, 0.5], [0.5, -0.5], [-0.5, -0.5]],
+    rectangle: [[-0.72, 0.42], [0.72, 0.42], [0.72, -0.42], [-0.72, -0.42]],
+    trapezoid: [[-0.42, 0.48], [0.42, 0.48], [0.65, -0.46], [-0.65, -0.46]],
+    parallelogram: [[-0.48, 0.42], [0.68, 0.42], [0.45, -0.42], [-0.7, -0.42]],
+    pentagon: [[0, 0.55], [0.52, 0.16], [0.34, -0.48], [-0.34, -0.48], [-0.52, 0.16]],
+    hexagon: [[-0.58, 0], [-0.34, 0.48], [0.34, 0.48], [0.58, 0], [0.34, -0.48], [-0.34, -0.48]],
+    many: [[0, 0.58], [0.35, 0.48], [0.58, 0.18], [0.55, -0.2], [0.28, -0.5], [-0.12, -0.56], [-0.48, -0.34], [-0.58, 0.08], [-0.34, 0.45]],
+    quad: [[-0.52, 0.3], [0.14, 0.55], [0.6, -0.12], [-0.24, -0.5]],
+    arc: [[-0.58, -0.38], [-0.42, 0.36], [0, 0.52], [0.42, 0.36], [0.58, -0.38]],
+  };
+  return pointsByType[type] ?? pointsByType.rectangle;
+}
 
 function initViewer() {
   if (!elements.canvas || viewer.renderer) return;
@@ -559,6 +572,37 @@ function clearRoot() {
   }
 }
 
+function liveScaleFactor() {
+  if (!viewer.preset) return 1;
+  const travel = Math.abs(state.sectionOffset) / Math.max(viewer.limit, 0.01);
+  return Math.max(0.38, 1 - travel * 0.48);
+}
+
+function renderLiveSection() {
+  if (!elements.liveSectionSvg || !viewer.preset) return;
+  const preset = viewer.preset;
+  const scale = liveScaleFactor();
+  const sx = (preset.scale?.[0] ?? 1) * scale;
+  const sy = (preset.scale?.[1] ?? 1) * scale * (preset.shape === "ellipse" ? 0.58 : 1);
+  const points = shapePoints(preset.shape).map(([x, y]) => [110 + x * sx * 112, 90 - y * sy * 112]);
+  const path = points.map(([x, y], index) => `${index === 0 ? "M" : "L"}${x.toFixed(1)} ${y.toFixed(1)}`).join(" ") + " Z";
+  const isCannot = state.selectedVerdict === "cannot";
+
+  elements.liveSectionCard.dataset.verdict = state.selectedVerdict;
+  elements.liveSectionVerdict.textContent = isCannot ? "不能直接截出" : "能截出";
+  elements.liveSectionCaption.textContent = isCannot
+    ? `${SHAPES[state.solidId].name}没有这种真实截面，图中是错误尝试。`
+    : `${SHAPES[state.solidId].name}当前截面：${state.selectedLabel}`;
+  elements.liveSectionSvg.innerHTML = `
+    <path class="live-fill" d="${path}"></path>
+    ${isCannot ? '<line class="live-nope" x1="58" y1="142" x2="162" y2="38"></line>' : ""}
+  `;
+  elements.liveSectionSvg.dataset.shape = preset.shape;
+  elements.liveSectionSvg.dataset.scale = scale.toFixed(3);
+  elements.liveSectionSvg.dataset.label = state.selectedLabel;
+  elements.liveSectionSvg.dataset.verdict = state.selectedVerdict;
+}
+
 function resizeViewer() {
   if (!viewer.renderer || !elements.canvas) return;
   const rect = elements.canvas.getBoundingClientRect();
@@ -598,6 +642,7 @@ function buildViewerScene() {
   viewer.normal = new THREE.Vector3(...preset.normal).normalize();
   viewer.baseOffset = preset.offset ?? 0;
   viewer.limit = preset.limit ?? 0.6;
+  viewer.preset = preset;
   state.sectionOffset = 0;
 
   const planeGeometry = new THREE.PlaneGeometry(2.85, 2.05);
@@ -635,6 +680,7 @@ function buildViewerScene() {
   elements.canvas.dataset.solid = state.solidId;
   elements.canvas.dataset.sectionLabel = state.selectedLabel;
   elements.canvas.dataset.sectionVerdict = state.selectedVerdict;
+  renderLiveSection();
 }
 
 function applySectionOffset() {
@@ -647,6 +693,7 @@ function applySectionOffset() {
     elements.dragStatus.textContent = mm === 0 ? "上下拖动切面" : `偏移 ${mm > 0 ? "+" : ""}${mm}`;
   }
   if (elements.canvas) elements.canvas.dataset.sectionOffset = state.sectionOffset.toFixed(3);
+  renderLiveSection();
   renderViewer();
 }
 

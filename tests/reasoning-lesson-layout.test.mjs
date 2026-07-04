@@ -199,13 +199,19 @@ test("foundation page uses an interactive 3D section viewer", async () => {
 
   assert.match(html, /id="foundation-3d"/);
   assert.match(html, /id="reset-section"/);
+  assert.match(html, /id="live-section-svg"/);
+  assert.match(html, /id="live-section-verdict"/);
   assert.match(html, /"three": "\/node_modules\/three\/build\/three\.module\.js"/);
   assert.match(script, /import \* as THREE from "three"/);
   assert.match(script, /SECTION_3D_PRESETS/);
   assert.match(script, /buildViewerScene/);
+  assert.match(script, /renderLiveSection/);
+  assert.match(script, /liveScaleFactor/);
   assert.match(script, /data-section-label/);
   assert.match(script, /updateSectionOffset/);
   assert.match(script, /addEventListener\("wheel"/);
   assert.match(css, /\.demo-stage-3d canvas/);
+  assert.match(css, /\.live-section-card/);
+  assert.match(css, /\.live-fill/);
   assert.match(css, /cursor: ns-resize/);
 });
