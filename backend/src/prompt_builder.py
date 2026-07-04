@@ -6,6 +6,7 @@ Architecture:
     No hardcoded prompt strings. Every word the AI sees comes from the skill files.
     Modify the skill → system upgrades automatically, zero code changes.
 """
+from __future__ import annotations
 
 from pathlib import Path
 from src.models import Question

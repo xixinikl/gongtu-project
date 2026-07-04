@@ -1,4 +1,5 @@
 """Mind map / 图推错题 API — questions, reviews, quiz, image upload. All endpoints require JWT auth, per-user isolation."""
+from __future__ import annotations
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
 from pydantic import BaseModel
 import sqlite3

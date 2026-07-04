@@ -1,4 +1,5 @@
 """申论批改 API — 接入真实 LLM 批改（DeepSeek）。"""
+from __future__ import annotations
 
 import json
 import os
