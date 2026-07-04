@@ -100,6 +100,7 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFShadowMap;
+renderer.localClippingEnabled = true;
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
@@ -182,6 +183,16 @@ function clearModel() {
   }
 }
 
+function setModelCutaway(active) {
+  const solid = modelRoot.getObjectByName("lesson-union-solid");
+  const ghost = modelRoot.getObjectByName("lesson-cutaway-ghost");
+  if (solid?.material) {
+    solid.material.clippingPlanes = active ? [sectionPlane] : [];
+    solid.material.needsUpdate = true;
+  }
+  if (ghost) ghost.visible = active;
+}
+
 function squarePyramidGeometry(width, depth, height) {
   const hx = width / 2;
   const hz = depth / 2;
@@ -236,6 +247,8 @@ function geometryForObject(object) {
 function buildModel(caseData) {
   clearModel();
   const brushes = [];
+  const sourceEdges = new THREE.Group();
+  sourceEdges.name = "lesson-source-edges";
   for (const object of caseData.model.objects) {
     const geometry = geometryForObject(object);
     const brush = new Brush(geometry);
@@ -250,6 +263,22 @@ function buildModel(caseData) {
     brush.scale.fromArray(transform.scale);
     brush.updateMatrixWorld(true);
     brushes.push(brush);
+
+    const edge = new THREE.LineSegments(
+      new THREE.EdgesGeometry(geometry, 32),
+      new THREE.LineBasicMaterial({
+        color: MODEL_APPEARANCE.wireframe,
+        transparent: true,
+        opacity: 0.72,
+        depthTest: true,
+        depthWrite: false,
+      }),
+    );
+    edge.position.copy(brush.position);
+    edge.quaternion.copy(brush.quaternion);
+    edge.scale.copy(brush.scale);
+    edge.renderOrder = 3;
+    sourceEdges.add(edge);
   }
 
   const evaluator = new Evaluator();
@@ -263,35 +292,34 @@ function buildModel(caseData) {
     result = next;
   }
 
-  result.name = `${caseData.id}-union-solid`;
+  result.name = "lesson-union-solid";
   result.material = new THREE.MeshStandardMaterial({
     color: MODEL_APPEARANCE.color,
     roughness: 0.52,
     metalness: 0.03,
     transparent: true,
-    opacity: MODEL_APPEARANCE.opacity,
+    opacity: 0.68,
     side: THREE.DoubleSide,
+    clippingPlanes: [],
   });
   result.castShadow = true;
   result.receiveShadow = true;
   modelRoot.add(result);
 
-  const edges = new THREE.LineSegments(
-    new THREE.EdgesGeometry(result.geometry, 28),
-    new THREE.LineBasicMaterial({
-      color: MODEL_APPEARANCE.wireframe,
+  const ghost = new THREE.Mesh(
+    result.geometry,
+    new THREE.MeshBasicMaterial({
+      color: 0x9fb6b0,
       transparent: true,
-      opacity: 0.78,
-      depthTest: false,
+      opacity: 0.09,
+      side: THREE.DoubleSide,
       depthWrite: false,
     }),
   );
-  edges.name = `${caseData.id}-union-edges`;
-  edges.renderOrder = 3;
-  edges.position.copy(result.position);
-  edges.quaternion.copy(result.quaternion);
-  edges.scale.copy(result.scale);
-  modelRoot.add(edges);
+  ghost.name = "lesson-cutaway-ghost";
+  ghost.visible = false;
+  ghost.renderOrder = 1;
+  modelRoot.add(ghost, sourceEdges);
 
   for (const brush of brushes) {
     if (brush !== result) brush.geometry.dispose();
@@ -330,9 +358,11 @@ function renderTeachingFrame(frame) {
       normalizedPlane(frame.plane.normal, frame.plane.constant),
     );
     planeHelper.visible = true;
+    setModelCutaway(true);
   } else {
     sectionPlane.set(new THREE.Vector3(1, 0, 0), 99);
     planeHelper.visible = false;
+    setModelCutaway(false);
   }
   updateSection();
 }
