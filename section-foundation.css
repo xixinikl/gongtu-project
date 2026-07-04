@@ -89,7 +89,7 @@ a { color: inherit; text-decoration: none; }
   min-height: calc(100vh - 108px);
   margin: 16px auto;
   display: grid;
-  grid-template-columns: minmax(260px, 0.86fr) minmax(360px, 1.1fr) minmax(480px, 1.55fr);
+  grid-template-columns: minmax(250px, 0.72fr) minmax(520px, 1.34fr) minmax(420px, 1fr);
   gap: 14px;
 }
 
@@ -175,12 +175,12 @@ h2 { margin: 12px 0 14px; font-size: 20px; }
 
 .knowledge-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 12px;
 }
 
 .knowledge-card {
-  min-height: 300px;
+  min-height: 0;
   padding: 14px;
   border: 1px solid var(--line);
   border-radius: 16px;
@@ -195,8 +195,8 @@ h2 { margin: 12px 0 14px; font-size: 20px; }
 
 .section-tile-list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
-  gap: 9px;
+  grid-template-columns: repeat(auto-fit, minmax(146px, 1fr));
+  gap: 10px;
 }
 
 .section-tile {
@@ -204,7 +204,7 @@ h2 { margin: 12px 0 14px; font-size: 20px; }
   display: grid;
   gap: 6px;
   justify-items: center;
-  padding: 8px;
+  padding: 9px;
   border: 1px solid rgba(45, 67, 61, 0.12);
   border-radius: 12px;
   background: #fff;
@@ -217,7 +217,7 @@ h2 { margin: 12px 0 14px; font-size: 20px; }
 
 .section-tile strong {
   color: var(--ink);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.25;
   text-align: center;
 }
@@ -225,8 +225,9 @@ h2 { margin: 12px 0 14px; font-size: 20px; }
 .section-thumb {
   display: grid;
   place-items: center;
-  width: 74px;
-  height: 52px;
+  width: 142px;
+  max-width: 100%;
+  height: 98px;
   border-radius: 9px;
   background:
     linear-gradient(rgba(52, 111, 208, 0.035) 1px, transparent 1px),
@@ -236,8 +237,9 @@ h2 { margin: 12px 0 14px; font-size: 20px; }
 }
 
 .section-thumb svg {
-  width: 68px;
-  height: 48px;
+  width: 136px;
+  max-width: 100%;
+  height: 92px;
 }
 
 .rule-card, .explain-card {
@@ -310,17 +312,19 @@ h2 { margin: 12px 0 14px; font-size: 20px; }
   background-size: 18px 18px;
 }
 
-.demo-drawing svg { width: min(100%, 280px); height: 220px; }
+.demo-drawing svg { width: min(100%, 254px); height: 210px; }
 .solid-icon svg { width: 66px; height: 66px; }
 svg .solid { fill: rgba(47, 102, 86, 0.12); stroke: #283b37; stroke-width: 4; stroke-linejoin: round; }
 svg .hidden { fill: none; stroke: rgba(40, 59, 55, 0.28); stroke-width: 3; stroke-dasharray: 6 5; }
 svg .plane { fill: rgba(52, 111, 208, 0.18); stroke: #346fd0; stroke-width: 3; }
+svg .section-line { fill: none; stroke: #d85418; stroke-width: 4; stroke-linejoin: round; }
 svg .section { fill: rgba(242, 138, 60, 0.3); stroke: #d85418; stroke-width: 5; stroke-linejoin: round; }
 svg .curve { fill: none; stroke: #d85418; stroke-width: 5; stroke-linecap: round; }
 svg .nope { stroke: #b64a42; stroke-width: 8; stroke-linecap: round; }
+svg .impossible-shape { opacity: 0.76; }
 
 @media (max-width: 1160px) {
-  .foundation-shell { grid-template-columns: minmax(260px, 0.85fr) minmax(420px, 1.35fr); }
+  .foundation-shell { grid-template-columns: minmax(240px, 0.75fr) minmax(480px, 1.25fr); }
   .demo-panel { grid-column: 1 / -1; }
 }
 

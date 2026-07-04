@@ -173,3 +173,19 @@ test("foundation page renders every common section as a visual tile", async () =
     assert.match(script, new RegExp(word));
   }
 });
+
+test("foundation visual tiles are tied to the current solid", async () => {
+  const [css, script] = await Promise.all([
+    readFile(foundationCssUrl, "utf8"),
+    readFile(foundationScriptUrl, "utf8"),
+  ]);
+
+  assert.match(script, /SOLID_SECTION_DRAWING/);
+  assert.match(script, /drawingForSection\(solidId, item\)/);
+  assert.match(script, /"六边形": "cubeHexCut"/);
+  assert.match(script, /"椭圆": "cylinderEllipseCut"/);
+  assert.match(script, /"矩形": "cylinderRectangleCut"/);
+  assert.match(script, /"带弧边截面": "cylinderArcCut"/);
+  assert.match(script, /section-line/);
+  assert.match(css, /grid-template-columns: repeat\(auto-fit, minmax\(146px, 1fr\)\)/);
+});
