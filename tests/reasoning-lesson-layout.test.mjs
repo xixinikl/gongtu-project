@@ -184,10 +184,13 @@ test("foundation visual tiles are tied to the current solid", async () => {
   assert.match(script, /renderSectionThumb3d\(solidId, item, verdict\)/);
   assert.match(script, /collectPlaneSectionPoints\(solidGeometry, normal, offset\)/);
   assert.match(script, /geometryEdgeSegments/);
+  assert.match(script, /makeThumbProjectionBasis/);
   assert.match(script, /data-real-thumb="true"/);
   assert.match(script, /data-section-vertices/);
   assert.doesNotMatch(script, /drawingForSection\(solidId, item\)/);
+  assert.doesNotMatch(script, /function shapePoints/);
   assert.match(css, /\.real-section-thumb \.thumb-section/);
+  assert.match(css, /\.real-section-thumb \.thumb-vertex/);
   assert.match(css, /fill: rgba\(228, 86, 27, 0\.58\)/);
   assert.match(css, /\.thumb-solid-edge/);
   assert.match(css, /\.thumb-plane/);
@@ -214,9 +217,12 @@ test("foundation page uses an interactive 3D section viewer", async () => {
   assert.match(script, /collectPlaneSectionPoints/);
   assert.match(script, /makeSectionGeometryFromPoints/);
   assert.match(script, /updateRealSectionGeometry/);
+  assert.match(script, /sectionPointsToLocal2d/);
+  assert.match(script, /classifySectionPoints/);
   assert.match(script, /renderOrder = 8/);
   assert.match(script, /depthTest: false/);
   assert.match(script, /dataset\.realSection = "true"/);
+  assert.match(script, /dataset\.actualSection/);
   assert.match(script, /dataset\.sectionVertexCount/);
   assert.match(script, /"直角三角形": \{ normal: \[0\.02, 0\.017, 1\]/);
   assert.match(script, /POSITION_RULES/);
@@ -227,7 +233,7 @@ test("foundation page uses an interactive 3D section viewer", async () => {
   assert.match(script, /把蓝色刀片放在一个顶角上/);
   assert.match(script, /buildViewerScene/);
   assert.match(script, /renderLiveSection/);
-  assert.match(script, /liveScaleFactor/);
+  assert.match(script, /dataset\.vertexCount/);
   assert.match(script, /data-section-label/);
   assert.match(script, /updateSectionOffset/);
   assert.match(script, /addEventListener\("wheel"/);
@@ -235,5 +241,6 @@ test("foundation page uses an interactive 3D section viewer", async () => {
   assert.match(css, /\.active-cut-card/);
   assert.match(css, /\.live-section-card/);
   assert.match(css, /\.live-fill/);
+  assert.match(css, /\.live-vertex/);
   assert.match(css, /cursor: ns-resize/);
 });

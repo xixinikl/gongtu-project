@@ -359,7 +359,7 @@ const SECTION_3D_PRESETS = {
     "直角三角形": { normal: [0.02, 0.017, 1], offset: 0.8528, shape: "rightTriangle", scale: [1.1, 0.95], limit: 0.055 },
     "正方形": { normal: [0, 1, 0], offset: 0, shape: "square", scale: [1.55, 1.55], limit: 0.82 },
     "长方形": { normal: [0.45, 1, 0], offset: 0, shape: "rectangle", scale: [1.75, 0.9], limit: 0.65 },
-    "梯形": { normal: [0.3, 1, 0.45], offset: 0.15, shape: "trapezoid", scale: [1.45, 1.05], limit: 0.55 },
+    "梯形": { normal: [0.8, 1, 1], offset: 0.5, shape: "trapezoid", scale: [1.45, 1.05], limit: 0.5 },
     "五边形": { normal: [0.65, 1, 0.35], offset: 0.05, shape: "pentagon", scale: [1.24, 1.05], limit: 0.55 },
     "六边形": { normal: [1, 1, 1], offset: 0, shape: "hexagon", scale: [1.24, 1.08], limit: 0.48 },
     "圆": { normal: [0, 1, 0], offset: 0, shape: "circle", scale: [1.05, 1.05], limit: 0.82, impossible: true },
@@ -408,31 +408,6 @@ const SECTION_3D_PRESETS = {
     "曲边图形": { normal: [0.35, 1, 0.15], offset: -0.15, shape: "arc", scale: [1.18, 0.75], limit: 0.45, impossible: true },
   },
 };
-
-function makeShapeGeometry(type, sx = 1, sy = 1) {
-  if (type === "circle") {
-    const geometry = new THREE.CircleGeometry(0.5, 72);
-    geometry.scale(sx, sy, 1);
-    return geometry;
-  }
-
-  const shape = new THREE.Shape();
-  if (type === "ellipse") {
-    const geometry = new THREE.CircleGeometry(0.5, 96);
-    geometry.scale(sx, sy * 0.58, 1);
-    return geometry;
-  }
-
-  const points = shapePoints(type);
-  points.forEach(([x, y], index) => {
-    const px = x * sx;
-    const py = y * sy;
-    if (index === 0) shape.moveTo(px, py);
-    else shape.lineTo(px, py);
-  });
-  shape.closePath();
-  return new THREE.ShapeGeometry(shape);
-}
 
 function makeSolidGeometry(solidId) {
   if (solidId === "cuboid") return new THREE.BoxGeometry(2.2, 1.35, 1.35);
@@ -562,15 +537,27 @@ function geometryEdgeSegments(geometry) {
   return segments;
 }
 
-function projectedThumbRaw(point) {
+function makeThumbProjectionBasis(normal) {
+  const viewDir = normal.clone().normalize().multiplyScalar(2.4)
+    .add(new THREE.Vector3(0.28, 0.36, 0.42))
+    .normalize();
+  const helper = Math.abs(viewDir.y) > 0.92 ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(0, 1, 0);
+  const right = helper.clone().cross(viewDir).normalize();
+  const up = viewDir.clone().cross(right).normalize();
+  return { right, up, viewDir };
+}
+
+function projectedThumbRaw(point, basis) {
+  const depthCue = point.dot(basis.viewDir) * 7;
   return {
-    x: point.x * 78 - point.z * 48,
-    y: -point.y * 76 + point.x * 18 + point.z * 20,
+    x: point.dot(basis.right) * 96 + depthCue,
+    y: -point.dot(basis.up) * 96 + depthCue,
   };
 }
 
-function makeThumbProjector(points) {
-  const rawPoints = points.map(projectedThumbRaw);
+function makeThumbProjector(points, normal) {
+  const basis = makeThumbProjectionBasis(normal);
+  const rawPoints = points.map((point) => projectedThumbRaw(point, basis));
   const xs = rawPoints.map((point) => point.x);
   const ys = rawPoints.map((point) => point.y);
   const minX = Math.min(...xs);
@@ -584,7 +571,7 @@ function makeThumbProjector(points) {
   const centerY = (minY + maxY) / 2;
 
   return (point) => {
-    const raw = projectedThumbRaw(point);
+    const raw = projectedThumbRaw(point, basis);
     return {
       x: 160 + (raw.x - centerX) * scale,
       y: 110 + (raw.y - centerY) * scale,
@@ -654,7 +641,7 @@ function renderSectionThumb3d(solidId, label, verdict) {
   const sectionPoints = collectPlaneSectionPoints(solidGeometry, normal, offset);
   const planeCorners = thumbPlaneCorners(normal, offset, solidId);
   const edgeSegments = geometryEdgeSegments(solidGeometry);
-  const project = makeThumbProjector([...solidVertices, ...sectionPoints]);
+  const project = makeThumbProjector([...solidVertices, ...sectionPoints, ...planeCorners], normal);
   const solidHull = convexHull2d(solidVertices.map(project));
   const plane2d = planeCorners.map(project);
   const section2d = sectionPoints.map(project);
@@ -671,6 +658,7 @@ function renderSectionThumb3d(solidId, label, verdict) {
     ${section2d.length >= 3 ? `<polygon class="thumb-section" points="${pointList(section2d)}"></polygon>` : ""}
     ${edgeLines}
     ${section2d.length >= 3 ? `<polyline class="thumb-section-outline" points="${pointList(section2d)} ${section2d[0].x.toFixed(1)},${section2d[0].y.toFixed(1)}"></polyline>` : ""}
+    ${section2d.length <= 10 ? section2d.map((point) => `<circle class="thumb-vertex" cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="5.2"></circle>`).join("") : ""}
     ${verdict === "cannot" ? '<line class="thumb-nope" x1="88" y1="172" x2="232" y2="48"></line>' : ""}
   </svg>`;
 }
@@ -714,6 +702,86 @@ function makeSectionOutlineGeometry(points, normal, inset = 0.018) {
   return geometry;
 }
 
+function sectionPointsToLocal2d(points, normal) {
+  if (points.length === 0) return [];
+  const center = points.reduce((sum, point) => sum.add(point), new THREE.Vector3()).multiplyScalar(1 / points.length);
+  const { u, v } = planeBasis(normal);
+  return points.map((point) => {
+    const delta = point.clone().sub(center);
+    return { x: delta.dot(u), y: delta.dot(v) };
+  });
+}
+
+function fitSectionPoints(points, width = 220, height = 180, padding = 24) {
+  if (points.length === 0) return [];
+  const xs = points.map((point) => point.x);
+  const ys = points.map((point) => point.y);
+  const minX = Math.min(...xs);
+  const maxX = Math.max(...xs);
+  const minY = Math.min(...ys);
+  const maxY = Math.max(...ys);
+  const scale = Math.min(
+    (width - padding * 2) / Math.max(maxX - minX, 0.01),
+    (height - padding * 2) / Math.max(maxY - minY, 0.01)
+  );
+  const centerX = (minX + maxX) / 2;
+  const centerY = (minY + maxY) / 2;
+  return points.map((point) => ({
+    x: width / 2 + (point.x - centerX) * scale,
+    y: height / 2 - (point.y - centerY) * scale,
+  }));
+}
+
+function sectionPath(points) {
+  if (points.length === 0) return "";
+  return points.map((point, index) => `${index === 0 ? "M" : "L"}${point.x.toFixed(1)} ${point.y.toFixed(1)}`).join(" ") + " Z";
+}
+
+function areParallel2d(a, b) {
+  const cross = Math.abs(a.x * b.y - a.y * b.x);
+  const scale = Math.max(Math.hypot(a.x, a.y) * Math.hypot(b.x, b.y), 0.000001);
+  return cross / scale < 0.08;
+}
+
+function isRightAngle2d(a, b) {
+  const dot = Math.abs(a.x * b.x + a.y * b.y);
+  const scale = Math.max(Math.hypot(a.x, a.y) * Math.hypot(b.x, b.y), 0.000001);
+  return dot / scale < 0.12;
+}
+
+function classifyQuadrilateral(points, selectedLabel) {
+  const edges = points.map((point, index) => {
+    const next = points[(index + 1) % points.length];
+    return { x: next.x - point.x, y: next.y - point.y };
+  });
+  const parallel02 = areParallel2d(edges[0], edges[2]);
+  const parallel13 = areParallel2d(edges[1], edges[3]);
+  const rightAngles = edges.every((edge, index) => isRightAngle2d(edge, edges[(index + 1) % edges.length]));
+  const lengths = edges.map((edge) => Math.hypot(edge.x, edge.y));
+  const maxLength = Math.max(...lengths);
+  const minLength = Math.min(...lengths);
+
+  if (rightAngles && maxLength / Math.max(minLength, 0.000001) < 1.12) return "正方形";
+  if (rightAngles) return selectedLabel === "长方形" ? "长方形" : "矩形";
+  if (parallel02 && parallel13) return "平行四边形";
+  if (parallel02 || parallel13) return "梯形";
+  return "四边形";
+}
+
+function classifySectionPoints(points, normal, selectedLabel) {
+  if (points.length < 3) return "没有截到";
+  const local = sectionPointsToLocal2d(points, normal);
+  if (points.length === 3) return selectedLabel.includes("直角") ? "直角三角形" : "三角形";
+  if (points.length === 4) return classifyQuadrilateral(local, selectedLabel);
+  if (points.length === 5) return "五边形";
+  if (points.length === 6) return "六边形";
+  if (points.length > 12) {
+    if (selectedLabel.includes("圆")) return selectedLabel;
+    if (selectedLabel.includes("弧") || selectedLabel.includes("曲")) return "曲边截面";
+  }
+  return `${points.length}边形`;
+}
+
 const viewer = {
   renderer: null,
   scene: null,
@@ -722,7 +790,10 @@ const viewer = {
   plane: null,
   section: null,
   sectionOutline: null,
+  sectionVertexGroup: null,
   solidGeometry: null,
+  currentSectionPoints: [],
+  currentSectionName: "",
   normal: new THREE.Vector3(0, 1, 0),
   baseOffset: 0,
   limit: 0.6,
@@ -730,29 +801,6 @@ const viewer = {
   dragging: false,
   lastY: 0,
 };
-
-function shapePoints(type) {
-  if (type === "circle" || type === "ellipse") {
-    return Array.from({ length: 72 }, (_, index) => {
-      const angle = (index / 72) * Math.PI * 2;
-      return [Math.cos(angle) * 0.5, Math.sin(angle) * 0.5];
-    });
-  }
-  const pointsByType = {
-    triangle: [[0, 0.58], [-0.58, -0.42], [0.58, -0.42]],
-    rightTriangle: [[-0.48, 0.52], [-0.48, -0.48], [0.58, -0.48]],
-    square: [[-0.5, 0.5], [0.5, 0.5], [0.5, -0.5], [-0.5, -0.5]],
-    rectangle: [[-0.72, 0.42], [0.72, 0.42], [0.72, -0.42], [-0.72, -0.42]],
-    trapezoid: [[-0.42, 0.48], [0.42, 0.48], [0.65, -0.46], [-0.65, -0.46]],
-    parallelogram: [[-0.48, 0.42], [0.68, 0.42], [0.45, -0.42], [-0.7, -0.42]],
-    pentagon: [[0, 0.55], [0.52, 0.16], [0.34, -0.48], [-0.34, -0.48], [-0.52, 0.16]],
-    hexagon: [[-0.58, 0], [-0.34, 0.48], [0.34, 0.48], [0.58, 0], [0.34, -0.48], [-0.34, -0.48]],
-    many: [[0, 0.58], [0.35, 0.48], [0.58, 0.18], [0.55, -0.2], [0.28, -0.5], [-0.12, -0.56], [-0.48, -0.34], [-0.58, 0.08], [-0.34, 0.45]],
-    quad: [[-0.52, 0.3], [0.14, 0.55], [0.6, -0.12], [-0.24, -0.5]],
-    arc: [[-0.58, -0.38], [-0.42, 0.36], [0, 0.52], [0.42, 0.36], [0.58, -0.38]],
-  };
-  return pointsByType[type] ?? pointsByType.rectangle;
-}
 
 function initViewer() {
   if (!elements.canvas || viewer.renderer) return;
@@ -806,35 +854,29 @@ function clearRoot() {
   }
 }
 
-function liveScaleFactor() {
-  if (!viewer.preset) return 1;
-  const travel = Math.abs(state.sectionOffset) / Math.max(viewer.limit, 0.01);
-  return Math.max(0.38, 1 - travel * 0.48);
-}
-
 function renderLiveSection() {
   if (!elements.liveSectionSvg || !viewer.preset) return;
-  const preset = viewer.preset;
-  const scale = liveScaleFactor();
-  const sx = (preset.scale?.[0] ?? 1) * scale;
-  const sy = (preset.scale?.[1] ?? 1) * scale * (preset.shape === "ellipse" ? 0.58 : 1);
-  const points = shapePoints(preset.shape).map(([x, y]) => [110 + x * sx * 112, 90 - y * sy * 112]);
-  const path = points.map(([x, y], index) => `${index === 0 ? "M" : "L"}${x.toFixed(1)} ${y.toFixed(1)}`).join(" ") + " Z";
   const isCannot = state.selectedVerdict === "cannot";
+  const sectionPoints = viewer.currentSectionPoints ?? [];
+  const livePoints = fitSectionPoints(sectionPointsToLocal2d(sectionPoints, viewer.normal));
+  const path = sectionPath(livePoints);
+  const actualName = viewer.currentSectionName || classifySectionPoints(sectionPoints, viewer.normal, state.selectedLabel);
+  const targetText = actualName === state.selectedLabel ? actualName : `${actualName}（目标：${state.selectedLabel}）`;
 
   elements.liveSectionCard.dataset.verdict = state.selectedVerdict;
   elements.liveSectionVerdict.textContent = isCannot ? "不能直接截出" : "能截出";
   elements.liveSectionCaption.textContent = isCannot
-    ? `${SHAPES[state.solidId].name}没有这种真实截面，图中是错误尝试。`
-    : `${SHAPES[state.solidId].name}当前截面：${state.selectedLabel}`;
+    ? `${SHAPES[state.solidId].name}当前真实截面：${actualName}，不是${state.selectedLabel}。`
+    : `${SHAPES[state.solidId].name}当前真实截面：${targetText}`;
   elements.liveSectionSvg.innerHTML = `
-    <path class="live-fill" d="${path}"></path>
+    ${path ? `<path class="live-fill" d="${path}"></path>` : ""}
+    ${livePoints.length <= 10 ? livePoints.map((point) => `<circle class="live-vertex" cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="5.5"></circle>`).join("") : ""}
     ${isCannot ? '<line class="live-nope" x1="58" y1="142" x2="162" y2="38"></line>' : ""}
   `;
-  elements.liveSectionSvg.dataset.shape = preset.shape;
-  elements.liveSectionSvg.dataset.scale = scale.toFixed(3);
+  elements.liveSectionSvg.dataset.actualShape = actualName;
   elements.liveSectionSvg.dataset.label = state.selectedLabel;
   elements.liveSectionSvg.dataset.verdict = state.selectedVerdict;
+  elements.liveSectionSvg.dataset.vertexCount = String(sectionPoints.length);
 }
 
 function resizeViewer() {
@@ -915,6 +957,10 @@ function buildViewerScene() {
   viewer.sectionOutline.renderOrder = 9;
   viewer.root.add(viewer.sectionOutline);
 
+  viewer.sectionVertexGroup = new THREE.Group();
+  viewer.sectionVertexGroup.renderOrder = 10;
+  viewer.root.add(viewer.sectionVertexGroup);
+
   const quaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), viewer.normal);
   viewer.plane.quaternion.copy(quaternion);
   applySectionOffset();
@@ -930,6 +976,8 @@ function updateRealSectionGeometry(totalOffset) {
   const points = collectPlaneSectionPoints(viewer.solidGeometry, viewer.normal, totalOffset);
   const sectionGeometry = makeSectionGeometryFromPoints(points, viewer.normal);
   const outlineGeometry = makeSectionOutlineGeometry(points, viewer.normal);
+  viewer.currentSectionPoints = points;
+  viewer.currentSectionName = classifySectionPoints(points, viewer.normal, state.selectedLabel);
 
   viewer.section.geometry?.dispose?.();
   viewer.section.geometry = sectionGeometry;
@@ -937,11 +985,34 @@ function updateRealSectionGeometry(totalOffset) {
   viewer.sectionOutline.geometry = outlineGeometry;
   viewer.section.visible = points.length >= 3;
   viewer.sectionOutline.visible = points.length >= 3;
+  updateSectionVertexDots(points);
 
   if (elements.canvas) {
     elements.canvas.dataset.sectionVertexCount = String(points.length);
+    elements.canvas.dataset.actualSection = viewer.currentSectionName;
     elements.canvas.dataset.realSection = "true";
   }
+}
+
+function updateSectionVertexDots(points) {
+  if (!viewer.sectionVertexGroup) return;
+  while (viewer.sectionVertexGroup.children.length) {
+    const child = viewer.sectionVertexGroup.children.pop();
+    disposeObject(child);
+  }
+  if (points.length < 3 || points.length > 10) return;
+
+  const dotMaterial = new THREE.MeshBasicMaterial({
+    color: 0x9a3a10,
+    depthTest: false,
+    depthWrite: false,
+  });
+  points.forEach((point) => {
+    const dot = new THREE.Mesh(new THREE.SphereGeometry(0.035, 14, 10), dotMaterial);
+    dot.position.copy(point).addScaledVector(viewer.normal, 0.035);
+    dot.renderOrder = 10;
+    viewer.sectionVertexGroup.add(dot);
+  });
 }
 
 function applySectionOffset() {

@@ -277,6 +277,12 @@ h2 { margin: 12px 0 14px; font-size: 20px; }
   stroke-linejoin: round;
 }
 
+.real-section-thumb .thumb-vertex {
+  fill: #fff8ef;
+  stroke: #9a3a10;
+  stroke-width: 3;
+}
+
 .real-section-thumb .thumb-solid-edge {
   stroke: #22332f;
   stroke-width: 2.35;
@@ -453,6 +459,12 @@ h2 { margin: 12px 0 14px; font-size: 20px; }
   stroke: #d85418;
   stroke-width: 7;
   stroke-linejoin: round;
+}
+
+.live-section-card .live-vertex {
+  fill: #fff8ef;
+  stroke: #9a3a10;
+  stroke-width: 4;
 }
 
 .live-section-card[data-verdict="cannot"] .live-fill {

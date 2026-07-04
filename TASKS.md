@@ -730,6 +730,12 @@
   - 结果：已删除旧的 `drawingForSection` 手绘截面入口；新增 `renderSectionThumb3d`、`geometryEdgeSegments`、`makeThumbProjector` 等函数，中栏卡片用当前 Three.js 立体几何体与切面求交后生成缩略图；右侧 3D 橙色截面提高不透明度并置于透明模型上层显示；不可行项卡片显示真实能切到的形状并用红色/斜线标出“不等于目标截面”
   - 验收证据：本地服务 `/section-foundation.html` 加载 `section-foundation.css?v=20260704g` 与 `section-foundation.js?v=20260704j`；浏览器 DOM 显示真实缩略图数量 11；默认正方体六边形 `canvasVertexCount=6`、缩略图 `data-section-vertices=6`、橙色填充 `rgba(228, 86, 27, 0.58)`；点击正方体直角三角形后大 3D 和缩略图均为 3 点真实截面；浏览器控制台无 error/warning；专项测试 13/13 通过
   - 提交：本任务所在提交
+- [x] ● LESSON-014K fix: 基础截面实时截面同步真实切面
+  - 依赖：LESSON-014J
+  - 验收：右侧实时截面不能再用预设形状；必须由当前 3D 切面与立体真实交点生成；选中正方体五边形时默认大 3D、实时截面、缩略图都显示 5 个真实点；拖动五边形切面后如果真实截面变成 4 边，实时截面必须同步变成 4 边并提示目标仍是五边形；正方体梯形默认必须实际分类为梯形，不能显示成正方形/普通四边形
+  - 结果：已删除旧 `shapePoints`/`makeShapeGeometry` 预设绘图死代码；`renderLiveSection` 改为读取 `viewer.currentSectionPoints` 并用切面局部坐标生成实时截面；新增真实形状分类、顶点点位显示和 `data-actual-section`；卡片缩略图改为尽量正对当前切面投影，避免五边形/梯形被视角压歪；正方体“梯形”切面参数改为 `[0.8, 1, 1] / offset 0.5`
+  - 验收证据：浏览器加载 `/section-foundation.html` 的 `v=20260705a`；点击“五边形”后大 3D `data-section-vertex-count=5`、实时截面 `data-vertex-count=5`、卡片 `data-section-vertices=5`；拖动后真实截面变为 `梯形` 且大 3D/实时截面均为 4 点，文案显示“目标：五边形”；点击“梯形”后默认 `data-actual-section=梯形`、实时截面显示“正方体当前真实截面：梯形”；浏览器控制台无 error/warning；专项测试 13/13 通过
+  - 提交：本任务所在提交
 - [ ] ○ LESSON-015 feat: 重做手动探索为滑动式截面验证
   - 依赖：LESSON-014R
   - 验收：上下滑/滚轮连续扫截面，左右滑连续旋转切面；方向键只作为备用；候选图、真实截面和模型同步更新且不卡顿
