@@ -268,17 +268,72 @@ h2 { margin: 12px 0 14px; font-size: 20px; }
 .explain-card strong { margin-top: 6px; font-size: 18px; }
 .explain-card p { margin: 8px 0 0; color: var(--muted); font-size: 14px; line-height: 1.65; }
 
+.active-cut-card {
+  margin-top: 0;
+  border-color: rgba(52, 111, 208, 0.22);
+  background: linear-gradient(180deg, #f6faff, #fff9ef);
+}
+
+.active-cut-card span {
+  color: var(--blue);
+}
+
+.active-cut-card strong {
+  font-size: 20px;
+  line-height: 1.3;
+}
+
+.active-cut-card p {
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+.demo-choice-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+  color: var(--green);
+}
+
+.demo-choice-title span {
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.demo-choice-title small {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.demo-buttons {
+  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+  margin-top: 8px;
+}
+
 .demo-button {
   display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  gap: 10px;
+  grid-template-columns: 1fr;
+  align-content: start;
+  gap: 8px;
+  min-height: 116px;
   padding: 12px;
 }
 
-.demo-button strong { display: block; font-size: 14px; }
-.demo-button small { color: var(--muted); font-size: 11px; }
-.demo-button span {
+.demo-button strong { display: block; font-size: 14px; line-height: 1.35; }
+.demo-button small {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.45;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+.demo-button > span:last-child {
+  width: fit-content;
   padding: 5px 8px;
   border-radius: 999px;
   color: var(--blue);
@@ -445,6 +500,8 @@ svg .impossible-shape { opacity: 0.76; }
   .product-links { overflow-x: auto; }
   .foundation-shell { width: min(100% - 20px, 620px); grid-template-columns: 1fr; }
   .knowledge-grid { grid-template-columns: 1fr; }
+  .demo-choice-title { display: block; }
+  .demo-choice-title small { display: block; margin-top: 4px; }
   .demo-stage-3d { grid-template-columns: 1fr; min-height: 0; }
   .demo-stage-3d canvas { height: 360px; }
   .live-section-card { min-height: 260px; }

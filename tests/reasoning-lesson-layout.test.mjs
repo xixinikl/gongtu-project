@@ -201,10 +201,14 @@ test("foundation page uses an interactive 3D section viewer", async () => {
   assert.match(html, /id="reset-section"/);
   assert.match(html, /id="live-section-svg"/);
   assert.match(html, /id="live-section-verdict"/);
+  assert.match(html, /active-cut-card[\s\S]*demo-buttons[\s\S]*demo-stage/);
+  assert.match(html, /切法选择/);
   assert.match(html, /"three": "\/node_modules\/three\/build\/three\.module\.js"/);
   assert.match(script, /import \* as THREE from "three"/);
   assert.match(script, /SECTION_3D_PRESETS/);
   assert.match(script, /POSITION_RULES/);
+  assert.match(script, /briefPositionRule/);
+  assert.match(script, /当前切面位置/);
   assert.match(script, /切面从一个角的附近斜穿到对角附近/);
   assert.match(script, /斜着穿过圆柱侧面/);
   assert.match(script, /切面只削过正方体一个顶角附近的三个面/);
@@ -215,6 +219,8 @@ test("foundation page uses an interactive 3D section viewer", async () => {
   assert.match(script, /updateSectionOffset/);
   assert.match(script, /addEventListener\("wheel"/);
   assert.match(css, /\.demo-stage-3d canvas/);
+  assert.match(css, /\.active-cut-card/);
+  assert.match(css, /\.demo-choice-title/);
   assert.match(css, /\.live-section-card/);
   assert.match(css, /\.live-fill/);
   assert.match(css, /cursor: ns-resize/);

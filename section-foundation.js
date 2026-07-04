@@ -833,12 +833,18 @@ function renderKnowledge(shape) {
   elements.solidRule.textContent = shape.rule;
 }
 
+function briefPositionRule(solidId, label, fallback) {
+  const rule = POSITION_RULES[solidId]?.[label] ?? fallback;
+  const firstClause = rule.split(/[。；]/).find(Boolean) ?? rule;
+  return firstClause.length > 42 ? `${firstClause.slice(0, 42)}...` : firstClause;
+}
+
 function renderDemoButtons(shape) {
   elements.demoButtons.innerHTML = shape.demos.map((demo) => `
-    <button class="demo-button ${demo.id === state.demoId ? "is-selected" : ""}" type="button" data-demo-id="${demo.id}" data-verdict="${demo.verdict}" aria-pressed="${demo.id === state.demoId}">
+    <button class="demo-button ${DEMO_FOCUS_LABEL[demo.id] === state.selectedLabel && demo.verdict === state.selectedVerdict ? "is-selected" : ""}" type="button" data-demo-id="${demo.id}" data-verdict="${demo.verdict}" aria-pressed="${DEMO_FOCUS_LABEL[demo.id] === state.selectedLabel && demo.verdict === state.selectedVerdict}">
       <span>
-        <strong>${demo.title}</strong>
-        <small>${demo.note}</small>
+        <strong>${DEMO_FOCUS_LABEL[demo.id] ?? demo.title}</strong>
+        <small>${briefPositionRule(state.solidId, DEMO_FOCUS_LABEL[demo.id] ?? demo.title, demo.note)}</small>
       </span>
       <span>${demo.label}</span>
     </button>
@@ -852,7 +858,7 @@ function renderDemo(shape) {
   const selectedVerdict = state.selectedVerdict;
   elements.demoVerdict.textContent = selectedVerdict === "cannot" ? "不可行" : "可行";
   elements.demoVerdict.dataset.verdict = selectedVerdict;
-  elements.demoLabel.textContent = shape.name;
+  elements.demoLabel.textContent = selectedVerdict === "cannot" ? "为什么放哪里都不行" : "当前切面位置";
   elements.demoTitle.textContent = selectedVerdict === "cannot"
     ? `${shape.name}不能直接截出${selectedLabel}`
     : `${shape.name}怎样截出${selectedLabel}`;
