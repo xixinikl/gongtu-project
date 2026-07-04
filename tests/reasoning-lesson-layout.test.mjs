@@ -148,7 +148,7 @@ test("foundation page lists base solids and demo entry points", async () => {
   for (const word of ["正方体", "长方体", "圆柱", "圆锥", "棱锥"]) {
     assert.match(script, new RegExp(word));
   }
-  for (const word of ["六边形", "椭圆", "不能直接截出", "一键演示"]) {
+  for (const word of ["六边形", "椭圆", "不能直接截出", "典型切法"]) {
     assert.match(script + html, new RegExp(word));
   }
 });
@@ -204,6 +204,10 @@ test("foundation page uses an interactive 3D section viewer", async () => {
   assert.match(html, /"three": "\/node_modules\/three\/build\/three\.module\.js"/);
   assert.match(script, /import \* as THREE from "three"/);
   assert.match(script, /SECTION_3D_PRESETS/);
+  assert.match(script, /POSITION_RULES/);
+  assert.match(script, /切面从一个角的附近斜穿到对角附近/);
+  assert.match(script, /斜着穿过圆柱侧面/);
+  assert.match(script, /切面只削过正方体一个顶角附近的三个面/);
   assert.match(script, /buildViewerScene/);
   assert.match(script, /renderLiveSection/);
   assert.match(script, /liveScaleFactor/);
