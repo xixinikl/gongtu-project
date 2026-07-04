@@ -164,6 +164,7 @@ scene.add(planeHelper);
 
 let frameRequest = null;
 let resizeObserver = null;
+let sectionSource = null;
 
 function disposeObject(root) {
   root.traverse((object) => {
@@ -177,6 +178,7 @@ function disposeObject(root) {
 }
 
 function clearModel() {
+  sectionSource = null;
   while (modelRoot.children.length) {
     const child = modelRoot.children.pop();
     disposeObject(child);
@@ -305,6 +307,7 @@ function buildModel(caseData) {
   result.castShadow = true;
   result.receiveShadow = true;
   modelRoot.add(result);
+  sectionSource = result;
 
   const ghost = new THREE.Mesh(
     result.geometry,
@@ -349,6 +352,11 @@ function currentTeachingFrame() {
   };
 }
 
+function setPlaneControlsEnabled(enabled) {
+  elements.planePosition.disabled = !enabled;
+  for (const button of elements.planeArrows) button.disabled = !enabled;
+}
+
 function renderTeachingFrame(frame) {
   camera.position.fromArray(frame.camera.position);
   controls.target.fromArray(frame.camera.target);
@@ -364,6 +372,7 @@ function renderTeachingFrame(frame) {
     planeHelper.visible = false;
     setModelCutaway(false);
   }
+  setPlaneControlsEnabled(Boolean(frame.plane));
   updateSection();
 }
 
@@ -466,7 +475,8 @@ function renderSectionPreview(result) {
 function updateSection() {
   try {
     modelRoot.updateMatrixWorld(true);
-    const result = computeSectionV2(modelRoot, sectionPlane, {
+    if (!sectionSource) throw new Error("截面实体尚未建立");
+    const result = computeSectionV2(sectionSource, sectionPlane, {
       epsilon: 1e-6,
     });
     if (result.status === "error") {
@@ -712,6 +722,9 @@ function selectOption(optionId, jumpToKeyframe = true) {
         keyframeIndex: index,
       });
       applyKeyframe(index);
+      setPlaneControlsEnabled(Boolean(
+        state.caseData.keyframes[index]?.plane,
+      ));
     }
   } else if (state.machine.selectedOptionId !== optionId) {
     dispatch({
@@ -727,8 +740,6 @@ function setExploring(exploring) {
   dispatch({ type: exploring ? "ENTER_EXPLORE" : "EXIT_EXPLORE" });
   elements.explore.setAttribute("aria-pressed", String(exploring));
   elements.explore.textContent = exploring ? "返回讲解" : "手动探索";
-  elements.planePosition.disabled = !exploring;
-  for (const button of elements.planeArrows) button.disabled = !exploring;
   controls.enablePan = exploring;
   if (exploring) {
     state.explorationPlane = sectionPlane.clone();
@@ -876,17 +887,22 @@ elements.resetView.addEventListener("click", () => {
 });
 elements.planePosition.addEventListener("input", (event) => {
   const percent = Number(event.target.value);
+  if (!state.exploring) {
+    setExploring(true);
+    elements.planePosition.value = String(percent);
+  }
   state.planeOffsetPercent = percent;
   applyExplorationPlane();
   elements.planePositionOutput.textContent = `${percent}%`;
 });
 for (const button of elements.planeArrows) {
   button.addEventListener("click", () => {
+    if (!state.exploring) setExploring(true);
     rotateExplorationPlane(button.dataset.planeDirection);
   });
 }
 window.addEventListener("keydown", (event) => {
-  if (!state.exploring || event.metaKey || event.ctrlKey || event.altKey) return;
+  if (event.metaKey || event.ctrlKey || event.altKey) return;
   const direction = {
     ArrowUp: "up",
     ArrowDown: "down",
@@ -894,11 +910,13 @@ window.addEventListener("keydown", (event) => {
     ArrowRight: "right",
   }[event.key];
   if (!direction) return;
+  if (elements.planeArrows[0]?.disabled) return;
   const tagName = event.target?.tagName;
   if (tagName === "INPUT" || tagName === "SELECT" || tagName === "TEXTAREA") {
     return;
   }
   event.preventDefault();
+  if (!state.exploring) setExploring(true);
   rotateExplorationPlane(direction);
 });
 
