@@ -8,9 +8,9 @@
 | 项目 | 当前结果 |
 |---|---|
 | 当前阶段 | M5A 考公立体图推动态讲解产品规划 |
-| 已完成 | 111 项 |
+| 已完成 | 116 项 |
 | 进行中 | 0 项 |
-| 下一项 | LESSON-015 重做手动探索为滑动式截面验证 |
+| 下一项 | LESSON-016 建立四类训练总入口 |
 | 冻结基线 | `csg-section-v6-interactive` |
 
 ## 里程碑
@@ -754,9 +754,31 @@
   - 结果：已修正 7 个错位预设，新增 `tests/foundation-section-presets.test.mjs` 真实几何矩阵测试，浏览器自动点击 44 个截面卡片全部通过
   - 验收证据：`node --check section-foundation.js` 通过；`node --experimental-loader ./tests/three-absolute-loader.mjs --test tests/foundation-section-presets.test.mjs tests/reasoning-lesson-layout.test.mjs` 15/15 通过；`npm run test:geometry` 562/562 通过；浏览器矩阵 44/44 通过且控制台 error/warn 为空；`curl -I http://localhost:8089/section-foundation.html` 返回 200
   - 提交：本任务所在提交
-- [ ] ○ LESSON-015 feat: 重做手动探索为滑动式截面验证
+- [x] ✓ LESSON-015A feat: 重做动态解题手动探索手感
   - 依赖：LESSON-014R
-  - 验收：上下滑/滚轮连续扫截面，左右滑连续旋转切面；方向键只作为备用；候选图、真实截面和模型同步更新且不卡顿
+  - 验收：上下滑/滚轮连续移动切面，左右滑连续旋转切面；不需要先点“手动探索”也能从三维区直接拖动；页面同步显示“偏移 + 旋转角度 + 实时截面状态”；浏览器真实拖动验证通过；控制台无 error/warn
+  - 结果：已在动态解题页新增 3D 切面实时读数；三维区可直接拖动自动进入探索；上下拖动改变偏移，左右拖动改变旋转；复位会退出探索并回到当前讲解帧
+  - 验收证据：`node --check reasoning-lesson.js` 通过；`node --test tests/reasoning-lesson-layout.test.mjs` 14/14 通过；浏览器未点选项直接拖动通过，竖向拖动后偏移 `+20%`，横向拖动后旋转 `-41°`，控制台 error/warn 为空
+- [x] ✓ LESSON-015B feat: 重做候选图对比区
+  - 依赖：LESSON-015A
+  - 验收：点击任一选项后，同屏显示“候选图 / 真实截面 / 3D 切面”；错误选项要能看见多出来、缺掉、带出的结构，不只靠文字解释；浏览器逐项点击 A/B/C/D 验证对比区不空、真实截面同步、控制台无 error/warn
+  - 结果：已新增候选图放大区；候选图、真实截面图和 3D 切面同屏同步；换题时候选状态会重置，避免旧题污染
+  - 验收证据：浏览器逐项点击默认题 A/B/C/D 均有候选 SVG 与真实截面 path；第二题 A/B/C/D 均有候选 SVG 与真实截面 path；控制台 error/warn 为空
+- [x] ✓ CASE-IMPORT-001 feat: 把现有视频题逐步录入动态解题题库
+  - 依赖：LESSON-015B
+  - 验收：每个本地参考视频至少抽取一张原题清晰截图；能进入题目下拉列表；未人工确认答案的题目标为 draft，不混进正式题；题目来源和人工确认状态在页面可见
+  - 结果：已抽取 8 张新视频截图并保留已有圆锥方体截图；已补齐第二道正式题原题图；新增 `draft-video-questions.json`，7 个未核验视频条目单独进入“待核验草稿”下拉，不进入正式判题
+  - 验收证据：浏览器打开 `?case=draft-section-stair-model`，下拉草稿数 7，页面显示原题图、来源、`draft-unverified`、`待人工核验`，切面控件禁用，控制台 error/warn 为空；切回正式题后 4 个选项恢复，草稿提示清空
+- [x] ✓ THREEVIEW-001 feat: 建立三视图训练 MVP
+  - 依赖：CASE-IMPORT-001
+  - 验收：用用户提供的黑白块三视图题做第一题；用户选择 A/B/C/D 后立刻反馈对错；下方出现真实 3D 方块模型；模型可旋转，并能切换主视图、左视图、俯视图；讲解使用“看黑块数量、锁定位置、排除差异”的做题话术
+  - 结果：已新增 `three-view-training.html` 训练页；录入黑白块第一题、原题截图、18 个真实方块坐标、A-D 选项和正确答案 C；点击选项会立即反馈对错；3D 模型可拖动旋转，并支持自由观察、主视图、左视图、俯视图切换
+  - 验收证据：`node --test tests/three-view-training.test.mjs` 5/5 通过，证明 18 块、3 黑 15 白、左/俯视图和主视图 C 投影一致；浏览器打开 `/three-view-training.html`，D 显示“再想想”和错误理由，C 显示“答对了”；3D canvas 截图非空，视角按钮 main/left/top/free 逐个切换成功，控制台 error/warn 为空
+- [x] ✓ THREEVIEW-002 feat: 沉淀三视图做题技巧模板
+  - 依赖：THREEVIEW-001
+  - 验收：每题都有短句技巧，不写专业定理；技巧围绕黑/白块数量、列/层定位、候选差异排除；专项测试覆盖技巧字段必填且页面显示
+  - 结果：已新增 `data/three-view-cases/technique-template.json` 和 `doc/THREE_VIEW_TEACHING_TEMPLATE.md`；第一题包含 `teaching.short`、`teaching.steps`、`teaching.optionFocus`
+  - 验收证据：`node --test tests/three-view-training.test.mjs` 覆盖模板字段、禁用专业定理话术和页面显示容器；浏览器确认短技巧、4 条做题步骤、4 条选项差异实际渲染，控制台 error/warn 为空
 - [ ] ○ LESSON-016 feat: 建立四类训练总入口
   - 依赖：LESSON-014
   - 验收：提供立体拼合、三视图、展开图、截面图训练四个学生入口；保留动态解题、几何实验室和 CSG 工作台为高级入口

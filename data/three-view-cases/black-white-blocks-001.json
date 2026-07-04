@@ -1,0 +1,141 @@
+{
+  "id": "black-white-blocks-001",
+  "title": "15白3黑方块三视图",
+  "source": {
+    "type": "user-screenshot",
+    "image": "/data/images/three-view/black-white-blocks-001-source.jpg",
+    "note": "来自用户提供的三视图训练截图，已人工录入题面视图、选项和块坐标。"
+  },
+  "prompt": "下面为15个白色块和3个黑色块立体图的左视图和俯视图，那么主视图应该是（ ）。",
+  "counts": {
+    "white": 15,
+    "black": 3,
+    "total": 18
+  },
+  "answer": "C",
+  "viewRules": {
+    "main": {
+      "label": "主视图",
+      "horizontalAxis": "x",
+      "verticalAxis": "y",
+      "depthAxis": "z",
+      "horizontalOrder": "low-to-high",
+      "verticalOrder": "high-to-low",
+      "depthOrder": "low-to-high"
+    },
+    "left": {
+      "label": "左视图",
+      "horizontalAxis": "z",
+      "verticalAxis": "y",
+      "depthAxis": "x",
+      "horizontalOrder": "high-to-low",
+      "verticalOrder": "low-to-high",
+      "depthOrder": "low-to-high"
+    },
+    "top": {
+      "label": "俯视图",
+      "horizontalAxis": "x",
+      "verticalAxis": "z",
+      "depthAxis": "y",
+      "horizontalOrder": "low-to-high",
+      "verticalOrder": "high-to-low",
+      "depthOrder": "low-to-high"
+    }
+  },
+  "givenViews": {
+    "left": [
+      [null, "white", "white"],
+      [null, "white", "white"],
+      ["black", "black", "white"]
+    ],
+    "top": [
+      ["black", "white", "black"],
+      ["white", "white", "white"],
+      ["white", "white", null]
+    ]
+  },
+  "targetViews": {
+    "main": [
+      ["white", "white", "white"],
+      ["white", "white", "white"],
+      ["white", "white", "white"]
+    ]
+  },
+  "options": [
+    {
+      "id": "A",
+      "label": "A",
+      "grid": [
+        ["black", "white", "black"],
+        ["white", "white", null],
+        ["white", "white", null]
+      ],
+      "feedback": "A 把黑块放到了主视图最前面。题面里 3 个黑块在左视图和俯视图能定位出来，但主视方向前面被白块挡住，不能直接看成黑格。"
+    },
+    {
+      "id": "B",
+      "label": "B",
+      "grid": [
+        ["white", "white", "white"],
+        ["white", "white", "white"],
+        ["white", "white", null]
+      ],
+      "feedback": "B 少了右下角这一格。左视图和俯视图合起来看，右侧这一列前面仍然有白块挡住，所以主视图不会缺这一格。"
+    },
+    {
+      "id": "C",
+      "label": "C",
+      "grid": [
+        ["white", "white", "white"],
+        ["white", "white", "white"],
+        ["white", "white", "white"]
+      ],
+      "feedback": "C 正确。3 个黑块都能被题面两个视图定位到后排或侧边，主视方向最前面看到的 9 个位置全是白块。"
+    },
+    {
+      "id": "D",
+      "label": "D",
+      "grid": [
+        ["white", "white", null],
+        ["white", "white", "white"],
+        ["white", "white", "white"]
+      ],
+      "feedback": "D 少了右上角这一格。俯视图右侧上方虽然有黑块，但主视方向那一列前面仍有白块遮住，不能把它当成缺口。"
+    }
+  ],
+  "blocks": [
+    { "position": [0, 0, 0], "color": "white" },
+    { "position": [0, 0, 1], "color": "white" },
+    { "position": [0, 1, 0], "color": "white" },
+    { "position": [0, 1, 1], "color": "white" },
+    { "position": [0, 2, 0], "color": "white" },
+    { "position": [0, 2, 1], "color": "black" },
+    { "position": [0, 2, 2], "color": "black" },
+    { "position": [1, 0, 0], "color": "white" },
+    { "position": [1, 0, 1], "color": "white" },
+    { "position": [1, 1, 0], "color": "white" },
+    { "position": [1, 1, 1], "color": "white" },
+    { "position": [1, 2, 0], "color": "white" },
+    { "position": [1, 2, 1], "color": "white" },
+    { "position": [1, 2, 2], "color": "white" },
+    { "position": [2, 0, 1], "color": "white" },
+    { "position": [2, 1, 1], "color": "white" },
+    { "position": [2, 2, 1], "color": "white" },
+    { "position": [2, 2, 2], "color": "black" }
+  ],
+  "teaching": {
+    "short": "先数黑块，再锁黑块在哪一层，最后只比较选项差异。",
+    "steps": [
+      "题目说一共只有 3 个黑块，先把两个已给视图里能看到的黑格位置圈出来。",
+      "左视图底下一排有两个黑格，俯视图上排两端有黑格，说明黑块主要在后排或侧边，不一定会出现在主视图最前面。",
+      "主视图看的是最前面挡住你的那一层；只要前面是白块，后面的黑块就不会在主视图露出来。",
+      "A 和 D 都把俯视里的黑格或缺口直接搬到了主视图，这是常见误判；B 少了一格，和左视图高度不够吻合；所以选 C。"
+    ],
+    "optionFocus": [
+      "A：黑块露在主视图，先怀疑是不是把俯视图当主视图。",
+      "B：少一格，检查这格在另一个视图里有没有高度支撑。",
+      "C：先不急着选，回到黑块总数确认没有黑块跑到最前面。",
+      "D：缺右上角，检查这是不是由俯视图的空位误搬过来。"
+    ]
+  }
+}

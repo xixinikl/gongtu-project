@@ -201,6 +201,27 @@ h2 { margin-bottom: 0; font-size: 16px; }
 .option-heading span { color: var(--muted); font-size: 11px; }
 .option-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 9px; }
 
+.draft-case-notice {
+  grid-column: 1 / -1;
+  padding: 14px 15px;
+  border: 1px dashed rgba(138, 90, 31, 0.34);
+  border-radius: 14px;
+  color: #5f4a2c;
+  background: #fff9e9;
+}
+
+.draft-case-notice strong {
+  display: block;
+  color: #8a5a1f;
+  font-size: 14px;
+}
+
+.draft-case-notice p {
+  margin: 7px 0 0;
+  font-size: 12px;
+  line-height: 1.65;
+}
+
 .option-card {
   position: relative;
   min-width: 0;
@@ -409,13 +430,44 @@ h2 { margin-bottom: 0; font-size: 16px; }
   font-size: 10px;
 }
 
+.engine-status[data-status="draft"] {
+  color: #8a5a1f;
+  background: rgba(255, 248, 229, 0.9);
+}
+
+.plane-live-readout {
+  position: absolute;
+  right: 14px;
+  top: 48px;
+  display: grid;
+  gap: 2px;
+  min-width: 152px;
+  padding: 9px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  border-radius: 13px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 10px 28px rgba(33, 54, 48, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.plane-live-readout span {
+  color: var(--green);
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.plane-live-readout strong { font-size: 12px; }
+.plane-live-readout small { color: var(--muted); font-size: 10px; }
+
 .section-lower-deck {
   display: grid;
-  grid-template-columns: minmax(210px, 0.8fr) minmax(300px, 1.2fr);
+  grid-template-columns: minmax(170px, 0.72fr) minmax(210px, 0.9fr) minmax(250px, 1fr);
   border-top: 1px solid var(--line);
   background: rgba(255, 255, 255, 0.64);
 }
 
+.candidate-preview,
 .section-preview {
   min-width: 0;
   margin: 0;
@@ -424,6 +476,11 @@ h2 { margin-bottom: 0; font-size: 16px; }
   background: #fffdf9;
 }
 
+.candidate-preview {
+  background: #fbfdfa;
+}
+
+.candidate-preview figcaption,
 .section-preview figcaption {
   display: flex;
   align-items: center;
@@ -431,16 +488,22 @@ h2 { margin-bottom: 0; font-size: 16px; }
   gap: 10px;
 }
 
+.candidate-preview figcaption small,
+.candidate-preview figcaption strong,
 .section-preview figcaption small,
 .section-preview figcaption strong { display: block; }
+.candidate-preview figcaption small,
 .section-preview figcaption small {
   color: var(--amber);
   font-size: 9px;
   font-weight: 800;
 }
+.candidate-preview figcaption strong,
 .section-preview figcaption strong { margin-top: 2px; font-size: 16px; }
+#candidate-preview-meta,
 #section-preview-meta { color: var(--muted); font-size: 10px; }
 
+.candidate-preview-drawing,
 #section-preview-svg {
   display: block;
   width: 100%;
@@ -453,6 +516,39 @@ h2 { margin-bottom: 0; font-size: 16px; }
     linear-gradient(90deg, rgba(218, 110, 48, 0.045) 1px, transparent 1px),
     #fffcf7;
   background-size: 16px 16px;
+}
+
+.candidate-preview-drawing {
+  display: grid;
+  place-items: center;
+}
+
+.candidate-preview-drawing > span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.candidate-preview-drawing svg {
+  width: min(128px, 82%);
+  height: min(128px, 82%);
+}
+
+.candidate-preview-drawing svg path,
+.candidate-preview-drawing svg rect,
+.candidate-preview-drawing svg ellipse {
+  fill: rgba(242, 138, 60, 0.18);
+  stroke: #d85418;
+  stroke-width: 4;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.candidate-preview.is-impossible .candidate-preview-drawing svg path,
+.candidate-preview.is-impossible .candidate-preview-drawing svg rect,
+.candidate-preview.is-impossible .candidate-preview-drawing svg ellipse {
+  fill: rgba(216, 84, 24, 0.15);
+  stroke: #be4b36;
 }
 
 #section-preview-svg text {
@@ -476,6 +572,7 @@ h2 { margin-bottom: 0; font-size: 16px; }
   vector-effect: non-scaling-stroke;
 }
 
+#candidate-preview-status,
 #section-preview-status {
   margin: 6px 0 0;
   color: var(--muted);
@@ -537,9 +634,15 @@ h2 { margin-bottom: 0; font-size: 16px; }
 
 .plane-strip input { width: 100%; accent-color: var(--blue); }
 .plane-strip output { text-align: right; color: var(--ink); }
+.plane-angle-label { grid-column: 1; }
+#plane-angle-output {
+  grid-column: 2 / -1;
+  justify-self: start;
+}
 
 @media (max-width: 760px) {
   .section-lower-deck { grid-template-columns: 1fr; }
+  .candidate-preview,
   .section-preview { border-right: 0; border-bottom: 1px solid var(--line); }
 
   .plane-strip {

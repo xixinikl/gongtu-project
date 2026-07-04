@@ -22,6 +22,9 @@ const CASE_URLS = {
     "/data/reasoning-cases/pyramid-cylinder-001.json",
 };
 
+const DRAFT_CASE_INDEX_URL =
+  "/data/reasoning-cases/draft-video-questions.json";
+
 const MODEL_APPEARANCE = {
   color: 0xe0b36f,
   opacity: 0.46,
@@ -32,6 +35,11 @@ const elements = {
   answer: document.querySelector("#answer-display"),
   canvas: document.querySelector("#lesson-canvas"),
   caseSelect: document.querySelector("#case-select"),
+  candidatePreview: document.querySelector(".candidate-preview"),
+  candidatePreviewDrawing: document.querySelector("#candidate-preview-drawing"),
+  candidatePreviewMeta: document.querySelector("#candidate-preview-meta"),
+  candidatePreviewStatus: document.querySelector("#candidate-preview-status"),
+  candidatePreviewTitle: document.querySelector("#candidate-preview-title"),
   constraints: document.querySelector("#constraint-list"),
   engineStatus: document.querySelector("#engine-status"),
   explore: document.querySelector("#explore-toggle"),
@@ -40,7 +48,10 @@ const elements = {
   loading: document.querySelector("#viewport-loading"),
   next: document.querySelector("#next-step"),
   optionList: document.querySelector("#option-list"),
+  planeAngleOutput: document.querySelector("#plane-angle-output"),
   planeArrows: [...document.querySelectorAll("[data-plane-direction]")],
+  planeLiveStatus: document.querySelector("#plane-live-status"),
+  planeLiveSummary: document.querySelector("#plane-live-summary"),
   planePosition: document.querySelector("#plane-position"),
   planePositionOutput: document.querySelector("#plane-position-output"),
   play: document.querySelector("#play-lesson"),
@@ -79,6 +90,7 @@ const state = {
   transitionFrame: null,
   explorationPlane: null,
   planeOffsetPercent: 0,
+  planeRotationRadians: 0,
   planeGesture: null,
   selectedComparisonOption: null,
 };
@@ -193,6 +205,10 @@ scene.add(planeHelper);
 let frameRequest = null;
 let resizeObserver = null;
 let sectionSource = null;
+let draftCaseIndex = {
+  draftItems: [],
+  formalVideoCases: [],
+};
 
 function disposeObject(root) {
   root.traverse((object) => {
@@ -388,6 +404,72 @@ function currentTeachingFrame() {
 function setPlaneControlsEnabled(enabled) {
   elements.planePosition.disabled = !enabled;
   for (const button of elements.planeArrows) button.disabled = !enabled;
+  elements.canvas.parentElement.dataset.planeReady = String(enabled);
+}
+
+function formatSignedPercent(value) {
+  const rounded = Math.round(value);
+  return `${rounded > 0 ? "+" : ""}${rounded}%`;
+}
+
+function formatSignedDegrees(radians) {
+  const degrees = Math.round(THREE.MathUtils.radToDeg(radians));
+  return `${degrees > 0 ? "+" : ""}${degrees}°`;
+}
+
+function normalizeAngleRadians(radians) {
+  let next = radians;
+  while (next > Math.PI) next -= Math.PI * 2;
+  while (next < -Math.PI) next += Math.PI * 2;
+  return next;
+}
+
+function resetPlaneOutputs() {
+  state.planeOffsetPercent = 0;
+  state.planeRotationRadians = 0;
+  elements.planePosition.value = "0";
+  elements.planePositionOutput.textContent = "0%";
+  elements.planeAngleOutput.textContent = "0°";
+  updatePlaneReadout();
+}
+
+function sectionStatusText(result) {
+  if (!planeHelper.visible) return "等待切面";
+  if (!result) return "切面已就位";
+  if (result.status === "error") return "切到模型边界";
+  if (result.status !== "ok" || !result.topology?.groups?.length) {
+    return "还没碰到模型";
+  }
+  return `${result.contourCount} 个真实截面`;
+}
+
+function updatePlaneReadout(result = null) {
+  elements.planeLiveStatus.textContent = sectionStatusText(result);
+  elements.planeLiveSummary.textContent =
+    `偏移 ${formatSignedPercent(state.planeOffsetPercent)} · 旋转 ${formatSignedDegrees(state.planeRotationRadians)}`;
+}
+
+function hasExplorablePlane() {
+  return Boolean(
+    sectionSource && state.caseData?.keyframes?.some((frame) => frame.plane),
+  );
+}
+
+function explorableTeachingFrame() {
+  const current = state.caseData?.keyframes?.[state.currentKeyframe];
+  if (current?.plane) return current;
+  return state.caseData?.keyframes?.find((frame) => frame.plane) ?? null;
+}
+
+function prepareExplorationPlane() {
+  if (!hasExplorablePlane()) return false;
+  if (!planeHelper.visible) {
+    const frame = explorableTeachingFrame();
+    if (!frame) return false;
+    renderTeachingFrame(frame);
+  }
+  setPlaneControlsEnabled(true);
+  return true;
 }
 
 function setCameraFrame(cameraFrame) {
@@ -401,6 +483,7 @@ function setCameraFrame(cameraFrame) {
 
 function renderTeachingFrame(frame) {
   setCameraFrame(frame.camera);
+  if (!state.exploring) resetPlaneOutputs();
   if (frame.plane) {
     sectionPlane.copy(
       normalizedPlane(frame.plane.normal, frame.plane.constant),
@@ -522,6 +605,7 @@ function syncShapeComparisonActual() {
 
 function renderShapeComparison(option) {
   state.selectedComparisonOption = option.id;
+  renderCandidatePreview(option);
   const foundation = FOUNDATION_NOTES[option.outlineClass];
   elements.foundationNote.classList.toggle("is-hidden", !foundation);
   elements.foundationNoteCopy.textContent = foundation ?? "";
@@ -545,12 +629,14 @@ function updateSection() {
     if (result.status === "error") {
       sectionVisual.clear();
       renderSectionPreview(result);
+      updatePlaneReadout(result);
       elements.engineStatus.textContent = "当前切面处于组合边界";
       elements.engineStatus.dataset.status = "warning";
       return;
     }
     sectionVisual.update(toSectionVisualV2Data(result));
     renderSectionPreview(result);
+    updatePlaneReadout(result);
     elements.engineStatus.textContent = result.status === "ok"
       ? `真实截面 · ${result.contourCount} 个轮廓`
       : "切面暂未经过模型";
@@ -558,6 +644,7 @@ function updateSection() {
   } catch (error) {
     sectionVisual.clear();
     renderSectionPreview({ status: "error" });
+    updatePlaneReadout({ status: "error" });
     elements.engineStatus.textContent = "截面计算已安全停止";
     elements.engineStatus.dataset.status = "error";
     console.error("Section Engine V2:", error);
@@ -641,6 +728,26 @@ function outlineSvg(option) {
   return `<svg viewBox="0 0 96 96" aria-hidden="true">${content}</svg>`;
 }
 
+function resetCandidatePreview() {
+  elements.candidatePreview.classList.remove("is-impossible", "is-possible");
+  elements.candidatePreviewTitle.textContent = "先选一个选项";
+  elements.candidatePreviewMeta.textContent = "等待验证";
+  elements.candidatePreviewDrawing.innerHTML = "<span>选择 A / B / C / D</span>";
+  elements.candidatePreviewStatus.textContent = "选项会和真实截面同步对比";
+}
+
+function renderCandidatePreview(option) {
+  const impossible = option.verdict === "impossible";
+  elements.candidatePreview.classList.toggle("is-impossible", impossible);
+  elements.candidatePreview.classList.toggle("is-possible", !impossible);
+  elements.candidatePreviewTitle.textContent = `${option.id} · ${option.label}`;
+  elements.candidatePreviewMeta.textContent = impossible ? "待排除" : "可验证";
+  elements.candidatePreviewDrawing.innerHTML = outlineSvg(option);
+  elements.candidatePreviewStatus.textContent = impossible
+    ? "把它当目标去摆切面，真实截面会暴露多出来、缺掉或曲直不一致的地方"
+    : "候选图、真实截面和 3D 橙色切面要能一起对上";
+}
+
 function renderSourceModelIcon(caseData) {
   elements.sourceFigure.classList.toggle("has-image", Boolean(caseData.source.image));
   if (caseData.source.image) {
@@ -668,6 +775,107 @@ function renderSourceModelIcon(caseData) {
         <small>原视频 ${caseData.source.questionFrameSeconds} 秒题面 · 教学重建</small>
       </div>
     </div>`;
+}
+
+function draftCaseById(caseId) {
+  return draftCaseIndex.draftItems.find((item) => item.id === caseId) ?? null;
+}
+
+function renderDraftCaseOptions() {
+  elements.caseSelect
+    .querySelector("[data-draft-group='true']")
+    ?.remove();
+  if (!draftCaseIndex.draftItems.length) return;
+  const group = document.createElement("optgroup");
+  group.label = "待核验草稿（只看题图）";
+  group.dataset.draftGroup = "true";
+  for (const item of draftCaseIndex.draftItems) {
+    const option = document.createElement("option");
+    option.value = item.id;
+    option.textContent = `草稿 · ${item.title}`;
+    option.dataset.status = item.status;
+    option.dataset.lessonTarget = item.lessonTarget;
+    group.append(option);
+  }
+  elements.caseSelect.append(group);
+}
+
+async function loadDraftCaseIndex() {
+  try {
+    const response = await fetch(DRAFT_CASE_INDEX_URL, { cache: "no-store" });
+    if (!response.ok) return;
+    const index = await response.json();
+    draftCaseIndex = {
+      draftItems: Array.isArray(index.draftItems) ? index.draftItems : [],
+      formalVideoCases: Array.isArray(index.formalVideoCases)
+        ? index.formalVideoCases
+        : [],
+    };
+    renderDraftCaseOptions();
+  } catch {
+    draftCaseIndex = { draftItems: [], formalVideoCases: [] };
+  }
+}
+
+function renderDraftCase(draft) {
+  stopPlayback();
+  cancelTeachingTransition();
+  clearModel();
+  sectionVisual.clear();
+  planeHelper.visible = false;
+  sectionPlane.set(new THREE.Vector3(1, 0, 0), 99);
+  setPlaneControlsEnabled(false);
+  state.caseData = null;
+  state.machine = null;
+  state.currentKeyframe = 0;
+  state.selectedOptionId = null;
+  state.exploring = false;
+  state.playing = false;
+  state.explorationPlane = null;
+  state.planeGesture = null;
+  resetPlaneOutputs();
+
+  elements.loading.classList.add("is-hidden");
+  elements.caseSelect.value = draft.id;
+  elements.questionHeading.textContent = `${draft.title}（draft）`;
+  elements.prompt.textContent =
+    draft.lessonTarget === "three-view"
+      ? "这条视频会进入三视图训练；现在先保存原题截图和来源。"
+      : "这条视频还没有人工核验答案；现在只展示原题截图，不进入正式判题。";
+  elements.sourceFigure.classList.add("has-image");
+  const image = document.createElement("img");
+  image.className = "source-question-image";
+  image.src = draft.image;
+  image.alt = `${draft.title} 原题截图`;
+  elements.sourceFigure.replaceChildren(image);
+  elements.sourceNote.textContent =
+    `来源：${draft.videoFileName} · ${draft.status} · ${draft.note}`;
+  elements.answer.textContent = "待人工核验";
+  elements.optionList.innerHTML = `
+    <div class="draft-case-notice">
+      <strong>草稿题只看题图</strong>
+      <p>答案、模型和选项还没有人工核验，不能混进正式练习。下一步会按视频逐题拆模型、拆选项、再确认答案。</p>
+    </div>`;
+  resetCandidatePreview();
+  elements.foundationNote.classList.add("is-hidden");
+  elements.shapeComparison.classList.add("is-hidden");
+  elements.constraints.replaceChildren();
+  elements.verdictCard.classList.add("is-hidden");
+  elements.stepCounter.textContent = "draft";
+  elements.timelineProgress.style.width = "0%";
+  elements.reasoningHeading.textContent = "先保留题面证据";
+  elements.reasoningCaption.textContent =
+    "这一步只做素材入口：先让题图可见、来源可查，后续人工核验后才生成标准模型和动态讲解。";
+  elements.sectionPreviewSvg.innerHTML =
+    '<text x="160" y="88" text-anchor="middle">草稿题暂不生成截面</text>';
+  elements.sectionPreviewMeta.textContent = "待建模";
+  elements.sectionPreviewStatus.textContent = "等待人工拆题和几何核验";
+  elements.engineStatus.textContent = "草稿题 · 未进入判题";
+  elements.engineStatus.dataset.status = "draft";
+  elements.explore.setAttribute("aria-pressed", "false");
+  elements.explore.textContent = "手动探索";
+  controls.enabled = true;
+  controls.enablePan = false;
 }
 
 function renderOptions(caseData) {
@@ -810,22 +1018,22 @@ function selectOption(optionId, jumpToKeyframe = true) {
 
 function setExploring(exploring) {
   cancelTeachingTransition();
+  if (exploring && !prepareExplorationPlane()) return false;
   dispatch({ type: exploring ? "ENTER_EXPLORE" : "EXIT_EXPLORE" });
   elements.explore.setAttribute("aria-pressed", String(exploring));
   elements.explore.textContent = exploring ? "返回讲解" : "手动探索";
   controls.enablePan = exploring;
   if (exploring) {
     state.explorationPlane = sectionPlane.clone();
-    state.planeOffsetPercent = 0;
-    elements.planePosition.value = "0";
-    elements.planePositionOutput.textContent = "0%";
+    resetPlaneOutputs();
   } else {
     state.planeGesture = null;
     controls.enabled = true;
     state.explorationPlane = null;
-    state.planeOffsetPercent = 0;
+    resetPlaneOutputs();
     applyKeyframe(state.currentKeyframe);
   }
+  return true;
 }
 
 const PLANE_ROTATION_STEP = THREE.MathUtils.degToRad(6);
@@ -845,25 +1053,32 @@ function clampPlaneOffset(value) {
 }
 
 function moveExplorationPlane(deltaPercent) {
-  if (!state.exploring) setExploring(true);
+  if (!state.exploring && !setExploring(true)) return;
   const next = clampPlaneOffset(state.planeOffsetPercent + deltaPercent);
   state.planeOffsetPercent = next;
   elements.planePosition.value = String(Math.round(next));
-  elements.planePositionOutput.textContent = `${Math.round(next)}%`;
+  elements.planePositionOutput.textContent = formatSignedPercent(next);
   applyExplorationPlane();
 }
 
 function rotateExplorationPlaneBy(deltaRadians) {
-  if (!state.exploring || !state.explorationPlane) return;
+  if (!state.exploring && !setExploring(true)) return;
+  if (!state.explorationPlane) return;
   const cameraUp = camera.up.clone().applyQuaternion(camera.quaternion).normalize();
   state.explorationPlane.normal
     .applyAxisAngle(cameraUp, deltaRadians)
     .normalize();
+  state.planeRotationRadians = normalizeAngleRadians(
+    state.planeRotationRadians + deltaRadians,
+  );
+  elements.planeAngleOutput.textContent =
+    formatSignedDegrees(state.planeRotationRadians);
   applyExplorationPlane();
 }
 
 function rotateExplorationPlane(direction) {
-  if (!state.exploring || !state.explorationPlane) return;
+  if (!state.exploring && !setExploring(true)) return;
+  if (!state.explorationPlane) return;
   if (direction === "up") {
     moveExplorationPlane(PLANE_MOVE_STEP);
     return;
@@ -941,6 +1156,11 @@ async function loadCase(caseId) {
   state.currentKeyframe = state.machine.currentKeyframe;
   state.selectedOptionId = state.machine.selectedOptionId;
   state.exploring = false;
+  state.explorationPlane = null;
+  state.planeGesture = null;
+  state.planeOffsetPercent = 0;
+  state.planeRotationRadians = 0;
+  state.selectedComparisonOption = null;
   elements.questionHeading.textContent = caseData.title;
   elements.prompt.textContent = caseData.source.prompt;
   elements.sourceNote.textContent =
@@ -949,19 +1169,36 @@ async function loadCase(caseId) {
   elements.caseSelect.value = caseId;
   renderSourceModelIcon(caseData);
   renderOptions(caseData);
+  resetCandidatePreview();
+  elements.foundationNote.classList.add("is-hidden");
+  elements.shapeComparison.classList.add("is-hidden");
+  elements.constraints.replaceChildren();
+  elements.verdictCard.classList.add("is-hidden");
   buildModel(caseData);
   applyKeyframe(0);
   elements.loading.classList.add("is-hidden");
 }
 
 elements.caseSelect.addEventListener("change", (event) => {
-  loadCase(event.target.value).catch(showFatalError);
+  const caseId = event.target.value;
+  if (CASE_URLS[caseId]) {
+    loadCase(caseId).catch(showFatalError);
+    return;
+  }
+  const draft = draftCaseById(caseId);
+  if (draft) {
+    renderDraftCase(draft);
+    return;
+  }
+  showFatalError(new RangeError(`未知题目: ${caseId}`));
 });
 elements.previous.addEventListener("click", () => {
+  if (!state.caseData) return;
   stopPlayback();
   applyKeyframe(state.currentKeyframe - 1);
 });
 elements.next.addEventListener("click", () => {
+  if (!state.caseData) return;
   stopPlayback();
   applyKeyframe(state.currentKeyframe + 1);
   if (state.currentKeyframe === state.caseData.keyframes.length - 1) {
@@ -973,31 +1210,37 @@ elements.next.addEventListener("click", () => {
 });
 elements.play.addEventListener("click", togglePlayback);
 elements.explore.addEventListener("click", () => {
+  if (!state.caseData) return;
   stopPlayback();
   setExploring(!state.exploring);
 });
 elements.resetView.addEventListener("click", () => {
-  applyKeyframe(state.currentKeyframe);
+  if (!state.caseData) return;
+  stopPlayback();
+  if (state.exploring) {
+    setExploring(false);
+  } else {
+    applyKeyframe(state.currentKeyframe);
+  }
 });
 elements.planePosition.addEventListener("input", (event) => {
   const percent = Number(event.target.value);
   if (!state.exploring) {
-    setExploring(true);
+    if (!setExploring(true)) return;
     elements.planePosition.value = String(percent);
   }
   state.planeOffsetPercent = percent;
   applyExplorationPlane();
-  elements.planePositionOutput.textContent = `${percent}%`;
+  elements.planePositionOutput.textContent = formatSignedPercent(percent);
 });
 for (const button of elements.planeArrows) {
   button.addEventListener("click", () => {
-    if (!state.exploring) setExploring(true);
     rotateExplorationPlane(button.dataset.planeDirection);
   });
 }
 
 function planeGestureEnabled() {
-  return !elements.planePosition.disabled;
+  return hasExplorablePlane();
 }
 
 function beginPlaneGesture(event) {
@@ -1005,7 +1248,8 @@ function beginPlaneGesture(event) {
   if (event.target.closest("button, input, select, textarea")) return;
   event.preventDefault();
   stopPlayback();
-  if (!state.exploring) setExploring(true);
+  if (!prepareExplorationPlane()) return;
+  if (!state.exploring && !setExploring(true)) return;
   state.planeGesture = {
     pointerId: event.pointerId,
     lastX: event.clientX,
@@ -1045,7 +1289,7 @@ elements.canvas.addEventListener("wheel", (event) => {
   if (!planeGestureEnabled()) return;
   event.preventDefault();
   stopPlayback();
-  if (!state.exploring) setExploring(true);
+  if (!state.exploring && !setExploring(true)) return;
   if (Math.abs(event.deltaX) > Math.abs(event.deltaY)) {
     rotateExplorationPlaneBy(-event.deltaX * 0.0045);
   } else {
@@ -1062,13 +1306,12 @@ window.addEventListener("keydown", (event) => {
     ArrowRight: "right",
   }[event.key];
   if (!direction) return;
-  if (elements.planeArrows[0]?.disabled) return;
+  if (!planeGestureEnabled()) return;
   const tagName = event.target?.tagName;
   if (tagName === "INPUT" || tagName === "SELECT" || tagName === "TEXTAREA") {
     return;
   }
   event.preventDefault();
-  if (!state.exploring) setExploring(true);
   rotateExplorationPlane(direction);
 });
 
@@ -1087,10 +1330,23 @@ resizeObserver.observe(elements.canvas.parentElement);
 resizeViewport();
 animate();
 
-const initialCase =
-  new URLSearchParams(window.location.search).get("case") ?? "cone-box-001";
-loadCase(CASE_URLS[initialCase] ? initialCase : "cone-box-001")
-  .catch(showFatalError);
+async function initializeLesson() {
+  await loadDraftCaseIndex();
+  const initialCase =
+    new URLSearchParams(window.location.search).get("case") ?? "cone-box-001";
+  if (CASE_URLS[initialCase]) {
+    await loadCase(initialCase);
+    return;
+  }
+  const draft = draftCaseById(initialCase);
+  if (draft) {
+    renderDraftCase(draft);
+    return;
+  }
+  await loadCase("cone-box-001");
+}
+
+initializeLesson().catch(showFatalError);
 
 window.addEventListener("beforeunload", () => {
   stopPlayback();
@@ -1109,6 +1365,10 @@ window.__reasoningLesson = {
       phase: "loading",
     }),
     sectionStatus: sectionVisual.group.userData.status ?? "empty",
+    planeControlsEnabled: !elements.planePosition.disabled,
+    planeOffsetPercent: state.planeOffsetPercent,
+    planeRotationDegrees: THREE.MathUtils.radToDeg(state.planeRotationRadians),
+    selectedOptionId: state.selectedOptionId,
   }),
   loadCase,
 };

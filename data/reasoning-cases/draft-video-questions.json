@@ -1,0 +1,105 @@
+{
+  "schemaVersion": "1.0-draft-index",
+  "updatedAt": "2026-07-05",
+  "sourcePolicy": "这些条目只做题图/素材入口。未人工确认答案、模型和选项前，不进入正式判题流。",
+  "formalVideoCases": [
+    {
+      "caseId": "cone-box-001",
+      "videoFileName": "@公考志远（立体图推数资分享） 圆锥+方体经典模型 1080P.mp4",
+      "image": "/data/images/reasoning/cone-box-001-question.png",
+      "verificationStatus": "human-verified"
+    },
+    {
+      "caseId": "pyramid-cylinder-001",
+      "videoFileName": "@公考志远（立体图推数资分享） 棱锥+圆柱组合截面考察 1080P.mp4",
+      "image": "/data/images/reasoning/pyramid-cylinder-001-question.png",
+      "verificationStatus": "human-verified"
+    }
+  ],
+  "draftItems": [
+    {
+      "id": "draft-section-cubes-7-blocks",
+      "title": "7 个小正方体组合截面题",
+      "lessonTarget": "dynamic-section",
+      "status": "draft-unverified",
+      "answerStatus": "not-imported",
+      "videoFileName": "@公考志远（立体图推数资分享） 方体经典题型，选项均是矩形② 1080P.mp4",
+      "image": "/data/images/reasoning/drafts/box-rectangles-02-question.png",
+      "questionFrameSeconds": 3,
+      "durationSeconds": 59.933333,
+      "note": "题面是 7 个小正方体组合的任意截面判断，需后续人工核验答案和模型。"
+    },
+    {
+      "id": "draft-section-stair-model",
+      "title": "台阶模型截面题",
+      "lessonTarget": "dynamic-section",
+      "status": "draft-unverified",
+      "answerStatus": "not-imported",
+      "videoFileName": "@公考志远（立体图推数资分享） 选项越简单越容易失误，一定要小心谨慎！ 4K.mp4",
+      "image": "/data/images/reasoning/drafts/simple-options-warning-question.png",
+      "questionFrameSeconds": 3,
+      "durationSeconds": 41.966667,
+      "note": "题面包含台阶模型和 A-D 截面候选，后续适合作为候选差异排除题。"
+    },
+    {
+      "id": "draft-section-box-rectangles-01",
+      "title": "方体经典截面·矩形选项",
+      "lessonTarget": "dynamic-section",
+      "status": "draft-unverified",
+      "answerStatus": "not-imported",
+      "videoFileName": "@公考志远（立体图推数资分享） 方体经典截面，选项均是矩形 1080P.mp4",
+      "image": "/data/images/reasoning/drafts/box-rectangles-01-question.png",
+      "questionFrameSeconds": 3,
+      "durationSeconds": 46.3,
+      "note": "题面为方体组合任意切面，选项均接近矩形，需要后续拆选项和模型。"
+    },
+    {
+      "id": "draft-three-view-compare-001",
+      "title": "三视图对比题·俯视图和左视图",
+      "lessonTarget": "three-view",
+      "status": "draft-unverified",
+      "answerStatus": "not-imported",
+      "videoFileName": "@公考志远（立体图推数资分享） 三视图（对比选项区别，排除即可） 1080P.mp4",
+      "image": "/data/images/reasoning/drafts/three-view-compare-question.png",
+      "questionFrameSeconds": 3,
+      "durationSeconds": 36.766667,
+      "note": "后续应迁入三视图训练，不直接作为截面题。"
+    },
+    {
+      "id": "draft-foundation-model-comparison",
+      "title": "常见模型截面演示素材",
+      "lessonTarget": "section-foundation",
+      "status": "draft-material",
+      "answerStatus": "not-a-question",
+      "videoFileName": "@公考志远（立体图推数资分享） 常见模型截面演示（一：多个模型横向对比） 4K.mp4",
+      "image": "/data/images/reasoning/drafts/foundation-model-comparison-question.png",
+      "questionFrameSeconds": 3,
+      "durationSeconds": 124.25,
+      "note": "这是基础模型横向对比素材，不混入正式选择题。"
+    },
+    {
+      "id": "draft-section-box-rectangles-03",
+      "title": "方体经典题型·矩形选项③",
+      "lessonTarget": "dynamic-section",
+      "status": "draft-unverified",
+      "answerStatus": "not-imported",
+      "videoFileName": "@公考志远（立体图推数资分享） 方体经典题型，选项矩形③ 1080P.mp4",
+      "image": "/data/images/reasoning/drafts/box-rectangles-03-question.png",
+      "questionFrameSeconds": 3,
+      "durationSeconds": 48.833333,
+      "note": "题面为方体组合任意切面，候选形状含矩形和组合轮廓。"
+    },
+    {
+      "id": "draft-three-view-fast-001",
+      "title": "三视图十秒题",
+      "lessonTarget": "three-view",
+      "status": "draft-unverified",
+      "answerStatus": "not-imported",
+      "videoFileName": "@公考志远（立体图推数资分享） 三视图十秒内选答案 1080P.mp4",
+      "image": "/data/images/reasoning/drafts/three-view-fast-question.png",
+      "questionFrameSeconds": 2,
+      "durationSeconds": 22.6,
+      "note": "后续应迁入三视图训练，做成选项对比和真实 3D 方块模型。"
+    }
+  ]
+}

@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f2ea">
+  <title>三视图训练 · 公途</title>
+  <link rel="stylesheet" href="/three-view-training.css?v=20260705a">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "/node_modules/three/build/three.module.js",
+        "three/addons/": "/node_modules/three/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="返回公途首页">
+      <span class="brand-mark">公途</span>
+      <span>
+        <strong>三视图训练</strong>
+        <small>先判断，再旋转验证</small>
+      </span>
+    </a>
+    <nav class="product-links" aria-label="空间几何产品">
+      <a href="/reasoning-lesson.html">动态解题</a>
+      <a class="active" href="/three-view-training.html">三视图训练</a>
+      <a href="/section-foundation.html">基础截面</a>
+      <a href="/geometry.html">几何实验室</a>
+      <a href="/csg-section.html">CSG 工作台</a>
+    </nav>
+    <label class="case-switcher">
+      <span>当前题目</span>
+      <select id="case-select" aria-label="选择三视图题目">
+        <option value="black-white-blocks-001">01 · 15白3黑方块</option>
+      </select>
+    </label>
+  </header>
+
+  <main class="training-shell">
+    <section class="panel question-panel" aria-labelledby="question-title">
+      <div class="panel-kicker">
+        <span>原题</span>
+        <strong id="case-status">已核验</strong>
+      </div>
+      <h1 id="question-title">正在载入题目</h1>
+      <p id="question-prompt" class="question-prompt"></p>
+
+      <div class="source-grid">
+        <figure class="source-shot">
+          <figcaption>题目截图</figcaption>
+          <img id="source-image" alt="三视图原题截图">
+        </figure>
+        <div class="given-views" aria-label="题面给出的两个视图">
+          <figure>
+            <figcaption>左视图</figcaption>
+            <div id="left-view-grid" class="view-grid" aria-label="题面左视图"></div>
+          </figure>
+          <figure>
+            <figcaption>俯视图</figcaption>
+            <div id="top-view-grid" class="view-grid" aria-label="题面俯视图"></div>
+          </figure>
+        </div>
+      </div>
+
+      <div class="answer-row">
+        <h2>主视图应为</h2>
+        <span id="answer-state">先选一个</span>
+      </div>
+      <div id="option-list" class="option-list" role="list"></div>
+    </section>
+
+    <section class="panel model-panel" aria-labelledby="model-title">
+      <div class="model-head">
+        <div>
+          <span class="eyebrow">真实模型</span>
+          <h2 id="model-title">选完马上看立体摆法</h2>
+        </div>
+        <div class="view-actions" role="group" aria-label="切换模型视角">
+          <button type="button" data-view-mode="free" class="is-active">自由观察</button>
+          <button type="button" data-view-mode="main">主视图</button>
+          <button type="button" data-view-mode="left">左视图</button>
+          <button type="button" data-view-mode="top">俯视图</button>
+          <button type="button" id="reset-camera">复位</button>
+        </div>
+      </div>
+      <div class="model-stage">
+        <canvas id="three-view-canvas" aria-label="黑白方块三维模型"></canvas>
+        <div id="model-loading" class="model-loading">正在建立 18 个方块</div>
+        <div class="model-badges" aria-label="模型统计">
+          <span id="block-count-badge">18 块</span>
+          <span id="black-count-badge">3 黑</span>
+          <span id="white-count-badge">15 白</span>
+        </div>
+      </div>
+      <div class="projection-strip" aria-label="模型投影验证">
+        <figure>
+          <figcaption>模型主视图</figcaption>
+          <div id="actual-main-grid" class="view-grid compact"></div>
+        </figure>
+        <figure>
+          <figcaption>模型左视图</figcaption>
+          <div id="actual-left-grid" class="view-grid compact"></div>
+        </figure>
+        <figure>
+          <figcaption>模型俯视图</figcaption>
+          <div id="actual-top-grid" class="view-grid compact"></div>
+        </figure>
+      </div>
+    </section>
+
+    <aside class="panel explanation-panel" aria-labelledby="explain-title">
+      <div class="panel-kicker">
+        <span>做题技巧</span>
+        <strong id="validation-state">待校验</strong>
+      </div>
+      <h2 id="explain-title">像做题一样推</h2>
+      <p id="short-tip" class="short-tip"></p>
+      <ol id="technique-list" class="technique-list"></ol>
+      <div id="feedback-card" class="feedback-card" aria-live="polite">
+        <span>当前选择</span>
+        <strong>还没有选择</strong>
+        <p>点 A/B/C/D 后，这里会直接告诉你为什么对或错。</p>
+      </div>
+      <div class="focus-card">
+        <span>选项差异</span>
+        <ul id="option-focus-list"></ul>
+      </div>
+    </aside>
+  </main>
+
+  <footer class="training-footer">
+    <span id="source-note">题目来源载入中</span>
+    <span>模型可拖动旋转；视角按钮用于把三维模型摆到对应方向。</span>
+  </footer>
+
+  <script type="module" src="/three-view-training.js?v=20260705a"></script>
+  <noscript>三视图训练需要启用 JavaScript。</noscript>
+</body>
+</html>

@@ -1,40 +1,59 @@
 # 当前开发状态
 
 更新时间：2026-07-05
-当前分支：`feature/csg-v2-integration`
+当前分支：`cx/lesson-015-dynamic-explore`
 当前里程碑：M5A 考公立体图推动态解题与讲解
 
 ## 当前任务
 
-- 状态：● 已完成
-- 编号：LESSON-014N
-- 任务：`fix: 全量校准基础截面真实形状`
+- 状态：● 本轮完成，等待用户验收
+- 编号：LESSON-015 / THREEVIEW-001 / THREEVIEW-002
+- 任务：`feat: 动态解题手感、视频题草稿、三视图训练 MVP`
 
 ## 本轮结论
 
-- 已修正 7 个基础截面错位项：正方体长方形；长方体三角形、平行四边形、梯形、五边形；圆柱带弧边截面；棱锥五边形。
-- 已新增真实几何矩阵测试，读取 `SHAPES` 和 `SECTION_3D_PRESETS` 后用 Three.js 求真实交线，不再只靠源码关键词和少量按钮验收。
-- 已把“局部验证不能替代全量截面矩阵”写入项目错误复盘。
-- 已重启本地 8089 静态服务，`http://localhost:8089/section-foundation.html` 可打开。
+- 已创建开发分支 `cx/lesson-015-dynamic-explore`。
+- 已完成 `LESSON-015A/015B`：动态解题页的滑动式切面手感、实时状态反馈、候选图/真实截面/3D 切面同屏对比。
+- 已完成 `CASE-IMPORT-001`：把用户提供的视频题先抽取原题截图并以 draft 方式录入题库入口。
+- 已完成 `THREEVIEW-001`：用用户提供的黑白块三视图题做第一道三视图训练 MVP。
+- 已完成 `THREEVIEW-002`：沉淀三视图做题技巧模板，后续新题必须填短技巧、做题步骤和选项差异。
+- 当前不继续做 `LESSON-016`，等待用户验收后再进入四类训练总入口。
 
 ## 交付文件
 
-- `section-foundation.js`
-- `section-foundation.html`
-- `tests/foundation-section-presets.test.mjs`
-- `错误复盘.md`
+- `reasoning-lesson.html`
+- `reasoning-lesson.css`
+- `reasoning-lesson.js`
+- `tests/reasoning-lesson-layout.test.mjs`
+- `three-view-training.html`
+- `three-view-training.css`
+- `three-view-training.js`
+- `tests/three-view-training.test.mjs`
+- `data/three-view-cases/black-white-blocks-001.json`
+- `data/three-view-cases/technique-template.json`
+- `data/images/three-view/black-white-blocks-001-source.jpg`
+- `doc/THREE_VIEW_TEACHING_TEMPLATE.md`
+- `data/reasoning-cases/draft-video-questions.json`
+- `data/images/reasoning/drafts/`
 - 审计：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
 
-## 唯一下一项
+## 下一项
 
-LESSON-015：重做手动探索为更丝滑的滑动式截面验证。
+LESSON-016：建立四类训练总入口。
 
 ## 验收证据
 
-- 已通过：`node --check section-foundation.js`。
-- 已通过：`node --experimental-loader ./tests/three-absolute-loader.mjs --test tests/foundation-section-presets.test.mjs tests/reasoning-lesson-layout.test.mjs`，15/15 通过。
-- 已通过：`npm run test:geometry`，562/562 通过。
-- 已通过：浏览器自动点击 `/section-foundation.html?lesson014n=1` 的 44 个截面卡片，44/44 通过，控制台 error/warn 为空。
-- 已通过：`curl -I http://localhost:8089/section-foundation.html` 返回 200。
-- 本地提交：本任务所在提交。
-- 推送状态：完成提交后同步推送到 `origin/feature/csg-v2-integration`。
+- 已通过：`node --check reasoning-lesson.js`。
+- 已通过：`node --test tests/reasoning-lesson-layout.test.mjs`，14/14 通过。
+- 已通过：浏览器未点选项直接拖动三维区，竖向拖动后偏移 `+20%`，横向拖动后旋转 `-41°`，实时截面 path 和顶点同步变化。
+- 已通过：浏览器逐项点击默认题 A/B/C/D、第二题 A/B/C/D，候选图和真实截面均不空，控制台 error/warn 为空。
+- 已通过：浏览器打开 draft 链接，下拉草稿数 7，页面显示原题图、来源、`draft-unverified`、`待人工核验`，切面控件禁用，控制台 error/warn 为空。
+- 已通过：切回正式题后 4 个选项恢复，第二题原题图显示，草稿提示清空。
+- 已通过：`npm run test:geometry`，569/569 通过。
+- 已通过：`node --check three-view-training.js`。
+- 已通过：`node --test tests/three-view-training.test.mjs`，5/5 通过。
+- 已通过：浏览器打开 `/three-view-training.html`，题目、4 个选项、18 块、3 黑 15 白、左/俯/主三种投影均加载，`validation=pass`。
+- 已通过：浏览器点击 D 后显示“再想想”和错误理由；点击 C 后显示“答对了”和正确理由；控制台 error/warn 为空。
+- 已通过：浏览器 3D canvas 截图非空，模型可见；main/left/top/free 四个视角按钮逐个切换成功；短技巧、4 条做题步骤、4 条选项差异实际显示。
+- 本地提交：待本任务完成后提交。
+- 推送状态：待本任务完成后推送到 `origin/cx/lesson-015-dynamic-explore`。

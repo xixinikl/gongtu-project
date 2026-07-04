@@ -5,6 +5,7 @@
   "source": {
     "kind": "user-provided-video",
     "videoFileName": "@公考志远（立体图推数资分享） 棱锥+圆柱组合截面考察 1080P.mp4",
+    "image": "/data/images/reasoning/pyramid-cylinder-001-question.png",
     "questionFrameSeconds": 3,
     "explanationRangeSeconds": [3, 56],
     "prompt": "哪一个不是该模型截面图？",

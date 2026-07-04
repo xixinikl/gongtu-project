@@ -12,11 +12,16 @@ const caseUrls = [
   new URL("../data/reasoning-cases/cone-box-001.json", import.meta.url),
   new URL("../data/reasoning-cases/pyramid-cylinder-001.json", import.meta.url),
 ];
+const draftIndexUrl = new URL(
+  "../data/reasoning-cases/draft-video-questions.json",
+  import.meta.url,
+);
 
-test("student lesson keeps the three products as independent entry points", async () => {
+test("student lesson keeps the spatial products as independent entry points", async () => {
   const html = await readFile(htmlUrl, "utf8");
 
   assert.match(html, /href="\/reasoning-lesson\.html"/);
+  assert.match(html, /href="\/three-view-training\.html"/);
   assert.match(html, /href="\/section-foundation\.html"/);
   assert.match(html, /href="\/geometry\.html"/);
   assert.match(html, /href="\/csg-section\.html"/);
@@ -48,6 +53,8 @@ test("student lesson exposes deterministic timeline and exploration controls", a
     "reset-view",
     "explore-toggle",
     "plane-position",
+    "plane-angle-output",
+    "plane-live-readout",
   ]) {
     assert.match(html, new RegExp(`id="${id}"`), `missing #${id}`);
   }
@@ -90,17 +97,47 @@ test("student lesson explains foundation knowledge before rejecting lookalike op
 });
 
 test("student lesson shows the original video question frame when available", async () => {
-  const [script, css, coneCase] = await Promise.all([
+  const [script, css, coneCase, pyramidCase] = await Promise.all([
     readFile(scriptUrl, "utf8"),
     readFile(cssUrl, "utf8"),
     readFile(caseUrls[0], "utf8"),
+    readFile(caseUrls[1], "utf8"),
   ]);
   const caseData = JSON.parse(coneCase);
+  const pyramidData = JSON.parse(pyramidCase);
 
   assert.match(caseData.source.image, /cone-box-001-question\.png$/);
+  assert.match(pyramidData.source.image, /pyramid-cylinder-001-question\.png$/);
   assert.match(script, /source-question-image/);
   assert.match(script, /caseData\.source\.image/);
   assert.match(css, /\.source-figure\.has-image/);
+});
+
+test("student lesson separates draft video questions from verified cases", async () => {
+  const [script, css, draftIndex] = await Promise.all([
+    readFile(scriptUrl, "utf8"),
+    readFile(cssUrl, "utf8"),
+    readFile(draftIndexUrl, "utf8"),
+  ]);
+  const index = JSON.parse(draftIndex);
+
+  assert.equal(index.draftItems.length, 7);
+  assert.equal(index.formalVideoCases.length, 2);
+  for (const item of index.draftItems) {
+    assert.match(item.status, /^draft-/);
+    assert.notEqual(item.answerStatus, "human-verified");
+    assert.match(item.image, /^\/data\/images\/reasoning\/drafts\/.+\.png$/);
+    assert.ok(item.videoFileName.endsWith(".mp4"), item.id);
+    const image = await readFile(new URL(`..${item.image}`, import.meta.url));
+    assert.ok(image.byteLength > 1000, `${item.id} screenshot is empty`);
+  }
+  assert.match(script, /DRAFT_CASE_INDEX_URL/);
+  assert.match(script, /function renderDraftCase/);
+  assert.match(script, /待核验草稿（只看题图）/);
+  assert.match(script, /草稿题 · 未进入判题/);
+  assert.match(script, /answer\.textContent = "待人工核验"/);
+  assert.match(css, /\.draft-case-notice/);
+  assert.match(css, /\.engine-status\[data-status="draft"\]/);
 });
 
 test("student lesson maps vertical movement to plane offset and horizontal movement to rotation", async () => {
@@ -110,12 +147,43 @@ test("student lesson maps vertical movement to plane offset and horizontal movem
   ]);
 
   assert.match(html, /上下移动 · 左右旋转/);
+  assert.match(html, /三维区可直接拖动；方向键备用/);
   assert.match(script, /function moveExplorationPlane/);
   assert.match(script, /function rotateExplorationPlaneBy/);
+  assert.match(script, /function prepareExplorationPlane/);
+  assert.match(script, /planeRotationRadians/);
+  assert.match(script, /planeLiveSummary/);
   assert.match(script, /direction === "up"[\s\S]*moveExplorationPlane/);
   assert.match(script, /direction === "left"[\s\S]*rotateExplorationPlaneBy/);
   assert.match(script, /addEventListener\("wheel"/);
   assert.match(script, /addEventListener\("pointermove"/);
+  assert.doesNotMatch(
+    script,
+    /function planeGestureEnabled\(\)\s*\{\s*return !elements\.planePosition\.disabled;\s*\}/,
+  );
+});
+
+test("student lesson compares candidate, actual section and 3D plane in one stage", async () => {
+  const [html, css, script] = await Promise.all([
+    readFile(htmlUrl, "utf8"),
+    readFile(cssUrl, "utf8"),
+    readFile(scriptUrl, "utf8"),
+  ]);
+
+  for (const id of [
+    "candidate-preview-drawing",
+    "candidate-preview-meta",
+    "candidate-preview-status",
+    "section-preview-svg",
+  ]) {
+    assert.match(html, new RegExp(`id="${id}"`), `missing #${id}`);
+  }
+  assert.match(css, /\.candidate-preview/);
+  assert.match(css, /\.candidate-preview-drawing/);
+  assert.match(css, /grid-template-columns: minmax\(170px, 0\.72fr\) minmax\(210px, 0\.9fr\) minmax\(250px, 1fr\)/);
+  assert.match(script, /function renderCandidatePreview/);
+  assert.match(script, /renderCandidatePreview\(option\)/);
+  assert.match(script, /syncShapeComparisonActual/);
 });
 
 test("every golden option has a human-readable constraint path", async () => {
@@ -145,6 +213,7 @@ test("foundation page lists base solids and section entry points", async () => {
   assert.match(html, /id="foundation-3d"/);
   assert.doesNotMatch(html, /id="demo-buttons"/);
   assert.match(html, /href="\/reasoning-lesson\.html"/);
+  assert.match(html, /href="\/three-view-training\.html"/);
   assert.match(css, /\.foundation-shell/);
   for (const word of ["正方体", "长方体", "圆柱", "圆锥", "棱锥"]) {
     assert.match(script, new RegExp(word));
