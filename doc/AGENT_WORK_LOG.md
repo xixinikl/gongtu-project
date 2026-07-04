@@ -705,3 +705,28 @@
   - 抽象约束降为补充信息
 - 验收：聚焦回归 28/28；D 选项候选 SVG/实际 path/关键差异文案均存在；控制台业务错误 0
 - 不得恢复：CSG 全量碎边、ghost 参与截面计算、方向键前置解锁、规则清单优先讲解
+
+## 2026-07-05 · 主协调 Agent · LESSON-014L
+
+- 任务：`fix: 纠正基础截面正多边形与直角三角形规则`
+- 用户纠偏：
+  - 正方体五边形不是标准正五边形，不能按正五边形讲
+  - 正六边形需要讲清是否过棱中点、是否六边等长
+  - 正方体/长方体的直角三角形演示不可信，真实削角截面不应该被按钮名称强行说成直角
+  - 梯形默认能截出，但旧参数稍微拖动就变三角形，教学手感不稳
+- 交付：
+  - `section-foundation.js`
+  - `section-foundation.html`
+  - `tests/reasoning-lesson-layout.test.mjs`
+- 结果：
+  - 正方体/长方体“直角三角形”移入不能直接截出
+  - 三角形分类改为根据真实二维截面角度和边长判断，不再读取按钮名称
+  - 五边形说明补充“通常不是正五边形”
+  - 六边形说明补充“垂直体对角线、穿过六条棱中点、六边等长”
+  - 梯形参数改为稳定区间，默认和拖动到 `偏移 +18` 后都保持真实 4 点梯形
+- 验收：
+  - `git diff --check` 通过
+  - `node --check section-foundation.js` 通过
+  - `node --experimental-loader ./tests/three-absolute-loader.mjs --test tests/reasoning-lesson-layout.test.mjs` 13/13 通过
+  - 应用浏览器验证直角三角形、五边形、六边形、梯形与拖动同步，控制台 error/warning 为空
+- 唯一下一项：LESSON-015 重做手动探索为滑动式截面验证

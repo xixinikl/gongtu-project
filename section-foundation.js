@@ -4,8 +4,8 @@ const SHAPES = {
   cube: {
     name: "正方体",
     summary: "六个面完全相同，直边截面最多 6 条边。",
-    can: ["等边三角形", "直角三角形", "正方形", "长方形", "梯形", "五边形", "六边形"],
-    cannot: ["圆", "椭圆", "曲边图形", "超过 6 条边"],
+    can: ["等边三角形", "正方形", "长方形", "梯形", "五边形", "六边形"],
+    cannot: ["直角三角形", "圆", "椭圆", "曲边图形", "超过 6 条边"],
     rule: "正方体每个面都是平面，所以截面只能由直线段围成；切到几个面，就最多出现几条边。",
     icon: "cube",
     demos: [
@@ -41,8 +41,8 @@ const SHAPES = {
   cuboid: {
     name: "长方体",
     summary: "比例不同，但截面仍然只由直线段组成。",
-    can: ["直角三角形", "矩形", "平行四边形", "梯形", "五边形", "六边形"],
-    cannot: ["圆", "椭圆", "任意曲边", "超过 6 条边"],
+    can: ["三角形", "矩形", "平行四边形", "梯形", "五边形", "六边形"],
+    cannot: ["直角三角形", "圆", "椭圆", "任意曲边", "超过 6 条边"],
     rule: "长方体与正方体同属六面体，能出六边形，但比例会拉长或压扁。",
     icon: "cuboid",
     demos: [
@@ -300,19 +300,20 @@ const DEMO_FOCUS_LABEL = {
 const POSITION_RULES = {
   cube: {
     "等边三角形": "把蓝色刀片放在一个顶角上，只削掉这个角。它只碰到这个角旁边的 3 个面，所以留下 3 条边；三边削得差不多时，就像等边三角形。",
-    "直角三角形": "还是削一个角，但让刀片更贴近两条互相垂直的边。这样留下来的三角形会带一个直角，所以能看到直角三角形。",
+    "直角三角形": "这个不能当成正方体的真实截面。正方体切出三角形时，本质是在削一个角，三条边来自同一个顶角旁边的 3 个面，形成的是锐角三角形；看起来像直角，多半是视角或外表面线条在骗眼睛。",
     "正方形": "把刀片摆平，和正方体的某个外面平行，从中间横着切过去。切出来和外面的方脸一样，就是正方形。",
     "长方形": "把刀片竖起来斜着穿过去，让它沿着一组边走。截面会被拉长，所以看到的是长方形。",
-    "梯形": "把刀片斜着切，但不要左右切得一样深。一边切得长、一边切得短，截面就会像梯形。",
-    "五边形": "让刀片碰到 5 个面，再故意躲开剩下的 1 个面。它碰到几个面，就会留下几条边，所以这里会出现五边形。",
-    "六边形": "把刀片斜着放，不是只削一个角，而是从上面三个面穿进去、从下面三个面穿出来。它一共碰到 6 个面，所以边界有 6 条边，看起来就是六边形。",
+    "梯形": "让刀片在一个面上接近走对角线，到了相邻的另一个面时故意不要也走对角线。一边切得长，一边切得短，只保留一组平行边，就会看到梯形。",
+    "五边形": "让刀片碰到 5 个面，再躲开剩下的 1 个面。注意它通常不是正五边形：正方体有相对的平行面，截出来的五边形会带平行边或长短差，不会像标准正五边形那样五边五角都相等。",
+    "六边形": "把刀片垂直于正方体的体对角线，正好穿过六条棱的中点。这样 6 条边等长，就是你看到的正六边形；如果上下挪开中心，仍可能是六边形，但就不一定正了。",
     "圆": "正方体全是平面，没有圆滚滚的曲面。刀片不管怎么摆，碰到的边都是直的，所以不能直接切出圆。",
     "椭圆": "椭圆要靠圆柱、圆锥那种弯曲的面。正方体没有曲面，刀片再斜也只会切出直边图形。",
     "曲边图形": "曲边要从弯的表面来。正方体每一面都是平的，所以截面边界不会自己弯起来。",
     "超过 6 条边": "正方体只有 6 个面。刀片最多碰到 6 个面，所以最多留下 6 条边，不会直接超过 6 条。",
   },
   cuboid: {
-    "直角三角形": "把刀片放到长方体的一个角上，只削掉这个角。它碰到角旁边的 3 个面，就会留下三角形；贴近直角边时，会更像直角三角形。",
+    "三角形": "把刀片放到长方体的一个角上，只削掉这个角。它碰到角旁边的 3 个面，就会留下三角形；因为长宽高比例不同，这个三角形会被拉长。",
+    "直角三角形": "长方体也不能直接切出真正的直角三角形。削角得到的三角形来自三个相邻平面，角度会被空间关系撑开；看着像直角时，要回到真实截面检查。",
     "矩形": "把刀片摆得和某个外面平行，或者竖着沿长方体切进去。切出来的上下左右都是直边，常见就是矩形。",
     "平行四边形": "让刀片斜着穿过长方体，但方向一直跟一组边保持一致。两组边还是互相平行，所以会看到平行四边形。",
     "梯形": "让刀片斜切进去，一头切得宽，一头切得窄。上下两条边长短不一样，就会像梯形。",
@@ -356,10 +357,10 @@ const POSITION_RULES = {
 const SECTION_3D_PRESETS = {
   cube: {
     "等边三角形": { normal: [1, 1, 1], offset: 0.62, shape: "triangle", scale: [1.05, 1.05], limit: 0.45 },
-    "直角三角形": { normal: [0.02, 0.017, 1], offset: 0.8528, shape: "rightTriangle", scale: [1.1, 0.95], limit: 0.055 },
+    "直角三角形": { normal: [1, 1, 1], offset: 0.62, shape: "triangle", scale: [1.1, 0.95], limit: 0.38, impossible: true },
     "正方形": { normal: [0, 1, 0], offset: 0, shape: "square", scale: [1.55, 1.55], limit: 0.82 },
     "长方形": { normal: [0.45, 1, 0], offset: 0, shape: "rectangle", scale: [1.75, 0.9], limit: 0.65 },
-    "梯形": { normal: [0.8, 1, 1], offset: 0.5, shape: "trapezoid", scale: [1.45, 1.05], limit: 0.5 },
+    "梯形": { normal: [0.15, 0.5, 0.5], offset: 0.36, shape: "trapezoid", scale: [1.45, 1.05], limit: 0.18 },
     "五边形": { normal: [0.65, 1, 0.35], offset: 0.05, shape: "pentagon", scale: [1.24, 1.05], limit: 0.55 },
     "六边形": { normal: [1, 1, 1], offset: 0, shape: "hexagon", scale: [1.24, 1.08], limit: 0.48 },
     "圆": { normal: [0, 1, 0], offset: 0, shape: "circle", scale: [1.05, 1.05], limit: 0.82, impossible: true },
@@ -368,7 +369,8 @@ const SECTION_3D_PRESETS = {
     "超过 6 条边": { normal: [1, 1, 1], offset: 0, shape: "many", scale: [1.12, 1.02], limit: 0.5, impossible: true },
   },
   cuboid: {
-    "直角三角形": { normal: [0.02, 0.017, 1], offset: 0.682, shape: "rightTriangle", scale: [1.35, 0.95], limit: 0.055 },
+    "三角形": { normal: [1, 1, 1], offset: 0.45, shape: "triangle", scale: [1.2, 0.95], limit: 0.35 },
+    "直角三角形": { normal: [1, 1, 1], offset: 0.45, shape: "triangle", scale: [1.35, 0.95], limit: 0.35, impossible: true },
     "矩形": { normal: [1, 0, 0], offset: 0, shape: "rectangle", scale: [1.1, 1.6], limit: 0.9 },
     "平行四边形": { normal: [0.35, 1, 0], offset: 0, shape: "parallelogram", scale: [1.55, 1.05], limit: 0.62 },
     "梯形": { normal: [0.4, 1, 0.35], offset: 0.08, shape: "trapezoid", scale: [1.65, 1.0], limit: 0.58 },
@@ -768,10 +770,25 @@ function classifyQuadrilateral(points, selectedLabel) {
   return "四边形";
 }
 
+function classifyTriangle(points) {
+  const edges = points.map((point, index) => {
+    const next = points[(index + 1) % points.length];
+    return { x: next.x - point.x, y: next.y - point.y };
+  });
+  const lengths = edges.map((edge) => Math.hypot(edge.x, edge.y));
+  const maxLength = Math.max(...lengths);
+  const minLength = Math.min(...lengths);
+  const hasRightAngle = edges.some((edge, index) => isRightAngle2d(edge, edges[(index + 1) % edges.length]));
+
+  if (hasRightAngle) return "直角三角形";
+  if (maxLength / Math.max(minLength, 0.000001) < 1.08) return "等边三角形";
+  return "三角形";
+}
+
 function classifySectionPoints(points, normal, selectedLabel) {
   if (points.length < 3) return "没有截到";
   const local = sectionPointsToLocal2d(points, normal);
-  if (points.length === 3) return selectedLabel.includes("直角") ? "直角三角形" : "三角形";
+  if (points.length === 3) return classifyTriangle(local);
   if (points.length === 4) return classifyQuadrilateral(local, selectedLabel);
   if (points.length === 5) return "五边形";
   if (points.length === 6) return "六边形";

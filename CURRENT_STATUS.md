@@ -1,32 +1,30 @@
 # 当前开发状态
 
-更新时间：2026-07-04
+更新时间：2026-07-05
 当前分支：`feature/csg-v2-integration`
 当前里程碑：M5A 考公立体图推动态解题与讲解
 
 ## 当前任务
 
 - 状态：● 已完成
-- 编号：LESSON-014K
-- 任务：`fix: 基础截面实时截面同步真实切面`
+- 编号：LESSON-014L
+- 任务：`fix: 纠正基础截面正多边形与直角三角形规则`
 
 ## 本轮结论
 
-- 你指出的问题成立：上一版右侧实时截面仍然用预设图形生成，不是由当前 3D 切面真实交点生成；因此用户拖动切面时，3D 真实截面已经变化，实时截面却还显示目标形状。
-- 你指出的“梯形”问题也成立：正方体“梯形”的旧切面参数实际被分类为正方形/非梯形，不能作为梯形示例。
-- 已删除旧 `shapePoints`/`makeShapeGeometry` 预设绘图死代码，避免实时截面再次走假形状路线。
-- `renderLiveSection` 已改为读取 `viewer.currentSectionPoints`：实时截面由当前 3D 切面与立体真实交点的局部坐标生成，并同步显示真实顶点点位。
-- 大 3D 截面新增真实顶点标记；卡片缩略图也新增顶点标记，并改为更接近正对当前切面的投影，避免五边形/梯形被视角压成别的形状。
-- 正方体“梯形”参数已改为 `[0.8, 1, 1] / offset 0.5`，默认真实分类为梯形。
-- 页面版本已升到 `/section-foundation.css?v=20260705a` 与 `/section-foundation.js?v=20260705a`，避免浏览器缓存旧实现。
+- 你指出的“正方体直角三角形看不懂”问题成立：上一版把按钮名称当真实分类，容易把削角三角形讲成直角三角形。
+- 已把正方体/长方体“直角三角形”移入“不能直接截出”；点击后仍展示真实削角截面，但实时卡明确写“等边三角形，不是直角三角形”。
+- 正方体五边形已讲清通常不是正五边形，不能用标准正五边形去理解。
+- 正方体正六边形已讲清：刀片垂直体对角线，穿过六条棱的中点，六条边等长；离开中心后仍可能是六边形，但不一定正。
+- 梯形默认参数已从容易一拖就变三角形的边缘位置，改成更稳定的 `[0.15, 0.5, 0.5] / offset 0.36 / limit 0.18`；默认和拖到 `偏移 +18` 都保持 4 点真实梯形。
+- 页面版本已升到 `/section-foundation.css?v=20260705b` 与 `/section-foundation.js?v=20260705b`。
 
 ## 交付文件
 
 - `section-foundation.html`
-- `section-foundation.css`
 - `section-foundation.js`
 - `tests/reasoning-lesson-layout.test.mjs`
-- 审计：`TASKS.md`、`CURRENT_STATUS.md`
+- 审计：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
 
 ## 唯一下一项
 
@@ -37,11 +35,11 @@ LESSON-015：重做手动探索为更丝滑的滑动式截面验证。
 - 已通过：`git diff --check` 未发现空白错误。
 - 已通过：`node --check section-foundation.js`。
 - 已通过：`node --experimental-loader ./tests/three-absolute-loader.mjs --test tests/reasoning-lesson-layout.test.mjs`，13/13 通过。
-- 已通过：应用浏览器打开 `/section-foundation.html`，确认加载 CSS `v=20260705a`、JS `v=20260705a`。
-- 已通过：应用浏览器点击“五边形”后，右侧 3D `data-section-vertex-count=5`、实时截面 `data-vertex-count=5`、中栏缩略图 `data-section-vertices=5`。
-- 已通过：应用浏览器拖动五边形切面后，右侧 3D 与实时截面均变为 4 点，真实形状显示为“梯形”，实时文案显示“目标：五边形”。
-- 已通过：应用浏览器点击“梯形”后，默认 `data-actual-section=梯形`，实时文案显示“正方体当前真实截面：梯形”。
+- 已通过：应用浏览器打开 `/section-foundation.html`，确认加载 CSS `v=20260705b`、JS `v=20260705b`。
+- 已通过：应用浏览器确认“直角三角形”不在正方体“常见能截出”，只在“不能直接截出”；点击后大 3D `actual=等边三角形`、`vertices=3`，实时截面提示“不是直角三角形”。
+- 已通过：应用浏览器点击“五边形”后，大 3D `vertices=5`，文案包含“不是正五边形”。
+- 已通过：应用浏览器点击“六边形”后，大 3D `vertices=6`，文案包含“六条棱的中点”和“6 条边等长”。
+- 已通过：应用浏览器点击“梯形”后，大 3D `vertices=4`；上下拖动到 `偏移 +18` 后仍为 4 点梯形，实时截面同步显示“正方体当前真实截面：梯形”。
 - 已通过：应用浏览器控制台 error/warning 为空。
-- 已通过：已用浏览器截图检查五边形拖动后的同步状态，右侧实时截面和 3D 顶点数一致。
 - 本地提交：本任务所在提交。
 - 推送状态：本任务完成后推送到 `origin/feature/csg-v2-integration`。
