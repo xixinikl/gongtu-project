@@ -7,32 +7,28 @@
 ## 当前任务
 
 - 状态：● 已完成
-- 编号：LESSON-013
-- 任务：`fix: 先讲清基础截面再排除相似选项`
+- 编号：HANDOFF-LESSON-003
+- 任务：`docs: 记录用户否决与教学方法返工基线`
 
-## 本任务完成
+## 本轮结论
 
-- 已确认基础知识：正方体/长方体可以截出六边形，不能把“六边形”本身讲成不可能。
-- 已修正圆锥方体 B 选项的 reason 和关键帧文案：先承认六边形可行，再说明本题组合体的纯凸六边形不匹配。
-- 已在学生页右侧增加“基础先讲清”提醒卡，放在候选/实际对比之前。
-- 已把后续需求排入 LESSON-014～017：基础截面知识库、滑动式截面验证、四类训练总入口、视频式逐项排除节奏。
+- `LESSON-013` 的文字修补已被用户明确否决：它只解释“六边形可行但本题不匹配”，没有把 B 选项做成真正接近六边形的三维切面演示。
+- 正确方向必须改为“候选驱动验证”：先让切面尽量贴近候选，再让学生看到多出来、缺掉、带出来或接触处不一致的部分。
+- 圆锥+方体 B 选项返工要求：上方方体要真的截出接近六边形的形态，同时画面要显示它会带出下方倒圆锥/接触结构，所以不是纯凸六边形。
+- 已把 8 个参考视频的讲解套路、基础截面知识表、交互返工要求写入新的交接文档。
 
 ## 交付文件
 
-- `reasoning-lesson.html`
-- `reasoning-lesson.js`
-- `reasoning-lesson.css`
-- `data/reasoning-cases/cone-box-001.json`
-- `tests/reasoning-case-fixtures.test.mjs`
-- `tests/reasoning-lesson-layout.test.mjs`
+- `doc/SPATIAL_REASONING_TEACHING_METHOD.md`
 - 审计：`TASKS.md`、`CURRENT_STATUS.md`
 
 ## 唯一下一项
 
-LESSON-014：建立基础截面知识库与训练入口。
+LESSON-014R：返工 B 六边形为真实可视化演示，并修正模型默认大小与滑动操作手感。
 
 ## 验收证据
 
-- 已通过：`node --experimental-loader ./tests/three-absolute-loader.mjs --test tests/reasoning-case-fixtures.test.mjs tests/reasoning-lesson-layout.test.mjs`，19/19 通过。
 - 已通过：`git diff --check` 未发现空白错误。
-- 已通过：浏览器点击 B 选项后先显示“基础先讲清”，明确正方体/长方体能截六边形，再显示候选/实际差异和本题组合体不匹配原因。
+- 本地提交：本任务所在提交。
+- 推送状态：失败，GitHub HTTPS 凭据未配置：`could not read Username for 'https://github.com'`。
+- 注意：`LESSON-013` 的浏览器验收不能再作为产品完成证据，只能作为错误方向留档。

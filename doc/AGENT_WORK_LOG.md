@@ -20,6 +20,19 @@
 - 建议下一任务：
 ```
 
+## 2026-07-04 · Codex · HANDOFF-LESSON-003
+
+- 分支：`feature/csg-v2-integration`
+- 基线提交：`e312a22`
+- 完成任务：`docs: 记录用户否决与教学方法返工基线`
+- 修改的交付文件：`doc/SPATIAL_REASONING_TEACHING_METHOD.md`、`doc/AGENT_HANDOFF.md`
+- 执行的测试：`git diff --check`
+- 测试结果：通过，未发现空白错误
+- 任务提交：本任务所在提交
+- 已推送远端：否，GitHub HTTPS 凭据未配置，`git push origin feature/csg-v2-integration` 返回 `could not read Username for 'https://github.com'`
+- 遗留风险：`LESSON-013` 的文字修补不能作为最终验收；B 六边形、模型大小和滑动交互仍需代码返工
+- 建议下一任务：`LESSON-014R fix: 返工 B 六边形为候选驱动真实截面演示`
+
 ## 2026-06-29 · Agent 1 · 安全交接检查点
 
 - 分支：`feature/spatial-geometry-lab`
