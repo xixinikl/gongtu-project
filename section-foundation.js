@@ -343,7 +343,6 @@ const elements = {
   solidTag: document.querySelector("#solid-tag"),
   knowledgeGrid: document.querySelector("#knowledge-grid"),
   solidRule: document.querySelector("#solid-rule"),
-  demoButtons: document.querySelector("#demo-buttons"),
   demoVerdict: document.querySelector("#demo-verdict"),
   canvas: document.querySelector("#foundation-3d"),
   resetSection: document.querySelector("#reset-section"),
@@ -385,57 +384,57 @@ const DEMO_FOCUS_LABEL = {
 
 const POSITION_RULES = {
   cube: {
-    "等边三角形": "切面只削过正方体一个顶角附近的三个面，三个交线段闭合成三角形；当三个面被切得均衡时，截面接近等边三角形。",
-    "直角三角形": "切面贴近一个角，并且更偏向其中两条互相垂直的棱，截面就会呈现直角三角形。",
-    "正方形": "切面与正方体某一组面平行，从中间水平或竖直穿过，截面就是正方形。",
-    "长方形": "切面与一组棱平行，同时斜穿两个相对面，截面会被拉成长方形。",
-    "梯形": "切面斜着穿过上下面和部分侧面，一边长一边短，就会出现梯形。",
-    "五边形": "切面避开一个顶角，但同时碰到正方体的五个面，五条交线段会围成五边形。",
-    "六边形": "切面从一个角的附近斜穿到对角附近，同时经过正方体的六个面；只要六个面都被同一平面切到，就能出现六边形。",
-    "圆": "正方体所有表面都是平面，切面与每个面相交都只能得到直线段；无论放在哪里，都不能直接得到圆。",
-    "椭圆": "椭圆必须来自曲面。正方体没有曲面，所以切面斜放也只能得到直边多边形，不会得到椭圆。",
-    "曲边图形": "曲边需要圆柱、圆锥这类曲面提供。正方体只有平面，截面边界不会弯。",
-    "超过 6 条边": "正方体只有六个面，一个平面最多和六个面各形成一条边，所以单个截面最多六边。",
+    "等边三角形": "把蓝色刀片放在一个顶角上，只削掉这个角。它只碰到这个角旁边的 3 个面，所以留下 3 条边；三边削得差不多时，就像等边三角形。",
+    "直角三角形": "还是削一个角，但让刀片更贴近两条互相垂直的边。这样留下来的三角形会带一个直角，所以能看到直角三角形。",
+    "正方形": "把刀片摆平，和正方体的某个外面平行，从中间横着切过去。切出来和外面的方脸一样，就是正方形。",
+    "长方形": "把刀片竖起来斜着穿过去，让它沿着一组边走。截面会被拉长，所以看到的是长方形。",
+    "梯形": "把刀片斜着切，但不要左右切得一样深。一边切得长、一边切得短，截面就会像梯形。",
+    "五边形": "让刀片碰到 5 个面，再故意躲开剩下的 1 个面。它碰到几个面，就会留下几条边，所以这里会出现五边形。",
+    "六边形": "把刀片斜着放，不是只削一个角，而是从上面三个面穿进去、从下面三个面穿出来。它一共碰到 6 个面，所以边界有 6 条边，看起来就是六边形。",
+    "圆": "正方体全是平面，没有圆滚滚的曲面。刀片不管怎么摆，碰到的边都是直的，所以不能直接切出圆。",
+    "椭圆": "椭圆要靠圆柱、圆锥那种弯曲的面。正方体没有曲面，刀片再斜也只会切出直边图形。",
+    "曲边图形": "曲边要从弯的表面来。正方体每一面都是平的，所以截面边界不会自己弯起来。",
+    "超过 6 条边": "正方体只有 6 个面。刀片最多碰到 6 个面，所以最多留下 6 条边，不会直接超过 6 条。",
   },
   cuboid: {
-    "直角三角形": "切面削过长方体一个角附近的三个面，就能得到三角形；角度贴近垂直棱时会接近直角三角形。",
-    "矩形": "切面平行于长方体的一组面，或者沿着一组平行侧面切入，截面就是矩形。",
-    "平行四边形": "切面与一组棱保持平行，同时斜穿相对面，截面会成为平行四边形。",
-    "梯形": "切面斜穿长方体时，上下两条截线长短不同，就会出现梯形。",
-    "五边形": "切面同时碰到五个面，并避开第六个面，截面就是五边形。",
-    "六边形": "切面同时穿过长方体六个面，能得到六边形；只是长方体比例不同，六边形通常会被拉长。",
-    "圆": "长方体没有曲面，切面放在哪里都不会直接形成圆。",
-    "椭圆": "椭圆来自曲面，长方体表面全是平面，所以只能得到直边图形。",
-    "任意曲边": "长方体的截面边界只能来自平面和平面的交线，因此不会出现任意曲边。",
-    "超过 6 条边": "长方体也是六面体，单个平面最多切到六个面，不能出现超过六条边的单一截面。",
+    "直角三角形": "把刀片放到长方体的一个角上，只削掉这个角。它碰到角旁边的 3 个面，就会留下三角形；贴近直角边时，会更像直角三角形。",
+    "矩形": "把刀片摆得和某个外面平行，或者竖着沿长方体切进去。切出来的上下左右都是直边，常见就是矩形。",
+    "平行四边形": "让刀片斜着穿过长方体，但方向一直跟一组边保持一致。两组边还是互相平行，所以会看到平行四边形。",
+    "梯形": "让刀片斜切进去，一头切得宽，一头切得窄。上下两条边长短不一样，就会像梯形。",
+    "五边形": "刀片碰到 5 个面、躲开 1 个面时，就会留下 5 条边，所以可以得到五边形。",
+    "六边形": "让刀片斜着同时碰到长方体的 6 个面，就能得到六边形。只是长方体被拉长了，六边形也常常会被拉长。",
+    "圆": "长方体也全是平面，没有圆的曲面来源，所以刀片放哪里都切不出圆。",
+    "椭圆": "椭圆要靠弯曲表面。长方体只有平面，切出来只能是直边图形。",
+    "任意曲边": "长方体没有弯面，刀片切到的边只会是直线，不会突然变成曲边。",
+    "超过 6 条边": "长方体也只有 6 个面。刀片最多碰到 6 个面，所以单次截面不会超过 6 条边。",
   },
   cylinder: {
-    "圆": "切面与圆柱底面平行，也就是横着切圆柱，截面和底面一样是圆。",
-    "椭圆": "切面斜着穿过圆柱侧面，圆形被斜向拉长，截面就会成为椭圆。",
-    "矩形": "切面沿圆柱轴线方向竖着切，并穿过上下底面，展开来看就是两条直边加上下边，常见为矩形。",
-    "带弧边截面": "切面只切到圆柱侧面的一部分和底面边界时，侧面贡献弧线，所以会出现带弧边截面。",
-    "纯三角形": "只要切到圆柱侧面，就会带曲线；竖切也会有两条平行母线，不会得到纯三角形。",
-    "纯五边形": "圆柱侧面是曲面，截面不可能全由五条直边组成。",
-    "纯六边形": "圆柱没有六个平面侧面，不能直接切出纯六边形。",
-    "只有直边的复杂多边形": "圆柱的曲面会带来曲线；只有直边的复杂多边形通常来自方体或棱柱。",
+    "圆": "把刀片横着放，像切火腿片一样切圆柱。刀片和底面平行，所以切出来还是圆。",
+    "椭圆": "把刀片斜着切圆柱，原来的圆会被斜着拉长。你看到的就不是正圆，而是椭圆。",
+    "矩形": "把刀片竖着穿过圆柱，从上底切到下底。两侧是直直的母线，上下也是直边，所以常见是矩形。",
+    "带弧边截面": "如果刀片只擦到圆柱侧面的一部分，侧面本来就是弯的，截面边上就会带弧线。",
+    "纯三角形": "圆柱只要切到侧面，就会带弯边；竖切也会有两条平行直边，所以不能得到纯三角形。",
+    "纯五边形": "五边形要求边界全是直边。圆柱侧面是弯的，所以不能直接切出纯五边形。",
+    "纯六边形": "六边形需要 6 条直边围起来。圆柱没有 6 个平面侧面，所以不能直接切出纯六边形。",
+    "只有直边的复杂多边形": "只要题里是圆柱，先盯着曲面：斜切通常会带曲线。全是直边的复杂多边形，一般不是圆柱单独切出来的。",
   },
   cone: {
-    "圆": "切面与圆锥底面平行，横着切圆锥，截面就是圆。",
-    "椭圆": "切面斜切圆锥侧面且不过顶点，截面会成为椭圆。",
-    "过顶点等腰三角形": "切面经过圆锥顶点和底面直径，两条母线成为三角形的两条腰。",
-    "非过顶点曲边截面": "切面不过顶点时，圆锥侧面提供曲线，截面会带圆锥曲线特征。",
-    "纯正方形": "圆锥没有四个平面侧面，不能直接得到纯正方形。",
-    "纯六边形": "圆锥侧面是曲面，单独切它不会出现六条直边围成的纯六边形。",
-    "无曲线多边形": "除非过顶点形成母线三角形，否则圆锥截面通常带曲线，不会是无曲线复杂多边形。",
+    "圆": "把刀片横着放，和圆锥底面平行。这样切出来的每一圈都像缩小版底面，所以是圆。",
+    "椭圆": "把刀片斜着切圆锥，但不要经过尖尖的顶点。侧面的圆被斜着拉长，就会看到椭圆。",
+    "过顶点等腰三角形": "让刀片穿过圆锥的尖顶，再切到底面。左右两条斜边就是圆锥的两条母线，所以会成等腰三角形。",
+    "非过顶点曲边截面": "刀片不过尖顶时，它切到的是圆锥弯曲的侧面，边界就容易带曲线。",
+    "纯正方形": "圆锥没有四个平面侧面，刀片找不到四条直边来围成正方形。",
+    "纯六边形": "圆锥侧面是弯的，不是 6 个平面拼成的，所以单独切不出纯六边形。",
+    "无曲线多边形": "圆锥除了过顶点能出三角形，更多时候会带曲线。全直边复杂多边形不是它的常规截面。",
   },
   pyramid: {
-    "三角形": "切面经过棱锥三个侧面，或者靠近顶点切过三条棱，就会形成三角形。",
-    "四边形": "切面同时碰到四个侧面或底面相关区域，四条交线段围成四边形。",
-    "梯形": "切面与底面大致平行但稍有倾斜，或斜穿两组侧面时，容易形成梯形。",
-    "五边形": "切面同时穿过棱锥的五个平面部分时，可以得到五边形。",
-    "圆": "棱锥所有面都是平面，切面放在哪里都不会直接出现圆。",
-    "椭圆": "椭圆来自曲面，棱锥没有曲面，所以不能直接切出椭圆。",
-    "曲边图形": "棱锥截面边界来自平面交线，只会是直线段，不会出现曲边。",
+    "三角形": "把刀片靠近棱锥的尖顶，让它碰到 3 个侧面。三个面各留一条边，合起来就是三角形。",
+    "四边形": "让刀片往下切深一点，碰到 4 个面或碰到底面。它留下 4 条边，就会成为四边形。",
+    "梯形": "刀片大致横着切，但稍微歪一点。上边短、下边长时，看起来就像梯形。",
+    "五边形": "刀片切得更深，碰到棱锥的 5 个平面部分，就可以得到五边形。",
+    "圆": "棱锥每一面都是平的，没有圆弧来源，所以刀片放哪里都不能直接切出圆。",
+    "椭圆": "椭圆要靠弯曲表面。棱锥没有曲面，所以不能直接切出椭圆。",
+    "曲边图形": "棱锥的每条截边都来自平面相交，只会是直线，不会出现曲边。",
   },
 };
 
@@ -833,24 +832,6 @@ function renderKnowledge(shape) {
   elements.solidRule.textContent = shape.rule;
 }
 
-function briefPositionRule(solidId, label, fallback) {
-  const rule = POSITION_RULES[solidId]?.[label] ?? fallback;
-  const firstClause = rule.split(/[。；]/).find(Boolean) ?? rule;
-  return firstClause.length > 42 ? `${firstClause.slice(0, 42)}...` : firstClause;
-}
-
-function renderDemoButtons(shape) {
-  elements.demoButtons.innerHTML = shape.demos.map((demo) => `
-    <button class="demo-button ${DEMO_FOCUS_LABEL[demo.id] === state.selectedLabel && demo.verdict === state.selectedVerdict ? "is-selected" : ""}" type="button" data-demo-id="${demo.id}" data-verdict="${demo.verdict}" aria-pressed="${DEMO_FOCUS_LABEL[demo.id] === state.selectedLabel && demo.verdict === state.selectedVerdict}">
-      <span>
-        <strong>${DEMO_FOCUS_LABEL[demo.id] ?? demo.title}</strong>
-        <small>${briefPositionRule(state.solidId, DEMO_FOCUS_LABEL[demo.id] ?? demo.title, demo.note)}</small>
-      </span>
-      <span>${demo.label}</span>
-    </button>
-  `).join("");
-}
-
 function renderDemo(shape) {
   const demo = shape.demos.find((item) => item.id === state.demoId) ?? shape.demos[0];
   state.demoId = demo.id;
@@ -858,12 +839,12 @@ function renderDemo(shape) {
   const selectedVerdict = state.selectedVerdict;
   elements.demoVerdict.textContent = selectedVerdict === "cannot" ? "不可行" : "可行";
   elements.demoVerdict.dataset.verdict = selectedVerdict;
-  elements.demoLabel.textContent = selectedVerdict === "cannot" ? "为什么放哪里都不行" : "当前切面位置";
+  elements.demoLabel.textContent = selectedVerdict === "cannot" ? "先看为什么不行" : "先看蓝色刀片";
   elements.demoTitle.textContent = selectedVerdict === "cannot"
-    ? `${shape.name}不能直接截出${selectedLabel}`
-    : `${shape.name}怎样截出${selectedLabel}`;
+    ? `${shape.name}为什么切不出${selectedLabel}`
+    : `${shape.name}切${selectedLabel}，要这样摆`;
   elements.demoCopy.textContent = POSITION_RULES[state.solidId]?.[selectedLabel]
-    ?? "右侧 3D 视口已经切到这个基础截面。你可以上下拖动切面，观察截面在立体内部前后移动。";
+    ?? "看蓝色刀片的位置：它碰到哪些面，橙色截面就会留下哪些边。上下拖动可以让它在模型里扫一遍。";
   buildViewerScene();
 }
 
@@ -871,7 +852,6 @@ function render() {
   const shape = SHAPES[state.solidId];
   renderSolidList();
   renderKnowledge(shape);
-  renderDemoButtons(shape);
   renderDemo(shape);
 }
 
@@ -884,17 +864,6 @@ elements.solidList.addEventListener("click", (event) => {
   state.demoId = shape.demos[0].id;
   state.selectedLabel = DEMO_FOCUS_LABEL[state.demoId] ?? shape.can[0];
   state.selectedVerdict = shape.demos[0].verdict;
-  render();
-});
-
-elements.demoButtons.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-demo-id]");
-  if (!button) return;
-  state.demoId = button.dataset.demoId;
-  const shape = SHAPES[state.solidId];
-  const demo = shape.demos.find((item) => item.id === state.demoId) ?? shape.demos[0];
-  state.selectedLabel = DEMO_FOCUS_LABEL[state.demoId] ?? shape.can[0];
-  state.selectedVerdict = demo.verdict;
   render();
 });
 

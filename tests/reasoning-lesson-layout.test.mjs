@@ -133,7 +133,7 @@ test("every golden option has a human-readable constraint path", async () => {
   }
 });
 
-test("foundation page lists base solids and demo entry points", async () => {
+test("foundation page lists base solids and section entry points", async () => {
   const [html, css, script] = await Promise.all([
     readFile(foundationHtmlUrl, "utf8"),
     readFile(foundationCssUrl, "utf8"),
@@ -142,7 +142,8 @@ test("foundation page lists base solids and demo entry points", async () => {
 
   assert.match(html, /id="solid-list"/);
   assert.match(html, /id="knowledge-grid"/);
-  assert.match(html, /id="demo-buttons"/);
+  assert.match(html, /id="foundation-3d"/);
+  assert.doesNotMatch(html, /id="demo-buttons"/);
   assert.match(html, /href="\/reasoning-lesson\.html"/);
   assert.match(css, /\.foundation-shell/);
   for (const word of ["正方体", "长方体", "圆柱", "圆锥", "棱锥"]) {
@@ -201,17 +202,18 @@ test("foundation page uses an interactive 3D section viewer", async () => {
   assert.match(html, /id="reset-section"/);
   assert.match(html, /id="live-section-svg"/);
   assert.match(html, /id="live-section-verdict"/);
-  assert.match(html, /active-cut-card[\s\S]*demo-buttons[\s\S]*demo-stage/);
-  assert.match(html, /切法选择/);
+  assert.match(html, /这刀怎么摆/);
+  assert.match(html, /active-cut-card[\s\S]*demo-stage/);
+  assert.doesNotMatch(html, /切法选择/);
   assert.match(html, /"three": "\/node_modules\/three\/build\/three\.module\.js"/);
   assert.match(script, /import \* as THREE from "three"/);
   assert.match(script, /SECTION_3D_PRESETS/);
   assert.match(script, /POSITION_RULES/);
-  assert.match(script, /briefPositionRule/);
-  assert.match(script, /当前切面位置/);
-  assert.match(script, /切面从一个角的附近斜穿到对角附近/);
-  assert.match(script, /斜着穿过圆柱侧面/);
-  assert.match(script, /切面只削过正方体一个顶角附近的三个面/);
+  assert.match(script, /先看蓝色刀片/);
+  assert.match(script, /把刀片斜着放/);
+  assert.match(script, /从上面三个面穿进去/);
+  assert.match(script, /把刀片斜着切圆柱/);
+  assert.match(script, /把蓝色刀片放在一个顶角上/);
   assert.match(script, /buildViewerScene/);
   assert.match(script, /renderLiveSection/);
   assert.match(script, /liveScaleFactor/);
@@ -220,7 +222,6 @@ test("foundation page uses an interactive 3D section viewer", async () => {
   assert.match(script, /addEventListener\("wheel"/);
   assert.match(css, /\.demo-stage-3d canvas/);
   assert.match(css, /\.active-cut-card/);
-  assert.match(css, /\.demo-choice-title/);
   assert.match(css, /\.live-section-card/);
   assert.match(css, /\.live-fill/);
   assert.match(css, /cursor: ns-resize/);
