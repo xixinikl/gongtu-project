@@ -48,6 +48,11 @@ const elements = {
   reasoningCaption: document.querySelector("#reasoning-caption"),
   reasoningHeading: document.querySelector("#reasoning-heading"),
   resetView: document.querySelector("#reset-view"),
+  shapeComparison: document.querySelector("#shape-comparison"),
+  shapeComparisonActual: document.querySelector("#comparison-actual"),
+  shapeComparisonCandidate: document.querySelector("#comparison-candidate"),
+  shapeComparisonCopy: document.querySelector("#shape-comparison-copy"),
+  shapeComparisonResult: document.querySelector("#shape-comparison-result"),
   sectionPreviewMeta: document.querySelector("#section-preview-meta"),
   sectionPreviewStatus: document.querySelector("#section-preview-status"),
   sectionPreviewSvg: document.querySelector("#section-preview-svg"),
@@ -72,6 +77,18 @@ const state = {
   transitionFrame: null,
   explorationPlane: null,
   planeOffsetPercent: 0,
+  selectedComparisonOption: null,
+};
+
+const SHAPE_COMPARISONS = {
+  "box-stem-plus-axial-cone": "实际截面就是“上方矩形直杆 + 下方直角边三角形”，候选图的直边、尖角和连接位置都能对上。",
+  "convex-hexagon": "最接近的实际图仍会保留上方矩形直杆和下方尖角，不会被削成一个没有凹口的完整六边形。",
+  "box-stem-plus-curved-shield": "实际过轴截面下方是两条直母线组成的三角形；候选图把直边画成了向外鼓的曲边。",
+  "rectangle-with-full-ellipse": "实际边界会把方体直边和圆锥截痕连成一个外轮廓，不会出现“矩形里面悬着一条完整椭圆”。",
+  "narrow-triangle": "实际切面可以只经过棱锥相邻平面，得到一个很窄的三角形，三条边都能对应。",
+  "pyramid-quadrilateral": "实际切到棱锥四个侧面时就是四条直边围成的不规则四边形，候选图可以出现。",
+  "conic-plus-triangle": "实际最接近“圆柱椭圆弧 + 棱锥两条直边”，曲边和直边会在组合体连接处接上。",
+  "ellipse-plus-full-rectangle": "圆柱要出现椭圆，切面必须倾斜；同一斜面会削掉棱锥矩形的一个角，所以实际图最接近“椭圆 + 缺角四边形”。",
 };
 
 function dispatch(event) {
@@ -428,6 +445,7 @@ function renderSectionPreview(result) {
     elements.sectionPreviewMeta.textContent = "暂无轮廓";
     elements.sectionPreviewStatus.textContent =
       result?.status === "error" ? "请稍微旋转或移动切面" : "拖动切面后实时显示";
+    syncShapeComparisonActual();
     return;
   }
 
@@ -470,6 +488,25 @@ function renderSectionPreview(result) {
     `${result.contourCount} 个轮廓 · 面积 ${result.area.toFixed(2)}`;
   elements.sectionPreviewStatus.textContent =
     "与三维橙色截面同步 · 外环、孔洞和顶点均来自 V2";
+  syncShapeComparisonActual();
+}
+
+function syncShapeComparisonActual() {
+  if (!elements.shapeComparisonActual || !state.selectedComparisonOption) return;
+  elements.shapeComparisonActual.innerHTML =
+    elements.sectionPreviewSvg.innerHTML;
+}
+
+function renderShapeComparison(option) {
+  state.selectedComparisonOption = option.id;
+  elements.shapeComparison.classList.remove("is-hidden");
+  elements.shapeComparisonCandidate.innerHTML = outlineSvg(option);
+  elements.shapeComparisonCopy.textContent =
+    SHAPE_COMPARISONS[option.outlineClass] ?? option.reason;
+  elements.shapeComparisonResult.textContent = option.verdict === "impossible"
+    ? "关键差异"
+    : "图形能对上";
+  syncShapeComparisonActual();
 }
 
 function updateSection() {
@@ -708,6 +745,7 @@ function selectOption(optionId, jumpToKeyframe = true) {
     button.setAttribute("aria-pressed", String(selected));
   }
   elements.reasoningHeading.textContent = `验证 ${option.id}：${option.label}`;
+  renderShapeComparison(option);
   renderConstraints(option);
   refreshSelectedOptionVerdict();
   elements.verdictCard.classList.remove("is-hidden");

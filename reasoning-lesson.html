@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f5f2ea">
   <title>立体图推 · 动态验证课</title>
-  <link rel="stylesheet" href="/reasoning-lesson.css?v=20260704">
+  <link rel="stylesheet" href="/reasoning-lesson.css?v=20260704c">
   <script type="importmap">
     {
       "imports": {
@@ -127,6 +127,26 @@
       <p id="reasoning-caption" class="reasoning-caption">
         我们会让同一个无限平面穿过模型，观察候选轮廓是否真的能出现。
       </p>
+      <section id="shape-comparison" class="shape-comparison is-hidden" aria-labelledby="shape-comparison-title">
+        <div class="shape-comparison-head">
+          <span>
+            <small>先看图，再听理由</small>
+            <strong id="shape-comparison-title">候选图和实际截面差在哪</strong>
+          </span>
+          <span id="shape-comparison-result"></span>
+        </div>
+        <div class="shape-comparison-grid">
+          <figure>
+            <figcaption>题目候选</figcaption>
+            <div id="comparison-candidate" class="comparison-drawing"></div>
+          </figure>
+          <figure>
+            <figcaption>当前实际截面</figcaption>
+            <svg id="comparison-actual" class="comparison-drawing" viewBox="0 0 320 170" aria-label="当前实际截面"></svg>
+          </figure>
+        </div>
+        <p id="shape-comparison-copy"></p>
+      </section>
       <div id="constraint-list" class="constraint-list" aria-live="polite"></div>
       <div id="verdict-card" class="verdict-card is-hidden" aria-live="polite">
         <span id="verdict-label"></span>
@@ -156,7 +176,7 @@
     <span id="case-source-note">题目来源载入中</span>
   </footer>
 
-  <script type="module" src="/reasoning-lesson.js?v=20260704b"></script>
+  <script type="module" src="/reasoning-lesson.js?v=20260704c"></script>
   <noscript>此动态课需要启用 JavaScript。</noscript>
 </body>
 </html>

@@ -546,10 +546,88 @@ h2 { margin-bottom: 0; font-size: 16px; }
   line-height: 1.65;
 }
 
+.shape-comparison {
+  margin: 2px 0 14px;
+  padding: 12px;
+  border: 1px solid rgba(216, 84, 24, 0.22);
+  border-radius: 15px;
+  background: #fffaf3;
+}
+
+.shape-comparison-head {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.shape-comparison-head small,
+.shape-comparison-head strong { display: block; }
+.shape-comparison-head small { color: var(--amber); font-size: 9px; font-weight: 800; }
+.shape-comparison-head strong { margin-top: 3px; font-size: 12px; }
+#shape-comparison-result {
+  padding: 4px 7px;
+  border-radius: 999px;
+  color: #a74119;
+  background: #fce2d1;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.shape-comparison-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 9px;
+}
+
+.shape-comparison-grid figure {
+  min-width: 0;
+  margin: 0;
+}
+
+.shape-comparison-grid figcaption {
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 9px;
+  text-align: center;
+}
+
+.comparison-drawing {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 98px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.comparison-drawing svg { width: 88px; height: 88px; }
+#comparison-candidate path,
+#comparison-candidate rect,
+#comparison-candidate ellipse {
+  fill: rgba(57, 119, 220, 0.08);
+  stroke: #35577d;
+  stroke-width: 2.5;
+}
+
+#comparison-actual .section-shape { stroke-width: 6; }
+#comparison-actual .section-point { display: none; }
+#shape-comparison-copy {
+  margin: 9px 0 0;
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1.55;
+}
+
 .constraint-list {
   display: grid;
   gap: 8px;
   margin: 3px 0 14px;
+  opacity: 0.78;
 }
 
 .constraint-summary {
