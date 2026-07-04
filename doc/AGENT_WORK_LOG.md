@@ -752,3 +752,30 @@
   - `node --experimental-loader ./tests/three-absolute-loader.mjs --test tests/reasoning-lesson-layout.test.mjs` 13/13 通过
   - 应用浏览器验证正方体“直角三角形”实际显示为等边三角形且控制台无 error/warning
 - 唯一下一项：LESSON-015 重做手动探索为滑动式截面验证
+
+## 2026-07-05 · 主协调 Agent · LESSON-014N
+
+- 任务：`fix: 全量校准基础截面真实形状`
+- 用户纠偏：
+  - 不能再让用户逐个截图发现错误，基础截面页必须由 Agent 自己全量验证
+  - 缩略图、右侧 3D、实时截面必须和卡片标签一致
+  - 长方体“三角形”不能实际切出五边形，其他常见形状也要一次查完
+- 交付：
+  - `section-foundation.js`
+  - `section-foundation.html`
+  - `tests/foundation-section-presets.test.mjs`
+  - `错误复盘.md`
+- 结果：
+  - 修正正方体长方形预设，不再显示为正方形
+  - 修正长方体三角形、平行四边形、梯形、五边形预设
+  - 修正圆柱带弧边截面预设，不再显示为矩形
+  - 修正棱锥五边形预设，不再显示为四边形
+  - 新增真实几何矩阵测试，读取页面预设后用 Three.js 求交验证全部卡片
+  - 错误复盘新增“局部验证不能替代全量截面矩阵”
+- 验收：
+  - `node --check section-foundation.js` 通过
+  - `node --experimental-loader ./tests/three-absolute-loader.mjs --test tests/foundation-section-presets.test.mjs tests/reasoning-lesson-layout.test.mjs` 15/15 通过
+  - `npm run test:geometry` 562/562 通过
+  - 浏览器自动点击基础截面页 44 个截面卡片，44/44 通过，控制台 error/warn 为空
+  - `curl -I http://localhost:8089/section-foundation.html` 返回 200
+- 唯一下一项：LESSON-015 重做手动探索为滑动式截面验证

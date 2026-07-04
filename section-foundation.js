@@ -302,7 +302,7 @@ const POSITION_RULES = {
     "等边三角形": "把蓝色刀片放在一个顶角上，只削掉这个角。它只碰到这个角旁边的 3 个面，所以留下 3 条边；三边削得差不多时，就像等边三角形。",
     "直角三角形": "这个不能当成正方体的真实截面。正方体切出三角形时，本质是在削一个角，三条边来自同一个顶角旁边的 3 个面，形成的是锐角三角形；看起来像直角，多半是视角或外表面线条在骗眼睛。",
     "正方形": "把刀片摆平，和正方体的某个外面平行，从中间横着切过去。切出来和外面的方脸一样，就是正方形。",
-    "长方形": "把刀片竖起来斜着穿过去，让它沿着一组边走。截面会被拉长，所以看到的是长方形。",
+    "长方形": "把刀片竖起来，斜着穿过正方体的两组相对面。它不再和某一面平行，截面会被拉成长方形，而不是和外面一样的正方形。",
     "梯形": "让刀片在一个面上接近走对角线，到了相邻的另一个面时故意不要也走对角线。一边切得长，一边切得短，只保留一组平行边，就会看到梯形。",
     "五边形": "让刀片碰到 5 个面，再躲开剩下的 1 个面。注意它通常不是正五边形：正方体有相对的平行面，截出来的五边形会带平行边或长短差，不会像标准正五边形那样五边五角都相等。",
     "六边形": "把刀片垂直于正方体的体对角线，正好穿过六条棱的中点。这样 6 条边等长，就是你看到的正六边形；如果上下挪开中心，仍可能是六边形，但就不一定正了。",
@@ -312,12 +312,12 @@ const POSITION_RULES = {
     "超过 6 条边": "正方体只有 6 个面。刀片最多碰到 6 个面，所以最多留下 6 条边，不会直接超过 6 条。",
   },
   cuboid: {
-    "三角形": "把刀片放到长方体的一个角上，只削掉这个角。它碰到角旁边的 3 个面，就会留下三角形；因为长宽高比例不同，这个三角形会被拉长。",
+    "三角形": "把刀片贴到长方体的一个角上，只削掉这个角。刀片只碰角旁边的 3 个面，所以留下 3 条边；因为长宽高不同，这个三角形会被拉长。",
     "直角三角形": "长方体也不能直接切出真正的直角三角形。削角得到的三角形来自三个相邻平面，角度会被空间关系撑开；看着像直角时，要回到真实截面检查。",
     "矩形": "把刀片摆得和某个外面平行，或者竖着沿长方体切进去。切出来的上下左右都是直边，常见就是矩形。",
-    "平行四边形": "让刀片斜着穿过长方体，但方向一直跟一组边保持一致。两组边还是互相平行，所以会看到平行四边形。",
-    "梯形": "让刀片斜切进去，一头切得宽，一头切得窄。上下两条边长短不一样，就会像梯形。",
-    "五边形": "刀片碰到 5 个面、躲开 1 个面时，就会留下 5 条边，所以可以得到五边形。",
+    "平行四边形": "让刀片斜着穿过长方体中部，同时保持两组对边的方向成对平行。这样留下的是 4 条边，且两组对边分别平行。",
+    "梯形": "把刀片挪到长方体偏一侧的位置，一头切得宽，一头切得窄。只剩一组对边平行时，就会看到梯形。",
+    "五边形": "让刀片碰到长方体的 5 个面，同时躲开剩下的 1 个面。它碰到几个面就留下几条边，所以这里会得到五边形。",
     "六边形": "让刀片斜着同时碰到长方体的 6 个面，就能得到六边形。只是长方体被拉长了，六边形也常常会被拉长。",
     "圆": "长方体也全是平面，没有圆的曲面来源，所以刀片放哪里都切不出圆。",
     "椭圆": "椭圆要靠弯曲表面。长方体只有平面，切出来只能是直边图形。",
@@ -328,7 +328,7 @@ const POSITION_RULES = {
     "圆": "把刀片横着放，像切火腿片一样切圆柱。刀片和底面平行，所以切出来还是圆。",
     "椭圆": "把刀片斜着切圆柱，原来的圆会被斜着拉长。你看到的就不是正圆，而是椭圆。",
     "矩形": "把刀片竖着穿过圆柱，从上底切到下底。两侧是直直的母线，上下也是直边，所以常见是矩形。",
-    "带弧边截面": "如果刀片只擦到圆柱侧面的一部分，侧面本来就是弯的，截面边上就会带弧线。",
+    "带弧边截面": "把刀片斜着擦过圆柱侧面，不是竖直从上切到底。它碰到弯曲侧面时，边界就会带弧线。",
     "纯三角形": "圆柱只要切到侧面，就会带弯边；竖切也会有两条平行直边，所以不能得到纯三角形。",
     "纯五边形": "五边形要求边界全是直边。圆柱侧面是弯的，所以不能直接切出纯五边形。",
     "纯六边形": "六边形需要 6 条直边围起来。圆柱没有 6 个平面侧面，所以不能直接切出纯六边形。",
@@ -347,7 +347,7 @@ const POSITION_RULES = {
     "三角形": "把刀片靠近棱锥的尖顶，让它碰到 3 个侧面。三个面各留一条边，合起来就是三角形。",
     "四边形": "让刀片往下切深一点，碰到 4 个面或碰到底面。它留下 4 条边，就会成为四边形。",
     "梯形": "刀片大致横着切，但稍微歪一点。上边短、下边长时，看起来就像梯形。",
-    "五边形": "刀片切得更深，碰到棱锥的 5 个平面部分，就可以得到五边形。",
+    "五边形": "让刀片斜着靠下穿过棱锥，碰到底面和多个侧面。它一共碰到 5 个平面部分时，就会留下五边形。",
     "圆": "棱锥每一面都是平的，没有圆弧来源，所以刀片放哪里都不能直接切出圆。",
     "椭圆": "椭圆要靠弯曲表面。棱锥没有曲面，所以不能直接切出椭圆。",
     "曲边图形": "棱锥的每条截边都来自平面相交，只会是直线，不会出现曲边。",
@@ -359,7 +359,7 @@ const SECTION_3D_PRESETS = {
     "等边三角形": { normal: [1, 1, 1], offset: 0.62, shape: "triangle", scale: [1.05, 1.05], limit: 0.45 },
     "直角三角形": { normal: [1, 1, 1], offset: 0.62, shape: "triangle", scale: [1.1, 0.95], limit: 0.38, impossible: true },
     "正方形": { normal: [0, 1, 0], offset: 0, shape: "square", scale: [1.55, 1.55], limit: 0.82 },
-    "长方形": { normal: [0.45, 1, 0], offset: 0, shape: "rectangle", scale: [1.75, 0.9], limit: 0.65 },
+    "长方形": { normal: [1, 1, 0], offset: 0, shape: "rectangle", scale: [1.75, 0.9], limit: 0.45 },
     "梯形": { normal: [0.15, 0.5, 0.5], offset: 0.36, shape: "trapezoid", scale: [1.45, 1.05], limit: 0.18 },
     "五边形": { normal: [0.65, 1, 0.35], offset: 0.05, shape: "pentagon", scale: [1.24, 1.05], limit: 0.55 },
     "六边形": { normal: [1, 1, 1], offset: 0, shape: "hexagon", scale: [1.24, 1.08], limit: 0.48 },
@@ -369,12 +369,12 @@ const SECTION_3D_PRESETS = {
     "超过 6 条边": { normal: [1, 1, 1], offset: 0, shape: "many", scale: [1.12, 1.02], limit: 0.5, impossible: true },
   },
   cuboid: {
-    "三角形": { normal: [1, 1, 1], offset: 0.45, shape: "triangle", scale: [1.2, 0.95], limit: 0.35 },
+    "三角形": { normal: [1, 1, 0.5], offset: 1.2, shape: "triangle", scale: [1.2, 0.95], limit: 0.16 },
     "直角三角形": { normal: [1, 1, 1], offset: 0.45, shape: "triangle", scale: [1.35, 0.95], limit: 0.35, impossible: true },
     "矩形": { normal: [1, 0, 0], offset: 0, shape: "rectangle", scale: [1.1, 1.6], limit: 0.9 },
-    "平行四边形": { normal: [0.35, 1, 0], offset: 0, shape: "parallelogram", scale: [1.55, 1.05], limit: 0.62 },
-    "梯形": { normal: [0.4, 1, 0.35], offset: 0.08, shape: "trapezoid", scale: [1.65, 1.0], limit: 0.58 },
-    "五边形": { normal: [0.7, 1, 0.3], offset: 0.02, shape: "pentagon", scale: [1.45, 0.98], limit: 0.55 },
+    "平行四边形": { normal: [1, 0.4, 0.7], offset: 0, shape: "parallelogram", scale: [1.55, 1.05], limit: 0.25 },
+    "梯形": { normal: [0.7, 1, 0.4], offset: 0.6, shape: "trapezoid", scale: [1.65, 1.0], limit: 0.25 },
+    "五边形": { normal: [1, 1, 1], offset: 0.45, shape: "pentagon", scale: [1.45, 0.98], limit: 0.12 },
     "六边形": { normal: [1, 1, 1], offset: 0, shape: "hexagon", scale: [1.5, 0.9], limit: 0.45 },
     "圆": { normal: [0, 1, 0], offset: 0, shape: "circle", scale: [1, 1], limit: 0.7, impossible: true },
     "椭圆": { normal: [0.35, 1, 0.15], offset: 0, shape: "ellipse", scale: [1.28, 0.68], limit: 0.58, impossible: true },
@@ -385,7 +385,7 @@ const SECTION_3D_PRESETS = {
     "圆": { normal: [0, 1, 0], offset: 0, shape: "circle", scale: [1.25, 1.25], limit: 0.9 },
     "椭圆": { normal: [0.55, 1, 0], offset: 0, shape: "ellipse", scale: [1.65, 1.05], limit: 0.72 },
     "矩形": { normal: [1, 0, 0], offset: 0, shape: "rectangle", scale: [1.35, 1.85], limit: 0.82 },
-    "带弧边截面": { normal: [1, 0, 0], offset: 0.42, shape: "arc", scale: [1.1, 1.05], limit: 0.38 },
+    "带弧边截面": { normal: [1, 1, 0], offset: 1.05, shape: "arc", scale: [1.1, 1.05], limit: 0.12 },
     "纯三角形": { normal: [0.4, 1, 0.1], offset: 0, shape: "triangle", scale: [1.15, 1.0], limit: 0.55, impossible: true },
     "纯五边形": { normal: [0.3, 1, 0.15], offset: 0, shape: "pentagon", scale: [1.12, 0.95], limit: 0.55, impossible: true },
     "纯六边形": { normal: [0.3, 1, 0.15], offset: 0, shape: "hexagon", scale: [1.12, 0.95], limit: 0.55, impossible: true },
@@ -404,7 +404,7 @@ const SECTION_3D_PRESETS = {
     "三角形": { normal: [1, 0, 0], offset: 0, shape: "triangle", scale: [1.15, 1.5], limit: 0.35 },
     "四边形": { normal: [0.4, 1, 0.25], offset: -0.15, shape: "quad", scale: [1.2, 0.9], limit: 0.45 },
     "梯形": { normal: [0.35, 1, 0], offset: -0.18, shape: "trapezoid", scale: [1.2, 0.88], limit: 0.45 },
-    "五边形": { normal: [0.55, 1, 0.25], offset: -0.1, shape: "pentagon", scale: [1.05, 0.86], limit: 0.4 },
+    "五边形": { normal: [1, 1, 1], offset: -0.2, shape: "pentagon", scale: [1.05, 0.86], limit: 0.25 },
     "圆": { normal: [0, 1, 0], offset: -0.2, shape: "circle", scale: [0.95, 0.95], limit: 0.45, impossible: true },
     "椭圆": { normal: [0.35, 1, 0.15], offset: -0.15, shape: "ellipse", scale: [1.18, 0.72], limit: 0.45, impossible: true },
     "曲边图形": { normal: [0.35, 1, 0.15], offset: -0.15, shape: "arc", scale: [1.18, 0.75], limit: 0.45, impossible: true },
@@ -795,7 +795,8 @@ function classifySectionPoints(points, normal, selectedLabel, solidId) {
   if (points.length === 6) return "六边形";
   if (points.length > 12) {
     if (selectedLabel.includes("圆")) return selectedLabel;
-    if (selectedLabel.includes("弧") || selectedLabel.includes("曲")) return "曲边截面";
+    if (selectedLabel.includes("弧") || selectedLabel.includes("曲边")) return selectedLabel;
+    if (selectedLabel.includes("曲")) return "曲边截面";
   }
   return `${points.length}边形`;
 }

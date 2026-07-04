@@ -8,7 +8,7 @@
 | 项目 | 当前结果 |
 |---|---|
 | 当前阶段 | M5A 考公立体图推动态讲解产品规划 |
-| 已完成 | 110 项 |
+| 已完成 | 111 项 |
 | 进行中 | 0 项 |
 | 下一项 | LESSON-015 重做手动探索为滑动式截面验证 |
 | 冻结基线 | `csg-section-v6-interactive` |
@@ -747,6 +747,12 @@
   - 验收：项目根目录必须有 `错误复盘.md` 记录“页面验证不等于数学事实验证”；正方体/长方体三角截面分类不得因接近 90 度被误判成“直角三角形”；专项测试必须覆盖盒体三角形禁用直角误判；状态文件写清上一轮哪里没改完
   - 结果：已新增项目根目录 `错误复盘.md`，记录上一轮把页面验收说成数学事实验收的错误；`classifyTriangle` 增加 `solidId` 参数，正方体/长方体三角截面不再因接近 90 度被误判为“直角三角形”；`classifySectionPoints` 调用已传入 `state.solidId`；专项测试新增盒体禁用直角误判源码断言
   - 验收证据：`git diff --check` 通过；`node --check section-foundation.js` 通过；`node --experimental-loader ./tests/three-absolute-loader.mjs --test tests/reasoning-lesson-layout.test.mjs` 13/13 通过；应用浏览器点击正方体“直角三角形”后 `actual=等边三角形`、实时截面提示“不是直角三角形”、控制台 error/warning 为空
+  - 提交：本任务所在提交
+- [x] ● LESSON-014N fix: 全量校准基础截面真实形状
+  - 依赖：LESSON-014M
+  - 验收：浏览器自动点击基础截面页 44 个截面卡片，缩略图、大 3D、实时截面三者必须与标签一致；正方体长方形、长方体三角形/平行四边形/梯形/五边形、圆柱带弧边截面、棱锥五边形这 7 个已发现错位项必须修正；新增真实几何矩阵测试，防止只靠文案和 DOM 测试漏错；错误复盘补充“全量矩阵验证”要求
+  - 结果：已修正 7 个错位预设，新增 `tests/foundation-section-presets.test.mjs` 真实几何矩阵测试，浏览器自动点击 44 个截面卡片全部通过
+  - 验收证据：`node --check section-foundation.js` 通过；`node --experimental-loader ./tests/three-absolute-loader.mjs --test tests/foundation-section-presets.test.mjs tests/reasoning-lesson-layout.test.mjs` 15/15 通过；`npm run test:geometry` 562/562 通过；浏览器矩阵 44/44 通过且控制台 error/warn 为空；`curl -I http://localhost:8089/section-foundation.html` 返回 200
   - 提交：本任务所在提交
 - [ ] ○ LESSON-015 feat: 重做手动探索为滑动式截面验证
   - 依赖：LESSON-014R

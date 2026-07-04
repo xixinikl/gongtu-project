@@ -7,20 +7,21 @@
 ## 当前任务
 
 - 状态：● 已完成
-- 编号：LESSON-014M
-- 任务：`fix: 补项目错误复盘并收紧盒体直角三角形验证`
+- 编号：LESSON-014N
+- 任务：`fix: 全量校准基础截面真实形状`
 
 ## 本轮结论
 
-- 你问“项目中犯的错误改了没”是对的：上一轮只把错误写入了 Skill 仓库，没有把公途项目里的具体复盘和代码边界补完。
-- 已新增项目根目录 `错误复盘.md`，记录“页面验证不等于数学事实验证”。
-- 已修正 `section-foundation.js`：`classifyTriangle` 现在接收 `solidId`，正方体/长方体三角截面不再因为接近 90 度被误判成“直角三角形”。
-- 已更新专项测试，检查盒体类必须禁用直角三角形误判，并检查 `classifySectionPoints` 传入 `state.solidId`。
+- 已修正 7 个基础截面错位项：正方体长方形；长方体三角形、平行四边形、梯形、五边形；圆柱带弧边截面；棱锥五边形。
+- 已新增真实几何矩阵测试，读取 `SHAPES` 和 `SECTION_3D_PRESETS` 后用 Three.js 求真实交线，不再只靠源码关键词和少量按钮验收。
+- 已把“局部验证不能替代全量截面矩阵”写入项目错误复盘。
+- 已重启本地 8089 静态服务，`http://localhost:8089/section-foundation.html` 可打开。
 
 ## 交付文件
 
 - `section-foundation.js`
-- `tests/reasoning-lesson-layout.test.mjs`
+- `section-foundation.html`
+- `tests/foundation-section-presets.test.mjs`
 - `错误复盘.md`
 - 审计：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
 
@@ -30,10 +31,10 @@ LESSON-015：重做手动探索为更丝滑的滑动式截面验证。
 
 ## 验收证据
 
-- 已通过：`git diff --check` 未发现空白错误。
 - 已通过：`node --check section-foundation.js`。
-- 已通过：`node --experimental-loader ./tests/three-absolute-loader.mjs --test tests/reasoning-lesson-layout.test.mjs`，13/13 通过。
-- 已通过：应用浏览器点击正方体“直角三角形”后，大 3D `actual=等边三角形`、`vertices=3`，实时截面提示“正方体当前真实截面：等边三角形，不是直角三角形。”
-- 已通过：应用浏览器控制台 error/warning 为空。
+- 已通过：`node --experimental-loader ./tests/three-absolute-loader.mjs --test tests/foundation-section-presets.test.mjs tests/reasoning-lesson-layout.test.mjs`，15/15 通过。
+- 已通过：`npm run test:geometry`，562/562 通过。
+- 已通过：浏览器自动点击 `/section-foundation.html?lesson014n=1` 的 44 个截面卡片，44/44 通过，控制台 error/warn 为空。
+- 已通过：`curl -I http://localhost:8089/section-foundation.html` 返回 200。
 - 本地提交：本任务所在提交。
-- 推送状态：本任务完成后推送到 `origin/feature/csg-v2-integration`。
+- 推送状态：完成提交后同步推送到 `origin/feature/csg-v2-integration`。
