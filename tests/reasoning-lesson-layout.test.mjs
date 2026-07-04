@@ -5,6 +5,9 @@ import test from "node:test";
 const htmlUrl = new URL("../reasoning-lesson.html", import.meta.url);
 const cssUrl = new URL("../reasoning-lesson.css", import.meta.url);
 const scriptUrl = new URL("../reasoning-lesson.js", import.meta.url);
+const foundationHtmlUrl = new URL("../section-foundation.html", import.meta.url);
+const foundationCssUrl = new URL("../section-foundation.css", import.meta.url);
+const foundationScriptUrl = new URL("../section-foundation.js", import.meta.url);
 const caseUrls = [
   new URL("../data/reasoning-cases/cone-box-001.json", import.meta.url),
   new URL("../data/reasoning-cases/pyramid-cylinder-001.json", import.meta.url),
@@ -14,6 +17,7 @@ test("student lesson keeps the three products as independent entry points", asyn
   const html = await readFile(htmlUrl, "utf8");
 
   assert.match(html, /href="\/reasoning-lesson\.html"/);
+  assert.match(html, /href="\/section-foundation\.html"/);
   assert.match(html, /href="\/geometry\.html"/);
   assert.match(html, /href="\/csg-section\.html"/);
   assert.doesNotMatch(html, /WASM 状态|三角面数量|模板调试/);
@@ -126,5 +130,25 @@ test("every golden option has a human-readable constraint path", async () => {
         assert.ok(constraintIds.has(id), `${caseData.id}/${option.id} unknown ${id}`);
       }
     }
+  }
+});
+
+test("foundation page lists base solids and demo entry points", async () => {
+  const [html, css, script] = await Promise.all([
+    readFile(foundationHtmlUrl, "utf8"),
+    readFile(foundationCssUrl, "utf8"),
+    readFile(foundationScriptUrl, "utf8"),
+  ]);
+
+  assert.match(html, /id="solid-list"/);
+  assert.match(html, /id="knowledge-grid"/);
+  assert.match(html, /id="demo-buttons"/);
+  assert.match(html, /href="\/reasoning-lesson\.html"/);
+  assert.match(css, /\.foundation-shell/);
+  for (const word of ["正方体", "长方体", "圆柱", "圆锥", "棱锥"]) {
+    assert.match(script, new RegExp(word));
+  }
+  for (const word of ["六边形", "椭圆", "不能直接截出", "一键演示"]) {
+    assert.match(script + html, new RegExp(word));
   }
 });

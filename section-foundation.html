@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#eef4f2">
+  <title>基础截面 · 立体图推</title>
+  <link rel="stylesheet" href="/section-foundation.css?v=20260704a">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/reasoning-lesson.html" aria-label="返回动态解题">
+      <span class="brand-mark">公途</span>
+      <span>
+        <strong>基础截面训练</strong>
+        <small>先知道能截什么，再判断题目</small>
+      </span>
+    </a>
+    <nav class="product-links" aria-label="空间几何产品">
+      <a href="/reasoning-lesson.html">动态解题</a>
+      <a class="active" href="/section-foundation.html">基础截面</a>
+      <a href="/geometry.html">几何实验室</a>
+      <a href="/csg-section.html">CSG 工作台</a>
+    </nav>
+  </header>
+
+  <main class="foundation-shell">
+    <section class="solid-panel panel" aria-labelledby="solid-heading">
+      <div class="panel-heading">
+        <span class="eyebrow">基础图形</span>
+        <span class="count-badge">5 类</span>
+      </div>
+      <h1 id="solid-heading">常见几何体截面</h1>
+      <div id="solid-list" class="solid-list" role="list"></div>
+    </section>
+
+    <section class="knowledge-panel panel" aria-labelledby="knowledge-heading">
+      <div class="panel-heading">
+        <span class="eyebrow">能与不能</span>
+        <span id="solid-tag" class="count-badge">正方体</span>
+      </div>
+      <h2 id="knowledge-heading">先把底层规则看清楚</h2>
+      <div id="knowledge-grid" class="knowledge-grid"></div>
+      <div class="rule-card">
+        <span>判断口诀</span>
+        <strong id="solid-rule"></strong>
+      </div>
+    </section>
+
+    <section class="demo-panel panel" aria-labelledby="demo-heading">
+      <div class="panel-heading">
+        <span class="eyebrow">一键演示</span>
+        <span id="demo-verdict" class="count-badge">可行</span>
+      </div>
+      <h2 id="demo-heading">看截面为什么成立</h2>
+      <div id="demo-buttons" class="demo-buttons" role="list"></div>
+      <div class="demo-stage">
+        <figure>
+          <figcaption>切法</figcaption>
+          <div id="demo-cut" class="demo-drawing"></div>
+        </figure>
+        <figure>
+          <figcaption>截面</figcaption>
+          <div id="demo-section" class="demo-drawing"></div>
+        </figure>
+      </div>
+      <article class="explain-card">
+        <span id="demo-label"></span>
+        <strong id="demo-title"></strong>
+        <p id="demo-copy"></p>
+      </article>
+    </section>
+  </main>
+
+  <script type="module" src="/section-foundation.js?v=20260704a"></script>
+  <noscript>基础截面训练需要启用 JavaScript。</noscript>
+</body>
+</html>

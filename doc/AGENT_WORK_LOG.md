@@ -46,6 +46,19 @@
 - 遗留风险：基础截面知识库尚未做成独立训练入口；第二题仍未接入原题截图
 - 建议下一任务：`LESSON-014 feat: 建立基础截面知识库与训练入口`
 
+## 2026-07-04 · Codex · LESSON-014
+
+- 分支：`feature/csg-v2-integration`
+- 基线提交：`728f18b`
+- 完成任务：`feat: 建立基础截面知识库与训练入口`
+- 修改的交付文件：`section-foundation.html`、`section-foundation.css`、`section-foundation.js`、`reasoning-lesson.html`、`tests/reasoning-lesson-layout.test.mjs`
+- 执行的测试：`git diff --check`；`node --check section-foundation.js`；`node --experimental-loader ./tests/three-absolute-loader.mjs --test tests/reasoning-lesson-layout.test.mjs`；浏览器打开 `/section-foundation.html` 并切换圆柱不可行演示
+- 测试结果：空白检查通过；JS 语法通过；专项测试 10/10 通过；浏览器默认正方体基础页与圆柱不可行演示均通过，控制台无错误
+- 任务提交：本任务所在提交
+- 已推送远端：否，本机缺少 `credential-osxkeychain` 且 GitHub HTTPS 凭据未配置，`git push origin feature/csg-v2-integration` 返回 `could not read Username for 'https://github.com'`
+- 遗留风险：基础页目前是 2D 教学演示，后续若要和 V2 真实截面联动，可在 LESSON-015 或单独任务里接 Three.js
+- 建议下一任务：`LESSON-015 feat: 重做手动探索为滑动式截面验证`
+
 ## 2026-06-29 · Agent 1 · 安全交接检查点
 
 - 分支：`feature/spatial-geometry-lab`
