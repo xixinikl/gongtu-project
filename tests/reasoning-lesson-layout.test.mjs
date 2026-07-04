@@ -181,13 +181,16 @@ test("foundation visual tiles are tied to the current solid", async () => {
     readFile(foundationScriptUrl, "utf8"),
   ]);
 
-  assert.match(script, /SOLID_SECTION_DRAWING/);
-  assert.match(script, /drawingForSection\(solidId, item\)/);
-  assert.match(script, /"六边形": "cubeHexCut"/);
-  assert.match(script, /"椭圆": "cylinderEllipseCut"/);
-  assert.match(script, /"矩形": "cylinderRectangleCut"/);
-  assert.match(script, /"带弧边截面": "cylinderArcCut"/);
-  assert.match(script, /section-line/);
+  assert.match(script, /renderSectionThumb3d\(solidId, item, verdict\)/);
+  assert.match(script, /collectPlaneSectionPoints\(solidGeometry, normal, offset\)/);
+  assert.match(script, /geometryEdgeSegments/);
+  assert.match(script, /data-real-thumb="true"/);
+  assert.match(script, /data-section-vertices/);
+  assert.doesNotMatch(script, /drawingForSection\(solidId, item\)/);
+  assert.match(css, /\.real-section-thumb \.thumb-section/);
+  assert.match(css, /fill: rgba\(228, 86, 27, 0\.58\)/);
+  assert.match(css, /\.thumb-solid-edge/);
+  assert.match(css, /\.thumb-plane/);
   assert.match(css, /grid-template-columns: repeat\(auto-fit, minmax\(146px, 1fr\)\)/);
 });
 
@@ -211,6 +214,8 @@ test("foundation page uses an interactive 3D section viewer", async () => {
   assert.match(script, /collectPlaneSectionPoints/);
   assert.match(script, /makeSectionGeometryFromPoints/);
   assert.match(script, /updateRealSectionGeometry/);
+  assert.match(script, /renderOrder = 8/);
+  assert.match(script, /depthTest: false/);
   assert.match(script, /dataset\.realSection = "true"/);
   assert.match(script, /dataset\.sectionVertexCount/);
   assert.match(script, /"直角三角形": \{ normal: \[0\.02, 0\.017, 1\]/);

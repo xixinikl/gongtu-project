@@ -231,7 +231,7 @@ h2 { margin: 12px 0 14px; font-size: 20px; }
   place-items: center;
   width: 142px;
   max-width: 100%;
-  height: 98px;
+  height: 108px;
   border-radius: 9px;
   background:
     linear-gradient(rgba(52, 111, 208, 0.035) 1px, transparent 1px),
@@ -243,7 +243,64 @@ h2 { margin: 12px 0 14px; font-size: 20px; }
 .section-thumb svg {
   width: 136px;
   max-width: 100%;
-  height: 92px;
+  height: 102px;
+}
+
+.real-section-thumb svg {
+  width: 142px;
+  height: 104px;
+}
+
+.real-section-thumb .thumb-solid-body {
+  fill: rgba(214, 243, 237, 0.76);
+  stroke: rgba(35, 52, 48, 0.42);
+  stroke-width: 1.8;
+}
+
+.real-section-thumb .thumb-plane {
+  fill: rgba(52, 111, 208, 0.2);
+  stroke: rgba(52, 111, 208, 0.5);
+  stroke-width: 2;
+}
+
+.real-section-thumb .thumb-section {
+  fill: rgba(228, 86, 27, 0.58);
+  stroke: #d85418;
+  stroke-width: 2.4;
+  stroke-linejoin: round;
+}
+
+.real-section-thumb .thumb-section-outline {
+  fill: none;
+  stroke: #a33b0f;
+  stroke-width: 3.2;
+  stroke-linejoin: round;
+}
+
+.real-section-thumb .thumb-solid-edge {
+  stroke: #22332f;
+  stroke-width: 2.35;
+  stroke-linecap: round;
+}
+
+.section-tile[data-verdict="cannot"] .real-section-thumb .thumb-plane {
+  fill: rgba(182, 74, 66, 0.12);
+  stroke: rgba(182, 74, 66, 0.32);
+}
+
+.section-tile[data-verdict="cannot"] .real-section-thumb .thumb-section {
+  fill: rgba(182, 74, 66, 0.38);
+  stroke: #b64a42;
+}
+
+.section-tile[data-verdict="cannot"] .real-section-thumb .thumb-section-outline {
+  stroke: #8f332e;
+}
+
+.real-section-thumb .thumb-nope {
+  stroke: #b64a42;
+  stroke-width: 7;
+  stroke-linecap: round;
 }
 
 .rule-card, .explain-card {

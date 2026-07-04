@@ -253,91 +253,6 @@ const DRAWINGS = {
   arcSection: `<svg viewBox="0 0 320 220"><path class="section" d="M82 152 L238 152 C222 80 98 80 82 152 Z"/></svg>`,
 };
 
-const SECTION_DRAWING_BY_LABEL = {
-  "等边三角形": "triangle",
-  "直角三角形": "rightTriangle",
-  "三角形": "triangle",
-  "过顶点等腰三角形": "triangle",
-  "正方形": "square",
-  "长方形": "rectangle",
-  "矩形": "rectangle",
-  "平行四边形": "parallelogram",
-  "四边形": "quad",
-  "梯形": "trapezoid",
-  "五边形": "pentagon",
-  "六边形": "hexagon",
-  "圆": "circle",
-  "椭圆": "ellipse",
-  "圆锥曲线": "ellipse",
-  "带弧边截面": "arcSection",
-  "曲边图形": "curvedNo",
-  "任意曲边": "curvedNo",
-  "非过顶点曲边截面": "arcSection",
-  "纯三角形": "triangleNo",
-  "纯五边形": "pentagon",
-  "纯六边形": "hexagonNo",
-  "只有直边的复杂多边形": "hexagonNo",
-  "超过 6 条边": "tooManyNo",
-  "纯正方形": "square",
-  "无曲线多边形": "hexagonNo",
-};
-
-const SOLID_SECTION_DRAWING = {
-  cube: {
-    "等边三角形": "cubeTriangleCut",
-    "直角三角形": "cubeRightTriangleCut",
-    "正方形": "cubeSquareCut",
-    "长方形": "cubeRectangleCut",
-    "梯形": "cubeTrapezoidCut",
-    "五边形": "cubePentagonCut",
-    "六边形": "cubeHexCut",
-    "圆": "cubeCircleCut",
-    "椭圆": "cubeCircleCut",
-    "曲边图形": "cubeCurvedCut",
-    "超过 6 条边": "cubeTooManyCut",
-  },
-  cuboid: {
-    "直角三角形": "cuboidTriangleCut",
-    "矩形": "cuboidRectangleCut",
-    "平行四边形": "cuboidParallelogramCut",
-    "梯形": "cuboidTrapezoidCut",
-    "五边形": "cuboidPentagonCut",
-    "六边形": "cuboidHexCut",
-    "圆": "cuboidEllipseCut",
-    "椭圆": "cuboidEllipseCut",
-    "任意曲边": "cuboidCurvedCut",
-    "超过 6 条边": "cuboidTooManyCut",
-  },
-  cylinder: {
-    "圆": "cylinderCircleCut",
-    "椭圆": "cylinderEllipseCut",
-    "矩形": "cylinderRectangleCut",
-    "带弧边截面": "cylinderArcCut",
-    "纯三角形": "cylinderTriangleCut",
-    "纯五边形": "cylinderHexCut",
-    "纯六边形": "cylinderHexCut",
-    "只有直边的复杂多边形": "cylinderHexCut",
-  },
-  cone: {
-    "圆": "coneCircleCut",
-    "椭圆": "coneEllipseCut",
-    "过顶点等腰三角形": "coneTriangleCut",
-    "非过顶点曲边截面": "coneCurveCut",
-    "纯正方形": "coneSquareCut",
-    "纯六边形": "coneHexCut",
-    "无曲线多边形": "coneHexCut",
-  },
-  pyramid: {
-    "三角形": "pyramidTriangleCut",
-    "四边形": "pyramidQuadCut",
-    "梯形": "pyramidTrapezoidCut",
-    "五边形": "pyramidPentagonCut",
-    "圆": "pyramidCircleCut",
-    "椭圆": "pyramidEllipseCut",
-    "曲边图形": "pyramidCurvedCut",
-  },
-};
-
 const elements = {
   solidList: document.querySelector("#solid-list"),
   solidTag: document.querySelector("#solid-tag"),
@@ -494,12 +409,6 @@ const SECTION_3D_PRESETS = {
   },
 };
 
-function drawingForSection(solidId, label) {
-  const solidDrawing = SOLID_SECTION_DRAWING[solidId]?.[label];
-  if (solidDrawing) return DRAWINGS[solidDrawing];
-  return DRAWINGS[SECTION_DRAWING_BY_LABEL[label] ?? "rectangle"];
-}
-
 function makeShapeGeometry(type, sx = 1, sy = 1) {
   if (type === "circle") {
     const geometry = new THREE.CircleGeometry(0.5, 72);
@@ -629,7 +538,144 @@ function collectPlaneSectionPoints(geometry, normal, offset) {
   return orderSectionPoints(points, normal);
 }
 
-function makeSectionGeometryFromPoints(points, normal, inset = 0.004) {
+function geometryVertices(geometry) {
+  const vertices = [];
+  const position = geometry.attributes.position;
+  for (let i = 0; i < position.count; i += 1) {
+    vertices.push(new THREE.Vector3(position.getX(i), position.getY(i), position.getZ(i)));
+  }
+  return vertices;
+}
+
+function geometryEdgeSegments(geometry) {
+  const thresholdAngle = geometry.type === "BoxGeometry" ? 1 : 16;
+  const edgeGeometry = new THREE.EdgesGeometry(geometry, thresholdAngle);
+  const position = edgeGeometry.attributes.position;
+  const segments = [];
+  for (let i = 0; i < position.count; i += 2) {
+    segments.push([
+      new THREE.Vector3(position.getX(i), position.getY(i), position.getZ(i)),
+      new THREE.Vector3(position.getX(i + 1), position.getY(i + 1), position.getZ(i + 1)),
+    ]);
+  }
+  edgeGeometry.dispose();
+  return segments;
+}
+
+function projectedThumbRaw(point) {
+  return {
+    x: point.x * 78 - point.z * 48,
+    y: -point.y * 76 + point.x * 18 + point.z * 20,
+  };
+}
+
+function makeThumbProjector(points) {
+  const rawPoints = points.map(projectedThumbRaw);
+  const xs = rawPoints.map((point) => point.x);
+  const ys = rawPoints.map((point) => point.y);
+  const minX = Math.min(...xs);
+  const maxX = Math.max(...xs);
+  const minY = Math.min(...ys);
+  const maxY = Math.max(...ys);
+  const width = Math.max(maxX - minX, 1);
+  const height = Math.max(maxY - minY, 1);
+  const scale = Math.min(250 / width, 164 / height);
+  const centerX = (minX + maxX) / 2;
+  const centerY = (minY + maxY) / 2;
+
+  return (point) => {
+    const raw = projectedThumbRaw(point);
+    return {
+      x: 160 + (raw.x - centerX) * scale,
+      y: 110 + (raw.y - centerY) * scale,
+    };
+  };
+}
+
+function uniqueProjectedPoints(points) {
+  const seen = new Set();
+  const unique = [];
+  points.forEach((point) => {
+    const key = `${Math.round(point.x * 10)}:${Math.round(point.y * 10)}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    unique.push(point);
+  });
+  return unique;
+}
+
+function convexHull2d(points) {
+  const sorted = uniqueProjectedPoints(points).sort((a, b) => (a.x === b.x ? a.y - b.y : a.x - b.x));
+  if (sorted.length <= 2) return sorted;
+  const cross = (origin, a, b) => (a.x - origin.x) * (b.y - origin.y) - (a.y - origin.y) * (b.x - origin.x);
+  const lower = [];
+  sorted.forEach((point) => {
+    while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], point) <= 0) lower.pop();
+    lower.push(point);
+  });
+  const upper = [];
+  [...sorted].reverse().forEach((point) => {
+    while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], point) <= 0) upper.pop();
+    upper.push(point);
+  });
+  return lower.slice(0, -1).concat(upper.slice(0, -1));
+}
+
+function pointList(points) {
+  return points.map((point) => `${point.x.toFixed(1)},${point.y.toFixed(1)}`).join(" ");
+}
+
+function thumbPlaneCorners(normal, offset, solidId) {
+  const { u, v } = planeBasis(normal);
+  const center = normal.clone().multiplyScalar(offset);
+  const sizeBySolid = {
+    cube: [1.35, 1.05],
+    cuboid: [1.75, 1.05],
+    cylinder: [1.35, 1.05],
+    cone: [1.24, 1.0],
+    pyramid: [1.2, 1.0],
+  };
+  const [halfWidth, halfHeight] = sizeBySolid[solidId] ?? sizeBySolid.cube;
+  return [
+    center.clone().addScaledVector(u, -halfWidth).addScaledVector(v, -halfHeight),
+    center.clone().addScaledVector(u, halfWidth).addScaledVector(v, -halfHeight),
+    center.clone().addScaledVector(u, halfWidth).addScaledVector(v, halfHeight),
+    center.clone().addScaledVector(u, -halfWidth).addScaledVector(v, halfHeight),
+  ];
+}
+
+function renderSectionThumb3d(solidId, label, verdict) {
+  const shape = SHAPES[solidId];
+  const preset = SECTION_3D_PRESETS[solidId]?.[label] ?? SECTION_3D_PRESETS[solidId]?.[shape.can[0]];
+  const normal = new THREE.Vector3(...preset.normal).normalize();
+  const offset = preset.offset ?? 0;
+  const solidGeometry = makeSolidGeometry(solidId);
+  const solidVertices = geometryVertices(solidGeometry);
+  const sectionPoints = collectPlaneSectionPoints(solidGeometry, normal, offset);
+  const planeCorners = thumbPlaneCorners(normal, offset, solidId);
+  const edgeSegments = geometryEdgeSegments(solidGeometry);
+  const project = makeThumbProjector([...solidVertices, ...sectionPoints]);
+  const solidHull = convexHull2d(solidVertices.map(project));
+  const plane2d = planeCorners.map(project);
+  const section2d = sectionPoints.map(project);
+  const edgeLines = edgeSegments.map(([start, end]) => {
+    const a = project(start);
+    const b = project(end);
+    return `<line class="thumb-solid-edge" x1="${a.x.toFixed(1)}" y1="${a.y.toFixed(1)}" x2="${b.x.toFixed(1)}" y2="${b.y.toFixed(1)}"></line>`;
+  }).join("");
+  solidGeometry.dispose();
+
+  return `<svg class="real-section-thumb-svg" viewBox="0 0 320 220" role="img" aria-label="${SHAPES[solidId].name}${label}真实切面缩略图" data-solid="${solidId}" data-label="${label}" data-verdict="${verdict}" data-section-vertices="${sectionPoints.length}">
+    <polygon class="thumb-solid-body" points="${pointList(solidHull)}"></polygon>
+    <polygon class="thumb-plane" points="${pointList(plane2d)}"></polygon>
+    ${section2d.length >= 3 ? `<polygon class="thumb-section" points="${pointList(section2d)}"></polygon>` : ""}
+    ${edgeLines}
+    ${section2d.length >= 3 ? `<polyline class="thumb-section-outline" points="${pointList(section2d)} ${section2d[0].x.toFixed(1)},${section2d[0].y.toFixed(1)}"></polyline>` : ""}
+    ${verdict === "cannot" ? '<line class="thumb-nope" x1="88" y1="172" x2="232" y2="48"></line>' : ""}
+  </svg>`;
+}
+
+function makeSectionGeometryFromPoints(points, normal, inset = 0.012) {
   const geometry = new THREE.BufferGeometry();
   if (points.length < 3) {
     geometry.setAttribute("position", new THREE.Float32BufferAttribute([], 3));
@@ -650,7 +696,7 @@ function makeSectionGeometryFromPoints(points, normal, inset = 0.004) {
   return geometry;
 }
 
-function makeSectionOutlineGeometry(points, normal, inset = 0.009) {
+function makeSectionOutlineGeometry(points, normal, inset = 0.018) {
   const geometry = new THREE.BufferGeometry();
   if (points.length < 2) {
     geometry.setAttribute("position", new THREE.Float32BufferAttribute([], 3));
@@ -818,14 +864,17 @@ function buildViewerScene() {
     roughness: 0.72,
     metalness: 0.02,
     side: THREE.DoubleSide,
+    depthWrite: false,
   });
   const solid = new THREE.Mesh(solidGeometry, solidMaterial);
+  solid.renderOrder = 1;
   viewer.root.add(solid);
 
   const edges = new THREE.LineSegments(
     new THREE.EdgesGeometry(solidGeometry),
     new THREE.LineBasicMaterial({ color: 0x22332f, linewidth: 1 })
   );
+  edges.renderOrder = 6;
   viewer.root.add(edges);
 
   viewer.normal = new THREE.Vector3(...preset.normal).normalize();
@@ -843,23 +892,27 @@ function buildViewerScene() {
     depthWrite: false,
   });
   viewer.plane = new THREE.Mesh(planeGeometry, planeMaterial);
+  viewer.plane.renderOrder = 2;
   viewer.root.add(viewer.plane);
 
   const sectionGeometry = new THREE.BufferGeometry();
   const sectionMaterial = new THREE.MeshBasicMaterial({
-    color: preset.impossible ? 0xb64a42 : 0xd85418,
+    color: preset.impossible ? 0xb64a42 : 0xe4561b,
     transparent: true,
-    opacity: 0.72,
+    opacity: preset.impossible ? 0.76 : 0.92,
     side: THREE.DoubleSide,
     depthWrite: false,
+    depthTest: false,
   });
   viewer.section = new THREE.Mesh(sectionGeometry, sectionMaterial);
+  viewer.section.renderOrder = 8;
   viewer.root.add(viewer.section);
 
   viewer.sectionOutline = new THREE.LineSegments(
     new THREE.BufferGeometry(),
-    new THREE.LineBasicMaterial({ color: preset.impossible ? 0x8f332e : 0x9a3a10 })
+    new THREE.LineBasicMaterial({ color: preset.impossible ? 0x8f332e : 0xa33b0f, depthTest: false })
   );
+  viewer.sectionOutline.renderOrder = 9;
   viewer.root.add(viewer.sectionOutline);
 
   const quaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), viewer.normal);
@@ -949,10 +1002,10 @@ function renderViewer() {
 
 function sectionTileList(items, verdict, solidId) {
   return `<div class="section-tile-list">${items.map((item) => {
-    const drawing = drawingForSection(solidId, item);
+    const drawing = renderSectionThumb3d(solidId, item, verdict);
     return `
       <button class="section-tile ${item === state.selectedLabel && verdict === state.selectedVerdict ? "is-selected" : ""}" type="button" data-section-label="${item}" data-section-verdict="${verdict}" data-verdict="${verdict}" aria-pressed="${item === state.selectedLabel && verdict === state.selectedVerdict}">
-        <span class="section-thumb">${drawing}</span>
+        <span class="section-thumb real-section-thumb" data-real-thumb="true">${drawing}</span>
         <strong>${item}</strong>
       </button>`;
   }).join("")}</div>`;

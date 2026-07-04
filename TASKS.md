@@ -724,6 +724,12 @@
   - 结果：已新增 `collectPlaneSectionPoints`、`makeSectionGeometryFromPoints`、`updateRealSectionGeometry`，从 Three.js 几何体三角面边界收集切面交点生成橙色截面；正方体直角三角形参数改为贴近边角的真实三点截面；不可行圆状态在 3D 中显示实际直边截面，实时截面仍提示“不能直接截出”
   - 验收证据：Chrome + Playwright 打开 `/section-foundation.html`，点击“直角三角形”后 `data-real-section=true` 且 `data-section-vertex-count=3`；点击“六边形”后顶点数为 6；点击不可行“圆”后顶点数为 4 且状态为 `cannot`；专项测试 13/13 通过
   - 提交：本任务所在提交
+- [x] ● LESSON-014J fix: 基础截面强化颜色并改真实 3D 缩略图
+  - 依赖：LESSON-014I
+  - 验收：右侧 3D 截面必须有明显橙色填充，不再像只有一圈线；中栏“常见能截出/不能直接截出”卡片不能再使用手绘假图，必须由当前立体和当前切面真实求交后投影成 3D 缩略图；正方体六边形卡片和右侧 3D 都应显示 6 个真实点；正方体直角三角形卡片和右侧 3D 都应显示 3 个真实点
+  - 结果：已删除旧的 `drawingForSection` 手绘截面入口；新增 `renderSectionThumb3d`、`geometryEdgeSegments`、`makeThumbProjector` 等函数，中栏卡片用当前 Three.js 立体几何体与切面求交后生成缩略图；右侧 3D 橙色截面提高不透明度并置于透明模型上层显示；不可行项卡片显示真实能切到的形状并用红色/斜线标出“不等于目标截面”
+  - 验收证据：本地服务 `/section-foundation.html` 加载 `section-foundation.css?v=20260704g` 与 `section-foundation.js?v=20260704j`；浏览器 DOM 显示真实缩略图数量 11；默认正方体六边形 `canvasVertexCount=6`、缩略图 `data-section-vertices=6`、橙色填充 `rgba(228, 86, 27, 0.58)`；点击正方体直角三角形后大 3D 和缩略图均为 3 点真实截面；浏览器控制台无 error/warning；专项测试 13/13 通过
+  - 提交：本任务所在提交
 - [ ] ○ LESSON-015 feat: 重做手动探索为滑动式截面验证
   - 依赖：LESSON-014R
   - 验收：上下滑/滚轮连续扫截面，左右滑连续旋转切面；方向键只作为备用；候选图、真实截面和模型同步更新且不卡顿
