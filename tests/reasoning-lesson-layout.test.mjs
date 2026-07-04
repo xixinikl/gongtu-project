@@ -152,3 +152,24 @@ test("foundation page lists base solids and demo entry points", async () => {
     assert.match(script + html, new RegExp(word));
   }
 });
+
+test("foundation page renders every common section as a visual tile", async () => {
+  const [css, script] = await Promise.all([
+    readFile(foundationCssUrl, "utf8"),
+    readFile(foundationScriptUrl, "utf8"),
+  ]);
+
+  assert.match(script, /sectionTileList/);
+  assert.match(script, /section-tile/);
+  assert.match(css, /\.section-tile-list/);
+  assert.match(css, /\.section-thumb/);
+  for (const word of [
+    "等边三角形",
+    "直角三角形",
+    "平行四边形",
+    "带弧边截面",
+    "斜切必然带曲边",
+  ]) {
+    assert.match(script, new RegExp(word));
+  }
+});

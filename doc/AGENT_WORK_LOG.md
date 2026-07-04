@@ -55,8 +55,21 @@
 - 执行的测试：`git diff --check`；`node --check section-foundation.js`；`node --experimental-loader ./tests/three-absolute-loader.mjs --test tests/reasoning-lesson-layout.test.mjs`；浏览器打开 `/section-foundation.html` 并切换圆柱不可行演示
 - 测试结果：空白检查通过；JS 语法通过；专项测试 10/10 通过；浏览器默认正方体基础页与圆柱不可行演示均通过，控制台无错误
 - 任务提交：本任务所在提交
-- 已推送远端：否，本机缺少 `credential-osxkeychain` 且 GitHub HTTPS 凭据未配置，`git push origin feature/csg-v2-integration` 返回 `could not read Username for 'https://github.com'`
+- 已推送远端：已修复本仓库本地 credential helper，提交后使用 `gh auth git-credential` 推送
 - 遗留风险：基础页目前是 2D 教学演示，后续若要和 V2 真实截面联动，可在 LESSON-015 或单独任务里接 Three.js
+- 建议下一任务：`LESSON-015 feat: 重做手动探索为滑动式截面验证`
+
+## 2026-07-04 · Codex · LESSON-014B
+
+- 分支：`feature/csg-v2-integration`
+- 基线提交：`208abf7`
+- 完成任务：`fix: 基础截面页展示全部常见截面图案`
+- 修改的交付文件：`section-foundation.js`、`section-foundation.css`、`tests/reasoning-lesson-layout.test.mjs`
+- 执行的测试：`git diff --check`；`node --check section-foundation.js`；`node --experimental-loader ./tests/three-absolute-loader.mjs --test tests/reasoning-lesson-layout.test.mjs`；浏览器打开 `/section-foundation.html` 验证正方体和圆柱图案墙
+- 测试结果：空白检查通过；JS 语法通过；专项测试 11/11 通过；正方体 7 个可行图案和 4 个不可行图案均显示 SVG；圆柱显示圆、椭圆、矩形、带弧边截面和“斜切必然带曲边”规则；控制台无错误
+- 任务提交：本任务所在提交
+- 已推送远端：已修复本仓库本地 credential helper，提交后使用 `gh auth git-credential` 推送
+- 遗留风险：当前图案墙仍是 2D 静态教学图，后续可逐步接入真实 V2 切面动画
 - 建议下一任务：`LESSON-015 feat: 重做手动探索为滑动式截面验证`
 
 ## 2026-06-29 · Agent 1 · 安全交接检查点

@@ -2,8 +2,8 @@ const SHAPES = {
   cube: {
     name: "正方体",
     summary: "六个面完全相同，直边截面最多 6 条边。",
-    can: ["三角形", "正方形", "长方形", "梯形", "五边形", "六边形"],
-    cannot: ["圆", "椭圆", "曲边图形", "超过 6 条边的单一凸多边形"],
+    can: ["等边三角形", "直角三角形", "正方形", "长方形", "梯形", "五边形", "六边形"],
+    cannot: ["圆", "椭圆", "曲边图形", "超过 6 条边"],
     rule: "正方体每个面都是平面，所以截面只能由直线段围成；切到几个面，就最多出现几条边。",
     icon: "cube",
     demos: [
@@ -39,8 +39,8 @@ const SHAPES = {
   cuboid: {
     name: "长方体",
     summary: "比例不同，但截面仍然只由直线段组成。",
-    can: ["三角形", "矩形", "平行四边形", "梯形", "五边形", "六边形"],
-    cannot: ["圆", "椭圆", "任意曲边", "超过 6 条边的单一凸多边形"],
+    can: ["直角三角形", "矩形", "平行四边形", "梯形", "五边形", "六边形"],
+    cannot: ["圆", "椭圆", "任意曲边", "超过 6 条边"],
     rule: "长方体与正方体同属六面体，能出六边形，但比例会拉长或压扁。",
     icon: "cuboid",
     demos: [
@@ -78,7 +78,7 @@ const SHAPES = {
     summary: "有曲面，常见圆、椭圆和轴向矩形。",
     can: ["圆", "椭圆", "矩形", "带弧边截面"],
     cannot: ["纯三角形", "纯五边形", "纯六边形", "只有直边的复杂多边形"],
-    rule: "圆柱的曲边来自侧面；垂直轴线是圆，斜切是椭圆，平行轴线常见矩形。",
+    rule: "圆柱的曲边来自侧面；垂直轴线是圆，斜切必然带曲边并形成椭圆，平行轴线常见矩形。",
     icon: "cylinder",
     demos: [
       {
@@ -113,8 +113,8 @@ const SHAPES = {
   cone: {
     name: "圆锥",
     summary: "水平圆、斜切椭圆，过顶点会出现母线三角形。",
-    can: ["圆", "椭圆", "过顶点三角形", "圆锥曲线"],
-    cannot: ["纯正方形", "纯六边形", "无曲线的多边形"],
+    can: ["圆", "椭圆", "过顶点等腰三角形", "非过顶点曲边截面"],
+    cannot: ["纯正方形", "纯六边形", "无曲线多边形"],
     rule: "圆锥截面要先问是否过顶点：过顶点看直母线，不过顶点常见圆或椭圆。",
     icon: "cone",
     demos: [
@@ -208,7 +208,12 @@ const DRAWINGS = {
   pyramidQuadCut: `<svg viewBox="0 0 320 220"><path class="solid" d="M160 32 L82 176 L238 176 Z"/><path class="solid" d="M160 32 L258 126 L238 176"/><path class="plane" d="M106 134 L145 82 L218 122 L198 166 Z"/></svg>`,
   pyramidEllipseCut: `<svg viewBox="0 0 320 220"><path class="solid" d="M160 32 L82 176 L238 176 Z"/><path class="solid" d="M160 32 L258 126 L238 176"/><ellipse class="plane" cx="160" cy="126" rx="65" ry="32"/><line class="nope" x1="105" y1="166" x2="218" y2="77"/></svg>`,
   triangle: `<svg viewBox="0 0 320 220"><path class="section" d="M160 48 L235 174 L85 174 Z"/></svg>`,
+  rightTriangle: `<svg viewBox="0 0 320 220"><path class="section" d="M96 58 L96 168 L238 168 Z"/></svg>`,
   rectangle: `<svg viewBox="0 0 320 220"><path class="section" d="M82 70 L238 70 L238 160 L82 160 Z"/></svg>`,
+  square: `<svg viewBox="0 0 320 220"><path class="section" d="M104 54 L216 54 L216 166 L104 166 Z"/></svg>`,
+  trapezoid: `<svg viewBox="0 0 320 220"><path class="section" d="M112 66 L207 66 L242 158 L78 158 Z"/></svg>`,
+  parallelogram: `<svg viewBox="0 0 320 220"><path class="section" d="M112 70 L246 70 L208 158 L74 158 Z"/></svg>`,
+  pentagon: `<svg viewBox="0 0 320 220"><path class="section" d="M160 48 L232 94 L204 168 L116 168 L88 94 Z"/></svg>`,
   quad: `<svg viewBox="0 0 320 220"><path class="section" d="M82 142 L130 60 L240 92 L218 168 Z"/></svg>`,
   hexagon: `<svg viewBox="0 0 320 220"><path class="section" d="M101 110 L132 58 L189 58 L219 110 L189 162 L132 162 Z"/></svg>`,
   wideHexagon: `<svg viewBox="0 0 320 220"><path class="section" d="M82 112 L130 62 L215 72 L244 112 L196 160 L112 150 Z"/></svg>`,
@@ -216,8 +221,40 @@ const DRAWINGS = {
   ellipse: `<svg viewBox="0 0 320 220"><ellipse class="section" cx="160" cy="110" rx="88" ry="48"/></svg>`,
   circleNo: `<svg viewBox="0 0 320 220"><circle class="section" cx="160" cy="110" r="62"/><line class="nope" x1="103" y1="167" x2="217" y2="53"/></svg>`,
   ellipseNo: `<svg viewBox="0 0 320 220"><ellipse class="section" cx="160" cy="110" rx="88" ry="48"/><line class="nope" x1="92" y1="171" x2="229" y2="49"/></svg>`,
+  curvedNo: `<svg viewBox="0 0 320 220"><path class="curve" d="M78 136 C116 52 203 54 242 136"/><line class="nope" x1="96" y1="170" x2="224" y2="50"/></svg>`,
+  tooManyNo: `<svg viewBox="0 0 320 220"><path class="section" d="M160 48 L207 62 L238 102 L232 150 L190 178 L140 178 L88 148 L82 98 L112 62 Z"/><line class="nope" x1="98" y1="174" x2="224" y2="48"/></svg>`,
   triangleNo: `<svg viewBox="0 0 320 220"><path class="section" d="M160 48 L235 174 L85 174 Z"/><line class="nope" x1="103" y1="167" x2="217" y2="53"/></svg>`,
   hexagonNo: `<svg viewBox="0 0 320 220"><path class="section" d="M101 110 L132 58 L189 58 L219 110 L189 162 L132 162 Z"/><line class="nope" x1="103" y1="167" x2="217" y2="53"/></svg>`,
+  arcSection: `<svg viewBox="0 0 320 220"><path class="section" d="M82 152 L238 152 C222 80 98 80 82 152 Z"/></svg>`,
+};
+
+const SECTION_DRAWING_BY_LABEL = {
+  "等边三角形": "triangle",
+  "直角三角形": "rightTriangle",
+  "三角形": "triangle",
+  "过顶点等腰三角形": "triangle",
+  "正方形": "square",
+  "长方形": "rectangle",
+  "矩形": "rectangle",
+  "平行四边形": "parallelogram",
+  "四边形": "quad",
+  "梯形": "trapezoid",
+  "五边形": "pentagon",
+  "六边形": "hexagon",
+  "圆": "circle",
+  "椭圆": "ellipse",
+  "圆锥曲线": "ellipse",
+  "带弧边截面": "arcSection",
+  "曲边图形": "curvedNo",
+  "任意曲边": "curvedNo",
+  "非过顶点曲边截面": "arcSection",
+  "纯三角形": "triangleNo",
+  "纯五边形": "pentagon",
+  "纯六边形": "hexagonNo",
+  "只有直边的复杂多边形": "hexagonNo",
+  "超过 6 条边": "tooManyNo",
+  "纯正方形": "square",
+  "无曲线多边形": "hexagonNo",
 };
 
 const elements = {
@@ -239,8 +276,15 @@ const state = {
   demoId: "cube-hexagon",
 };
 
-function chipList(items) {
-  return `<div class="chip-list">${items.map((item) => `<span class="chip">${item}</span>`).join("")}</div>`;
+function sectionTileList(items, verdict) {
+  return `<div class="section-tile-list">${items.map((item) => {
+    const drawing = DRAWINGS[SECTION_DRAWING_BY_LABEL[item] ?? "rectangle"];
+    return `
+      <article class="section-tile" data-verdict="${verdict}">
+        <span class="section-thumb">${drawing}</span>
+        <strong>${item}</strong>
+      </article>`;
+  }).join("")}</div>`;
 }
 
 function renderSolidList() {
@@ -260,11 +304,11 @@ function renderKnowledge(shape) {
   elements.knowledgeGrid.innerHTML = `
     <article class="knowledge-card can">
       <h3>常见能截出</h3>
-      ${chipList(shape.can)}
+      ${sectionTileList(shape.can, "can")}
     </article>
     <article class="knowledge-card cannot">
       <h3>不能直接截出</h3>
-      ${chipList(shape.cannot)}
+      ${sectionTileList(shape.cannot, "cannot")}
     </article>
   `;
   elements.solidRule.textContent = shape.rule;
