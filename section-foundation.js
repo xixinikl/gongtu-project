@@ -1,3 +1,5 @@
+import * as THREE from "three";
+
 const SHAPES = {
   cube: {
     name: "正方体",
@@ -343,8 +345,9 @@ const elements = {
   solidRule: document.querySelector("#solid-rule"),
   demoButtons: document.querySelector("#demo-buttons"),
   demoVerdict: document.querySelector("#demo-verdict"),
-  demoCut: document.querySelector("#demo-cut"),
-  demoSection: document.querySelector("#demo-section"),
+  canvas: document.querySelector("#foundation-3d"),
+  resetSection: document.querySelector("#reset-section"),
+  dragStatus: document.querySelector("#drag-status"),
   demoLabel: document.querySelector("#demo-label"),
   demoTitle: document.querySelector("#demo-title"),
   demoCopy: document.querySelector("#demo-copy"),
@@ -353,6 +356,83 @@ const elements = {
 const state = {
   solidId: "cube",
   demoId: "cube-hexagon",
+  selectedLabel: "六边形",
+  selectedVerdict: "can",
+  sectionOffset: 0,
+};
+
+const DEMO_FOCUS_LABEL = {
+  "cube-hexagon": "六边形",
+  "cube-triangle": "等边三角形",
+  "cube-circle": "圆",
+  "cuboid-rectangle": "矩形",
+  "cuboid-hexagon": "六边形",
+  "cuboid-ellipse": "椭圆",
+  "cylinder-circle": "圆",
+  "cylinder-ellipse": "椭圆",
+  "cylinder-triangle": "纯三角形",
+  "cone-triangle": "过顶点等腰三角形",
+  "cone-ellipse": "椭圆",
+  "cone-hexagon": "纯六边形",
+  "pyramid-triangle": "三角形",
+  "pyramid-quad": "四边形",
+  "pyramid-ellipse": "椭圆",
+};
+
+const SECTION_3D_PRESETS = {
+  cube: {
+    "等边三角形": { normal: [1, 1, 1], offset: 0.62, shape: "triangle", scale: [1.05, 1.05], limit: 0.45 },
+    "直角三角形": { normal: [1, 0, 0.25], offset: 0.68, shape: "rightTriangle", scale: [1.1, 0.95], limit: 0.45 },
+    "正方形": { normal: [0, 1, 0], offset: 0, shape: "square", scale: [1.55, 1.55], limit: 0.82 },
+    "长方形": { normal: [0.45, 1, 0], offset: 0, shape: "rectangle", scale: [1.75, 0.9], limit: 0.65 },
+    "梯形": { normal: [0.3, 1, 0.45], offset: 0.15, shape: "trapezoid", scale: [1.45, 1.05], limit: 0.55 },
+    "五边形": { normal: [0.65, 1, 0.35], offset: 0.05, shape: "pentagon", scale: [1.24, 1.05], limit: 0.55 },
+    "六边形": { normal: [1, 1, 1], offset: 0, shape: "hexagon", scale: [1.24, 1.08], limit: 0.48 },
+    "圆": { normal: [0, 1, 0], offset: 0, shape: "circle", scale: [1.05, 1.05], limit: 0.82, impossible: true },
+    "椭圆": { normal: [0.35, 1, 0.15], offset: 0, shape: "ellipse", scale: [1.18, 0.72], limit: 0.65, impossible: true },
+    "曲边图形": { normal: [0.3, 1, 0.4], offset: 0, shape: "arc", scale: [1.35, 0.9], limit: 0.58, impossible: true },
+    "超过 6 条边": { normal: [1, 1, 1], offset: 0, shape: "many", scale: [1.12, 1.02], limit: 0.5, impossible: true },
+  },
+  cuboid: {
+    "直角三角形": { normal: [1, 0, 0.25], offset: 0.75, shape: "rightTriangle", scale: [1.35, 0.95], limit: 0.52 },
+    "矩形": { normal: [1, 0, 0], offset: 0, shape: "rectangle", scale: [1.1, 1.6], limit: 0.9 },
+    "平行四边形": { normal: [0.35, 1, 0], offset: 0, shape: "parallelogram", scale: [1.55, 1.05], limit: 0.62 },
+    "梯形": { normal: [0.4, 1, 0.35], offset: 0.08, shape: "trapezoid", scale: [1.65, 1.0], limit: 0.58 },
+    "五边形": { normal: [0.7, 1, 0.3], offset: 0.02, shape: "pentagon", scale: [1.45, 0.98], limit: 0.55 },
+    "六边形": { normal: [1, 1, 1], offset: 0, shape: "hexagon", scale: [1.5, 0.9], limit: 0.45 },
+    "圆": { normal: [0, 1, 0], offset: 0, shape: "circle", scale: [1, 1], limit: 0.7, impossible: true },
+    "椭圆": { normal: [0.35, 1, 0.15], offset: 0, shape: "ellipse", scale: [1.28, 0.68], limit: 0.58, impossible: true },
+    "任意曲边": { normal: [0.3, 1, 0.35], offset: 0, shape: "arc", scale: [1.45, 0.82], limit: 0.58, impossible: true },
+    "超过 6 条边": { normal: [1, 1, 1], offset: 0, shape: "many", scale: [1.2, 0.9], limit: 0.45, impossible: true },
+  },
+  cylinder: {
+    "圆": { normal: [0, 1, 0], offset: 0, shape: "circle", scale: [1.25, 1.25], limit: 0.9 },
+    "椭圆": { normal: [0.55, 1, 0], offset: 0, shape: "ellipse", scale: [1.65, 1.05], limit: 0.72 },
+    "矩形": { normal: [1, 0, 0], offset: 0, shape: "rectangle", scale: [1.35, 1.85], limit: 0.82 },
+    "带弧边截面": { normal: [1, 0, 0], offset: 0.42, shape: "arc", scale: [1.1, 1.05], limit: 0.38 },
+    "纯三角形": { normal: [0.4, 1, 0.1], offset: 0, shape: "triangle", scale: [1.15, 1.0], limit: 0.55, impossible: true },
+    "纯五边形": { normal: [0.3, 1, 0.15], offset: 0, shape: "pentagon", scale: [1.12, 0.95], limit: 0.55, impossible: true },
+    "纯六边形": { normal: [0.3, 1, 0.15], offset: 0, shape: "hexagon", scale: [1.12, 0.95], limit: 0.55, impossible: true },
+    "只有直边的复杂多边形": { normal: [0.3, 1, 0.15], offset: 0, shape: "many", scale: [1.1, 0.9], limit: 0.55, impossible: true },
+  },
+  cone: {
+    "圆": { normal: [0, 1, 0], offset: -0.25, shape: "circle", scale: [0.82, 0.82], limit: 0.62 },
+    "椭圆": { normal: [0.45, 1, 0], offset: -0.18, shape: "ellipse", scale: [1.18, 0.68], limit: 0.45 },
+    "过顶点等腰三角形": { normal: [1, 0, 0], offset: 0, shape: "triangle", scale: [1.18, 1.65], limit: 0.2 },
+    "非过顶点曲边截面": { normal: [0.52, 1, 0], offset: -0.08, shape: "arc", scale: [1.05, 0.82], limit: 0.45 },
+    "纯正方形": { normal: [0.5, 1, 0], offset: -0.08, shape: "square", scale: [0.9, 0.9], limit: 0.45, impossible: true },
+    "纯六边形": { normal: [0.5, 1, 0], offset: -0.08, shape: "hexagon", scale: [0.95, 0.85], limit: 0.45, impossible: true },
+    "无曲线多边形": { normal: [0.5, 1, 0], offset: -0.08, shape: "many", scale: [0.98, 0.82], limit: 0.45, impossible: true },
+  },
+  pyramid: {
+    "三角形": { normal: [1, 0, 0], offset: 0, shape: "triangle", scale: [1.15, 1.5], limit: 0.35 },
+    "四边形": { normal: [0.4, 1, 0.25], offset: -0.15, shape: "quad", scale: [1.2, 0.9], limit: 0.45 },
+    "梯形": { normal: [0.35, 1, 0], offset: -0.18, shape: "trapezoid", scale: [1.2, 0.88], limit: 0.45 },
+    "五边形": { normal: [0.55, 1, 0.25], offset: -0.1, shape: "pentagon", scale: [1.05, 0.86], limit: 0.4 },
+    "圆": { normal: [0, 1, 0], offset: -0.2, shape: "circle", scale: [0.95, 0.95], limit: 0.45, impossible: true },
+    "椭圆": { normal: [0.35, 1, 0.15], offset: -0.15, shape: "ellipse", scale: [1.18, 0.72], limit: 0.45, impossible: true },
+    "曲边图形": { normal: [0.35, 1, 0.15], offset: -0.15, shape: "arc", scale: [1.18, 0.75], limit: 0.45, impossible: true },
+  },
 };
 
 function drawingForSection(solidId, label) {
@@ -361,14 +441,265 @@ function drawingForSection(solidId, label) {
   return DRAWINGS[SECTION_DRAWING_BY_LABEL[label] ?? "rectangle"];
 }
 
+function makeShapeGeometry(type, sx = 1, sy = 1) {
+  if (type === "circle") {
+    const geometry = new THREE.CircleGeometry(0.5, 72);
+    geometry.scale(sx, sy, 1);
+    return geometry;
+  }
+
+  const shape = new THREE.Shape();
+  const pointsByType = {
+    triangle: [[0, 0.58], [-0.58, -0.42], [0.58, -0.42]],
+    rightTriangle: [[-0.48, 0.52], [-0.48, -0.48], [0.58, -0.48]],
+    square: [[-0.5, 0.5], [0.5, 0.5], [0.5, -0.5], [-0.5, -0.5]],
+    rectangle: [[-0.72, 0.42], [0.72, 0.42], [0.72, -0.42], [-0.72, -0.42]],
+    trapezoid: [[-0.42, 0.48], [0.42, 0.48], [0.65, -0.46], [-0.65, -0.46]],
+    parallelogram: [[-0.48, 0.42], [0.68, 0.42], [0.45, -0.42], [-0.7, -0.42]],
+    pentagon: [[0, 0.55], [0.52, 0.16], [0.34, -0.48], [-0.34, -0.48], [-0.52, 0.16]],
+    hexagon: [[-0.58, 0], [-0.34, 0.48], [0.34, 0.48], [0.58, 0], [0.34, -0.48], [-0.34, -0.48]],
+    many: [[0, 0.58], [0.35, 0.48], [0.58, 0.18], [0.55, -0.2], [0.28, -0.5], [-0.12, -0.56], [-0.48, -0.34], [-0.58, 0.08], [-0.34, 0.45]],
+    quad: [[-0.52, 0.3], [0.14, 0.55], [0.6, -0.12], [-0.24, -0.5]],
+    arc: [[-0.58, -0.38], [-0.42, 0.36], [0, 0.52], [0.42, 0.36], [0.58, -0.38]],
+    ellipse: [],
+  };
+
+  if (type === "ellipse") {
+    const geometry = new THREE.CircleGeometry(0.5, 96);
+    geometry.scale(sx, sy * 0.58, 1);
+    return geometry;
+  }
+
+  const points = pointsByType[type] ?? pointsByType.rectangle;
+  points.forEach(([x, y], index) => {
+    const px = x * sx;
+    const py = y * sy;
+    if (index === 0) shape.moveTo(px, py);
+    else shape.lineTo(px, py);
+  });
+  shape.closePath();
+  return new THREE.ShapeGeometry(shape);
+}
+
+function makeSolidGeometry(solidId) {
+  if (solidId === "cuboid") return new THREE.BoxGeometry(2.2, 1.35, 1.35);
+  if (solidId === "cylinder") return new THREE.CylinderGeometry(0.9, 0.9, 1.9, 80, 1);
+  if (solidId === "cone") return new THREE.ConeGeometry(1, 2, 80, 1);
+  if (solidId === "pyramid") {
+    const geometry = new THREE.ConeGeometry(1.05, 2, 4, 1);
+    geometry.rotateY(Math.PI / 4);
+    return geometry;
+  }
+  return new THREE.BoxGeometry(1.7, 1.7, 1.7);
+}
+
+const viewer = {
+  renderer: null,
+  scene: null,
+  camera: null,
+  root: null,
+  plane: null,
+  section: null,
+  normal: new THREE.Vector3(0, 1, 0),
+  baseOffset: 0,
+  limit: 0.6,
+  dragging: false,
+  lastY: 0,
+};
+
+function initViewer() {
+  if (!elements.canvas || viewer.renderer) return;
+  viewer.renderer = new THREE.WebGLRenderer({
+    canvas: elements.canvas,
+    antialias: true,
+    alpha: true,
+    preserveDrawingBuffer: true,
+  });
+  viewer.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  elements.canvas.dataset.engine = `three.js r${THREE.REVISION}`;
+  viewer.scene = new THREE.Scene();
+  viewer.camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
+  viewer.camera.position.set(4.1, 3.1, 4.7);
+  viewer.camera.lookAt(0, 0, 0);
+
+  const ambient = new THREE.HemisphereLight(0xffffff, 0xb9c7c1, 2.4);
+  const key = new THREE.DirectionalLight(0xffffff, 2.2);
+  key.position.set(3, 4, 5);
+  viewer.scene.add(ambient, key);
+
+  const grid = new THREE.GridHelper(4.2, 12, 0xcfd8d4, 0xe9efec);
+  grid.position.y = -1.08;
+  viewer.scene.add(grid);
+
+  viewer.root = new THREE.Group();
+  viewer.scene.add(viewer.root);
+
+  elements.canvas.addEventListener("pointerdown", beginDrag);
+  elements.canvas.addEventListener("pointermove", moveDrag);
+  elements.canvas.addEventListener("pointerup", endDrag);
+  elements.canvas.addEventListener("pointercancel", endDrag);
+  elements.canvas.addEventListener("wheel", onWheel, { passive: false });
+  elements.resetSection?.addEventListener("click", resetSectionOffset);
+  window.addEventListener("resize", resizeViewer);
+  resizeViewer();
+}
+
+function disposeObject(object) {
+  object.traverse((child) => {
+    child.geometry?.dispose?.();
+    if (Array.isArray(child.material)) child.material.forEach((material) => material.dispose?.());
+    else child.material?.dispose?.();
+  });
+}
+
+function clearRoot() {
+  while (viewer.root.children.length) {
+    const child = viewer.root.children.pop();
+    disposeObject(child);
+  }
+}
+
+function resizeViewer() {
+  if (!viewer.renderer || !elements.canvas) return;
+  const rect = elements.canvas.getBoundingClientRect();
+  const width = Math.max(1, Math.floor(rect.width));
+  const height = Math.max(1, Math.floor(rect.height));
+  viewer.camera.aspect = width / height;
+  viewer.camera.updateProjectionMatrix();
+  viewer.renderer.setSize(width, height, false);
+  renderViewer();
+}
+
+function buildViewerScene() {
+  initViewer();
+  if (!viewer.root) return;
+  clearRoot();
+
+  const shape = SHAPES[state.solidId];
+  const preset = SECTION_3D_PRESETS[state.solidId]?.[state.selectedLabel] ?? SECTION_3D_PRESETS[state.solidId]?.[shape.can[0]];
+  const solidGeometry = makeSolidGeometry(state.solidId);
+  const solidMaterial = new THREE.MeshStandardMaterial({
+    color: 0xdff3ee,
+    transparent: true,
+    opacity: 0.48,
+    roughness: 0.72,
+    metalness: 0.02,
+    side: THREE.DoubleSide,
+  });
+  const solid = new THREE.Mesh(solidGeometry, solidMaterial);
+  viewer.root.add(solid);
+
+  const edges = new THREE.LineSegments(
+    new THREE.EdgesGeometry(solidGeometry),
+    new THREE.LineBasicMaterial({ color: 0x22332f, linewidth: 1 })
+  );
+  viewer.root.add(edges);
+
+  viewer.normal = new THREE.Vector3(...preset.normal).normalize();
+  viewer.baseOffset = preset.offset ?? 0;
+  viewer.limit = preset.limit ?? 0.6;
+  state.sectionOffset = 0;
+
+  const planeGeometry = new THREE.PlaneGeometry(2.85, 2.05);
+  const planeMaterial = new THREE.MeshBasicMaterial({
+    color: preset.impossible ? 0xc95a51 : 0x346fd0,
+    transparent: true,
+    opacity: preset.impossible ? 0.15 : 0.17,
+    side: THREE.DoubleSide,
+    depthWrite: false,
+  });
+  viewer.plane = new THREE.Mesh(planeGeometry, planeMaterial);
+  viewer.root.add(viewer.plane);
+
+  const sectionGeometry = makeShapeGeometry(preset.shape, preset.scale?.[0] ?? 1, preset.scale?.[1] ?? 1);
+  const sectionMaterial = new THREE.MeshBasicMaterial({
+    color: preset.impossible ? 0xb64a42 : 0xd85418,
+    transparent: true,
+    opacity: 0.72,
+    side: THREE.DoubleSide,
+    depthWrite: false,
+  });
+  viewer.section = new THREE.Mesh(sectionGeometry, sectionMaterial);
+  viewer.root.add(viewer.section);
+
+  const outline = new THREE.LineSegments(
+    new THREE.EdgesGeometry(sectionGeometry),
+    new THREE.LineBasicMaterial({ color: preset.impossible ? 0x8f332e : 0x9a3a10 })
+  );
+  viewer.section.add(outline);
+
+  const quaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), viewer.normal);
+  viewer.plane.quaternion.copy(quaternion);
+  viewer.section.quaternion.copy(quaternion);
+  applySectionOffset();
+  elements.canvas.dataset.solid = state.solidId;
+  elements.canvas.dataset.sectionLabel = state.selectedLabel;
+  elements.canvas.dataset.sectionVerdict = state.selectedVerdict;
+}
+
+function applySectionOffset() {
+  const total = viewer.baseOffset + state.sectionOffset;
+  const position = viewer.normal.clone().multiplyScalar(total);
+  viewer.plane?.position.copy(position);
+  viewer.section?.position.copy(position.clone().add(viewer.normal.clone().multiplyScalar(0.006)));
+  if (elements.dragStatus) {
+    const mm = Math.round(state.sectionOffset * 100);
+    elements.dragStatus.textContent = mm === 0 ? "上下拖动切面" : `偏移 ${mm > 0 ? "+" : ""}${mm}`;
+  }
+  if (elements.canvas) elements.canvas.dataset.sectionOffset = state.sectionOffset.toFixed(3);
+  renderViewer();
+}
+
+function updateSectionOffset(delta) {
+  state.sectionOffset = Math.max(-viewer.limit, Math.min(viewer.limit, state.sectionOffset + delta));
+  applySectionOffset();
+}
+
+function resetSectionOffset() {
+  state.sectionOffset = 0;
+  applySectionOffset();
+}
+
+function beginDrag(event) {
+  viewer.dragging = true;
+  viewer.lastY = event.clientY;
+  elements.canvas.setPointerCapture?.(event.pointerId);
+}
+
+function moveDrag(event) {
+  if (!viewer.dragging) return;
+  const dy = viewer.lastY - event.clientY;
+  viewer.lastY = event.clientY;
+  updateSectionOffset(dy * 0.007);
+}
+
+function endDrag(event) {
+  viewer.dragging = false;
+  if (elements.canvas.hasPointerCapture?.(event.pointerId)) {
+    elements.canvas.releasePointerCapture(event.pointerId);
+  }
+}
+
+function onWheel(event) {
+  event.preventDefault();
+  updateSectionOffset(-event.deltaY * 0.0018);
+}
+
+function renderViewer() {
+  if (!viewer.renderer) return;
+  viewer.root.rotation.y = -0.34;
+  viewer.root.rotation.x = 0.08;
+  viewer.renderer.render(viewer.scene, viewer.camera);
+}
+
 function sectionTileList(items, verdict, solidId) {
   return `<div class="section-tile-list">${items.map((item) => {
     const drawing = drawingForSection(solidId, item);
     return `
-      <article class="section-tile" data-verdict="${verdict}">
+      <button class="section-tile ${item === state.selectedLabel && verdict === state.selectedVerdict ? "is-selected" : ""}" type="button" data-section-label="${item}" data-section-verdict="${verdict}" data-verdict="${verdict}" aria-pressed="${item === state.selectedLabel && verdict === state.selectedVerdict}">
         <span class="section-thumb">${drawing}</span>
         <strong>${item}</strong>
-      </article>`;
+      </button>`;
   }).join("")}</div>`;
 }
 
@@ -414,13 +745,19 @@ function renderDemoButtons(shape) {
 function renderDemo(shape) {
   const demo = shape.demos.find((item) => item.id === state.demoId) ?? shape.demos[0];
   state.demoId = demo.id;
-  elements.demoVerdict.textContent = demo.label;
-  elements.demoVerdict.dataset.verdict = demo.verdict;
-  elements.demoCut.innerHTML = DRAWINGS[demo.cut];
-  elements.demoSection.innerHTML = DRAWINGS[demo.section];
+  const selectedLabel = state.selectedLabel;
+  const selectedVerdict = state.selectedVerdict;
+  const demoMatchesSelection = DEMO_FOCUS_LABEL[demo.id] === selectedLabel;
+  elements.demoVerdict.textContent = selectedVerdict === "cannot" ? "不可行" : "可行";
+  elements.demoVerdict.dataset.verdict = selectedVerdict;
   elements.demoLabel.textContent = shape.name;
-  elements.demoTitle.textContent = demo.title;
-  elements.demoCopy.textContent = demo.note;
+  elements.demoTitle.textContent = demoMatchesSelection
+    ? demo.title
+    : `${shape.name}${selectedVerdict === "cannot" ? "不能直接截出" : "可以截出"}${selectedLabel}`;
+  elements.demoCopy.textContent = demoMatchesSelection
+    ? demo.note
+    : "右侧 3D 视口已经切到这个基础截面。你可以上下拖动切面，观察截面在立体内部前后移动。";
+  buildViewerScene();
 }
 
 function render() {
@@ -438,6 +775,8 @@ elements.solidList.addEventListener("click", (event) => {
   if (!shape) return;
   state.solidId = button.dataset.solidId;
   state.demoId = shape.demos[0].id;
+  state.selectedLabel = DEMO_FOCUS_LABEL[state.demoId] ?? shape.can[0];
+  state.selectedVerdict = shape.demos[0].verdict;
   render();
 });
 
@@ -445,6 +784,23 @@ elements.demoButtons.addEventListener("click", (event) => {
   const button = event.target.closest("[data-demo-id]");
   if (!button) return;
   state.demoId = button.dataset.demoId;
+  const shape = SHAPES[state.solidId];
+  const demo = shape.demos.find((item) => item.id === state.demoId) ?? shape.demos[0];
+  state.selectedLabel = DEMO_FOCUS_LABEL[state.demoId] ?? shape.can[0];
+  state.selectedVerdict = demo.verdict;
+  render();
+});
+
+elements.knowledgeGrid.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-section-label]");
+  if (!button) return;
+  const shape = SHAPES[state.solidId];
+  state.selectedLabel = button.dataset.sectionLabel;
+  state.selectedVerdict = button.dataset.sectionVerdict;
+  const demo = shape.demos.find((item) => DEMO_FOCUS_LABEL[item.id] === state.selectedLabel)
+    ?? shape.demos.find((item) => item.verdict === state.selectedVerdict)
+    ?? shape.demos[0];
+  state.demoId = demo.id;
   render();
 });
 
@@ -453,4 +809,5 @@ render();
 window.__sectionFoundation = {
   getState: () => ({ ...state }),
   shapes: SHAPES,
+  viewer,
 };

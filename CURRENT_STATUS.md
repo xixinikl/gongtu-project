@@ -7,19 +7,20 @@
 ## 当前任务
 
 - 状态：● 已完成
-- 编号：LESSON-014C
-- 任务：`fix: 修复基础截面页立体表达`
+- 编号：LESSON-014D
+- 任务：`feat: 基础截面页升级为可操作 3D`
 
 ## 本轮结论
 
-- 已按用户验收意见返工基础页：常见截面不再只展示孤立二维图标，而是体现在当前立体上。
-- 正方体可行区已显示落在正方体上的三角形、正方形、长方形、梯形、五边形、六边形切法；六边形完整落在正方体内部并带橙色轮廓。
-- 正方体不可行区已在正方体上叠加圆、椭圆、曲边、超过 6 条边的错误尝试并打叉。
-- 圆柱可行区已显示圆、椭圆、矩形、带弧边截面对应立体切法；规则继续保留“斜切必然带曲边”。
-- 桌面布局把基础知识区加宽；手机宽度检查无横向溢出。
+- 已将基础页右侧演示区升级为真实 Three.js 3D 视口，不再用 SVG 作为主要证明。
+- 点击“常见能截出/不能直接截出”任一条目，会切换右侧 3D 立体、切面和截面。
+- 点击一键演示按钮也会同步切换 3D 视口。
+- 3D 视口支持上下拖动和滚轮移动当前切面，支持“复位”回到标准切法。
+- 默认正方体六边形、圆柱椭圆均能看见透明立体、蓝色切面和橙色截面。
 
 ## 交付文件
 
+- `section-foundation.html`
 - `section-foundation.css`
 - `section-foundation.js`
 - `tests/reasoning-lesson-layout.test.mjs`
@@ -33,9 +34,11 @@ LESSON-015：重做手动探索为更丝滑的滑动式截面验证。
 
 - 已通过：`git diff --check` 未发现空白错误。
 - 已通过：`node --check section-foundation.js`。
-- 已通过：`node --experimental-loader ./tests/three-absolute-loader.mjs --test tests/reasoning-lesson-layout.test.mjs`，12/12 通过。
-- 已通过：Chrome 打开 `/section-foundation.html`，默认正方体状态识别到六边形立体切法，控制台无错误。
-- 已通过：Chrome 点击“圆柱”，识别到椭圆、矩形、带弧边截面均绑定圆柱立体切法，规则包含“斜切必然带曲边”，控制台无错误。
-- 已通过：390px 手机宽度截图检查，页面无横向溢出。
-- 本地提交：`2790f8f`。
-- 推送状态：已推送到 `origin/feature/csg-v2-integration`。
+- 已通过：`node --experimental-loader ./tests/three-absolute-loader.mjs --test tests/reasoning-lesson-layout.test.mjs`，13/13 通过。
+- 已通过：Chrome 打开 `/section-foundation.html`，默认状态为 `cube / 六边形`，3D canvas 非空像素 13045，控制台无错误。
+- 已通过：Chrome 在 3D 画布上下拖动，`sectionOffset` 从 `0.000` 变为 `0.480`。
+- 已通过：Chrome 点击“复位”，`sectionOffset` 回到 `0.000`。
+- 已通过：Chrome 点击“圆柱”再点击“椭圆”，3D 视口状态为 `cylinder / 椭圆 / can`，控制台无错误。
+- 已通过：390px 手机宽度检查，3D 画布 326×360，无横向溢出。
+- 本地提交：待提交。
+- 推送状态：待推送。

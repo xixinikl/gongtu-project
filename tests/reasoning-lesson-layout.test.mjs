@@ -189,3 +189,23 @@ test("foundation visual tiles are tied to the current solid", async () => {
   assert.match(script, /section-line/);
   assert.match(css, /grid-template-columns: repeat\(auto-fit, minmax\(146px, 1fr\)\)/);
 });
+
+test("foundation page uses an interactive 3D section viewer", async () => {
+  const [html, css, script] = await Promise.all([
+    readFile(foundationHtmlUrl, "utf8"),
+    readFile(foundationCssUrl, "utf8"),
+    readFile(foundationScriptUrl, "utf8"),
+  ]);
+
+  assert.match(html, /id="foundation-3d"/);
+  assert.match(html, /id="reset-section"/);
+  assert.match(html, /"three": "\/node_modules\/three\/build\/three\.module\.js"/);
+  assert.match(script, /import \* as THREE from "three"/);
+  assert.match(script, /SECTION_3D_PRESETS/);
+  assert.match(script, /buildViewerScene/);
+  assert.match(script, /data-section-label/);
+  assert.match(script, /updateSectionOffset/);
+  assert.match(script, /addEventListener\("wheel"/);
+  assert.match(css, /\.demo-stage-3d canvas/);
+  assert.match(css, /cursor: ns-resize/);
+});
