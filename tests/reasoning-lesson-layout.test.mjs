@@ -85,6 +85,35 @@ test("student lesson explains foundation knowledge before rejecting lookalike op
   assert.match(css, /\.foundation-note/);
 });
 
+test("student lesson shows the original video question frame when available", async () => {
+  const [script, css, coneCase] = await Promise.all([
+    readFile(scriptUrl, "utf8"),
+    readFile(cssUrl, "utf8"),
+    readFile(caseUrls[0], "utf8"),
+  ]);
+  const caseData = JSON.parse(coneCase);
+
+  assert.match(caseData.source.image, /cone-box-001-question\.png$/);
+  assert.match(script, /source-question-image/);
+  assert.match(script, /caseData\.source\.image/);
+  assert.match(css, /\.source-figure\.has-image/);
+});
+
+test("student lesson maps vertical movement to plane offset and horizontal movement to rotation", async () => {
+  const [html, script] = await Promise.all([
+    readFile(htmlUrl, "utf8"),
+    readFile(scriptUrl, "utf8"),
+  ]);
+
+  assert.match(html, /上下移动 · 左右旋转/);
+  assert.match(script, /function moveExplorationPlane/);
+  assert.match(script, /function rotateExplorationPlaneBy/);
+  assert.match(script, /direction === "up"[\s\S]*moveExplorationPlane/);
+  assert.match(script, /direction === "left"[\s\S]*rotateExplorationPlaneBy/);
+  assert.match(script, /addEventListener\("wheel"/);
+  assert.match(script, /addEventListener\("pointermove"/);
+});
+
 test("every golden option has a human-readable constraint path", async () => {
   for (const url of caseUrls) {
     const caseData = JSON.parse(await readFile(url, "utf8"));

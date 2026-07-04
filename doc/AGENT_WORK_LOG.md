@@ -33,6 +33,19 @@
 - 遗留风险：`LESSON-013` 的文字修补不能作为最终验收；B 六边形、模型大小和滑动交互仍需代码返工
 - 建议下一任务：`LESSON-014R fix: 返工 B 六边形为候选驱动真实截面演示`
 
+## 2026-07-04 · Codex · LESSON-014R
+
+- 分支：`feature/csg-v2-integration`
+- 基线提交：`3cfbf54`
+- 完成任务：`fix: 返工 B 六边形为候选驱动真实截面演示`
+- 修改的交付文件：`reasoning-lesson.html`、`reasoning-lesson.css`、`reasoning-lesson.js`、`data/reasoning-cases/cone-box-001.json`、`data/images/reasoning/cone-box-001-question.png`、`spec/reasoning-case-v1.schema.json`、`tests/reasoning-case-fixtures.test.mjs`、`tests/reasoning-lesson-layout.test.mjs`
+- 执行的测试：`git diff --check`；`node --experimental-loader ./tests/three-absolute-loader.mjs --test tests/reasoning-case-fixtures.test.mjs tests/reasoning-lesson-layout.test.mjs`；浏览器刷新并点击 B；浏览器三维区拖动验证
+- 测试结果：空白检查通过；专项测试 21/21 通过；原题视频截图加载成功；B 选项真实截面为 1 个 V2 轮廓；向上拖动切面位置 0% -> 20%，水平拖动只改变截面形状；控制台无错误
+- 任务提交：本任务所在提交
+- 已推送远端：否，GitHub HTTPS 凭据未配置，`git push origin feature/csg-v2-integration` 返回 `could not read Username for 'https://github.com'`
+- 遗留风险：基础截面知识库尚未做成独立训练入口；第二题仍未接入原题截图
+- 建议下一任务：`LESSON-014 feat: 建立基础截面知识库与训练入口`
+
 ## 2026-06-29 · Agent 1 · 安全交接检查点
 
 - 分支：`feature/spatial-geometry-lab`

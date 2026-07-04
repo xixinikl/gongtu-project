@@ -28,6 +28,10 @@ test("cone-box-001 freezes the manually verified source and answer", async () =>
 
   assert.equal(fixture.id, "cone-box-001");
   assert.equal(fixture.source.kind, "user-provided-video");
+  assert.equal(
+    fixture.source.image,
+    "/data/images/reasoning/cone-box-001-question.png",
+  );
   assert.ok(fixture.source.questionFrameSeconds >= 0);
   assert.equal(fixture.answer.correctOptionId, "A");
   assert.equal(fixture.answer.source, "manual-video-review");
@@ -102,10 +106,15 @@ test("cone-box-001 teaches that a hexagon is possible in a cube but mismatched h
   assert.match(optionB.reason, /正方体|长方体/);
   assert.match(optionB.reason, /可以.*六边形/);
   assert.match(optionB.reason, /组合体/);
-  assert.match(optionB.reason, /方体直边/);
-  assert.match(optionB.reason, /圆锥/);
-  assert.match(keyframeB.caption, /正方体可以截出六边形/);
-  assert.match(keyframeB.caption, /接触转折/);
+  assert.match(optionB.reason, /接近六边形/);
+  assert.match(optionB.reason, /倒圆锥/);
+  assert.match(keyframeB.caption, /接近六边形/);
+  assert.match(keyframeB.caption, /继续切到下方倒圆锥/);
+  assert.deepEqual(
+    keyframeB.plane.normal.map((value) => Number(value.toFixed(3))),
+    [0.577, 0.577, 0.577],
+  );
+  assert.equal(keyframeB.plane.constant, -0.3);
 });
 
 test("cone-box-001 explicitly preserves source ambiguities", async () => {

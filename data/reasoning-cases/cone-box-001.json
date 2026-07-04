@@ -5,6 +5,7 @@
   "source": {
     "kind": "user-provided-video",
     "videoFileName": "@公考志远（立体图推数资分享） 圆锥+方体经典模型 1080P.mp4",
+    "image": "/data/images/reasoning/cone-box-001-question.png",
     "questionFrameSeconds": 5,
     "explanationRangeSeconds": [5, 69],
     "prompt": "哪一个是该模型正确的截面？",
@@ -104,7 +105,7 @@
         "points": [[-0.5, 0.86], [0.5, 0.86], [1, 0], [0.5, -0.86], [-0.5, -0.86], [-1, 0]]
       },
       "verdict": "impossible",
-      "reason": "六边形本身并不错误，单独的正方体或长方体可以被斜切出六边形；但本题是倒圆锥与方体组合体。只要同一平面同时切到方体和圆锥，真实轮廓就会保留方体直边、圆锥母线或圆锥曲线，以及两者接触处的转折，不能变成一个没有方体痕迹和圆锥特征的纯凸六边形。",
+      "reason": "六边形本身并不错误，单独的正方体或长方体可以被斜切出六边形；但本题是方体加倒圆锥的组合体，排除 B 要看真实切面。把切面摆到上方方体接近六边形时，同一平面会继续切到下方倒圆锥，真实轮廓就会带出圆锥曲线和接触处转折，不能只留下一个干净凸六边形。",
       "satisfies": ["box-face-lines"],
       "violates": ["cone-generator-or-conic", "shared-contact-continuity"]
     },
@@ -171,9 +172,9 @@
       "id": "reject-b",
       "timeSeconds": 8,
       "optionId": "B",
-      "caption": "正方体可以截出六边形；但这题是方体接在倒圆锥上，真实截面必须同时留下方体直边、圆锥边界和接触转折。",
-      "camera": {"position": [-4.8, 3.2, 5.4], "target": [0, -0.8, 0]},
-      "plane": {"normal": [0.3, 0.18, 0.94], "constant": 0}
+      "caption": "先把切面摆到能让上方方体接近六边形的位置；同一切面会继续切到下方倒圆锥，所以真实截面会带出圆锥边界和接触转折，不是干净六边形。",
+      "camera": {"position": [-5.6, 4.2, 6.2], "target": [0, -0.45, 0]},
+      "plane": {"normal": [0.577350269, 0.577350269, 0.577350269], "constant": -0.3}
     },
     {
       "id": "reject-d",

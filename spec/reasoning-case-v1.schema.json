@@ -68,6 +68,7 @@
       "properties": {
         "kind": {"enum": ["user-provided-video", "image", "manual"]},
         "videoFileName": {"type": "string", "minLength": 1},
+        "image": {"type": "string", "minLength": 1},
         "questionFrameSeconds": {"type": "number", "minimum": 0},
         "explanationRangeSeconds": {
           "type": "array",

@@ -79,12 +79,13 @@ const state = {
   transitionFrame: null,
   explorationPlane: null,
   planeOffsetPercent: 0,
+  planeGesture: null,
   selectedComparisonOption: null,
 };
 
 const SHAPE_COMPARISONS = {
   "box-stem-plus-axial-cone": "实际截面就是“上方矩形直杆 + 下方直角边三角形”，候选图的直边、尖角和连接位置都能对上。",
-  "convex-hexagon": "六边形不是问题；问题是这个候选六边形太“干净”。本题上方方体会留下直杆或转折，下方倒圆锥会留下母线或圆锥曲线，二者接触处也必须连续，所以真实截面不会变成一个没有方体痕迹、没有圆锥特征的纯凸六边形。",
+  "convex-hexagon": "先让切面尽量贴近候选六边形：上方方体确实能形成六边形趋势，但同一个平面会继续切进下方倒圆锥，实际图会带出圆锥曲线和连接转折，所以不是候选里的干净六边形。",
   "box-stem-plus-curved-shield": "实际过轴截面下方是两条直母线组成的三角形；候选图把直边画成了向外鼓的曲边。",
   "rectangle-with-full-ellipse": "实际边界会把方体直边和圆锥截痕连成一个外轮廓，不会出现“矩形里面悬着一条完整椭圆”。",
   "narrow-triangle": "实际切面可以只经过棱锥相邻平面，得到一个很窄的三角形，三条边都能对应。",
@@ -138,6 +139,8 @@ controls.enablePan = false;
 controls.minDistance = 4;
 controls.maxDistance = 12;
 controls.target.set(0, -0.5, 0);
+
+const TEACHING_CAMERA_PULLBACK = 1.16;
 
 scene.add(new THREE.HemisphereLight(0xfff9eb, 0x64746f, 2.4));
 const keyLight = new THREE.DirectionalLight(0xffffff, 3.2);
@@ -363,10 +366,15 @@ function normalizedPlane(normal, constant) {
 }
 
 function currentTeachingFrame() {
+  const target = controls.target.clone();
+  const position = camera.position.clone()
+    .sub(target)
+    .divideScalar(TEACHING_CAMERA_PULLBACK)
+    .add(target);
   return {
     camera: {
-      position: camera.position.toArray(),
-      target: controls.target.toArray(),
+      position: position.toArray(),
+      target: target.toArray(),
     },
     plane: planeHelper.visible
       ? {
@@ -382,10 +390,17 @@ function setPlaneControlsEnabled(enabled) {
   for (const button of elements.planeArrows) button.disabled = !enabled;
 }
 
-function renderTeachingFrame(frame) {
-  camera.position.fromArray(frame.camera.position);
-  controls.target.fromArray(frame.camera.target);
+function setCameraFrame(cameraFrame) {
+  const target = new THREE.Vector3().fromArray(cameraFrame.target);
+  const position = new THREE.Vector3().fromArray(cameraFrame.position);
+  position.sub(target).multiplyScalar(TEACHING_CAMERA_PULLBACK).add(target);
+  camera.position.copy(position);
+  controls.target.copy(target);
   controls.update();
+}
+
+function renderTeachingFrame(frame) {
+  setCameraFrame(frame.camera);
   if (frame.plane) {
     sectionPlane.copy(
       normalizedPlane(frame.plane.normal, frame.plane.constant),
@@ -627,6 +642,15 @@ function outlineSvg(option) {
 }
 
 function renderSourceModelIcon(caseData) {
+  elements.sourceFigure.classList.toggle("has-image", Boolean(caseData.source.image));
+  if (caseData.source.image) {
+    const image = document.createElement("img");
+    image.className = "source-question-image";
+    image.src = caseData.source.image;
+    image.alt = `${caseData.title} 原题截图`;
+    elements.sourceFigure.replaceChildren(image);
+    return;
+  }
   const types = caseData.model.objects.map((object) => object.type);
   const labels = {
     box: "方体",
@@ -796,6 +820,8 @@ function setExploring(exploring) {
     elements.planePosition.value = "0";
     elements.planePositionOutput.textContent = "0%";
   } else {
+    state.planeGesture = null;
+    controls.enabled = true;
     state.explorationPlane = null;
     state.planeOffsetPercent = 0;
     applyKeyframe(state.currentKeyframe);
@@ -803,6 +829,7 @@ function setExploring(exploring) {
 }
 
 const PLANE_ROTATION_STEP = THREE.MathUtils.degToRad(6);
+const PLANE_MOVE_STEP = 7;
 
 function applyExplorationPlane() {
   if (!state.explorationPlane) return;
@@ -811,24 +838,42 @@ function applyExplorationPlane() {
   updateSection();
 }
 
-function rotateExplorationPlane(direction) {
+function clampPlaneOffset(value) {
+  const min = Number(elements.planePosition.min);
+  const max = Number(elements.planePosition.max);
+  return Math.max(min, Math.min(max, value));
+}
+
+function moveExplorationPlane(deltaPercent) {
+  if (!state.exploring) setExploring(true);
+  const next = clampPlaneOffset(state.planeOffsetPercent + deltaPercent);
+  state.planeOffsetPercent = next;
+  elements.planePosition.value = String(Math.round(next));
+  elements.planePositionOutput.textContent = `${Math.round(next)}%`;
+  applyExplorationPlane();
+}
+
+function rotateExplorationPlaneBy(deltaRadians) {
   if (!state.exploring || !state.explorationPlane) return;
   const cameraUp = camera.up.clone().applyQuaternion(camera.quaternion).normalize();
-  const cameraRight = new THREE.Vector3(1, 0, 0)
-    .applyQuaternion(camera.quaternion)
-    .normalize();
-  const rotations = {
-    up: [cameraRight, PLANE_ROTATION_STEP],
-    down: [cameraRight, -PLANE_ROTATION_STEP],
-    left: [cameraUp, PLANE_ROTATION_STEP],
-    right: [cameraUp, -PLANE_ROTATION_STEP],
-  };
-  const rotation = rotations[direction];
-  if (!rotation) return;
   state.explorationPlane.normal
-    .applyAxisAngle(rotation[0], rotation[1])
+    .applyAxisAngle(cameraUp, deltaRadians)
     .normalize();
   applyExplorationPlane();
+}
+
+function rotateExplorationPlane(direction) {
+  if (!state.exploring || !state.explorationPlane) return;
+  if (direction === "up") {
+    moveExplorationPlane(PLANE_MOVE_STEP);
+    return;
+  }
+  if (direction === "down") {
+    moveExplorationPlane(-PLANE_MOVE_STEP);
+    return;
+  }
+  if (direction === "left") rotateExplorationPlaneBy(PLANE_ROTATION_STEP);
+  if (direction === "right") rotateExplorationPlaneBy(-PLANE_ROTATION_STEP);
 }
 
 function stopPlayback() {
@@ -950,6 +995,64 @@ for (const button of elements.planeArrows) {
     rotateExplorationPlane(button.dataset.planeDirection);
   });
 }
+
+function planeGestureEnabled() {
+  return !elements.planePosition.disabled;
+}
+
+function beginPlaneGesture(event) {
+  if (!planeGestureEnabled() || event.button !== 0) return;
+  if (event.target.closest("button, input, select, textarea")) return;
+  event.preventDefault();
+  stopPlayback();
+  if (!state.exploring) setExploring(true);
+  state.planeGesture = {
+    pointerId: event.pointerId,
+    lastX: event.clientX,
+    lastY: event.clientY,
+  };
+  controls.enabled = false;
+  elements.canvas.setPointerCapture?.(event.pointerId);
+}
+
+function updatePlaneGesture(event) {
+  if (!state.planeGesture || state.planeGesture.pointerId !== event.pointerId) {
+    return;
+  }
+  event.preventDefault();
+  const dx = event.clientX - state.planeGesture.lastX;
+  const dy = event.clientY - state.planeGesture.lastY;
+  state.planeGesture.lastX = event.clientX;
+  state.planeGesture.lastY = event.clientY;
+  if (Math.abs(dy) > 0.4) moveExplorationPlane(-dy * 0.22);
+  if (Math.abs(dx) > 0.4) rotateExplorationPlaneBy(-dx * 0.006);
+}
+
+function endPlaneGesture(event) {
+  if (!state.planeGesture || state.planeGesture.pointerId !== event.pointerId) {
+    return;
+  }
+  state.planeGesture = null;
+  controls.enabled = true;
+  elements.canvas.releasePointerCapture?.(event.pointerId);
+}
+
+elements.canvas.addEventListener("pointerdown", beginPlaneGesture, true);
+elements.canvas.addEventListener("pointermove", updatePlaneGesture, true);
+elements.canvas.addEventListener("pointerup", endPlaneGesture, true);
+elements.canvas.addEventListener("pointercancel", endPlaneGesture, true);
+elements.canvas.addEventListener("wheel", (event) => {
+  if (!planeGestureEnabled()) return;
+  event.preventDefault();
+  stopPlayback();
+  if (!state.exploring) setExploring(true);
+  if (Math.abs(event.deltaX) > Math.abs(event.deltaY)) {
+    rotateExplorationPlaneBy(-event.deltaX * 0.0045);
+  } else {
+    moveExplorationPlane(-event.deltaY * 0.08);
+  }
+}, { passive: false });
+
 window.addEventListener("keydown", (event) => {
   if (event.metaKey || event.ctrlKey || event.altKey) return;
   const direction = {
