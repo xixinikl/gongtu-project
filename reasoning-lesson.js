@@ -35,6 +35,8 @@ const elements = {
   constraints: document.querySelector("#constraint-list"),
   engineStatus: document.querySelector("#engine-status"),
   explore: document.querySelector("#explore-toggle"),
+  foundationNote: document.querySelector("#foundation-note"),
+  foundationNoteCopy: document.querySelector("#foundation-note-copy"),
   loading: document.querySelector("#viewport-loading"),
   next: document.querySelector("#next-step"),
   optionList: document.querySelector("#option-list"),
@@ -82,13 +84,19 @@ const state = {
 
 const SHAPE_COMPARISONS = {
   "box-stem-plus-axial-cone": "实际截面就是“上方矩形直杆 + 下方直角边三角形”，候选图的直边、尖角和连接位置都能对上。",
-  "convex-hexagon": "最接近的实际图仍会保留上方矩形直杆和下方尖角，不会被削成一个没有凹口的完整六边形。",
+  "convex-hexagon": "六边形不是问题；问题是这个候选六边形太“干净”。本题上方方体会留下直杆或转折，下方倒圆锥会留下母线或圆锥曲线，二者接触处也必须连续，所以真实截面不会变成一个没有方体痕迹、没有圆锥特征的纯凸六边形。",
   "box-stem-plus-curved-shield": "实际过轴截面下方是两条直母线组成的三角形；候选图把直边画成了向外鼓的曲边。",
   "rectangle-with-full-ellipse": "实际边界会把方体直边和圆锥截痕连成一个外轮廓，不会出现“矩形里面悬着一条完整椭圆”。",
   "narrow-triangle": "实际切面可以只经过棱锥相邻平面，得到一个很窄的三角形，三条边都能对应。",
   "pyramid-quadrilateral": "实际切到棱锥四个侧面时就是四条直边围成的不规则四边形，候选图可以出现。",
   "conic-plus-triangle": "实际最接近“圆柱椭圆弧 + 棱锥两条直边”，曲边和直边会在组合体连接处接上。",
   "ellipse-plus-full-rectangle": "圆柱要出现椭圆，切面必须倾斜；同一斜面会削掉棱锥矩形的一个角，所以实际图最接近“椭圆 + 缺角四边形”。",
+};
+
+const FOUNDATION_NOTES = {
+  "convex-hexagon": "单独的正方体或长方体确实可以截出六边形，常见做法是让切面同时穿过六个面或六条相关棱；所以不能说“六边形不可能”。本题要排除的是：圆锥 + 方体组合体不会截出这种脱离接触关系的纯凸六边形。",
+  "rectangle-with-full-ellipse": "圆锥和圆柱都可能截出椭圆；但在组合体里，椭圆不能无视旁边已经占据空间的方体或棱锥。判断时要看同一切面是否同时解释所有部件。",
+  "ellipse-plus-full-rectangle": "圆柱斜切能得到椭圆，棱锥或方体斜切会留下直边和缺角。选项如果只保留好看的椭圆，却让另一部分仍保持完整矩形，就要警惕。",
 };
 
 function dispatch(event) {
@@ -499,6 +507,9 @@ function syncShapeComparisonActual() {
 
 function renderShapeComparison(option) {
   state.selectedComparisonOption = option.id;
+  const foundation = FOUNDATION_NOTES[option.outlineClass];
+  elements.foundationNote.classList.toggle("is-hidden", !foundation);
+  elements.foundationNoteCopy.textContent = foundation ?? "";
   elements.shapeComparison.classList.remove("is-hidden");
   elements.shapeComparisonCandidate.innerHTML = outlineSvg(option);
   elements.shapeComparisonCopy.textContent =

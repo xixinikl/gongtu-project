@@ -26,6 +26,7 @@ test("student lesson has all four same-screen learning regions", async () => {
     "question-heading",
     "option-list",
     "lesson-viewport",
+    "foundation-note",
     "constraint-list",
     "verdict-card",
   ]) {
@@ -69,6 +70,19 @@ test("constraint teaching prioritizes conflicts and protects the answer", async 
   assert.match(script, /state\.machine\?\.answerRevealed/);
   assert.match(css, /\.constraint-summary\.has-conflict/);
   assert.match(css, /\.constraint-summary\.is-consistent/);
+});
+
+test("student lesson explains foundation knowledge before rejecting lookalike options", async () => {
+  const [script, css] = await Promise.all([
+    readFile(scriptUrl, "utf8"),
+    readFile(cssUrl, "utf8"),
+  ]);
+
+  assert.match(script, /FOUNDATION_NOTES/);
+  assert.match(script, /单独的正方体或长方体确实可以截出六边形/);
+  assert.match(script, /不能说“六边形不可能”/);
+  assert.match(script, /foundationNoteCopy/);
+  assert.match(css, /\.foundation-note/);
 });
 
 test("every golden option has a human-readable constraint path", async () => {

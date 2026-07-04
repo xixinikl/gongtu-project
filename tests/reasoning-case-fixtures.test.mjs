@@ -93,6 +93,21 @@ test("cone-box-001 includes a deterministic teaching keyframe for every option",
   }
 });
 
+test("cone-box-001 teaches that a hexagon is possible in a cube but mismatched here", async () => {
+  const fixture = await loadFixture();
+  const optionB = fixture.options.find((option) => option.id === "B");
+  const keyframeB = fixture.keyframes.find((keyframe) => keyframe.optionId === "B");
+
+  assert.equal(optionB.outlineClass, "convex-hexagon");
+  assert.match(optionB.reason, /正方体|长方体/);
+  assert.match(optionB.reason, /可以.*六边形/);
+  assert.match(optionB.reason, /组合体/);
+  assert.match(optionB.reason, /方体直边/);
+  assert.match(optionB.reason, /圆锥/);
+  assert.match(keyframeB.caption, /正方体可以截出六边形/);
+  assert.match(keyframeB.caption, /接触转折/);
+});
+
 test("cone-box-001 explicitly preserves source ambiguities", async () => {
   const fixture = await loadFixture();
 
