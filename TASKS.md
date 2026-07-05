@@ -774,6 +774,11 @@
   - 验收：用用户提供的黑白块三视图题做第一题；用户选择 A/B/C/D 后立刻反馈对错；下方出现真实 3D 方块模型；模型可旋转，并能切换主视图、左视图、俯视图；讲解使用“看黑块数量、锁定位置、排除差异”的做题话术
   - 结果：已新增 `three-view-training.html` 训练页；录入黑白块第一题、原题截图来源、18 个真实方块坐标、A-D 选项和正确答案 C；点击选项会立即反馈对错；3D 模型可拖动旋转，并支持自由观察、主视图、左视图、俯视图切换；前台已删除“题目截图”区，避免重复占位，原图只保留在数据里做来源追溯
   - 验收证据：`node --test tests/three-view-training.test.mjs` 5/5 通过，证明 18 块、3 黑 15 白、左/俯视图和主视图 C 投影一致，且页面不再包含 `source-image` / “题目截图”；此前浏览器打开 `/three-view-training.html`，D 显示“再想想”和错误理由，C 显示“答对了”；3D canvas 截图非空，视角按钮 main/left/top/free 逐个切换成功，控制台 error/warn 为空；本轮浏览器刷新 `127.0.0.1` 被工具安全策略拦截，未作为新增验收证据
+- [x] ✓ DEVSERVER-001 chore: 固化 8089 静态训练页启动方式
+  - 依赖：THREEVIEW-001
+  - 验收：`npm run dev` 能启动 `127.0.0.1:8089`；`curl -I 'http://127.0.0.1:8089/three-view-training.html?verify=threeview001'` 返回 200；README 写明 `ERR_CONNECTION_REFUSED` 先启动静态服务
+  - 结果：已在 `package.json` 增加 `dev` / `dev:static` 脚本；已在 README 增加立体图推静态训练页启动说明；当前 8089 服务已重新启动
+  - 验收证据：已停掉手动服务并改用 `npm run dev` 启动；`lsof -nP -iTCP:8089 -sTCP:LISTEN` 显示 Python 正在监听；`curl -I` 返回 `HTTP/1.0 200 OK`
 - [x] ✓ THREEVIEW-002 feat: 沉淀三视图做题技巧模板
   - 依赖：THREEVIEW-001
   - 验收：每题都有短句技巧，不写专业定理；技巧围绕黑/白块数量、列/层定位、候选差异排除；专项测试覆盖技巧字段必填且页面显示

@@ -58,6 +58,16 @@
 
 ## 快速开始
 
+### 立体图推 / 静态训练页
+
+```bash
+npm run dev
+```
+
+浏览器打开 `http://127.0.0.1:8089/three-view-training.html`。如果页面提示 `ERR_CONNECTION_REFUSED`，说明本地静态服务没有启动，先重新运行 `npm run dev`。
+
+### 后端版主站
+
 ```bash
 # 1. 进入项目
 cd backend/
