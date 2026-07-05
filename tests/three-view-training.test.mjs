@@ -67,6 +67,8 @@ test("three-view training page exposes the complete practice flow", async () => 
   assert.match(html, /data-view-mode="main"/);
   assert.match(html, /data-view-mode="left"/);
   assert.match(html, /data-view-mode="top"/);
+  assert.doesNotMatch(html, /id="source-image"/);
+  assert.doesNotMatch(html, /题目截图/);
   assert.match(css, /\.model-stage canvas/);
   assert.match(css, /\.option-card\.is-correct/);
   assert.match(css, /@media \(max-width: 760px\)/);

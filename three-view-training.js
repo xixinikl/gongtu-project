@@ -18,7 +18,6 @@ const elements = {
   caseStatus: document.getElementById("case-status"),
   title: document.getElementById("question-title"),
   prompt: document.getElementById("question-prompt"),
-  sourceImage: document.getElementById("source-image"),
   sourceNote: document.getElementById("source-note"),
   leftViewGrid: document.getElementById("left-view-grid"),
   topViewGrid: document.getElementById("top-view-grid"),
@@ -390,8 +389,6 @@ function renderCase(caseData) {
 
   elements.title.textContent = caseData.title;
   elements.prompt.textContent = caseData.prompt;
-  elements.sourceImage.src = caseData.source.image;
-  elements.sourceImage.alt = `${caseData.title} 原题截图`;
   elements.sourceNote.textContent = caseData.source.note;
   elements.blockCountBadge.textContent = `${validation.counts.total} 块`;
   elements.blackCountBadge.textContent = `${validation.counts.black} 黑`;
