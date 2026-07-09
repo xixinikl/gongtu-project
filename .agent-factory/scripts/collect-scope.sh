@@ -17,7 +17,7 @@ done
 [[ -n "$DATE" && -n "$OUT" ]] || { echo "collect-scope requires --date and --out" >&2; exit 2; }
 
 python3 - "$CONFIG" "$DATE" "$OUT" <<'PY'
-import json, os, subprocess, sys
+import json, os, re, subprocess, sys
 from pathlib import Path
 
 config_path, date, out_path = sys.argv[1:4]
@@ -34,7 +34,12 @@ def lines(s):
     return [x for x in s.splitlines() if x.strip()]
 
 head = run(["git", "rev-parse", "HEAD"], ok=True)
-branch = run(["git", "branch", "--show-current"], ok=True)
+branch = (
+    run(["git", "branch", "--show-current"], ok=True)
+    or os.environ.get("GITHUB_HEAD_REF")
+    or os.environ.get("GITHUB_REF_NAME")
+    or ""
+)
 origin_ref = f"origin/{default_branch}"
 base_sha = run(["git", "rev-parse", "--verify", origin_ref], ok=True) or ""
 tracked_status = lines(run(["git", "status", "--short"], ok=True))
@@ -53,11 +58,16 @@ for row in commit_rows:
             "subject": parts[3],
         })
 
+exclude_patterns = [re.compile(p) for p in cfg.get("scopeExcludes", [])]
+
+def excluded(path: str) -> bool:
+    return any(pattern.search(path) for pattern in exclude_patterns)
+
 changed = set()
 for c in commits:
     files = lines(run(["git", "show", "--name-only", "--format=", c["sha"]], ok=True))
     for f in files:
-        if f:
+        if f and not excluded(f):
             changed.add(f)
 
 scope = {

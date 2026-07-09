@@ -11,6 +11,11 @@
     "requireCleanTrackedFiles": true,
     "dedicatedWorktreeRecommended": false
   },
+  "scopeExcludes": [
+    "^\\.agent-factory/out/",
+    "^\\.mypy_cache/",
+    "^\\.ruff_cache/"
+  ],
   "checks": [
     {
       "name": "ruff-backend",
