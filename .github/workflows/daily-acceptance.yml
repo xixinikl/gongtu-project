@@ -1,6 +1,6 @@
 name: 每日验收
 
-on:
+"on":
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -57,100 +57,7 @@ jobs:
       - name: 生成人类日报
         if: always()
         run: |
-          python - <<'PY'
-          import json
-          import os
-          from pathlib import Path
-
-          date = "${{ steps.date.outputs.value }}"
-          out = Path(".agent-factory/out") / date
-          scope_path = out / "scope.json"
-          checks_path = out / "checks.json"
-          risk_path = out / "risk.json"
-          report_path = out / "daily-report.md"
-
-          def load(path, default):
-              if path.exists():
-                  return json.loads(path.read_text())
-              return default
-
-          scope = load(scope_path, {})
-          checks = load(checks_path, {"results": []})
-          risk = load(risk_path, {})
-
-          failed = [r for r in checks.get("results", []) if r.get("exitCode") != 0]
-          high_risk = risk.get("highRiskFiles", [])
-          if failed:
-              verdict = "fail"
-              verdict_cn = "不通过"
-          elif high_risk:
-              verdict = "conditional"
-              verdict_cn = "有条件通过"
-          else:
-              verdict = "pass"
-              verdict_cn = "通过"
-
-          def bullet(items, empty="无"):
-              return "\n".join(f"- {x}" for x in items) if items else f"- {empty}"
-
-          check_lines = []
-          for r in checks.get("results", []):
-              ok = "PASS" if r.get("exitCode") == 0 else "FAIL"
-              check_lines.append(
-                  f"{ok} `{r.get('name')}` exit={r.get('exitCode')}，日志摘录 `{r.get('excerptPath')}`"
-              )
-
-          failed_lines = [
-              f"`{r.get('name')}`: exit={r.get('exitCode')}，先看 `{r.get('excerptPath')}`"
-              for r in failed
-          ]
-
-          text = f"""# 公途每日验收报告 - {date}
-
-## 总结论
-
-- Verdict: `{verdict}`（{verdict_cn}）
-- 验收日期: {date}
-- 测试提交: `{str(scope.get('testedSha', ''))[:12]}`
-- 基线分支: `{scope.get('baseBranch', 'main')}`
-- 建议深度: `{risk.get('recommendedLevel', 'L0')}`
-
-## 今天检查了什么
-
-{bullet(check_lines)}
-
-## 变更范围
-
-- 当日提交数: {scope.get('commitCount', 0)}
-- 变更文件数: {scope.get('changedFileCount', 0)}
-- 工作区状态条目: {len(scope.get('trackedStatus', []))}
-
-## 失败与影响
-
-{bullet(failed_lines)}
-
-## 高风险变更
-
-{bullet(high_risk)}
-
-## 自动修复建议
-
-{bullet(risk.get('autofixableFailedChecks', []), '今天没有低风险自动修复项')}
-
-## 未覆盖与下一步
-
-- 本日报是 L0 每日验收，主要覆盖静态检查、类型检查、安全扫描、跨平台基础测试和 Python 编译。
-- 浏览器真实点击、桌面端真实启动、AI 批改真实调用不在每日 L0 范围内。
-- 如果出现重复失败或高风险模块失败，应整理到 `doc/retrospectives/`，并开修复 PR。
-
-## 给 Codex 的压缩摘要
-
-详见同目录 `codex-summary.md`。Codex 应先读摘要，再按失败项读取日志摘录，避免读取全仓库和完整日志。
-"""
-          out.mkdir(parents=True, exist_ok=True)
-          report_path.write_text(text)
-          print(text)
-          PY
+          python .agent-factory/scripts/render-human-report.py "${{ steps.date.outputs.value }}"
 
       - name: 上传每日验收报告
         if: always()

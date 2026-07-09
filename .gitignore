@@ -30,3 +30,7 @@ Desktop.ini
 
 # Daily acceptance generated reports
 .agent-factory/out/
+
+# Local check caches
+.mypy_cache/
+.ruff_cache/
