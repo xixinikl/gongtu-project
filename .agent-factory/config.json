@@ -1,0 +1,69 @@
+{
+  "projectName": "gongtu-project",
+  "timezone": "Asia/Shanghai",
+  "defaultBranch": "main",
+  "tokenBudget": {
+    "dailySoftLimit": 12000,
+    "largeChangeFileThreshold": 25,
+    "logExcerptLines": 240
+  },
+  "worktree": {
+    "requireCleanTrackedFiles": true,
+    "dedicatedWorktreeRecommended": false
+  },
+  "scopeExcludes": [
+    "^\\.agent-factory/out/",
+    "^\\.mypy_cache/",
+    "^\\.ruff_cache/"
+  ],
+  "checks": [
+    {
+      "name": "ruff-backend",
+      "command": "python3 -m pip install ruff >/dev/null && python3 -m ruff check backend/ --select=E,F --ignore=E501",
+      "autofixCommand": "python3 -m ruff check backend/ --select=E,F --ignore=E501 --fix",
+      "risk": "low"
+    },
+    {
+      "name": "mypy-backend",
+      "command": "python3 -m pip install mypy >/dev/null && python3 -m mypy backend/ --python-version 3.13 --ignore-missing-imports --follow-imports=skip --disable-error-code var-annotated",
+      "risk": "medium"
+    },
+    {
+      "name": "bandit-backend",
+      "command": "python3 -m pip install bandit >/dev/null && python3 -m bandit -r backend/ -ll --exclude '**/venv/**'",
+      "risk": "high"
+    },
+    {
+      "name": "cross-platform-tests",
+      "command": "python3 tests/test_cross_platform.py",
+      "risk": "medium"
+    },
+    {
+      "name": "python-compile",
+      "command": "python3 -m compileall backend start_gontu.py",
+      "risk": "medium"
+    }
+  ],
+  "riskRules": {
+    "highRiskPathPatterns": [
+      "^backend/auth\\.py$",
+      "^backend/database\\.py$",
+      "^backend/shenlun\\.py$",
+      "^backend/src/grader\\.py$",
+      "^backend/.*models.*\\.py$",
+      "^backend/data/",
+      "^backend/seed",
+      "^\\.github/workflows/",
+      "^.*\\.env",
+      "^.*启动\\.(bat|command)$",
+      "^start_gontu\\.py$"
+    ],
+    "lowRiskAutofixChecks": [
+      "ruff-backend"
+    ]
+  },
+  "report": {
+    "outDir": ".agent-factory/out",
+    "template": ".agent-factory/report-template.md"
+  }
+}
