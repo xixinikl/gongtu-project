@@ -1,0 +1,9 @@
+{
+  "recommendedLevel": "L0",
+  "verdictBeforeCodex": "pass",
+  "reasons": [],
+  "highRiskFiles": [],
+  "failedChecks": [],
+  "autofixableFailedChecks": [],
+  "manualFailedChecks": []
+}

@@ -1,0 +1,5 @@
+$ python3 -m pip install mypy >/dev/null && python3 -m mypy backend/ --python-version 3.13 --ignore-missing-imports --follow-imports=skip --disable-error-code var-annotated
+
+WARNING: You are using pip version 21.2.4; however, version 26.0.1 is available.
+You should consider upgrading via the '/Library/Developer/CommandLineTools/usr/bin/python3 -m pip install --upgrade pip' command.
+Success: no issues found in 13 source files
