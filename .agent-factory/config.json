@@ -35,7 +35,7 @@
     },
     {
       "name": "cross-platform-tests",
-      "command": "python3 tests/test_cross_platform.py",
+      "command": "GONGTU_ALLOW_MAIN_DAILY_ACCEPTANCE=1 python3 tests/test_cross_platform.py",
       "risk": "medium"
     },
     {
