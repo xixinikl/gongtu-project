@@ -7,13 +7,27 @@
       "caseId": "cone-box-001",
       "videoFileName": "@公考志远（立体图推数资分享） 圆锥+方体经典模型 1080P.mp4",
       "image": "/data/images/reasoning/cone-box-001-question.png",
-      "verificationStatus": "human-verified"
+      "verificationStatus": "human-verified",
+      "userProvidedAnswer": {
+        "optionId": "B",
+        "label": "六边形",
+        "status": "conflict-needs-review",
+        "existingAnswer": "A",
+        "source": "user-message-2026-07-05-image-07",
+        "note": "用户本轮指出第七张图答案是六边形；当前正式题仍记录人工复核答案 A，下一轮必须回看视频确认是否为同一题或题面版本差异，不能直接覆盖。"
+      }
     },
     {
       "caseId": "pyramid-cylinder-001",
       "videoFileName": "@公考志远（立体图推数资分享） 棱锥+圆柱组合截面考察 1080P.mp4",
-      "image": "/data/images/reasoning/pyramid-cylinder-001-question.png",
-      "verificationStatus": "human-verified"
+      "image": "/data/images/reasoning/pyramid-cylinder-001-question-crop.png",
+      "verificationStatus": "human-verified",
+      "userProvidedAnswer": {
+        "optionId": "D",
+        "status": "matches-existing-human-verified",
+        "source": "user-message-2026-07-05-image-05",
+        "note": "用户本轮再次确认第五张图选 D，与当前正式答案一致。"
+      }
     }
   ],
   "draftItems": [
@@ -22,7 +36,13 @@
       "title": "7 个小正方体组合截面题",
       "lessonTarget": "dynamic-section",
       "status": "draft-unverified",
-      "answerStatus": "not-imported",
+      "answerStatus": "user-provided-needs-review",
+      "candidateAnswer": {
+        "optionId": "D",
+        "source": "user-message-2026-07-05-image-04",
+        "confidence": "user-provided",
+        "note": "用户本轮指出第四张图片选 D；后续需回看视频与重建模型后再转正式题。"
+      },
       "videoFileName": "@公考志远（立体图推数资分享） 方体经典题型，选项均是矩形② 1080P.mp4",
       "image": "/data/images/reasoning/drafts/box-rectangles-02-question.png",
       "questionFrameSeconds": 3,
@@ -34,7 +54,13 @@
       "title": "台阶模型截面题",
       "lessonTarget": "dynamic-section",
       "status": "draft-unverified",
-      "answerStatus": "not-imported",
+      "answerStatus": "user-provided-needs-review",
+      "candidateAnswer": {
+        "optionId": "B",
+        "source": "user-message-2026-07-05-image-06",
+        "confidence": "user-provided",
+        "note": "用户本轮指出第六张图片选 B，并强调长方形截不出直角三角形；后续讲解必须用真实切面验证。"
+      },
       "videoFileName": "@公考志远（立体图推数资分享） 选项越简单越容易失误，一定要小心谨慎！ 4K.mp4",
       "image": "/data/images/reasoning/drafts/simple-options-warning-question.png",
       "questionFrameSeconds": 3,
@@ -46,7 +72,13 @@
       "title": "方体经典截面·矩形选项",
       "lessonTarget": "dynamic-section",
       "status": "draft-unverified",
-      "answerStatus": "not-imported",
+      "answerStatus": "user-provided-needs-review",
+      "candidateAnswer": {
+        "optionId": "A",
+        "source": "user-message-2026-07-05-image-02",
+        "confidence": "user-provided",
+        "note": "用户本轮指出第二张图片选 A；后续需回看视频与重建模型后再转正式题。"
+      },
       "videoFileName": "@公考志远（立体图推数资分享） 方体经典截面，选项均是矩形 1080P.mp4",
       "image": "/data/images/reasoning/drafts/box-rectangles-01-question.png",
       "questionFrameSeconds": 3,
@@ -82,7 +114,13 @@
       "title": "方体经典题型·矩形选项③",
       "lessonTarget": "dynamic-section",
       "status": "draft-unverified",
-      "answerStatus": "not-imported",
+      "answerStatus": "user-provided-needs-review",
+      "candidateAnswer": {
+        "optionId": "C",
+        "source": "user-message-2026-07-05-image-03",
+        "confidence": "user-provided",
+        "note": "用户本轮指出第三张图片选 C；后续需回看视频与重建模型后再转正式题。"
+      },
       "videoFileName": "@公考志远（立体图推数资分享） 方体经典题型，选项矩形③ 1080P.mp4",
       "image": "/data/images/reasoning/drafts/box-rectangles-03-question.png",
       "questionFrameSeconds": 3,

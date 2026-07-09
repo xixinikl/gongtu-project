@@ -27,7 +27,7 @@ const DRAFT_CASE_INDEX_URL =
 
 const MODEL_APPEARANCE = {
   color: 0xe0b36f,
-  opacity: 0.46,
+  opacity: 0.38,
   wireframe: 0x263746,
 };
 
@@ -93,6 +93,8 @@ const state = {
   planeRotationRadians: 0,
   planeGesture: null,
   selectedComparisonOption: null,
+  latestSectionResult: null,
+  lastSectionProjectionKey: "",
 };
 
 const SHAPE_COMPARISONS = {
@@ -102,7 +104,7 @@ const SHAPE_COMPARISONS = {
   "rectangle-with-full-ellipse": "实际边界会把方体直边和圆锥截痕连成一个外轮廓，不会出现“矩形里面悬着一条完整椭圆”。",
   "narrow-triangle": "实际切面可以只经过棱锥相邻平面，得到一个很窄的三角形，三条边都能对应。",
   "pyramid-quadrilateral": "实际切到棱锥四个侧面时就是四条直边围成的不规则四边形，候选图可以出现。",
-  "conic-plus-triangle": "实际最接近“圆柱椭圆弧 + 棱锥两条直边”，曲边和直边会在组合体连接处接上。",
+  "conic-plus-triangle": "这类截面可以出现：圆柱贡献曲边，棱锥贡献直边。但看题时还要继续核对曲边朝向、连接位置和外轮廓比例；如果当前真实截面和候选简图方向不一致，就不能说完全对上。",
   "ellipse-plus-full-rectangle": "圆柱要出现椭圆，切面必须倾斜；同一斜面会削掉棱锥矩形的一个角，所以实际图最接近“椭圆 + 缺角四边形”。",
 };
 
@@ -149,7 +151,7 @@ controls.enableDamping = true;
 controls.dampingFactor = 0.07;
 controls.enablePan = false;
 controls.minDistance = 4;
-controls.maxDistance = 12;
+controls.maxDistance = 20;
 controls.target.set(0, -0.5, 0);
 
 const TEACHING_CAMERA_PULLBACK = 1.16;
@@ -183,8 +185,11 @@ scene.add(modelRoot);
 const sectionVisual = createSectionVisualV2({
   fillColor: 0xf28a3c,
   outlineColor: 0xc94d16,
-  fillOpacity: 0.64,
+  fillOpacity: 0.78,
 });
+sectionVisual.fill.material.depthTest = false;
+sectionVisual.fill.renderOrder = 8;
+sectionVisual.outline.renderOrder = 9;
 scene.add(sectionVisual.group);
 
 const sectionPlane = new THREE.Plane(new THREE.Vector3(1, 0, 0), 0);
@@ -194,7 +199,7 @@ const planeHelper = new THREE.Mesh(
   new THREE.MeshBasicMaterial({
     color: 0x5b95ef,
     transparent: true,
-    opacity: 0.065,
+    opacity: 0.025,
     side: THREE.DoubleSide,
     depthWrite: false,
   }),
@@ -407,6 +412,12 @@ function setPlaneControlsEnabled(enabled) {
   elements.canvas.parentElement.dataset.planeReady = String(enabled);
 }
 
+function setTimelineControlsEnabled(enabled) {
+  elements.previous.disabled = !enabled;
+  elements.play.disabled = !enabled;
+  elements.next.disabled = !enabled;
+}
+
 function formatSignedPercent(value) {
   const rounded = Math.round(value);
   return `${rounded > 0 ? "+" : ""}${rounded}%`;
@@ -434,6 +445,7 @@ function resetPlaneOutputs() {
 }
 
 function sectionStatusText(result) {
+  if (result?.status === "locked") return "等待选择";
   if (!planeHelper.visible) return "等待切面";
   if (!result) return "切面已就位";
   if (result.status === "error") return "切到模型边界";
@@ -481,8 +493,56 @@ function setCameraFrame(cameraFrame) {
   controls.update();
 }
 
+function cameraFrameForFrontSection(frame) {
+  if (!frame.plane) return { camera: frame.camera, plane: null };
+  const target = new THREE.Vector3().fromArray(frame.camera.target);
+  const original = new THREE.Vector3()
+    .fromArray(frame.camera.position)
+    .sub(target);
+  const distance = Math.max(original.length(), 5.2);
+  const plane = normalizedPlane(frame.plane.normal, frame.plane.constant);
+  const viewNormal = plane.normal.clone();
+  if (viewNormal.dot(original) < 0) viewNormal.negate();
+  const sectionTarget = plane.projectPoint(target, new THREE.Vector3());
+  const position = sectionTarget.clone().addScaledVector(viewNormal, distance);
+  return {
+    camera: {
+      position: position.toArray(),
+      target: sectionTarget.toArray(),
+    },
+    plane: frame.plane,
+  };
+}
+
+function sectionCenterFromResult(result) {
+  const points = result.contours.flatMap((contour) => contour.points);
+  const center = new THREE.Vector3();
+  for (const point of points) center.add(point);
+  return center.divideScalar(Math.max(points.length, 1));
+}
+
+function focusCameraOnSection(result) {
+  if (state.exploring || result?.status !== "ok" || !result.contours?.length) {
+    return;
+  }
+  const center = sectionCenterFromResult(result);
+  const points = result.contours.flatMap((contour) => contour.points);
+  const radius = Math.max(
+    ...points.map((point) => point.distanceTo(center)),
+    0.85,
+  );
+  const normal = sectionPlane.normal.clone().normalize();
+  if (normal.dot(camera.position.clone().sub(center)) < 0) normal.negate();
+  const fitDistance =
+    radius / Math.sin(THREE.MathUtils.degToRad(camera.fov) / 2);
+  const distance = THREE.MathUtils.clamp(fitDistance * 2.6, 8.8, 18);
+  camera.position.copy(center).addScaledVector(normal, distance);
+  controls.target.copy(center);
+  controls.update();
+}
+
 function renderTeachingFrame(frame) {
-  setCameraFrame(frame.camera);
+  setCameraFrame(cameraFrameForFrontSection(frame).camera);
   if (!state.exploring) resetPlaneOutputs();
   if (frame.plane) {
     sectionPlane.copy(
@@ -496,7 +556,7 @@ function renderTeachingFrame(frame) {
     setModelCutaway(false);
   }
   setPlaneControlsEnabled(Boolean(frame.plane));
-  updateSection();
+  updateSection({ focusSection: Boolean(frame.plane) });
 }
 
 function cancelTeachingTransition() {
@@ -537,32 +597,84 @@ function syncPlaneHelper() {
   );
 }
 
+function syncSectionFacingMetric() {
+  if (!planeHelper.visible) {
+    elements.canvas.dataset.sectionFacing = "none";
+    return;
+  }
+  const toCamera = camera.position.clone()
+    .sub(controls.target)
+    .normalize();
+  const planeNormal = sectionPlane.normal.clone().normalize();
+  const facing = Math.abs(toCamera.dot(planeNormal));
+  elements.canvas.dataset.sectionFacing = facing.toFixed(3);
+}
+
 function svgNumber(value) {
   return Number(value.toFixed(3));
 }
 
-function renderSectionPreview(result) {
-  if (result?.status !== "ok" || !result.topology?.groups?.length) {
-    const message = result?.status === "error"
-      ? "当前切面处于组合边界"
-      : "切面暂未经过模型";
-    elements.sectionPreviewSvg.innerHTML =
-      `<text x="160" y="88" text-anchor="middle">${message}</text>`;
-    elements.sectionPreviewMeta.textContent = "暂无轮廓";
-    elements.sectionPreviewStatus.textContent =
-      result?.status === "error" ? "请稍微旋转或移动切面" : "拖动切面后实时显示";
-    syncShapeComparisonActual();
-    return;
-  }
+function markLatestSectionResult(result) {
+  state.latestSectionResult = result;
+  state.lastSectionProjectionKey = "";
+}
 
-  const rings = result.topology.groups.flatMap(
-    (group) => [group.outerPoints2D, ...group.holes2D],
-  );
-  const points = rings.flat();
-  const minX = Math.min(...points.map((point) => point.x));
-  const maxX = Math.max(...points.map((point) => point.x));
-  const minY = Math.min(...points.map((point) => point.y));
-  const maxY = Math.max(...points.map((point) => point.y));
+function sectionProjectionKey(result) {
+  if (result?.status !== "ok") return `status:${result?.status ?? "none"}`;
+  const values = [
+    state.selectedOptionId ?? "none",
+    result.contourCount,
+    result.area.toFixed(4),
+    sectionPlane.normal.x,
+    sectionPlane.normal.y,
+    sectionPlane.normal.z,
+    sectionPlane.constant,
+    camera.position.x,
+    camera.position.y,
+    camera.position.z,
+    camera.quaternion.x,
+    camera.quaternion.y,
+    camera.quaternion.z,
+    camera.quaternion.w,
+    controls.target.x,
+    controls.target.y,
+    controls.target.z,
+  ];
+  return values.map((value) => (
+    typeof value === "number" ? value.toFixed(4) : value
+  )).join("|");
+}
+
+function cameraProjectedSectionSvg(result) {
+  const groups3D = result.topology.groups.map((group) => [
+    group.outerPoints3D,
+    ...group.holes3D,
+  ]);
+  const allPoints = groups3D.flat(2);
+  const center = new THREE.Vector3();
+  for (const point of allPoints) center.add(point);
+  center.divideScalar(Math.max(allPoints.length, 1));
+
+  const cameraRight = new THREE.Vector3(1, 0, 0)
+    .applyQuaternion(camera.quaternion)
+    .normalize();
+  const cameraUp = new THREE.Vector3(0, 1, 0)
+    .applyQuaternion(camera.quaternion)
+    .normalize();
+  const projectedGroups = groups3D.map((rings) => rings.map((ring) => (
+    ring.map((point) => {
+      const relative = point.clone().sub(center);
+      return {
+        x: relative.dot(cameraRight),
+        y: relative.dot(cameraUp),
+      };
+    })
+  )));
+  const projectedPoints = projectedGroups.flat(2);
+  const minX = Math.min(...projectedPoints.map((point) => point.x));
+  const maxX = Math.max(...projectedPoints.map((point) => point.x));
+  const minY = Math.min(...projectedPoints.map((point) => point.y));
+  const maxY = Math.max(...projectedPoints.map((point) => point.y));
   const width = Math.max(maxX - minX, 1e-6);
   const height = Math.max(maxY - minY, 1e-6);
   const scale = Math.min(270 / width, 126 / height);
@@ -577,35 +689,97 @@ function renderSectionPreview(result) {
     return `${index === 0 ? "M" : "L"} ${x} ${y}`;
   }).join(" ") + " Z";
 
-  const paths = result.topology.groups.map((group) => {
-    const path = [
-      ringPath(group.outerPoints2D),
-      ...group.holes2D.map(ringPath),
-    ].join(" ");
+  const paths = projectedGroups.map((rings) => {
+    const path = rings.map(ringPath).join(" ");
     return `<path class="section-shape" d="${path}" fill="#f5a15f" fill-opacity="0.32" fill-rule="evenodd" stroke="#d85418" stroke-width="4" stroke-linejoin="round"/>`;
   }).join("");
-  const markers = rings.flatMap((ring) => ring.map((point) => {
-    const [cx, cy] = project(point);
-    return `<circle class="section-point" cx="${cx}" cy="${cy}" r="3.2" fill="#fffdf9" stroke="#d85418" stroke-width="2"/>`;
-  })).join("");
+  const markers = projectedGroups.flatMap((rings) => rings.flatMap((ring) => (
+    ring.map((point) => {
+      const [cx, cy] = project(point);
+      return `<circle class="section-point" cx="${cx}" cy="${cy}" r="3.2" fill="#fffdf9" stroke="#d85418" stroke-width="2"/>`;
+    })
+  ))).join("");
 
-  elements.sectionPreviewSvg.innerHTML = `${paths}${markers}`;
-  elements.sectionPreviewMeta.textContent =
-    `${result.contourCount} 个轮廓 · 面积 ${result.area.toFixed(2)}`;
+  return `${paths}${markers}`;
+}
+
+function renderLockedSectionPreview(result) {
+  const message = result?.status === "ok"
+    ? "先选一个选项"
+    : "等待有效切面";
+  elements.sectionPreviewSvg.dataset.projection = "locked";
+  elements.sectionPreviewSvg.innerHTML =
+    `<text x="160" y="88" text-anchor="middle">${message}</text>`;
+  elements.sectionPreviewMeta.textContent = "等待选择";
   elements.sectionPreviewStatus.textContent =
-    "与三维橙色截面同步 · 外环、孔洞和顶点均来自 V2";
+    "点 A/B/C/D 后，再按当前 3D 方向显示真实截面。";
+  syncShapeComparisonActual();
+}
+
+function renderSectionPreview(result) {
+  if (!state.selectedOptionId) {
+    renderLockedSectionPreview(result);
+    return;
+  }
+  if (result?.status !== "ok" || !result.topology?.groups?.length) {
+    const message = result?.status === "error"
+      ? "当前切面处于组合边界"
+      : "切面暂未经过模型";
+    const emptySvg = `<text x="160" y="88" text-anchor="middle">${message}</text>`;
+    const status = result?.status === "error"
+      ? "请稍微旋转或移动切面"
+      : "拖动切面后实时显示";
+    elements.sectionPreviewSvg.dataset.projection = result?.status ?? "empty";
+    elements.sectionPreviewSvg.innerHTML = emptySvg;
+    elements.sectionPreviewMeta.textContent = "暂无轮廓";
+    elements.sectionPreviewStatus.textContent = status;
+    syncShapeComparisonActual();
+    return;
+  }
+
+  const sectionSvg = cameraProjectedSectionSvg(result);
+  const meta = `${result.contourCount} 个轮廓 · 面积 ${result.area.toFixed(2)}`;
+  const status = "按当前 3D 观察方向同步 · 外环、孔洞和顶点均来自 V2";
+  elements.sectionPreviewSvg.dataset.projection = "camera";
+  elements.sectionPreviewSvg.innerHTML = sectionSvg;
+  elements.sectionPreviewMeta.textContent = meta;
+  elements.sectionPreviewStatus.textContent = status;
+  state.lastSectionProjectionKey = sectionProjectionKey(result);
   syncShapeComparisonActual();
 }
 
 function syncShapeComparisonActual() {
   if (!elements.shapeComparisonActual || !state.selectedComparisonOption) return;
+  if (!state.selectedOptionId) return;
+  elements.shapeComparisonActual.dataset.projection =
+    elements.sectionPreviewSvg.dataset.projection ?? "";
   elements.shapeComparisonActual.innerHTML =
     elements.sectionPreviewSvg.innerHTML;
+}
+
+function renderInitialSectionCue(caseData) {
+  const previewFrame = caseData.keyframes.find((frame) => frame.plane);
+  if (!previewFrame) return;
+  renderTeachingFrame({
+    ...previewFrame,
+    optionId: null,
+  });
+  sectionVisual.clear();
+  planeHelper.visible = false;
+  elements.reasoningHeading.textContent = "先选一个选项";
+  elements.reasoningCaption.textContent =
+    "先按自己的判断点 A/B/C/D；选完后再把候选图、真实截面和这一刀的 3D 结果放在一起看。";
+  elements.engineStatus.textContent = "先选一个选项后显示真实切面";
+  elements.engineStatus.dataset.status = "locked";
+  updatePlaneReadout({ status: "locked" });
+  setPlaneControlsEnabled(false);
+  setTimelineControlsEnabled(false);
 }
 
 function renderShapeComparison(option) {
   state.selectedComparisonOption = option.id;
   renderCandidatePreview(option);
+  renderSectionPreview(state.latestSectionResult);
   const foundation = FOUNDATION_NOTES[option.outlineClass];
   elements.foundationNote.classList.toggle("is-hidden", !foundation);
   elements.foundationNoteCopy.textContent = foundation ?? "";
@@ -615,17 +789,18 @@ function renderShapeComparison(option) {
     SHAPE_COMPARISONS[option.outlineClass] ?? option.reason;
   elements.shapeComparisonResult.textContent = option.verdict === "impossible"
     ? "关键差异"
-    : "图形能对上";
+    : "类型可验证";
   syncShapeComparisonActual();
 }
 
-function updateSection() {
+function updateSection({ focusSection = false } = {}) {
   try {
     modelRoot.updateMatrixWorld(true);
     if (!sectionSource) throw new Error("截面实体尚未建立");
     const result = computeSectionV2(sectionSource, sectionPlane, {
       epsilon: 1e-6,
     });
+    markLatestSectionResult(result);
     if (result.status === "error") {
       sectionVisual.clear();
       renderSectionPreview(result);
@@ -635,6 +810,7 @@ function updateSection() {
       return;
     }
     sectionVisual.update(toSectionVisualV2Data(result));
+    if (focusSection) focusCameraOnSection(result);
     renderSectionPreview(result);
     updatePlaneReadout(result);
     elements.engineStatus.textContent = result.status === "ok"
@@ -643,13 +819,16 @@ function updateSection() {
     elements.engineStatus.dataset.status = result.status;
   } catch (error) {
     sectionVisual.clear();
-    renderSectionPreview({ status: "error" });
+    const result = { status: "error" };
+    markLatestSectionResult(result);
+    renderSectionPreview(result);
     updatePlaneReadout({ status: "error" });
     elements.engineStatus.textContent = "截面计算已安全停止";
     elements.engineStatus.dataset.status = "error";
     console.error("Section Engine V2:", error);
   }
   syncPlaneHelper();
+  syncSectionFacingMetric();
 }
 
 function resizeViewport() {
@@ -660,8 +839,19 @@ function resizeViewport() {
   camera.updateProjectionMatrix();
 }
 
+function refreshCameraProjectedSection() {
+  if (!state.selectedOptionId || state.latestSectionResult?.status !== "ok") {
+    return;
+  }
+  const nextKey = sectionProjectionKey(state.latestSectionResult);
+  if (nextKey === state.lastSectionProjectionKey) return;
+  renderSectionPreview(state.latestSectionResult);
+}
+
 function animate() {
   controls.update();
+  refreshCameraProjectedSection();
+  syncSectionFacingMetric();
   renderer.render(scene, camera);
   frameRequest = requestAnimationFrame(animate);
 }
@@ -745,7 +935,7 @@ function renderCandidatePreview(option) {
   elements.candidatePreviewDrawing.innerHTML = outlineSvg(option);
   elements.candidatePreviewStatus.textContent = impossible
     ? "把它当目标去摆切面，真实截面会暴露多出来、缺掉或曲直不一致的地方"
-    : "候选图、真实截面和 3D 橙色切面要能一起对上";
+    : "先证明能切出同类边界，再核对方向、比例和连接位置是否真的一致";
 }
 
 function renderSourceModelIcon(caseData) {
@@ -833,7 +1023,10 @@ function renderDraftCase(draft) {
   state.playing = false;
   state.explorationPlane = null;
   state.planeGesture = null;
+  state.latestSectionResult = null;
+  state.lastSectionProjectionKey = "";
   resetPlaneOutputs();
+  setTimelineControlsEnabled(false);
 
   elements.loading.classList.add("is-hidden");
   elements.caseSelect.value = draft.id;
@@ -982,6 +1175,7 @@ function selectOption(optionId, jumpToKeyframe = true) {
   const option = state.caseData.options.find((item) => item.id === optionId);
   if (!option) return;
   state.selectedOptionId = optionId;
+  setTimelineControlsEnabled(true);
   for (const button of elements.optionList.querySelectorAll(".option-card")) {
     const selected = button.dataset.optionId === optionId;
     button.classList.toggle("is-selected", selected);
@@ -1161,6 +1355,9 @@ async function loadCase(caseId) {
   state.planeOffsetPercent = 0;
   state.planeRotationRadians = 0;
   state.selectedComparisonOption = null;
+  state.latestSectionResult = null;
+  state.lastSectionProjectionKey = "";
+  setTimelineControlsEnabled(false);
   elements.questionHeading.textContent = caseData.title;
   elements.prompt.textContent = caseData.source.prompt;
   elements.sourceNote.textContent =
@@ -1176,6 +1373,7 @@ async function loadCase(caseId) {
   elements.verdictCard.classList.add("is-hidden");
   buildModel(caseData);
   applyKeyframe(0);
+  renderInitialSectionCue(caseData);
   elements.loading.classList.add("is-hidden");
 }
 

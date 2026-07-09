@@ -66,6 +66,24 @@ function semanticErrors(reasoningCase) {
     });
   }
 
+  for (const [index, note] of (reasoningCase.answerReviewNotes ?? []).entries()) {
+    if (!optionIds.has(note.userProvidedOptionId)) {
+      errors.push({
+        path: `/answerReviewNotes/${index}/userProvidedOptionId`,
+        message: `复核答案引用了不存在的选项: ${note.userProvidedOptionId}`,
+      });
+    }
+    if (
+      note.existingCorrectOptionId
+      && !optionIds.has(note.existingCorrectOptionId)
+    ) {
+      errors.push({
+        path: `/answerReviewNotes/${index}/existingCorrectOptionId`,
+        message: `复核记录里的原答案不存在: ${note.existingCorrectOptionId}`,
+      });
+    }
+  }
+
   const coveredOptions = new Set(
     (reasoningCase.keyframes ?? [])
       .map((keyframe) => keyframe.optionId)

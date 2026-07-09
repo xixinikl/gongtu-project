@@ -219,4 +219,13 @@ test("ReasoningCase validator rejects AI answers and broken references", async (
     keyframeResult.errors.map((error) => error.message).join("\n"),
     /缺少选项 B/,
   );
+
+  const brokenReviewNote = await loadFixture();
+  brokenReviewNote.answerReviewNotes[0].userProvidedOptionId = "Z";
+  const reviewNoteResult = validateReasoningCase(brokenReviewNote);
+  assert.equal(reviewNoteResult.valid, false);
+  assert.match(
+    reviewNoteResult.errors.map((error) => error.message).join("\n"),
+    /复核答案引用了不存在的选项/,
+  );
 });

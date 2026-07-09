@@ -1,12 +1,15 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { BlockArray } from "./geometry/block-array.js";
+import {
+  VIEW_CAMERA_POSES,
+  VIEW_LABELS,
+  normalizeThreeViewCase,
+  validateThreeViewBank,
+  validateThreeViewCase,
+} from "./three-view-case-engine.js";
 
-const CASE_URLS = {
-  "black-white-blocks-001": "/data/three-view-cases/black-white-blocks-001.json",
-};
-
-const AXIS_INDEX = { x: 0, y: 1, z: 2 };
+const BANK_URL = "/data/three-view-cases/black-white-blocks-50.json";
+const RECORDS_KEY = "gongtu.threeViewTraining.records.v1";
 const COLOR_LABELS = { white: "白", black: "黑" };
 const CUBE_COLORS = {
   white: 0xf8fafc,
@@ -14,23 +17,33 @@ const CUBE_COLORS = {
 };
 
 const elements = {
-  caseSelect: document.getElementById("case-select"),
+  groupSelect: document.getElementById("group-select"),
+  groupLabel: document.getElementById("group-label"),
   caseStatus: document.getElementById("case-status"),
+  progressLabel: document.getElementById("progress-label"),
+  timerLabel: document.getElementById("timer-label"),
+  historyLabel: document.getElementById("history-label"),
   title: document.getElementById("question-title"),
   prompt: document.getElementById("question-prompt"),
   sourceNote: document.getElementById("source-note"),
-  leftViewGrid: document.getElementById("left-view-grid"),
-  topViewGrid: document.getElementById("top-view-grid"),
+  givenViews: document.getElementById("given-views"),
+  targetViewLabel: document.getElementById("target-view-label"),
   optionList: document.getElementById("option-list"),
   answerState: document.getElementById("answer-state"),
+  nextQuestion: document.getElementById("next-question"),
+  restartGroup: document.getElementById("restart-group"),
+  groupResult: document.getElementById("group-result"),
+  resultTitle: document.getElementById("result-title"),
+  resultStats: document.getElementById("result-stats"),
+  resultMistakes: document.getElementById("result-mistakes"),
   canvas: document.getElementById("three-view-canvas"),
+  modelPanel: document.querySelector(".model-panel"),
   modelStage: document.querySelector(".model-stage"),
+  modelGate: document.getElementById("model-gate"),
   blockCountBadge: document.getElementById("block-count-badge"),
   blackCountBadge: document.getElementById("black-count-badge"),
   whiteCountBadge: document.getElementById("white-count-badge"),
-  actualMainGrid: document.getElementById("actual-main-grid"),
-  actualLeftGrid: document.getElementById("actual-left-grid"),
-  actualTopGrid: document.getElementById("actual-top-grid"),
+  actualViews: document.getElementById("actual-views"),
   validationState: document.getElementById("validation-state"),
   shortTip: document.getElementById("short-tip"),
   techniqueList: document.getElementById("technique-list"),
@@ -61,13 +74,10 @@ const modelGroup = new THREE.Group();
 modelGroup.name = "ThreeViewBlockModel";
 scene.add(modelGroup);
 
-const ambient = new THREE.AmbientLight(0xffffff, 1.1);
-scene.add(ambient);
-
+scene.add(new THREE.AmbientLight(0xffffff, 1.1));
 const keyLight = new THREE.DirectionalLight(0xffffff, 2.2);
 keyLight.position.set(5, 7, 6);
 scene.add(keyLight);
-
 const rimLight = new THREE.DirectionalLight(0xdbeafe, 1.3);
 rimLight.position.set(-4, 3, -5);
 scene.add(rimLight);
@@ -77,9 +87,17 @@ grid.position.y = -1.55;
 scene.add(grid);
 
 const state = {
-  caseData: null,
+  bank: null,
+  casesById: new Map(),
+  group: null,
+  groupCases: [],
+  questionIndex: 0,
+  answers: [],
   selectedOptionId: null,
   viewMode: "free",
+  questionStartedAt: 0,
+  groupStartedAt: 0,
+  timerId: null,
   animationId: null,
 };
 
@@ -91,92 +109,36 @@ function normalizeGridCell(cell) {
   return cell;
 }
 
-function axisValue(block, axis) {
-  const index = AXIS_INDEX[axis];
-  if (index == null) throw new RangeError(`unknown axis "${axis}"`);
-  return block.position[index];
+function formatTime(ms) {
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
 
-function orderedValues(order) {
-  if (order === "low-to-high") return [0, 1, 2];
-  if (order === "high-to-low") return [2, 1, 0];
-  throw new RangeError(`unknown order "${order}"`);
+function readRecords() {
+  try {
+    return JSON.parse(localStorage.getItem(RECORDS_KEY) || "[]");
+  } catch {
+    return [];
+  }
 }
 
-export function projectView(blocks, rule) {
-  const horizontalValues = orderedValues(rule.horizontalOrder);
-  const verticalValues = orderedValues(rule.verticalOrder);
-  const depthValues = orderedValues(rule.depthOrder);
-
-  return verticalValues.map((verticalValue) => (
-    horizontalValues.map((horizontalValue) => {
-      for (const depthValue of depthValues) {
-        const visible = blocks.find((block) => (
-          axisValue(block, rule.horizontalAxis) === horizontalValue
-          && axisValue(block, rule.verticalAxis) === verticalValue
-          && axisValue(block, rule.depthAxis) === depthValue
-        ));
-        if (visible) return visible.color;
-      }
-      return null;
-    })
-  ));
+function writeRecords(records) {
+  localStorage.setItem(RECORDS_KEY, JSON.stringify(records.slice(0, 30)));
 }
 
-function gridsEqual(a, b) {
-  return JSON.stringify(a) === JSON.stringify(b);
+function lastRecordForGroup(groupId) {
+  return readRecords().find((record) => record.groupId === groupId) || null;
 }
 
-function countBlocks(blocks) {
-  return blocks.reduce((acc, block) => {
-    acc.total += 1;
-    acc[block.color] += 1;
-    return acc;
-  }, { total: 0, white: 0, black: 0 });
-}
-
-export function validateThreeViewCase(caseData) {
-  const positions = caseData.blocks.map((block) => block.position);
-  const blockArray = new BlockArray(positions);
-  const counts = countBlocks(caseData.blocks);
-  const errors = [];
-
-  if (blockArray.size !== caseData.blocks.length) {
-    errors.push("存在重复方块坐标");
+function renderHistory() {
+  const record = state.group ? lastRecordForGroup(state.group.id) : null;
+  if (!record) {
+    elements.historyLabel.textContent = "本组暂无记录";
+    return;
   }
-  for (const key of ["total", "white", "black"]) {
-    if (counts[key] !== caseData.counts[key]) {
-      errors.push(`${key} 数量不一致`);
-    }
-  }
-
-  const projectedMain = projectView(caseData.blocks, caseData.viewRules.main);
-  const projectedLeft = projectView(caseData.blocks, caseData.viewRules.left);
-  const projectedTop = projectView(caseData.blocks, caseData.viewRules.top);
-
-  if (!gridsEqual(projectedMain, caseData.targetViews.main)) {
-    errors.push("模型主视图与正确答案不一致");
-  }
-  if (!gridsEqual(projectedLeft, caseData.givenViews.left)) {
-    errors.push("模型左视图与题面不一致");
-  }
-  if (!gridsEqual(projectedTop, caseData.givenViews.top)) {
-    errors.push("模型俯视图与题面不一致");
-  }
-  if (!caseData.options.some((option) => option.id === caseData.answer)) {
-    errors.push("正确答案不在选项中");
-  }
-
-  return {
-    ok: errors.length === 0,
-    errors,
-    counts,
-    projected: {
-      main: projectedMain,
-      left: projectedLeft,
-      top: projectedTop,
-    },
-  };
+  elements.historyLabel.textContent = `上次 ${record.correct}/${record.total}，${formatTime(record.durationMs)}`;
 }
 
 function renderViewGrid(container, gridData, label = "") {
@@ -192,6 +154,33 @@ function renderViewGrid(container, gridData, label = "") {
       node.setAttribute("aria-label", cell ? `${COLOR_LABELS[cell]}块` : "空位");
       container.appendChild(node);
     }
+  }
+}
+
+function createViewFigure(viewKey, gridData, prefix = "") {
+  const figure = document.createElement("figure");
+  const caption = document.createElement("figcaption");
+  const grid = document.createElement("div");
+  caption.textContent = `${prefix}${VIEW_LABELS[viewKey] || viewKey}`;
+  grid.className = "view-grid";
+  renderViewGrid(grid, gridData, caption.textContent);
+  figure.append(caption, grid);
+  return figure;
+}
+
+function renderGivenViews(caseData) {
+  elements.givenViews.innerHTML = "";
+  for (const viewKey of caseData.givenViewKeys) {
+    elements.givenViews.appendChild(createViewFigure(viewKey, caseData.givenViews[viewKey]));
+  }
+}
+
+function renderActualViews(validation) {
+  elements.actualViews.innerHTML = "";
+  for (const viewKey of ["main", "left", "right", "top"]) {
+    const figure = createViewFigure(viewKey, validation.projected[viewKey], "模型");
+    figure.querySelector(".view-grid").classList.add("compact");
+    elements.actualViews.appendChild(figure);
   }
 }
 
@@ -224,7 +213,8 @@ function renderOptions(caseData) {
 
 function cubePosition(position) {
   const [x, y, z] = position;
-  return new THREE.Vector3(x - 1, y - 1, z - 1);
+  // The case grid treats x as left-to-right on screen; mirror it once at the Three.js boundary.
+  return new THREE.Vector3(1 - x, y - 1, z - 1);
 }
 
 function disposeModel() {
@@ -279,24 +269,27 @@ function setCamera(viewMode = "free") {
     button.classList.toggle("is-active", button.dataset.viewMode === viewMode);
   }
 
-  controls.enabled = viewMode === "free";
-  camera.up.set(0, 1, 0);
-
-  if (viewMode === "main") {
-    camera.position.set(0, 0, -7.2);
-  } else if (viewMode === "left") {
-    camera.position.set(-7.2, 0, 0);
-    camera.up.set(0, -1, 0);
-  } else if (viewMode === "top") {
-    camera.position.set(0, -7.2, 0);
-    camera.up.set(0, 0, 1);
-  } else {
-    camera.position.set(5.4, 4.5, 6.2);
-  }
+  const isAnswered = document.body.dataset.answered === "true";
+  controls.enabled = isAnswered && viewMode === "free";
+  const pose = VIEW_CAMERA_POSES[viewMode] || VIEW_CAMERA_POSES.free;
+  elements.canvas.dataset.cameraPosition = pose.position.join(",");
+  elements.canvas.dataset.cameraUp = pose.up.join(",");
+  camera.up.set(...pose.up);
+  camera.position.set(...pose.position);
 
   controls.target.set(0, 0, 0);
   camera.lookAt(controls.target);
   controls.update();
+}
+
+function setModelAccess(isUnlocked) {
+  elements.modelStage.dataset.revealed = isUnlocked ? "true" : "false";
+  elements.canvas.setAttribute("aria-hidden", isUnlocked ? "false" : "true");
+  for (const button of elements.viewButtons) {
+    button.disabled = !isUnlocked;
+  }
+  elements.resetCamera.disabled = !isUnlocked;
+  controls.enabled = isUnlocked && state.viewMode === "free";
 }
 
 function resizeRenderer() {
@@ -334,10 +327,27 @@ function renderTeaching(caseData) {
   }
 }
 
+function currentCase() {
+  return state.groupCases[state.questionIndex] || null;
+}
+
+function updateTimer() {
+  if (!state.groupStartedAt) {
+    elements.timerLabel.textContent = "00:00";
+    return;
+  }
+  elements.timerLabel.textContent = formatTime(Date.now() - state.groupStartedAt);
+}
+
 function resetFeedback() {
   state.selectedOptionId = null;
   document.body.dataset.selectedOption = "";
+  document.body.dataset.answered = "false";
+  setModelAccess(false);
   elements.answerState.textContent = "先选一个";
+  elements.answerState.dataset.result = "";
+  elements.nextQuestion.disabled = true;
+  elements.nextQuestion.textContent = state.questionIndex === state.groupCases.length - 1 ? "完成训练" : "下一题";
   elements.feedbackCard.className = "feedback-card";
   elements.feedbackCard.innerHTML = `
     <span>当前选择</span>
@@ -349,17 +359,30 @@ function resetFeedback() {
   }
 }
 
+function saveCurrentAnswer(option, isCorrect) {
+  state.answers[state.questionIndex] = {
+    caseId: currentCase().id,
+    selected: option.id,
+    correct: isCorrect,
+    elapsedMs: Date.now() - state.questionStartedAt,
+  };
+}
+
 function selectOption(optionId) {
-  const caseData = state.caseData;
+  const caseData = currentCase();
   const option = caseData.options.find((item) => item.id === optionId);
   if (!option) return;
 
   const isCorrect = option.id === caseData.answer;
   state.selectedOptionId = option.id;
+  saveCurrentAnswer(option, isCorrect);
   document.body.dataset.selectedOption = option.id;
+  document.body.dataset.answered = "true";
+  setModelAccess(true);
   elements.answerState.textContent = isCorrect ? "答对了" : "再想想";
   elements.answerState.dataset.result = isCorrect ? "correct" : "wrong";
   elements.canvas.dataset.selectedOption = option.id;
+  elements.nextQuestion.disabled = false;
 
   for (const button of elements.optionList.querySelectorAll(".option-card")) {
     const selected = button.dataset.optionId === option.id;
@@ -372,13 +395,14 @@ function selectOption(optionId) {
   elements.feedbackCard.className = `feedback-card ${isCorrect ? "is-correct" : "is-wrong"}`;
   elements.feedbackCard.innerHTML = `
     <span>当前选择：${option.label}</span>
-    <strong>${isCorrect ? "正确，就是这个主视图" : "这个选项先排除"}</strong>
+    <strong>${isCorrect ? `正确，就是这个${VIEW_LABELS[caseData.targetViewKey]}` : "这个选项先排除"}</strong>
     <p>${option.feedback}</p>
   `;
+  requestAnimationFrame(resizeRenderer);
 }
 
-function renderCase(caseData) {
-  state.caseData = caseData;
+function renderCase(rawCaseData) {
+  const caseData = normalizeThreeViewCase(rawCaseData);
   const validation = validateThreeViewCase(caseData);
 
   elements.caseStatus.textContent = validation.ok ? "已核验" : "需检查";
@@ -387,23 +411,25 @@ function renderCase(caseData) {
   elements.canvas.dataset.validation = validation.ok ? "pass" : "fail";
   elements.canvas.dataset.validationErrors = validation.errors.join("；");
 
+  elements.groupLabel.textContent = state.group?.title || "训练组";
+  elements.progressLabel.textContent = `第 ${state.questionIndex + 1} / ${state.groupCases.length} 题`;
   elements.title.textContent = caseData.title;
   elements.prompt.textContent = caseData.prompt;
+  elements.targetViewLabel.textContent = VIEW_LABELS[caseData.targetViewKey] || caseData.targetViewKey;
   elements.sourceNote.textContent = caseData.source.note;
   elements.blockCountBadge.textContent = `${validation.counts.total} 块`;
   elements.blackCountBadge.textContent = `${validation.counts.black} 黑`;
   elements.whiteCountBadge.textContent = `${validation.counts.white} 白`;
+  elements.groupResult.hidden = true;
 
-  renderViewGrid(elements.leftViewGrid, caseData.givenViews.left, "题面左视图");
-  renderViewGrid(elements.topViewGrid, caseData.givenViews.top, "题面俯视图");
-  renderViewGrid(elements.actualMainGrid, validation.projected.main, "模型计算出的主视图");
-  renderViewGrid(elements.actualLeftGrid, validation.projected.left, "模型计算出的左视图");
-  renderViewGrid(elements.actualTopGrid, validation.projected.top, "模型计算出的俯视图");
+  renderGivenViews(caseData);
+  renderActualViews(validation);
   renderOptions(caseData);
   renderTeaching(caseData);
   renderModel(caseData);
   resetFeedback();
   setCamera("free");
+  state.questionStartedAt = Date.now();
 
   if (!validation.ok) {
     elements.feedbackCard.innerHTML = `
@@ -414,13 +440,106 @@ function renderCase(caseData) {
   }
 }
 
-async function loadCase(caseId) {
-  const url = CASE_URLS[caseId];
-  if (!url) throw new Error(`unknown three-view case "${caseId}"`);
-  const response = await fetch(url);
-  if (!response.ok) throw new Error(`failed to load ${url}: ${response.status}`);
-  const caseData = await response.json();
-  renderCase(caseData);
+function renderGroupResult(record) {
+  elements.groupResult.hidden = false;
+  const accuracy = Math.round((record.correct / record.total) * 100);
+  elements.resultTitle.textContent = `${state.group.title} 完成`;
+  elements.resultStats.innerHTML = `
+    <span>${record.correct}/${record.total} 正确</span>
+    <span>正确率 ${accuracy}%</span>
+    <span>总用时 ${formatTime(record.durationMs)}</span>
+    <span>平均 ${formatTime(record.averageMs)}</span>
+  `;
+  elements.resultMistakes.innerHTML = "";
+  const mistakes = record.answers.filter((answer) => !answer.correct);
+  if (!mistakes.length) {
+    const item = document.createElement("li");
+    item.textContent = "这一组全对，保持这个节奏。";
+    elements.resultMistakes.appendChild(item);
+    return;
+  }
+  for (const answer of mistakes) {
+    const caseNumber = state.groupCases.findIndex((caseData) => caseData.id === answer.caseId) + 1;
+    const item = document.createElement("li");
+    item.textContent = `第 ${caseNumber} 题选了 ${answer.selected}，回看这题的两个给定视图和正确答案。`;
+    elements.resultMistakes.appendChild(item);
+  }
+}
+
+function completeGroup() {
+  const durationMs = Date.now() - state.groupStartedAt;
+  const answers = state.answers.slice(0, state.groupCases.length);
+  const correct = answers.filter((answer) => answer?.correct).length;
+  const record = {
+    groupId: state.group.id,
+    groupTitle: state.group.title,
+    completedAt: new Date().toISOString(),
+    total: state.groupCases.length,
+    correct,
+    durationMs,
+    averageMs: Math.round(durationMs / state.groupCases.length),
+    answers,
+  };
+  writeRecords([record, ...readRecords()]);
+  renderHistory();
+  renderGroupResult(record);
+  elements.nextQuestion.disabled = true;
+  elements.nextQuestion.textContent = "已完成";
+  if (state.timerId) {
+    clearInterval(state.timerId);
+    state.timerId = null;
+  }
+}
+
+function moveNext() {
+  if (!state.answers[state.questionIndex]) return;
+  if (state.questionIndex >= state.groupCases.length - 1) {
+    completeGroup();
+    return;
+  }
+  state.questionIndex += 1;
+  renderCase(currentCase());
+}
+
+function startGroup(groupId) {
+  const group = state.bank.groups.find((item) => item.id === groupId) || state.bank.groups[0];
+  state.group = group;
+  state.groupCases = group.caseIds.map((caseId) => state.casesById.get(caseId));
+  state.questionIndex = 0;
+  state.answers = [];
+  state.groupStartedAt = Date.now();
+  state.questionStartedAt = Date.now();
+  elements.groupSelect.value = group.id;
+  renderHistory();
+  renderCase(currentCase());
+  updateTimer();
+  if (state.timerId) clearInterval(state.timerId);
+  state.timerId = setInterval(updateTimer, 1000);
+}
+
+function renderGroupOptions(bank) {
+  elements.groupSelect.innerHTML = "";
+  for (const group of bank.groups) {
+    const option = document.createElement("option");
+    option.value = group.id;
+    option.textContent = `${group.title} · 5题`;
+    elements.groupSelect.appendChild(option);
+  }
+}
+
+async function loadBank() {
+  const response = await fetch(BANK_URL);
+  if (!response.ok) throw new Error(`failed to load ${BANK_URL}: ${response.status}`);
+  const bank = await response.json();
+  const validation = validateThreeViewBank(bank);
+  if (!validation.ok) throw new Error(validation.errors.join("；"));
+  state.bank = bank;
+  state.casesById = new Map(bank.cases.map((caseData) => [caseData.id, caseData]));
+  elements.canvas.dataset.bankValidation = "pass";
+  elements.canvas.dataset.caseCount = String(bank.cases.length);
+  renderGroupOptions(bank);
+  const requestedGroup = new URLSearchParams(location.search).get("group");
+  startGroup(requestedGroup || bank.groups[0].id);
 }
 
 for (const button of elements.viewButtons) {
@@ -428,11 +547,13 @@ for (const button of elements.viewButtons) {
 }
 
 elements.resetCamera.addEventListener("click", () => setCamera("free"));
-elements.caseSelect.addEventListener("change", () => loadCase(elements.caseSelect.value));
+elements.groupSelect.addEventListener("change", () => startGroup(elements.groupSelect.value));
+elements.nextQuestion.addEventListener("click", moveNext);
+elements.restartGroup.addEventListener("click", () => startGroup(state.group.id));
 window.addEventListener("resize", resizeRenderer);
 
-loadCase(elements.caseSelect.value).catch((error) => {
-  elements.title.textContent = "题目载入失败";
+loadBank().catch((error) => {
+  elements.title.textContent = "题库载入失败";
   elements.prompt.textContent = error.message;
   elements.canvas.dataset.validation = "load-failed";
   console.error(error);
@@ -443,14 +564,23 @@ animate();
 window.__threeViewTraining = {
   getState() {
     return {
-      caseId: state.caseData?.id || null,
+      bankId: state.bank?.id || null,
+      groupId: state.group?.id || null,
+      questionIndex: state.questionIndex,
+      groupSize: state.groupCases.length,
+      caseId: currentCase()?.id || null,
       selectedOptionId: state.selectedOptionId,
+      answeredCount: state.answers.filter(Boolean).length,
       viewMode: state.viewMode,
-      blockCount: state.caseData?.blocks.length || 0,
+      cameraPosition: camera.position.toArray().map((value) => Number(value.toFixed(2))),
+      cameraUp: camera.up.toArray().map((value) => Number(value.toFixed(2))),
+      blockCount: currentCase()?.blocks.length || 0,
       validation: elements.canvas.dataset.validation,
+      bankValidation: elements.canvas.dataset.bankValidation || "",
       validationErrors: elements.canvas.dataset.validationErrors || "",
+      records: readRecords(),
     };
   },
-  projectView,
   validateThreeViewCase,
+  validateThreeViewBank,
 };

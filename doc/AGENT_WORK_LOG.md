@@ -20,6 +20,32 @@
 - 建议下一任务：
 ```
 
+## 2026-07-09 · Codex · HANDOFF-20260709
+
+- 分支：`cx/lesson-015-dynamic-explore`
+- 基线提交：`4350dcb`
+- 完成任务：`docs: 写入当前交接并上传 GitHub`
+- 修改的交付文件：`doc/HANDOFF_2026-07-09.md`、`doc/AGENT_HANDOFF.md`
+- 执行的测试：`npm run doctor`；`git diff --check`；关键 JS 语法检查；`node --test tests/reasoning-lesson-layout.test.mjs`；`node --test tests/reasoning-case-fixtures.test.mjs`；`node --test tests/three-view-training.test.mjs`；`npm run test:geometry`
+- 测试结果：`npm run doctor` 未全绿，Node.js 18.20.8 低于 20+、Python 3.9.6 低于 3.10+；8089/8888 均监听；`git diff --check` 通过；专项测试 17/17、12/12、6/6 通过；全量几何回归 572/572 通过
+- 任务提交：本任务所在提交
+- 已推送远端：待本轮提交后推送到 `origin/cx/lesson-015-dynamic-explore`
+- 遗留风险：`LESSON-015F` 仍待用户最终体验验收；本机 shell 运行时版本低于项目要求，后续开发应切 Node 20+ 与 Python 3.10+
+- 建议下一任务：`LESSON-016 建立四类训练总入口`
+
+## 2026-07-05 · Codex · LESSON-015D
+
+- 分支：`cx/lesson-015-dynamic-explore`
+- 基线提交：本轮开始时工作区已有未提交改动，未单独建立干净基线
+- 完成任务：`fix: 动态解题真实截面正视与草稿答案入库`
+- 修改的交付文件：`reasoning-lesson.html`、`reasoning-lesson.js`、`data/reasoning-cases/draft-video-questions.json`、`data/reasoning-cases/cone-box-001.json`、`data/reasoning-cases/pyramid-cylinder-001.json`、`spec/reasoning-case-v1.schema.json`、`geometry/reasoning-case-validator.js`、`tests/reasoning-lesson-layout.test.mjs`、`tests/reasoning-case-fixtures.test.mjs`、`TASKS.md`、`CURRENT_STATUS.md`、`错误复盘.md`
+- 执行的测试：`node --check reasoning-lesson.js`；`node --check geometry/reasoning-case-validator.js`；JSON 解析；`node --test tests/reasoning-lesson-layout.test.mjs`；`node --test tests/reasoning-case-fixtures.test.mjs`；`npm run test:geometry`；`git diff --check`；`curl -I`；应用浏览器实机验收
+- 测试结果：专项测试 17/17 通过；案例契约 12/12 通过；全量几何 572/572 通过；浏览器 `sectionFacing=1.000`、控制台 error/warn 为空；8089 服务 `open=true` 且 `pidAlive=true`
+- 任务提交：未提交，本轮仅按用户要求完成开发与记录
+- 已推送远端：否
+- 遗留风险：`cone-box-001` 用户本轮给出的“六边形/B”和既有正式答案 A 冲突，已记录为 `conflict-needs-review`，后续需要回看视频确认是否为同一题或题面版本差异
+- 建议下一任务：继续核验动态解题题库答案与题源截图，优先处理 `conflict-needs-review` 的圆锥方体六边形题
+
 ## 2026-07-04 · Codex · HANDOFF-LESSON-003
 
 - 分支：`feature/csg-v2-integration`

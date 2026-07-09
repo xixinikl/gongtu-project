@@ -1,5 +1,8 @@
 # 空间几何实验室 Agent 交接手册
 
+> 最新交接：2026-07-09 请先读 `doc/HANDOFF_2026-07-09.md`。
+> 当前真实仓库以 `AGENTS.md`、`CURRENT_STATUS.md`、`TASKS.md` 和 Git 为准；本文件下方仍保留部分旧机器路径与历史阶段说明，不能盲信。
+
 更新时间：2026-07-03
 
 权威分支：`feature/csg-v2-integration`

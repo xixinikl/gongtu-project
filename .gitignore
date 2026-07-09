@@ -19,6 +19,8 @@ backend/data.db-wal
 
 # 日志
 backend/logs/
+.codex-runtime/
+.playwright-cli/
 
 # Electron
 desktop/node_modules/

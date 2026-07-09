@@ -9,7 +9,7 @@ Windows / macOS / Linux 通用
     python3 start_gontu.py --open # 启动后自动打开浏览器
 
 要求：
-    1. Python 3.8+
+    1. Python 3.10+
     2. 在 backend/ 同级目录执行（或自动进入）
     3. 依赖已通过 pip install -r backend/requirements.txt 安装
 """
@@ -20,6 +20,8 @@ import subprocess
 import platform
 import time
 import argparse
+
+MIN_PYTHON = (3, 10)
 
 
 def find_backend_dir():
@@ -60,6 +62,39 @@ def get_python_cmd(backend_dir):
             pass
     
     return None
+
+
+def check_python_version(python_cmd):
+    """Ensure the selected Python runtime matches the project syntax baseline."""
+    result = subprocess.run(
+        [
+            python_cmd,
+            "-c",
+            "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}')",
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+        timeout=5,
+    )
+    if result.returncode != 0:
+        print("❌ 错误：无法读取 Python 版本")
+        sys.exit(1)
+
+    raw = result.stdout.strip()
+    try:
+        major, minor, *_ = [int(part) for part in raw.split(".")]
+    except ValueError:
+        print(f"❌ 错误：无法解析 Python 版本：{raw}")
+        sys.exit(1)
+
+    if (major, minor) < MIN_PYTHON:
+        need = ".".join(str(part) for part in MIN_PYTHON)
+        print(f"❌ 错误：当前 Python 是 {raw}，本项目需要 Python {need}+")
+        print("   建议：创建 Python 3.10+ 虚拟环境后再启动。")
+        sys.exit(1)
+
+    return raw
 
 
 def install_deps(python_cmd, backend_dir):
@@ -129,9 +164,10 @@ def main():
     # 2. 获取 Python 命令
     python_cmd = get_python_cmd(backend_dir)
     if python_cmd is None:
-        print("❌ 错误：找不到可用的 Python 环境，请确保已安装 Python 3.8+")
+        print("❌ 错误：找不到可用的 Python 环境，请确保已安装 Python 3.10+")
         sys.exit(1)
-    print(f"🐍 Python: {python_cmd}")
+    python_version = check_python_version(python_cmd)
+    print(f"🐍 Python: {python_cmd} ({python_version})")
 
     # 3. 检查/安装依赖
     if args.install:

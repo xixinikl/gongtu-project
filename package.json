@@ -9,8 +9,11 @@
     "node": ">=20"
   },
   "scripts": {
-    "dev": "python3 -m http.server 8089 --bind 127.0.0.1",
-    "dev:static": "python3 -m http.server 8089 --bind 127.0.0.1",
+    "doctor": "node tools/doctor.mjs",
+    "dev": "node tools/dev-server.mjs ensure",
+    "dev:static": "node tools/dev-server.mjs ensure",
+    "dev:status": "node tools/dev-server.mjs status",
+    "dev:stop": "node tools/dev-server.mjs stop",
     "deps:check": "npm ls --all",
     "test:geometry": "node --experimental-loader ./tests/three-absolute-loader.mjs --test ./tests/*.test.mjs"
   },

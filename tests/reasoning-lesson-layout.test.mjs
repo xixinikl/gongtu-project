@@ -17,6 +17,14 @@ const draftIndexUrl = new URL(
   import.meta.url,
 );
 
+function pngDimensions(buffer) {
+  assert.equal(buffer.toString("ascii", 1, 4), "PNG");
+  return {
+    width: buffer.readUInt32BE(16),
+    height: buffer.readUInt32BE(20),
+  };
+}
+
 test("student lesson keeps the spatial products as independent entry points", async () => {
   const html = await readFile(htmlUrl, "utf8");
 
@@ -107,7 +115,13 @@ test("student lesson shows the original video question frame when available", as
   const pyramidData = JSON.parse(pyramidCase);
 
   assert.match(caseData.source.image, /cone-box-001-question\.png$/);
-  assert.match(pyramidData.source.image, /pyramid-cylinder-001-question\.png$/);
+  assert.match(pyramidData.source.image, /pyramid-cylinder-001-question-crop\.png$/);
+  const pyramidImage = await readFile(
+    new URL(`..${pyramidData.source.image}`, import.meta.url),
+  );
+  const dimensions = pngDimensions(pyramidImage);
+  assert.ok(dimensions.width >= 900, "cropped question keeps option row readable");
+  assert.ok(dimensions.height <= 520, "cropped question removes lower video explanation");
   assert.match(script, /source-question-image/);
   assert.match(script, /caseData\.source\.image/);
   assert.match(css, /\.source-figure\.has-image/);
@@ -123,6 +137,24 @@ test("student lesson separates draft video questions from verified cases", async
 
   assert.equal(index.draftItems.length, 7);
   assert.equal(index.formalVideoCases.length, 2);
+  const answeredDrafts = index.draftItems.filter(
+    (item) => item.answerStatus === "user-provided-needs-review",
+  );
+  assert.equal(answeredDrafts.length, 4);
+  assert.deepEqual(
+    Object.fromEntries(answeredDrafts.map((item) => [item.id, item.candidateAnswer.optionId])),
+    {
+      "draft-section-cubes-7-blocks": "D",
+      "draft-section-stair-model": "B",
+      "draft-section-box-rectangles-01": "A",
+      "draft-section-box-rectangles-03": "C",
+    },
+  );
+  const coneFormal = index.formalVideoCases.find(
+    (item) => item.caseId === "cone-box-001",
+  );
+  assert.equal(coneFormal.userProvidedAnswer.status, "conflict-needs-review");
+  assert.equal(coneFormal.userProvidedAnswer.existingAnswer, "A");
   for (const item of index.draftItems) {
     assert.match(item.status, /^draft-/);
     assert.notEqual(item.answerStatus, "human-verified");
@@ -184,6 +216,45 @@ test("student lesson compares candidate, actual section and 3D plane in one stag
   assert.match(script, /function renderCandidatePreview/);
   assert.match(script, /renderCandidatePreview\(option\)/);
   assert.match(script, /syncShapeComparisonActual/);
+  assert.match(script, /function setTimelineControlsEnabled/);
+  assert.match(script, /setTimelineControlsEnabled\(false\)/);
+  assert.match(script, /setTimelineControlsEnabled\(true\)/);
+  assert.match(script, /function cameraProjectedSectionSvg/);
+  assert.match(script, /new THREE\.Vector3\(1, 0, 0\)[\s\S]*applyQuaternion\(camera\.quaternion\)/);
+  assert.match(script, /sectionPreviewSvg\.dataset\.projection = "camera"/);
+  assert.match(script, /function refreshCameraProjectedSection/);
+  assert.match(script, /点 A\/B\/C\/D 后，再按当前 3D 方向显示真实截面/);
+  assert.match(script, /先选一个选项后显示真实切面/);
+  assert.match(script, /setPlaneControlsEnabled\(false\)/);
+  assert.doesNotMatch(script, /图形能对上/);
+  assert.match(script, /类型可验证/);
+  assert.match(script, /如果当前真实截面和候选简图方向不一致，就不能说完全对上/);
+});
+
+test("student lesson keeps the front-facing section inside the 3D model itself", async () => {
+  const [html, css, script] = await Promise.all([
+    readFile(htmlUrl, "utf8"),
+    readFile(cssUrl, "utf8"),
+    readFile(scriptUrl, "utf8"),
+  ]);
+
+  assert.doesNotMatch(html, /front-section-card|front-section-svg|front-section-meta/);
+  assert.doesNotMatch(css, /\.front-section-card|#front-section-svg/);
+  assert.doesNotMatch(script, /frontSectionCard|syncFrontSectionPreview/);
+  assert.match(script, /function cameraFrameForFrontSection/);
+  assert.match(script, /if \(!frame\.plane\) return \{ camera: frame\.camera, plane: null \}/);
+  assert.match(script, /plane\.projectPoint\(target, new THREE\.Vector3\(\)\)/);
+  assert.match(script, /function focusCameraOnSection/);
+  assert.match(script, /sectionVisual\.fill\.material\.depthTest = false/);
+  assert.match(script, /focusCameraOnSection\(result\)/);
+  assert.match(script, /function syncSectionFacingMetric/);
+  assert.match(script, /dataset\.sectionFacing = facing\.toFixed\(3\)/);
+  assert.match(script, /function renderInitialSectionCue/);
+  assert.match(script, /caseData\.keyframes\.find\(\(frame\) => frame\.plane\)/);
+  assert.match(script, /renderInitialSectionCue\(caseData\)/);
+  assert.match(script, /setCameraFrame\(cameraFrameForFrontSection\(frame\)\.camera\)/);
+  assert.match(css, /\.shape-comparison\.is-hidden[\s\S]*visibility: hidden/);
+  assert.match(css, /\.foundation-note\.is-hidden[\s\S]*visibility: hidden/);
 });
 
 test("every golden option has a human-readable constraint path", async () => {
@@ -199,6 +270,27 @@ test("every golden option has a human-readable constraint path", async () => {
       }
     }
   }
+});
+
+test("formal lesson answer notes preserve user corrections without overwriting verified answers", async () => {
+  const [coneRaw, pyramidRaw] = await Promise.all([
+    readFile(caseUrls[0], "utf8"),
+    readFile(caseUrls[1], "utf8"),
+  ]);
+  const coneCase = JSON.parse(coneRaw);
+  const pyramidCase = JSON.parse(pyramidRaw);
+
+  assert.equal(coneCase.answer.correctOptionId, "A");
+  assert.equal(coneCase.answerReviewNotes[0].userProvidedOptionId, "B");
+  assert.equal(coneCase.answerReviewNotes[0].status, "conflict-needs-review");
+  assert.match(coneCase.answerReviewNotes[0].note, /暂不覆盖/);
+
+  assert.equal(pyramidCase.answer.correctOptionId, "D");
+  assert.equal(pyramidCase.answerReviewNotes[0].userProvidedOptionId, "D");
+  assert.equal(
+    pyramidCase.answerReviewNotes[0].status,
+    "matches-existing-human-verified",
+  );
 });
 
 test("foundation page lists base solids and section entry points", async () => {

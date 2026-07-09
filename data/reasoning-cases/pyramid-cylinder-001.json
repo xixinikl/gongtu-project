@@ -5,7 +5,7 @@
   "source": {
     "kind": "user-provided-video",
     "videoFileName": "@公考志远（立体图推数资分享） 棱锥+圆柱组合截面考察 1080P.mp4",
-    "image": "/data/images/reasoning/pyramid-cylinder-001-question.png",
+    "image": "/data/images/reasoning/pyramid-cylinder-001-question-crop.png",
     "questionFrameSeconds": 3,
     "explanationRangeSeconds": [3, 56],
     "prompt": "哪一个不是该模型截面图？",
@@ -156,6 +156,14 @@
     "revealedRangeSeconds": [39, 56],
     "aiGenerated": false
   },
+  "answerReviewNotes": [
+    {
+      "source": "user-message-2026-07-05-image-05",
+      "userProvidedOptionId": "D",
+      "status": "matches-existing-human-verified",
+      "note": "用户本轮再次确认第五张图选 D，与当前正式答案一致。"
+    }
+  ],
   "keyframes": [
     {
       "id": "overview",

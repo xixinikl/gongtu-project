@@ -64,7 +64,7 @@
 npm run dev
 ```
 
-浏览器打开 `http://127.0.0.1:8089/three-view-training.html`。如果页面提示 `ERR_CONNECTION_REFUSED`，说明本地静态服务没有启动，先重新运行 `npm run dev`。
+浏览器打开 `http://127.0.0.1:8089/three-view-training.html`。`npm run dev` 会先检查 `8089`，没启动就自动后台启动静态服务；运行状态可用 `npm run dev:status` 查看，必要时用 `npm run dev:stop` 停止。
 
 ### 后端版主站
 

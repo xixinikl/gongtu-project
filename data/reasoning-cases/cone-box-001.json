@@ -152,6 +152,16 @@
     "revealedNearSeconds": 65,
     "aiGenerated": false
   },
+  "answerReviewNotes": [
+    {
+      "source": "user-message-2026-07-05-image-07",
+      "userProvidedOptionId": "B",
+      "userProvidedLabel": "六边形",
+      "status": "conflict-needs-review",
+      "existingCorrectOptionId": "A",
+      "note": "用户本轮指出第七张图答案是六边形；当前正式题答案 A 暂不覆盖，下一轮必须回看视频确认是否为同一题、同一截屏或题面版本差异。"
+    }
+  ],
   "keyframes": [
     {
       "id": "overview",

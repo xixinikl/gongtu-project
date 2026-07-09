@@ -7,11 +7,20 @@
 
 | 项目 | 当前结果 |
 |---|---|
-| 当前阶段 | M5A 考公立体图推动态讲解产品规划 |
-| 已完成 | 116 项 |
+| 当前阶段 | M5A 动态解题先选后析与截面方向同步 |
+| 已完成 | 126 项 |
 | 进行中 | 0 项 |
 | 下一项 | LESSON-016 建立四类训练总入口 |
 | 冻结基线 | `csg-section-v6-interactive` |
+
+## 交接与上传
+
+- [x] ● HANDOFF-20260709 docs: 写入当前交接并上传 GitHub
+  - 交付文件：`doc/HANDOFF_2026-07-09.md`、`doc/AGENT_HANDOFF.md`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
+  - 验收：交接文档写清当前仓库、分支、功能进度、验证状态、未完成项、新 Agent 接手步骤；确认 GitHub 远端不是 `canvas-storm`；上传前不提交本地自动化日志和用户临时 Excel
+  - 结果：已新增最新交接文档，旧交接手册顶部指向最新交接；`npm run doctor` 已运行但受本机 Node/Python 版本限制未全绿；`git diff --check`、三组专项测试和 `npm run test:geometry` 均通过；`.playwright-cli/` 已加入忽略
+  - 提交：本任务所在提交
 
 ## 里程碑
 
@@ -769,6 +778,26 @@
   - 验收：每个本地参考视频至少抽取一张原题清晰截图；能进入题目下拉列表；未人工确认答案的题目标为 draft，不混进正式题；题目来源和人工确认状态在页面可见
   - 结果：已抽取 8 张新视频截图并保留已有圆锥方体截图；已补齐第二道正式题原题图；新增 `draft-video-questions.json`，7 个未核验视频条目单独进入“待核验草稿”下拉，不进入正式判题
   - 验收证据：浏览器打开 `?case=draft-section-stair-model`，下拉草稿数 7，页面显示原题图、来源、`draft-unverified`、`待人工核验`，切面控件禁用，控制台 error/warn 为空；切回正式题后 4 个选项恢复，草稿提示清空
+- [x] ● LESSON-015C fix: 动态解题截面正面可见与题图裁剪
+  - 依赖：CASE-IMPORT-001
+  - 验收：动态解题页 3D 舞台必须有“正对截面”的默认可视化，不让学生只能从斜侧面猜；第二道正式题原题图只保留上方题目和选项区域，不展示整段视频画面；后续草稿题继续保留在下拉中且明确为待核验；`node --check reasoning-lesson.js`、`node --test tests/reasoning-lesson-layout.test.mjs`、`curl -I http://127.0.0.1:8089/reasoning-lesson.html` 必须通过
+  - 结果：已在 3D 舞台右下角新增“正面看这一刀”浮层，正式题加载后自动用第一条真实 V2 切面做预览，浮层、下方实时截面和三维橙色截面同步；不会提前选中 A/B/C/D。第二道正式题原图已裁成 996×430，只保留题干与选项区，并同步到正式题和视频题索引。
+  - 验收证据：`node --check reasoning-lesson.js` 通过；`node --test tests/reasoning-lesson-layout.test.mjs` 16/16 通过；`npm run test:geometry` 571/571 通过；`git diff --check` 通过；`curl -I 'http://127.0.0.1:8089/reasoning-lesson.html?case=pyramid-cylinder-001'` 返回 200；裁剪图 `/data/images/reasoning/pyramid-cylinder-001-question-crop.png` 返回 200 且尺寸 996×430；应用浏览器刷新第二题后 `engine=真实截面 · 1 个轮廓`、`front-section-card[data-section-state]=ok`、正对截面 SVG 有 `.section-shape` 和 3 个顶点、选项选中数为 0、控制台 error/warn 为空。
+- [x] ● LESSON-015D fix: 动态解题真实截面正视与草稿答案入库
+  - 依赖：LESSON-015C
+  - 验收：动态解题正式题初始 3D 相机必须沿真实切面法向正对截面，不只依赖右下浮层；浏览器能读取 `data-section-facing` 且接近 1；用户本轮给出的草稿/视频题答案必须记录为 `user-provided-needs-review`，与既有正式答案冲突的圆锥方体六边形说法必须记录为冲突待核验，不能硬覆盖；`node --check reasoning-lesson.js`、`node --test tests/reasoning-lesson-layout.test.mjs`、`curl -I`、浏览器控制台检查和 `git diff --check` 必须通过
+  - 结果：已把动态解题正式题初始相机改为沿切面法向正对真实橙色截面，并在 `#lesson-canvas[data-section-facing]` 暴露可验收指标；已把用户给出的草稿题答案录入 `draft-video-questions.json`，第二张 A、第三张 C、第四张 D、第六张 B 均标记为 `user-provided-needs-review`；第五张正式题 D 与现有答案一致已记录；第七张“六边形/B”和现有正式答案 A 冲突，已记录为 `conflict-needs-review`，没有硬覆盖；`ReasoningCase` schema/validator 已补 `answerReviewNotes`，避免答案复核字段变成随便加的自由文本。
+  - 验收证据：`node --check reasoning-lesson.js`、`node --check geometry/reasoning-case-validator.js` 通过；JSON 解析 `spec/reasoning-case-v1.schema.json`、`cone-box-001.json`、`pyramid-cylinder-001.json` 通过；`node --test tests/reasoning-lesson-layout.test.mjs` 17/17 通过；`node --test tests/reasoning-case-fixtures.test.mjs` 12/12 通过；`npm run test:geometry` 572/572 通过；`git diff --check` 通过；`curl -I` 检查 `reasoning-lesson.html?case=pyramid-cylinder-001` 与 `reasoning-lesson.html?case=cone-box-001` 均返回 200；应用浏览器打开 `/reasoning-lesson.html?case=pyramid-cylinder-001&verify=front-facing`，加载 `reasoning-lesson.css/js?v=20260705f`，`engineText=真实截面 · 1 个轮廓`，`sectionFacing=1.000`，正对截面 SVG 有 1 个 path 和 3 个顶点，控制台 error/warn 为空。
+- [x] ● LESSON-015E fix: 动态解题正面截面视觉与未选项布局干扰
+  - 依赖：LESSON-015D
+  - 验收：动态解题页不能再在 3D 舞台右下角放“正面看这一刀”小图卡片；初始真实截面必须在 3D 舞台本体里清楚、正面、居中可见，而不是像在背后或被蓝色切平面挡住；未选择 A/B/C/D 前，候选图区不能突然放大、顶开下方内容；浏览器移动宽度和桌面宽度都要截图/读数验收，控制台 error/warn 为空；`node --check reasoning-lesson.js`、专项测试、`git diff --check` 必须通过
+  - 结果：已删除 3D 舞台内 `#front-section-card` 小图卡片，改为只在三维模型本体里展示橙色真实截面；正面预览相机沿切面法向对准真实截面并退远，模型透明度降低，避免截面像藏在背后；候选预览区、实时截面区、基础说明区、候选/真实对比区均改为稳定尺寸/占位隐藏，点击 A/B/C/D 不再把 3D 舞台或下方截面区顶开；CSS/JS 版本升到 `20260705h`。
+  - 验收证据：`node --check reasoning-lesson.js` 通过；`node --test tests/reasoning-lesson-layout.test.mjs` 17/17 通过；`node --test tests/reasoning-case-fixtures.test.mjs` 12/12 通过；`npm run test:geometry` 572/572 通过；`git diff --check -- reasoning-lesson.html reasoning-lesson.css reasoning-lesson.js tests/reasoning-lesson-layout.test.mjs` 通过；`npm run dev:status` 返回 `open=true`、`pidAlive=true`；`curl -I 'http://127.0.0.1:8089/reasoning-lesson.html?case=pyramid-cylinder-001&verify=front-facing'` 返回 `HTTP/1.0 200 OK`；桌面浏览器打开验收页加载 `reasoning-lesson.css/js?v=20260705h`，初始 `selected=null`、`frontCardExists=false`、`engineText=真实截面 · 1 个轮廓`、`sectionFacing=1.000`、实时截面 path 数 1、控制台 error/warn 为空；桌面 1440×1000 下未选和 A/B/C/D 点击后 3D 舞台均保持 `y=174 height=520`，下方截面区均保持 `y=694 height=223`，右侧基础说明/对比图均保持 `y=276 / y=402`；移动端 390×844 下 `documentWidth=390` 无横向溢出，未选和 A/B/C/D 点击后 3D 舞台均保持 `x=11 y=839 width=368 height=470`；截图已保存：`output/playwright/lesson015e-desktop-initial-final.png`、`output/playwright/lesson015e-desktop-front-facing-v4.png`、`output/playwright/lesson015e-mobile-front-facing.png`。
+- [x] ● LESSON-015F fix: 动态解题先选后析与截面方向同步
+  - 依赖：LESSON-015E
+  - 验收：未选择 A/B/C/D 前，页面不能提前展示逐项解析、候选/真实对比结论或“图形能对上”；点击选项后才出现候选图、真实截面图和逐项验证；真实截面小图必须按当前 3D 相机方向投影，不能和三维橙色截面方向各画各的；候选图与当前真实截面不完全一致时，文案必须诚实区分“这类截面可行”和“当前候选是否匹配”，不能把没对上的说成对上；浏览器桌面和移动宽度都要验证控制台 error/warn 为空。
+  - 结果：已把动态解题页改成先选后析：未选 A/B/C/D 时解析卡、结论卡、基础说明均隐藏，播放/上一步/下一步和切面控制均禁用，3D 真实截面也不提前显示；点击选项后才展示候选图、真实截面图和逐项验证。真实截面 SVG 改为按当前 3D 相机方向投影，3D 画面怎么朝向，下方“实时同步截面”和右侧“当前实际截面”就用同一份 camera projection。候选 C 的文案从“对上”改为“类型可验证”，明确还要核对曲边朝向、连接位置和外轮廓比例。CSS/JS 版本更新到 `reasoning-lesson.css/js?v=20260705j`。
+  - 验收证据：`node --check reasoning-lesson.js` 通过；`node --test tests/reasoning-lesson-layout.test.mjs` 17/17 通过；`node --test tests/reasoning-case-fixtures.test.mjs` 12/12 通过；`npm run test:geometry` 572/572 通过；浏览器打开 `/reasoning-lesson.html?case=pyramid-cylinder-001&verify=front-facing&fresh=015f4`，初始 `shapeComparisonClassHidden=true`、`verdictClassHidden=true`、`foundationClassHidden=true`、`previous/play/next/up/range` 全部禁用、`sectionProjection=locked`、`engineText=先选一个选项后显示真实切面`、控制台 error/warn 为空；点击 C 后 `selectedCard=C`、`sectionProjection=camera`、`comparisonProjection=camera`、`sectionMatchesComparison=true`、`resultText=类型可验证`；点上移后 path 变化且仍 `sectionMatchesComparison=true`；桌面和 390px 移动端截图已保存到 `output/playwright/lesson015f-desktop-after-reset.png`、`output/playwright/lesson015f-mobile-after-c.png`。
 - [x] ✓ THREEVIEW-001 feat: 建立三视图训练 MVP
   - 依赖：CASE-IMPORT-001
   - 验收：用用户提供的黑白块三视图题做第一题；用户选择 A/B/C/D 后立刻反馈对错；下方出现真实 3D 方块模型；模型可旋转，并能切换主视图、左视图、俯视图；讲解使用“看黑块数量、锁定位置、排除差异”的做题话术
@@ -779,11 +808,41 @@
   - 验收：`npm run dev` 能启动 `127.0.0.1:8089`；`curl -I 'http://127.0.0.1:8089/three-view-training.html?verify=threeview001'` 返回 200；README 写明 `ERR_CONNECTION_REFUSED` 先启动静态服务
   - 结果：已在 `package.json` 增加 `dev` / `dev:static` 脚本；已在 README 增加立体图推静态训练页启动说明；当前 8089 服务已重新启动
   - 验收证据：已停掉手动服务并改用 `npm run dev` 启动；`lsof -nP -iTCP:8089 -sTCP:LISTEN` 显示 Python 正在监听；`curl -I` 返回 `HTTP/1.0 200 OK`
+- [x] ✓ DEVSERVER-002 fix: 让 8089 静态服务可重复自检并后台保活
+  - 依赖：DEVSERVER-001
+  - 验收：`npm run dev` 不能再依赖前台终端长期挂着；端口未开时自动后台启动，端口已开时复用现有服务；`npm run dev:status` 能显示端口与 PID 状态；运行痕迹不得提交；`curl -I` 必须返回 200
+  - 结果：新增 `tools/dev-server.mjs`，统一实现 `ensure/status/stop`；`npm run dev` / `dev:static` 改为先检查再后台启动；新增 `npm run dev:status` / `dev:stop`；运行 PID 和日志写入 `.codex-runtime/`，并已加入 `.gitignore`
+  - 验收证据：`node --check tools/dev-server.mjs` 通过；第一次 `npm run dev` 输出 `dev server started at http://127.0.0.1:8089 pid=72457`；再次 `npm run dev` 输出 `dev server already listening`；`npm run dev:status` 返回 `open=true`、`pidAlive=true`；`lsof -nP -iTCP:8089 -sTCP:LISTEN` 显示 Python 监听；`curl -I 'http://127.0.0.1:8089/three-view-training.html?verify=orientation-fix'` 返回 `HTTP/1.0 200 OK`；页面 HTML 包含 `three-view-training.css?v=20260705h` 与 `three-view-training.js?v=20260705e`
 - [x] ✓ THREEVIEW-002 feat: 沉淀三视图做题技巧模板
   - 依赖：THREEVIEW-001
   - 验收：每题都有短句技巧，不写专业定理；技巧围绕黑/白块数量、列/层定位、候选差异排除；专项测试覆盖技巧字段必填且页面显示
   - 结果：已新增 `data/three-view-cases/technique-template.json` 和 `doc/THREE_VIEW_TEACHING_TEMPLATE.md`；第一题包含 `teaching.short`、`teaching.steps`、`teaching.optionFocus`
   - 验收证据：`node --test tests/three-view-training.test.mjs` 覆盖模板字段、禁用专业定理话术和页面显示容器；浏览器确认短技巧、4 条做题步骤、4 条选项差异实际渲染，控制台 error/warn 为空
+- [x] ✓ THREEVIEW-003 feat: 升级为 50 题五题一组训练
+  - 依赖：THREEVIEW-002
+  - 验收：正式题达到 50 道；每 5 道一组共 10 组；15 张用户截图保留来源记录；每题自动校验总块数、黑白块数、给定视图、目标视图、正确答案和唯一答案；页面能连续做完一组并显示正确率、总用时、平均用时、错题；刷新后历史记录仍在；3D 区答题前不抢空间、答题后可看模型和主/左/右/俯视角；控制台无 error/warn
+  - 结果：已新增 `three-view-case-engine.js` 与 `tools/generate-three-view-bank.mjs`；15 张题源截图已保存到 `data/images/three-view/sources/`；生成并校验 `data/three-view-cases/black-white-blocks-50.json`，50 题分成 10 组；训练页改为组训练流程，答题后展示 3D 验证和四视图投影，完成一组后写入本地历史；3D 区桌面/手机答题前约 302px，不再被题目区撑高
+  - 验收证据：`node --check three-view-training.js`、`node --check three-view-case-engine.js`、`node --check tools/generate-three-view-bank.mjs` 均通过；`node --test tests/three-view-training.test.mjs` 5/5 通过，覆盖 50 题、10 组、15 张来源截图、每题投影一致、唯一答案、讲解话术和生成器可复现；`npm run test:geometry` 569/569 通过；`lsof -nP -iTCP:8089 -sTCP:LISTEN` 显示 8089 正在监听，`curl -I http://127.0.0.1:8089/three-view-training.html` 返回 `HTTP/1.0 200 OK`；浏览器实测第 1 组：第 1 题先选错显示“再想想”和错误原因，再选对显示“答对了”，主/左/右/俯/自由视角均可切换，连续完成 5 题后显示 `5/5 正确`、`正确率 100%`、总用时和平均用时；刷新后历史显示“上次 5/5”；桌面 1366px 与手机 390px 响应式检查控制台 error/warn 为空
+- [x] ✓ THREEVIEW-004 fix: 校准三视图 3D 固定视角方向
+  - 依赖：THREEVIEW-003
+  - 验收：题面二维视图、选项二维视图、答题后模型投影和右侧 3D 固定视角必须同向；主视图以题面正面为基准，左/右/俯按钮切出的相机位置必须能被页面状态读到；俯视图必须从上往下看；专项测试必须覆盖相机横向、纵向和遮挡顺序，不再只测题库 JSON 自洽
+  - 结果：已新增 `VIEW_CAMERA_POSES` 作为固定相机单一事实源；训练页 3D 坐标入口统一镜像 x 轴，使题库网格的左到右和 3D 主视图左到右一致；左/右相机改为与题面视图同向；俯视图改为上方相机且遮挡顺序为高层优先；页面 `canvas` 暴露 `data-camera-position` / `data-camera-up` 便于验收
+  - 验收证据：`node --check three-view-training.js`、`node --check three-view-case-engine.js`、`node --check tools/generate-three-view-bank.mjs` 均通过；`node --test tests/three-view-training.test.mjs` 6/6 通过，新增固定 3D 相机与 2D 视图同向测试；`npm run test:geometry` 570/570 通过；`lsof -nP -iTCP:8089 -sTCP:LISTEN` 显示 8089 正在监听，`curl -I http://127.0.0.1:8089/three-view-training.html` 返回 `HTTP/1.0 200 OK`；浏览器逐个点击主/左/右/俯/自由，页面状态分别为 `0,0,-7.2`、`7.2,0,0`、`-7.2,0,0`、`0,7.2,0`、`5.4,4.5,6.2`，`validation=pass`、`bankValidation=pass`，控制台 error/warn 为空
+- [x] ✓ THREEVIEW-005 style: 打磨三视图训练官方化布局
+  - 依赖：THREEVIEW-004
+  - 验收：三视图训练页要更像正式训练系统；宽屏下题目、真实模型、做题技巧三栏顶部同线且间距统一；模型视角按钮固定成规则网格；1280px 左右自动变为两栏，手机自动变为单栏；页面不能横向溢出；题库验证、模型验证和控制台检查保持通过
+  - 结果：已将训练页从偏米色 demo 风格改为白底浅灰官方界面；统一三栏最大宽度、列宽、间距和面板阴影；中间 3D 区加宽并把 6 个视角按钮改成 3×2 固定网格；题面视图、选项卡、状态徽标和底部按钮使用稳定尺寸；新增 1320px 两栏断点和 980px 单栏断点
+  - 验收证据：`node --check three-view-training.js`、`node --check three-view-case-engine.js` 通过；`node --test tests/three-view-training.test.mjs` 6/6 通过；`npm run test:geometry` 570/570 通过；浏览器加载 `/three-view-training.html?verify=orientation-fix` 的 `three-view-training.css?v=20260705e`，1440px 下三栏分别约 534/452/370px，视角按钮为 3 列规则网格且无横向溢出；1366px 仍为三栏，1280px 自动为两栏，390px 自动为单栏且选项两列；`canvas.validation=pass`、`canvas.bankValidation=pass`，控制台 error/warn 为空
+- [x] ✓ THREEVIEW-006 style: 三视图训练改为两栏工作台布局
+  - 依赖：THREEVIEW-005
+  - 验收：不再用三张不等高卡片硬对齐；左侧题目卡作为主操作区，右侧模型验证和做题技巧上下等宽排列；3D 区高度受控，不能为了对齐被拉成长条；答题后 4 个模型投影视图在宽屏一排展示；1440/1280/980/390 宽度无横向溢出；题库验证、模型验证、控制台和测试保持通过
+  - 结果：训练页改为 `question / model / explanation` 两栏网格，左侧题目卡跨两行，右侧模型卡与技巧卡上下排列；模型区未作答时固定 240px，答题后按 320-390px 展开；答题后的主/左/右/俯投影视图宽屏改为 4 列，手机改为 2 列；CSS 版本更新到 `three-view-training.css?v=20260705g`
+  - 验收证据：浏览器加载 `/three-view-training.html?verify=orientation-fix` 的 `v=20260705g`；1440×900 下左侧题目卡约 742px，右侧模型/技巧卡约 632px，模型区 240px，视角按钮 3×2；1280×800 下仍为两栏，模型区 240px；980×820 和 390×844 自动单栏且无横向溢出；答题后 1440px 下 4 个模型投影视图为一排四列，单个约 140×148px；`canvas.validation=pass`、`canvas.bankValidation=pass`，控制台 error/warn 为空；`node --check three-view-training.js`、`node --check three-view-case-engine.js`、`node --test tests/three-view-training.test.mjs` 6/6、`npm run test:geometry` 570/570、`git diff --check` 均通过
+- [x] ✓ THREEVIEW-007 fix: 三视图训练未作答前隐藏 3D 验证
+  - 依赖：THREEVIEW-006
+  - 验收：未选择 A/B/C/D 前不能看到真实 3D 模型、不能操作视角按钮、不能看到统计徽标和模型投影视图；选择任一选项后才解锁真实 3D、主/左/右/俯/自由视角、统计徽标和四个模型投影；题库验证、模型验证、控制台和测试保持通过
+  - 结果：训练页新增 `model-gate` 选前遮罩；页面初始 `body[data-answered=false]` 会隐藏 canvas、统计徽标和投影视图，并禁用视角按钮；点击选项后 `setModelAccess(true)` 统一解锁模型验证区；换题或重做本组时会重新锁回选前状态；CSS/JS 版本更新到 `three-view-training.css?v=20260705h`、`three-view-training.js?v=20260705e`
+  - 验收证据：浏览器加载 `/three-view-training.html?verify=orientation-fix` 的 `v=20260705h/e`；未选前 `answered=false`、canvas `opacity=0`、`pointer-events=none`、`aria-hidden=true`、视角按钮全部 `disabled=true`、统计徽标 `display=none`、投影视图 `display=none`；点击 A 后 `answered=true`、canvas `opacity=1`、`pointer-events=auto`、视角按钮全部启用、统计徽标 `display=flex`、投影视图 `display=grid`；`validation=pass`、`bankValidation=pass`，控制台 error/warn 为空；`node --check three-view-training.js`、`node --check three-view-case-engine.js`、`node --test tests/three-view-training.test.mjs` 6/6、`npm run test:geometry` 570/570、`git diff --check` 均通过
 - [ ] ○ LESSON-016 feat: 建立四类训练总入口
   - 依赖：LESSON-014
   - 验收：提供立体拼合、三视图、展开图、截面图训练四个学生入口；保留动态解题、几何实验室和 CSG 工作台为高级入口
