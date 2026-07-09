@@ -1,5 +1,0 @@
-$ python3 -m pip install ruff >/dev/null && python3 -m ruff check backend/ --select=E,F --ignore=E501
-
-WARNING: You are using pip version 21.2.4; however, version 26.0.1 is available.
-You should consider upgrading via the '/Library/Developer/CommandLineTools/usr/bin/python3 -m pip install --upgrade pip' command.
-All checks passed!
