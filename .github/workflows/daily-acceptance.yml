@@ -59,6 +59,18 @@ jobs:
         run: |
           python .agent-factory/scripts/render-human-report.py "${{ steps.date.outputs.value }}"
 
+      - name: 写入 GitHub 摘要页
+        if: always()
+        run: |
+          REPORT=".agent-factory/out/${{ steps.date.outputs.value }}/daily-report.md"
+          if [ -f "$REPORT" ]; then
+            cat "$REPORT" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "## 公途每日验收报告" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "日报生成失败，请下载 artifact 或查看 workflow 日志。" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: 上传每日验收报告
         if: always()
         uses: actions/upload-artifact@v4
