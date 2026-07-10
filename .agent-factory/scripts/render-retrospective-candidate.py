@@ -22,9 +22,12 @@ def main() -> int:
     scope = load_json(out / "scope.json", {})
     checks = load_json(out / "checks.json", {"results": []})
     risk = load_json(out / "risk.json", {})
+    autofix_result = load_json(out / "autofix.json", {"results": []})
     failed = [item for item in checks.get("results", []) if item.get("exitCode") != 0]
     high_risk = risk.get("highRiskFiles", [])
-    autofix = risk.get("autofixableFailedChecks", [])
+    kept_autofix = [item.get("name") for item in autofix_result.get("results", []) if item.get("kept")]
+    autofix = kept_autofix or risk.get("autofixableFailedChecks", [])
+    autofix_label = "已验证自动修复" if kept_autofix else "可尝试低风险自动修复"
 
     candidate_path = out / "retrospective-candidate.md"
     if not (failed or high_risk or autofix):
@@ -47,7 +50,7 @@ def main() -> int:
 
 - 失败检查：{failed_names}
 - 高风险文件：{high_risk_names}
-- 可尝试低风险自动修复：{autofix_names}
+- {autofix_label}：{autofix_names}
 
 ## 影响与下一步
 

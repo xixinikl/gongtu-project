@@ -55,6 +55,7 @@ def build_run(date: str, out_dir: Path, run_url: str, artifact_name: str) -> dic
     daily_report = (out_dir / "daily-report.md").read_text(encoding="utf-8") if (out_dir / "daily-report.md").exists() else ""
     codex_summary = (out_dir / "codex-summary.md").read_text(encoding="utf-8") if (out_dir / "codex-summary.md").exists() else ""
     retrospective_candidate = (out_dir / "retrospective-candidate.md").read_text(encoding="utf-8") if (out_dir / "retrospective-candidate.md").exists() else ""
+    autofix = load_json(out_dir / "autofix.json", {"results": []})
     verdict, verdict_reason = verdict_from(checks, risk)
     results = checks.get("results", [])
     failed_checks = [r for r in results if r.get("exitCode") != 0]
@@ -99,6 +100,7 @@ def build_run(date: str, out_dir: Path, run_url: str, artifact_name: str) -> dic
             "autofixableFailedChecks": risk.get("autofixableFailedChecks", []),
             "manualFailedChecks": risk.get("manualFailedChecks", []),
         },
+        "autofix": autofix,
         "reports": {
             "dailyMarkdown": daily_report,
             "codexMarkdown": codex_summary,

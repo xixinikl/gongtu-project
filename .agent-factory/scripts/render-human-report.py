@@ -28,6 +28,7 @@ def main() -> int:
     scope = load_json(out / "scope.json", {})
     checks = load_json(out / "checks.json", {"results": []})
     risk = load_json(out / "risk.json", {})
+    autofix = load_json(out / "autofix.json", {"results": []})
 
     results = checks.get("results", [])
     failed = [r for r in results if r.get("exitCode") != 0]
@@ -57,6 +58,10 @@ def main() -> int:
         f"`{r.get('name')}`: exit={r.get('exitCode')}，先看 `{r.get('excerptPath')}`"
         for r in failed
     ]
+    autofix_lines = []
+    for result in autofix.get("results", []):
+        status = "已验证，等待自动修复 PR" if result.get("kept") else "未保留"
+        autofix_lines.append(f"`{result.get('name')}`：{status}")
     uncovered = [
         "浏览器真人路径、桌面端真实启动、AI 批改真实调用不在 L0 每日范围内。",
         "如果这些区域当天有高风险变更，日报只能给 conditional/fail，后续开专项验收。",
@@ -97,7 +102,9 @@ def main() -> int:
 
 ## 自动修复建议
 
-{bullet(risk.get('autofixableFailedChecks', []), '今天没有低风险自动修复项')}
+{bullet(autofix_lines or risk.get('autofixableFailedChecks', []), '今天没有低风险自动修复项')}
+
+自动修复仅限配置白名单中的低风险检查。保留的修复会由 workflow 建立独立 PR，不会直接写入 `main`。
 
 ## 缺口账本
 
@@ -107,7 +114,7 @@ def main() -> int:
 
 - 每日流水报告不提交进仓库，只保存在 GitHub Actions artifact。
 - 只有重复出现、暴露规则缺口、测试盲区或高风险模块问题，才整理到 `doc/retrospectives/`。
-- 低风险 Ruff 问题可由后续 Codex 分支 PR 修复；高风险问题只报告，不直接改 main。
+- 低风险 Ruff 问题会在修复验证通过后由 workflow 创建独立 PR；高风险问题只报告，不直接改 main。
 
 ## 给 Codex 的压缩摘要
 
@@ -122,4 +129,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
