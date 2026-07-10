@@ -1,0 +1,10 @@
+{
+  "projectId": "gongtu-project",
+  "projectName": "公途",
+  "dashboardTitle": "公途验收报告中心",
+  "repository": "xixinikl/gongtu-project",
+  "actionsWorkflow": "daily-acceptance.yml",
+  "retrospectivePath": "doc/retrospectives",
+  "schemaVersion": 1,
+  "hubReady": true
+}

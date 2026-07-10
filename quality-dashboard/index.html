@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>验收报告中心</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <p id="projectId" class="eyebrow">Quality Dashboard</p>
+        <h1 id="dashboardTitle">验收报告中心</h1>
+      </div>
+      <nav class="actions" aria-label="报告入口">
+        <a id="latestRunLink" class="icon-link" href="#">Actions</a>
+        <a id="retrospectiveLink" class="icon-link" href="#">复盘库</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="status-grid" aria-label="最新验收状态">
+        <article class="status-panel primary">
+          <div class="panel-label">最新结论</div>
+          <div id="latestVerdict" class="verdict">加载中</div>
+          <p id="latestReason" class="reason">正在读取验收数据。</p>
+        </article>
+        <article class="status-panel">
+          <div class="panel-label">检查</div>
+          <div id="checkScore" class="metric">-</div>
+          <p id="checkDetail" class="reason">通过 / 总数</p>
+        </article>
+        <article class="status-panel">
+          <div class="panel-label">风险</div>
+          <div id="riskScore" class="metric">-</div>
+          <p class="reason">高风险文件</p>
+        </article>
+        <article class="status-panel">
+          <div class="panel-label">范围</div>
+          <div id="scopeScore" class="metric">-</div>
+          <p class="reason">文件 / 提交</p>
+        </article>
+      </section>
+
+      <section class="dashboard-grid">
+        <article class="surface wide">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">History</p>
+              <h2>最近验收趋势</h2>
+            </div>
+            <div id="generatedAt" class="timestamp"></div>
+          </div>
+          <div id="timeline" class="timeline" aria-label="最近验收结果"></div>
+        </article>
+
+        <article class="surface">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Checks</p>
+              <h2>检查项</h2>
+            </div>
+          </div>
+          <div id="checksList" class="list"></div>
+        </article>
+
+        <article class="surface">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Risk</p>
+              <h2>高风险与缺口</h2>
+            </div>
+          </div>
+          <div id="riskList" class="list"></div>
+        </article>
+      </section>
+
+      <section class="surface">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Report</p>
+            <h2>日报正文</h2>
+          </div>
+          <button id="toggleCodex" class="ghost-button" type="button">Codex 摘要</button>
+        </div>
+        <pre id="reportBody" class="report">加载中</pre>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
