@@ -1,0 +1,46 @@
+name: Xixi Daily Update Ledger
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_date:
+        description: "Asia/Shanghai date (YYYY-MM-DD), empty means today"
+        required: false
+        default: ""
+  schedule:
+    - cron: "20 22 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  ledger:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Resolve report date
+        id: date
+        shell: bash
+        run: |
+          if [ -n "${{ github.event.inputs.target_date }}" ]; then
+            echo "value=${{ github.event.inputs.target_date }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=$(TZ=Asia/Shanghai date +%F)" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Collect collaboration updates
+        run: python3 .xds-system/xds.py updates --project . --date "${{ steps.date.outputs.value }}"
+      - name: Write summary
+        if: always()
+        run: |
+          REPORT=".xds/reports/updates/${{ steps.date.outputs.value }}.md"
+          if [ -f "$REPORT" ]; then cat "$REPORT" >> "$GITHUB_STEP_SUMMARY"; fi
+      - name: Upload update ledger
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xds-update-ledger-${{ steps.date.outputs.value }}
+          path: .xds/reports/updates/
+          retention-days: 90
