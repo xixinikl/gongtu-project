@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "projectName": "gongtu-project",
+  "repository": "https://github.com/xixinikl/gongtu-project",
+  "defaultBranch": "main",
+  "runtime": {
+    "manager": "uv",
+    "python": "3.11",
+    "startCommand": "{python} -m uvicorn main:app --host 127.0.0.1 --port $PORT",
+    "doctorCommand": "{python} -m pytest backend/tests",
+    "portEnvironment": "PORT",
+    "dataNamespaceEnvironment": "XDS_DATA_NAMESPACE",
+    "workingDirectory": "backend",
+    "requirements": [
+      "backend/requirements.txt"
+    ]
+  },
+  "collaboration": {
+    "focusAuthors": [
+      "inernoro"
+    ],
+    "riskPathPatterns": [
+      "auth",
+      "payment",
+      "migration",
+      "deploy",
+      "secret"
+    ]
+  },
+  "data": {
+    "environment": {
+      "GONTU_DB_PATH": ".xds/data/{namespace}/data.db"
+    }
+  }
+}
