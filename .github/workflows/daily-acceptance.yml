@@ -16,6 +16,8 @@ name: 每日验收
 permissions:
   contents: read
   actions: read
+  pages: write
+  id-token: write
 
 jobs:
   daily-acceptance:
@@ -59,6 +61,14 @@ jobs:
         run: |
           python .agent-factory/scripts/render-human-report.py "${{ steps.date.outputs.value }}"
 
+      - name: 生成报告中心数据
+        if: always()
+        run: |
+          python3 .agent-factory/scripts/publish-dashboard.py "${{ steps.date.outputs.value }}" \
+            --previous-base-url "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}" \
+            --run-url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            --artifact-name "gongtu-daily-acceptance-${{ steps.date.outputs.value }}"
+
       - name: 写入 GitHub 摘要页
         if: always()
         run: |
@@ -78,6 +88,21 @@ jobs:
           name: gongtu-daily-acceptance-${{ steps.date.outputs.value }}
           path: .agent-factory/out/${{ steps.date.outputs.value }}/
           retention-days: 30
+
+      - name: 配置 GitHub Pages
+        if: always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/configure-pages@v5
+
+      - name: 上传报告中心站点
+        if: always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: quality-dashboard
+
+      - name: 发布报告中心
+        if: always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        id: deployment
+        uses: actions/deploy-pages@v4
 
       - name: 根据验收结果标记 workflow
         if: always()

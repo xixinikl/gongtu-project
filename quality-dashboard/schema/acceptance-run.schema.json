@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://xixinikl.github.io/gongtu-project/schema/acceptance-run.schema.json",
+  "title": "Gongtu acceptance run",
+  "type": "object",
+  "required": ["schemaVersion", "project", "date", "timezone", "source", "verdict", "scope", "checks", "risk", "reports"],
+  "properties": {
+    "schemaVersion": { "type": "integer", "const": 1 },
+    "project": { "type": "string" },
+    "date": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+    "timezone": { "type": "string" },
+    "generatedAt": { "type": "string" },
+    "source": {
+      "type": "object",
+      "required": ["testedSha", "runUrl", "artifactName"],
+      "properties": {
+        "branch": { "type": ["string", "null"] },
+        "testedSha": { "type": ["string", "null"] },
+        "baseBranch": { "type": ["string", "null"] },
+        "baseSha": { "type": ["string", "null"] },
+        "runUrl": { "type": "string" },
+        "artifactName": { "type": "string" }
+      }
+    },
+    "verdict": {
+      "type": "object",
+      "required": ["status", "reason", "recommendedLevel"],
+      "properties": {
+        "status": { "enum": ["pass", "conditional", "fail"] },
+        "reason": { "type": "string" },
+        "recommendedLevel": { "type": "string" }
+      }
+    },
+    "scope": { "type": "object" },
+    "checks": { "type": "object" },
+    "risk": { "type": "object" },
+    "reports": { "type": "object" },
+    "retrospective": { "type": "object" }
+  }
+}
