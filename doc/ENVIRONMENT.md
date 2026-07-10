@@ -2,7 +2,14 @@
 
 ## 项目 doctor
 
-`python -m pytest backend/tests`
+`xixi-dev-system runtime prepare --project . && xixi-dev-system doctor --project .`
+
+## Isolated Preview
+
+The project adapter `.xixi-dev-system.json` pins Python 3.11 through `uv` and
+keeps preview SQLite data under `.xds/data/<namespace>/`. Start a preview only
+through `xixi-dev-system preview start --project .`; it assigns a free localhost
+port and never falls back to system Python.
 
 ## 首次接手
 
