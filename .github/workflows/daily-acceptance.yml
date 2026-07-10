@@ -61,6 +61,11 @@ jobs:
         run: |
           python .agent-factory/scripts/render-human-report.py "${{ steps.date.outputs.value }}"
 
+      - name: 生成项目复盘候选
+        if: always()
+        run: |
+          python .agent-factory/scripts/render-retrospective-candidate.py "${{ steps.date.outputs.value }}"
+
       - name: 生成报告中心数据
         if: always()
         run: |
