@@ -32,6 +32,10 @@
       "GONTU_DB_PATH": ".xds/data/{namespace}/data.db"
     }
   },
+  "learning": {
+    "projectRetrospectiveDirectory": "doc/retrospectives",
+    "sharedProfileRepository": "https://github.com/xixinikl/xixi-agent-profile"
+  },
   "quality": {
     "acceptanceCommand": "bash .agent-factory/scripts/daily-check.sh --date {date}",
     "lowRiskAutofixCommand": "bash .agent-factory/scripts/apply-autofix.sh --checks .agent-factory/out/{date}/checks.json --risk .agent-factory/out/{date}/risk.json --out .agent-factory/out/{date}/autofix.json",
