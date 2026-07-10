@@ -3,7 +3,7 @@ const state = {
   index: null,
   latest: null,
   selectedDate: null,
-  showingCodex: false,
+  reportMode: "daily",
 };
 
 const statusLabel = {
@@ -133,9 +133,20 @@ function renderRisk() {
 }
 
 function renderReport() {
-  const text = state.showingCodex ? state.latest.reports.codexMarkdown : state.latest.reports.dailyMarkdown;
+  const reports = state.latest.reports;
+  const textByMode = {
+    daily: reports.dailyMarkdown,
+    codex: reports.codexMarkdown,
+    retrospective: reports.retrospectiveCandidateMarkdown || "本次没有需要进入周检的复盘候选。",
+  };
+  const nextModeLabel = {
+    daily: "Codex 摘要",
+    codex: "复盘候选",
+    retrospective: "人类日报",
+  };
+  const text = textByMode[state.reportMode];
   setText("reportBody", text || "本次运行没有生成 Markdown 报告。");
-  setText("toggleCodex", state.showingCodex ? "人类日报" : "Codex 摘要");
+  setText("toggleCodex", nextModeLabel[state.reportMode]);
 }
 
 async function boot() {
@@ -170,7 +181,7 @@ async function boot() {
 }
 
 document.getElementById("toggleCodex").addEventListener("click", () => {
-  state.showingCodex = !state.showingCodex;
+  state.reportMode = state.reportMode === "daily" ? "codex" : state.reportMode === "codex" ? "retrospective" : "daily";
   renderReport();
 });
 

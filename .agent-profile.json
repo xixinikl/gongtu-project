@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "profileRepository": "https://github.com/xixinikl/xixi-agent-profile",
+  "projectName": "公途 gongtu-project",
+  "repository": "https://github.com/xixinikl/gongtu-project",
+  "doctorCommand": "python -m pytest backend/tests",
+  "qualityDashboardUrl": "https://xixinikl.github.io/gongtu-project/",
+  "retrospectiveDirectory": "doc/retrospectives"
+}
