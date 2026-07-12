@@ -6,6 +6,7 @@
   <meta name="theme-color" content="#f6f8fb">
   <title>三视图训练 · 公途</title>
   <link rel="stylesheet" href="/three-view-training.css?v=20260705h">
+  <link rel="stylesheet" href="/spatial-learning-shell.css?v=20260713">
   <script type="importmap">
     {
       "imports": {
@@ -15,22 +16,16 @@
     }
   </script>
 </head>
-<body data-answered="false">
+<body data-answered="false" data-spatial-module="three-view">
   <header class="topbar">
-    <a class="brand" href="/" aria-label="返回公途首页">
+    <a class="brand" href="/spatial-learning.html" aria-label="返回立体图推学习中心">
       <span class="brand-mark">公途</span>
       <span>
         <strong>三视图训练</strong>
         <small>5 题一组，先判断再验证</small>
       </span>
     </a>
-    <nav class="product-links" aria-label="空间几何产品">
-      <a href="/reasoning-lesson.html">动态解题</a>
-      <a class="active" href="/three-view-training.html">三视图训练</a>
-      <a href="/section-foundation.html">基础截面</a>
-      <a href="/geometry.html">几何实验室</a>
-      <a href="/csg-section.html">CSG 工作台</a>
-    </nav>
+    <nav class="product-links" aria-label="立体图推学习路径"></nav>
     <label class="case-switcher">
       <span>训练组</span>
       <select id="group-select" aria-label="选择三视图训练组">
@@ -130,6 +125,8 @@
   </footer>
 
   <script type="module" src="/three-view-training.js?v=20260705e"></script>
+  <script src="/gontu-auth-client.js"></script>
+  <script type="module" src="/spatial-learning-shell.js?v=20260713"></script>
   <noscript>三视图训练需要启用 JavaScript。</noscript>
 </body>
 </html>
