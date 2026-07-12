@@ -1,18 +1,10 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" class="gongtu-coach-theme">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>公途 AI 教练原型</title>
-  <script>
-    if (new URLSearchParams(location.search).get('theme') === 'gongtu') {
-      document.documentElement.classList.add('gongtu-coach-theme');
-      const theme = document.createElement('link');
-      theme.rel = 'stylesheet';
-      theme.href = '/doc/prototypes/ai-coach-gongtu-theme.css?v=20260713a';
-      document.head.appendChild(theme);
-    }
-  </script>
+  <title>公途 AI 教练</title>
+  <link rel="stylesheet" href="/doc/prototypes/ai-coach-gongtu-theme.css?v=20260713b">
   <style>
     :root {
       --paper: #fbfaf6;
@@ -676,380 +668,153 @@
         grid-template-columns: 1fr;
       }
     }
+    .thread-list,.run-list { display:grid; gap:8px; }
+    .thread-btn { width:100%; border:1px solid transparent; background:transparent; color:inherit; padding:10px 12px; border-radius:10px; text-align:left; cursor:pointer; }
+    .thread-btn:hover,.thread-btn.active { border-color:var(--gold-line); background:rgba(255,255,255,.08); }
+    .thread-btn strong,.thread-btn small { display:block; }
+    .thread-btn small { opacity:.66; margin-top:4px; }
+    .empty-state { border:1px dashed var(--line); border-radius:14px; padding:28px 20px; color:var(--ink-light); text-align:center; line-height:1.8; }
+    .message-text { white-space:pre-wrap; overflow-wrap:anywhere; }
+    .message-meta { margin-top:6px; color:var(--ink-faint); font-size:11px; }
+    .error-panel { border:1px solid #e4b9b0; background:#fff7f5; color:var(--red); border-radius:12px; padding:12px 14px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .error-panel .ghost-btn { white-space:nowrap; flex:none; }
+    .status-note { color:var(--ink-light); font-size:12px; }
+    .problem-card button { margin-top:12px; }
+    .problem-card [data-role="evidence"] { font-size:12px; color:var(--ink-light); margin-top:8px; }
+    .loading-dots::after { content:'…'; animation:pulse 1s infinite alternate; }
+    @keyframes pulse { from { opacity:.25 } to { opacity:1 } }
+    @media (max-width:390px) {
+      html,body { overflow-x:hidden; }
+      .module-list { grid-template-columns:1fr 1fr; }
+      .module-btn { min-width:0; }
+      .topbar,.chat-toolbar { align-items:flex-start; flex-direction:column; }
+      .messages { min-height:320px; }
+      .composer textarea { min-width:0; width:100%; }
+      .ledger { padding:16px; }
+    }
   </style>
 </head>
 <body>
   <div class="shell">
     <aside class="sidebar">
-      <div class="brand">
-        <div class="seal">
-          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
-            <path d="M5 3h10l2 2v14H5V3z" stroke="currentColor" stroke-width="1.4"/>
-            <path d="M8 8h6M8 12h6M8 16h4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
-          </svg>
-        </div>
-        <div>
-          <strong>公途问老师</strong>
-          <span>轻问答 · 问题本 · 学习画像</span>
-        </div>
-      </div>
-
+      <div class="brand"><div class="seal">公</div><div><strong>公途问老师</strong><span>真实问答 · 问题本 · 下一步</span></div></div>
       <div class="nav-label">选择提问模块</div>
-      <div class="module-list" id="moduleList">
-        <button class="module-btn active" data-module="言语理解" data-subtitle="逻辑填空先行" data-count="12">
-          <span class="module-icon"><svg width="17" height="17" viewBox="0 0 17 17" fill="none"><path d="M3 3h11M3 7h11M3 11h7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span>
-          <span><strong>言语理解</strong><span>当前可接逻辑填空</span></span>
-          <span class="count">12</span>
-        </button>
-        <button class="module-btn" data-module="申论" data-subtitle="保留独立窗口" data-count="8">
-          <span class="module-icon"><svg width="17" height="17" viewBox="0 0 17 17" fill="none"><path d="M4 2h7l2 2v11H4V2z" stroke="currentColor" stroke-width="1.4"/><path d="M7 10l4-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span>
-          <span><strong>申论</strong><span>批改记录同步摘要</span></span>
-          <span class="count">8</span>
-        </button>
-        <button class="module-btn" data-module="数量关系" data-subtitle="先做方法问答" data-count="3">
-          <span class="module-icon"><svg width="17" height="17" viewBox="0 0 17 17" fill="none"><path d="M4 5h9M4 9h9M4 13h5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M4 3v12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span>
-          <span><strong>数量关系</strong><span>用户自带题沉淀</span></span>
-          <span class="count">3</span>
-        </button>
-        <button class="module-btn" data-module="资料分析" data-subtitle="截图题优先" data-count="2">
-          <span class="module-icon"><svg width="17" height="17" viewBox="0 0 17 17" fill="none"><path d="M3 13h11M5 10V6M9 10V3M13 10V8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span>
-          <span><strong>资料分析</strong><span>适合拍图讲速算</span></span>
-          <span class="count">2</span>
-        </button>
-        <button class="module-btn" data-module="图形推理" data-subtitle="接入现有几何能力" data-count="5">
-          <span class="module-icon"><svg width="17" height="17" viewBox="0 0 17 17" fill="none"><rect x="3" y="3" width="5" height="5" stroke="currentColor" stroke-width="1.3"/><path d="M11 4l3 2-3 2-3-2 3-2zM9 11h5v3H9z" stroke="currentColor" stroke-width="1.3"/></svg></span>
-          <span><strong>图形推理</strong><span>空间题可带模型上下文</span></span>
-          <span class="count">5</span>
-        </button>
-        <button class="module-btn" data-module="学习规划" data-subtitle="只读全局问题本" data-count="30">
-          <span class="module-icon"><svg width="17" height="17" viewBox="0 0 17 17" fill="none"><path d="M4 13l3-4 3 2 3-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-          <span><strong>学习规划</strong><span>基于证据，不装懂</span></span>
-          <span class="count">30</span>
-        </button>
-      </div>
+      <div class="module-list" id="moduleList" aria-live="polite"></div>
+      <div class="nav-label">最近对话</div>
+      <div class="thread-list" id="threadList"></div>
+      <button class="ghost-btn" id="newThreadBtn" type="button">＋ 新对话</button>
     </aside>
 
     <main class="main">
       <div class="topbar">
-        <a class="back" href="/app">
-          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M9 3L5 7.5 9 12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          返回公途
-        </a>
-        <div class="status-strip">
-          <span class="pill">本页是原型</span>
-          <span class="pill">不替代申论窗口</span>
-          <span class="pill">外部题也能复盘</span>
-        </div>
+        <a class="back" id="returnLink" href="/app">← 返回公途</a>
+        <div class="status-strip"><span class="pill" id="providerStatus">正在连接服务</span><span class="pill" id="saveStatus">消息按账号保存</span></div>
       </div>
-
       <section class="teacher-head">
-        <div>
-          <h1 id="teacherTitle">言语理解老师</h1>
-          <p id="teacherIntro">这里不是再做一个大聊天软件，而是在当前模块里解决一个问题。内置题、用户粘贴题、截图题都可以沉淀为复盘卡。</p>
-        </div>
-        <div class="context-box">
-          <strong id="contextTitle">当前上下文</strong>
-          <span id="contextText">逻辑填空 · 用户粘贴题目 · 证据中等</span>
-          <small id="skillText">当前 Skill：言语理解 / 逻辑填空</small>
-        </div>
+        <div><h1 id="teacherTitle">AI 教练</h1><p id="teacherIntro">选择一个模块，新建或继续真实对话。</p></div>
+        <div class="context-box"><strong>当前上下文</strong><span id="contextText">尚未建立对话</span><small id="skillText">Skill 将由后端按模块选择</small></div>
       </section>
-
-      <section class="chat" aria-label="模块问答演示">
-        <div class="chat-toolbar">
-          <div class="mode-tabs">
-            <button class="mode-btn active">讲这道题</button>
-            <button class="mode-btn">整理方法</button>
-            <button class="mode-btn">生成练习</button>
-          </div>
-          <select class="source-select" aria-label="题目来源">
-              <option>用户自带题目</option>
-              <option>上传截图识别</option>
-              <option>当前训练题</option>
-          </select>
-        </div>
-
-        <div class="messages" id="messages">
-          <div class="bubble-row user">
-            <div class="bubble">这道逻辑填空我选了 B，为什么答案是 C？</div>
-          </div>
-          <div class="bubble-row">
-            <div class="avatar">
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M3 4h12v8H6l-3 3V4z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
-            </div>
-            <div class="bubble">
-              <strong>先看语境关系，不先背成语。</strong><br>
-              横线前后是转折，后半句在强调“不是热闹宣传，而是长期细致地落实”。B 的词义偏声势，C 更贴“持续推进”的语境。
-              <div class="answer-grid">
-                <div class="mini-panel"><strong>题型</strong>逻辑填空 · 转折关系</div>
-                <div class="mini-panel"><strong>错因</strong>先看词义，没看关系</div>
-              <div class="mini-panel"><strong>沉淀</strong>外部题也进复盘</div>
-              </div>
-            </div>
-          </div>
-        </div>
+      <section class="chat" aria-label="AI教练对话">
+        <div class="chat-toolbar"><strong id="threadTitle">未选择对话</strong><span class="status-note" id="runMeta"></span></div>
+        <div class="messages" id="messages"><div class="empty-state">这里不会展示示例对话。新建对话后，真实消息会保存在你的账号下。</div></div>
+        <div class="error-panel" id="errorPanel" hidden><span id="errorText"></span><button class="ghost-btn" id="retryBtn" type="button">重试</button></div>
       </section>
-
       <section class="composer" aria-label="提问输入">
-        <textarea id="questionInput" placeholder="按右侧输入指南发：题目 + 你的答案/疑问 + 正确答案（如果知道）。"></textarea>
-        <button class="ghost-btn" id="saveBtn">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 3h10v10H3V3zM5 6h6M5 10h4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
-          加入问题本
-        </button>
-        <button class="send-btn" id="askBtn">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h9M9 5l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          问老师
-        </button>
+        <textarea id="questionInput" placeholder="输入当前问题。外部题请说明题干、你的答案，以及答案来源是否确定。"></textarea>
+        <button class="send-btn" id="askBtn" type="button">发送</button>
       </section>
     </main>
 
     <aside class="ledger">
-      <div class="ledger-head">
-        <div>
-          <h2 id="ledgerTitle">言语理解复盘</h2>
-          <p class="ledger-subtitle" id="ledgerSubtitle">当前模块只显示当前模块的问题卡，不和其他模块混在一起。</p>
-        </div>
-        <div class="view-switch" aria-label="复盘视图切换">
-          <button class="active" id="moduleViewBtn">当前模块</button>
-          <button id="allViewBtn">全部</button>
-        </div>
-      </div>
-
-      <section class="guide">
-        <h3>输入指南</h3>
-        <ol>
-          <li>先选模块，不确定就选“学习规划”。</li>
-          <li>发外部题时，尽量带上题干、选项、你的答案。</li>
-          <li>知道正确答案就一起写，不知道也可以让老师先判断。</li>
-          <li>讲完后点“加入问题本”，它会变成复盘卡。</li>
-        </ol>
-        <div class="guide-example">
-          示例：资料分析题，我选 B，答案是 C。题干是……请讲最快算法，并标出我错在哪。
-        </div>
-      </section>
-
-      <section class="idea-map">
-        <h3>这版覆盖的想法</h3>
-        <div class="idea-row"><span class="check">✓</span><span>不同模块先选择再提问，避免所有问题混进一个大聊天框。</span></div>
-        <div class="idea-row"><span class="check">✓</span><span>模块内右侧只看当前模块复盘；需要总览时切到“全部”。</span></div>
-        <div class="idea-row"><span class="check">✓</span><span>用户自带题、截图题、内置题都能进入复盘，不再依赖完整题库。</span></div>
-        <div class="idea-row"><span class="check">✓</span><span>申论保留独立窗口，只把批改摘要同步成复盘卡。</span></div>
-        <div class="idea-row"><span class="check">✓</span><span>学习规划基于复盘卡证据，不足时明确提示证据不够。</span></div>
-      </section>
-
-      <section class="summary-band">
-        <strong>本周证据强度</strong>
-        <div class="meter"><span style="width: 46%"></span></div>
-        <div class="evidence">
-          <span><b>30</b>问题</span>
-          <span><b>11</b>待复盘</span>
-          <span><b>中</b>置信度</span>
-        </div>
-      </section>
-
-      <div class="card-list" id="cardList">
-        <article class="problem-card active" data-module-card="言语理解">
-          <div class="card-meta"><span>言语理解 · 用户自带题</span><span>刚刚</span></div>
-          <h3>转折关系后选词方向判断不稳</h3>
-          <p>连续两次把“声势类词”误选为“落实类词”，需要补一组转折语境题。</p>
-          <div class="tags"><span class="tag">逻辑填空</span><span class="tag red">待复盘</span><span class="tag blue">外部题</span></div>
-        </article>
-
-        <article class="problem-card" data-module-card="资料分析">
-          <div class="card-meta"><span>资料分析 · 用户截图题</span><span>今天</span></div>
-          <h3>增长量题列式慢，速算方法没选对</h3>
-          <p>用户从外部 App 截图带题来问，系统不需要拥有这道题，也能沉淀速算错因。</p>
-          <div class="tags"><span class="tag">415份数</span><span class="tag blue">用户自带题</span></div>
-        </article>
-
-        <article class="problem-card" data-module-card="申论">
-          <div class="card-meta"><span>申论 · 内置题</span><span>昨天</span></div>
-          <h3>公文题格式能写，主体层次偏散</h3>
-          <p>来自申论独立窗口批改摘要，不把完整聊天搬过来，只同步结论。</p>
-          <div class="tags"><span class="tag">公文题</span><span class="tag green">已批改</span></div>
-        </article>
-
-        <article class="problem-card" data-module-card="数量关系">
-          <div class="card-meta"><span>数量关系 · 用户自带题</span><span>2 天前</span></div>
-          <h3>工程问题不会设工作总量</h3>
-          <p>目前只有 3 条咨询记录，不足以判断稳定弱项，先建议做 5 道同类题。</p>
-          <div class="tags"><span class="tag">工程问题</span><span class="tag blue">证据弱</span></div>
-        </article>
-
-        <article class="problem-card" data-module-card="图形推理">
-          <div class="card-meta"><span>图形推理 · 当前训练题</span><span>3 天前</span></div>
-          <h3>三视图左/右方向容易混</h3>
-          <p>可接现有三视图训练页的数据，保存“错因”而不是保存一串聊天。</p>
-          <div class="tags"><span class="tag">三视图</span><span class="tag red">待二刷</span></div>
-        </article>
-
-        <article class="problem-card" data-module-card="学习规划">
-          <div class="card-meta"><span>学习规划 · 全局建议</span><span>待生成</span></div>
-          <h3>记录不足时不做强结论</h3>
-          <p>示例：数量只有 3 条，不能说“数量很差”，只能说“工程问题设量需要补证据”。</p>
-          <div class="tags"><span class="tag">证据规则</span><span class="tag green">不装懂</span></div>
-        </article>
-      </div>
-      <div class="empty-filter" id="emptyFilter" hidden>当前模块还没有复盘卡。真实产品里会提示用户先粘贴一道题、上传截图，或把一次问答加入复盘。</div>
+      <div class="ledger-head"><div><h2 id="ledgerTitle">问题本</h2><p class="ledger-subtitle">AI 只提出候选问题；你确认后才保存。</p></div></div>
+      <div class="card-list" id="cardList"><div class="empty-state">当前没有待确认的问题卡。</div></div>
     </aside>
   </div>
 
   <script>
-    const moduleList = document.getElementById('moduleList');
-    const teacherTitle = document.getElementById('teacherTitle');
-    const teacherIntro = document.getElementById('teacherIntro');
-    const contextText = document.getElementById('contextText');
-    const skillText = document.getElementById('skillText');
-    const cardList = document.getElementById('cardList');
-    const ledgerTitle = document.getElementById('ledgerTitle');
-    const ledgerSubtitle = document.getElementById('ledgerSubtitle');
-    const moduleViewBtn = document.getElementById('moduleViewBtn');
-    const allViewBtn = document.getElementById('allViewBtn');
-    const emptyFilter = document.getElementById('emptyFilter');
-    const messages = document.getElementById('messages');
-    const questionInput = document.getElementById('questionInput');
-    const askBtn = document.getElementById('askBtn');
-    const saveBtn = document.getElementById('saveBtn');
-    let activeModule = '言语理解';
-    let ledgerMode = 'module';
+    // 与后端对齐只需调整这个集中合同；页面其他逻辑不拼接 API 路径。
+    const API_BASE = `${location.protocol}//${location.hostname}:8888`;
+    const API = Object.freeze({
+      modules: '/api/ai-coach/modules',
+      threads: '/api/ai-coach/threads',
+      thread: id => `/api/ai-coach/threads/${encodeURIComponent(id)}`,
+      messages: id => `/api/ai-coach/threads/${encodeURIComponent(id)}/messages`,
+      retry: (threadId, runId) => `/api/ai-coach/threads/${encodeURIComponent(threadId)}/runs/${encodeURIComponent(runId)}/retry`,
+      saveProposal: proposalId => `/api/ai-coach/issue-proposals/${encodeURIComponent(proposalId)}/save`
+    });
+    const MODULE_ALIASES = Object.freeze({'言语理解':'verbal.reading','申论':'shenlun.review','数量关系':'quantity.practice','图形推理':'reasoning.spatial','学习规划':'planning.global'});
+    const state = {modules:[],activeModule:'',threads:[],thread:null,lastFailedRun:null,sending:false};
+    const $ = id => document.getElementById(id);
 
-    const moduleCopy = {
-      '言语理解': {
-        title: '言语理解老师',
-        intro: '适合当前先做“逻辑填空问老师”。内置题和用户粘贴来的外部题都能生成复盘卡。',
-        context: '逻辑填空 · 用户粘贴题目 · 证据中等',
-        skill: '言语理解 / 逻辑填空与片段阅读'
-      },
-      '申论': {
-        title: '申论老师',
-        intro: '申论仍保留独立窗口。这里不复制批改页，只接收申论批改后的摘要，进入全局问题本。',
-        context: '独立批改窗口 · 摘要同步 · 证据较强',
-        skill: '飞扬申论 / 审题、要点与结构补充'
-      },
-      '数量关系': {
-        title: '数量关系老师',
-        intro: '没有题库时先做方法问答和用户自带题解析。外部题可以进入复盘，但会标成“证据弱/中”。',
-        context: '用户自带题 · 方法咨询 · 证据较弱',
-        skill: '数量关系 / 取舍、建模与速算'
-      },
-      '资料分析': {
-        title: '资料分析老师',
-        intro: '更适合上传截图或粘贴材料，让老师拆公式、讲速算。没有足够记录时只给临时建议。',
-        context: '截图题 · 速算讲解 · 待沉淀',
-        skill: '资料分析 / 公式识别与速算'
-      },
-      '图形推理': {
-        title: '图形推理老师',
-        intro: '可以接你现有三视图和截面训练页。问答只解决当前题，错因进入问题本。',
-        context: '空间题上下文 · 模型验证 · 证据较强',
-        skill: '图形推理 / 规则与真实模型上下文'
-      },
-      '学习规划': {
-        title: '学习规划老师',
-        intro: '只读取复盘问题本和正式练习记录。记录少时直接说“不足以判断”，再给补证据任务。',
-        context: '30 条问题记录 · 11 条待复盘 · 证据中等',
-        skill: '综合规划 / 只读全局学习证据'
-      }
-    };
+    function safeReturnUrl() {
+      const candidate = new URLSearchParams(location.search).get('return_url');
+      if (!candidate) return '/app';
+      try { const parsed = new URL(candidate, location.origin); return parsed.origin === location.origin && parsed.pathname.startsWith('/') ? parsed.pathname + parsed.search + parsed.hash : '/app'; }
+      catch (_) { return '/app'; }
+    }
+    function token() { return localStorage.getItem('gontu_token') || ''; }
+    function loginUrl() { return `/login.html?next=${encodeURIComponent(location.pathname + location.search)}`; }
+    async function api(path, options={}) {
+      if (!token()) { location.assign(loginUrl()); throw new Error('auth_required'); }
+      const response = await fetch(API_BASE + path, {...options,headers:{'Content-Type':'application/json','Authorization':`Bearer ${token()}`,...(options.headers||{})}});
+      if (response.status === 401) { localStorage.removeItem('gontu_token'); localStorage.removeItem('gontu_user'); location.assign(loginUrl()); throw new Error('auth_required'); }
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) { const error = new Error(payload.detail || payload.error || `request_${response.status}`); error.status=response.status; error.payload=payload; throw error; }
+      return payload;
+    }
+    function el(tag,className,text) { const node=document.createElement(tag); if(className)node.className=className; if(text!==undefined)node.textContent=String(text); return node; }
+    function arrayPayload(payload,key) { return Array.isArray(payload) ? payload : (Array.isArray(payload?.[key]) ? payload[key] : []); }
+    function moduleIdFromQuery() { const raw=new URLSearchParams(location.search).get('module')||''; return MODULE_ALIASES[raw]||raw; }
+    function contextRefFromQuery() { const p=new URLSearchParams(location.search),kind=p.get('context_kind'),id=p.get('context_id'); return kind&&id ? {kind,id} : null; }
 
-    function syncLedger() {
-      const cards = Array.from(document.querySelectorAll('.problem-card'));
-      let visibleCount = 0;
-      cards.forEach((card) => {
-        const show = ledgerMode === 'all' || card.dataset.moduleCard === activeModule;
-        card.hidden = !show;
-        if (show) visibleCount += 1;
+    function renderModules() {
+      $('moduleList').replaceChildren();
+      if (!state.modules.length) { $('moduleList').append(el('div','empty-state','暂无可用模块')); return; }
+      state.modules.forEach(module => {
+        const button=el('button','module-btn'); button.type='button'; button.dataset.module=module.id; button.classList.toggle('active',module.id===state.activeModule);
+        button.append(el('span','module-icon','卷'));
+        const copy=el('span'); copy.append(el('strong','',module.label||module.id),el('span','',module.description||'由后端提供方法与上下文'));
+        button.append(copy);
+        button.addEventListener('click',()=>selectModule(module.id)); $('moduleList').append(button);
       });
-      emptyFilter.hidden = visibleCount !== 0;
-      ledgerTitle.textContent = ledgerMode === 'all' ? '全局复盘中心' : `${activeModule}复盘`;
-      ledgerSubtitle.textContent = ledgerMode === 'all'
-        ? '这里才看全部模块，用于学习规划和总览筛选。'
-        : '当前模块只显示当前模块的问题卡，不和其他模块混在一起。';
-      moduleViewBtn.classList.toggle('active', ledgerMode === 'module');
-      allViewBtn.classList.toggle('active', ledgerMode === 'all');
     }
-
-    function selectModule(moduleName) {
-      const copy = moduleCopy[moduleName];
-      teacherTitle.textContent = copy.title;
-      teacherIntro.textContent = copy.intro;
-      contextText.textContent = copy.context;
-      skillText.textContent = `当前 Skill：${copy.skill}`;
-      document.querySelectorAll('.problem-card').forEach((card) => {
-        card.classList.toggle('active', card.dataset.moduleCard === moduleName);
-      });
-      syncLedger();
+    function renderThreads() {
+      $('threadList').replaceChildren();
+      const visible=state.threads.filter(item=>item.module_id===state.activeModule);
+      if(!visible.length){$('threadList').append(el('div','status-note','这个模块还没有对话'));return;}
+      visible.forEach(item=>{const b=el('button','thread-btn');b.type='button';b.classList.toggle('active',state.thread?.id===item.id);b.append(el('strong','',item.title||'未命名对话'),el('small','',item.updated_at||''));b.addEventListener('click',()=>openThread(item.id));$('threadList').append(b);});
     }
-
-    moduleList.addEventListener('click', (event) => {
-      const btn = event.target.closest('.module-btn');
-      if (!btn) return;
-      document.querySelectorAll('.module-btn').forEach((item) => item.classList.remove('active'));
-      btn.classList.add('active');
-      activeModule = btn.dataset.module;
-      selectModule(activeModule);
-    });
-
-    moduleViewBtn.addEventListener('click', () => {
-      ledgerMode = 'module';
-      syncLedger();
-    });
-
-    allViewBtn.addEventListener('click', () => {
-      ledgerMode = 'all';
-      syncLedger();
-    });
-
-    function addQuestionCard(moduleName, text) {
-      const article = document.createElement('article');
-      article.className = 'problem-card active';
-      article.dataset.moduleCard = moduleName;
-      article.innerHTML = `
-        <div class="card-meta"><span>${moduleName} · 用户自带题</span><span>刚刚</span></div>
-        <h3>${text.slice(0, 28) || '新问题待整理'}</h3>
-        <p>这条由模块问答生成。正式实现时会保存来源、题型、错因、知识点、掌握状态，不把完整闲聊当复盘材料。</p>
-        <div class="tags"><span class="tag">新问题</span><span class="tag red">待复盘</span><span class="tag blue">用户自带题</span></div>
-      `;
-      document.querySelectorAll('.problem-card').forEach((card) => card.classList.remove('active'));
-      cardList.prepend(article);
-      syncLedger();
+    function renderMessages() {
+      $('messages').replaceChildren();
+      const items=state.thread?.messages||[];
+      if(!items.length){$('messages').append(el('div','empty-state','还没有消息。发送后会调用真实 AI 服务。'));return;}
+      const statusText={sending:'正在发送',failed:'发送失败，问题已保存',timed_out:'AI 响应超时'};
+      items.forEach(message=>{const row=el('div',`bubble-row ${message.role==='user'?'user':''}`);const bubble=el('div','bubble');bubble.append(el('div','message-text',message.content||''));if(message.status&&message.status!=='completed')bubble.append(el('div','message-meta',statusText[message.status]||'暂未完成'));row.append(bubble);$('messages').append(row);});
+      $('messages').scrollTop=$('messages').scrollHeight;
     }
-
-    askBtn.addEventListener('click', () => {
-      const active = document.querySelector('.module-btn.active');
-      const moduleName = active ? active.dataset.module : '言语理解';
-      const text = questionInput.value.trim() || '这道题我不会，帮我拆一下。';
-      const userRow = document.createElement('div');
-      userRow.className = 'bubble-row user';
-      userRow.innerHTML = `<div class="bubble">${text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>`;
-      messages.appendChild(userRow);
-
-      const aiRow = document.createElement('div');
-      aiRow.className = 'bubble-row';
-      aiRow.innerHTML = `
-        <div class="avatar"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M3 4h12v8H6l-3 3V4z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg></div>
-        <div class="bubble"><strong>我会先判断模块和题型，再讲当前问题。</strong><br>这次回答结束后，不把整段聊天塞进历史，而是生成一张可复盘的问题卡：来源、模块、题型、错因、掌握状态和一句话结论。外部题也能进复盘。</div>
-      `;
-      messages.appendChild(aiRow);
-      messages.scrollTop = messages.scrollHeight;
-      addQuestionCard(moduleName, text);
-      questionInput.value = '';
-    });
-
-    saveBtn.addEventListener('click', () => {
-      const active = document.querySelector('.module-btn.active');
-      const moduleName = active ? active.dataset.module : '言语理解';
-      addQuestionCard(moduleName, questionInput.value.trim() || '手动加入的问题');
-      questionInput.value = '';
-    });
-
-    const requestedModule = new URLSearchParams(location.search).get('module');
-    if (requestedModule && moduleCopy[requestedModule]) {
-      activeModule = requestedModule;
-      document.querySelectorAll('.module-btn').forEach((item) => item.classList.toggle('active', item.dataset.module === activeModule));
-      selectModule(activeModule);
-    } else {
-      syncLedger();
+    function renderProposals() {
+      $('cardList').replaceChildren(); const proposals=state.thread?.issue_proposals||[];
+      if(!proposals.length){$('cardList').append(el('div','empty-state','AI 尚未提出可保存的问题卡。'));return;}
+      proposals.forEach(p=>{const card=el('article','problem-card');card.append(el('h3','',p.title||'待确认问题'),el('p','',p.summary||p.reason||''),el('div','','证据：'+(p.evidence_label||'由后端核验')));card.lastChild.dataset.role='evidence';const btn=el('button','ghost-btn',p.saved?'已保存':'加入问题本');btn.type='button';btn.disabled=!!p.saved;btn.addEventListener('click',()=>saveProposal(p.id,btn));card.append(btn);$('cardList').append(card);});
     }
+    function applyThread(payload) {
+      state.thread=payload.thread||payload; $('threadTitle').textContent=state.thread.title||'当前对话';
+      $('contextText').textContent=state.thread.context_label||'无板块题目上下文'; $('skillText').textContent=state.thread.skill_label||'Skill 由后端记录版本';
+      const run=state.thread.latest_run; $('runMeta').textContent=run ? [run.provider,run.model,run.skill_version,run.status].filter(Boolean).join(' · ') : '';
+      renderThreads();renderMessages();renderProposals();
+    }
+    function showFailure(error,runId=null) {$('errorText').textContent=error.message||'AI 服务暂时不可用';$('errorPanel').hidden=false;state.lastFailedRun=runId||error.payload?.run_id||null;$('providerStatus').textContent='AI 暂不可用';}
+    function clearFailure() {$('errorPanel').hidden=true;state.lastFailedRun=null;$('providerStatus').textContent='教练服务已连接';}
+
+    async function loadThreads(){const payload=await api(`${API.threads}?module_id=${encodeURIComponent(state.activeModule)}`);state.threads=arrayPayload(payload,'threads');renderThreads();}
+    async function selectModule(moduleId){state.activeModule=moduleId;state.thread=null;const module=state.modules.find(m=>m.id===moduleId);$('teacherTitle').textContent=(module?.label||moduleId)+'老师';$('teacherIntro').textContent=module?.description||'围绕当前模块解决问题。';renderModules();renderMessages();renderProposals();await loadThreads();}
+    async function openThread(id){try{clearFailure();applyThread(await api(API.thread(id)));}catch(error){showFailure(error);}}
+    async function newThread(){try{clearFailure();const body={module_id:state.activeModule,return_url:safeReturnUrl()};const ref=contextRefFromQuery();if(ref)body.context_ref=ref;const created=await api(API.threads,{method:'POST',body:JSON.stringify(body)});state.threads.unshift(created.thread||created);applyThread(created.thread||created);}catch(error){showFailure(error);}}
+    async function sendMessage(){const content=$('questionInput').value.trim();if(!content||state.sending)return;if(!state.thread)await newThread();if(!state.thread)return;state.sending=true;$('askBtn').disabled=true;$('providerStatus').textContent='AI 正在思考';clearFailure();const pending={role:'user',content,status:'sending'};state.thread.messages=[...(state.thread.messages||[]),pending];renderMessages();try{const payload=await api(API.messages(state.thread.id),{method:'POST',body:JSON.stringify({content,client_message_id:crypto.randomUUID()})});$('questionInput').value='';applyThread(payload);}catch(error){pending.status='failed';renderMessages();showFailure(error);}finally{state.sending=false;$('askBtn').disabled=false;}}
+    async function retry(){if(!state.thread||!state.lastFailedRun)return;try{clearFailure();applyThread(await api(API.retry(state.thread.id,state.lastFailedRun),{method:'POST'}));}catch(error){showFailure(error,state.lastFailedRun);}}
+    async function saveProposal(id,button){try{button.disabled=true;await api(API.saveProposal(id),{method:'POST'});button.textContent='已保存';if(state.thread){const p=(state.thread.issue_proposals||[]).find(item=>item.id===id);if(p)p.saved=true;}}catch(error){button.disabled=false;showFailure(error);}}
+    async function init(){ $('returnLink').href=safeReturnUrl(); try{const payload=await api(API.modules);state.modules=arrayPayload(payload,'modules');const requested=moduleIdFromQuery();state.activeModule=state.modules.some(m=>m.id===requested)?requested:(state.modules[0]?.id||'');renderModules();if(state.activeModule)await selectModule(state.activeModule);$('providerStatus').textContent='教练服务已连接';}catch(error){if(error.message!=='auth_required')showFailure(error);}}
+    $('newThreadBtn').addEventListener('click',newThread);$('askBtn').addEventListener('click',sendMessage);$('retryBtn').addEventListener('click',retry);$('questionInput').addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage();}});init();
   </script>
 </body>
 </html>

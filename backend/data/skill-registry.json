@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "modules": {
+    "verbal.reading": {
+      "skill_id": "verbal-reading-skill", "version": "1.1.0", "status": "enabled", "package_hash": "71d40b09b6de06e1f5e120217ff65567ad9f1799de330948518a1d27c2032298",
+      "entry": "verbal-reading-skill/SKILL.md",
+      "package_files": ["verbal-reading-skill/SKILL.md", "verbal-reading-skill/references/methodology.md", "verbal-reading-skill/references/response-contract.md", "skills/verbal-reading/response.schema.json", "skills/coach-chat.schema.json"],
+      "tasks": {"diagnosis": {"references": ["verbal-reading-skill/references/methodology.md", "verbal-reading-skill/references/response-contract.md"], "response_schema": "skills/verbal-reading/response.schema.json"}, "follow_up": {"references": ["verbal-reading-skill/references/methodology.md"], "response_schema": "skills/coach-chat.schema.json"}}
+    },
+    "verbal.logic_fill": {
+      "skill_id": "logic-fill-coach", "version": "1.0.0", "status": "enabled", "package_hash": "bc7c38fd685ae3cb9186c0e4b28bf1489d92b299715a957ff9088cb88fc43507",
+      "entry": "skills/logic-fill/SKILL.md",
+      "package_files": ["skills/logic-fill/SKILL.md", "skills/logic-fill/methodology.md", "skills/logic-fill/response.schema.json", "skills/coach-chat.schema.json"],
+      "tasks": {"explanation": {"references": ["skills/logic-fill/methodology.md"], "response_schema": "skills/logic-fill/response.schema.json"}, "method_chat": {"references": ["skills/logic-fill/methodology.md"], "response_schema": "skills/coach-chat.schema.json"}}
+    },
+    "quantity.practice": {
+      "skill_id": "quantity-coach", "version": "1.0.0", "status": "enabled", "package_hash": "e0bcf23970cd1b651eaa6ecb8e059099ca3d3af34a8ac304ed944cb592bdc6c3",
+      "entry": "skills/quantity/SKILL.md",
+      "package_files": ["skills/quantity/SKILL.md", "skills/quantity/methodology.md", "skills/quantity/response.schema.json", "skills/coach-chat.schema.json"],
+      "tasks": {"diagnosis": {"references": ["skills/quantity/methodology.md"], "response_schema": "skills/quantity/response.schema.json"}, "method_chat": {"references": ["skills/quantity/methodology.md"], "response_schema": "skills/coach-chat.schema.json"}}
+    },
+    "reasoning.planar": {
+      "skill_id": "planar-reasoning-coach", "version": "1.0.0", "status": "enabled", "package_hash": "c2229f9f53245812e519f5def1549daea5b982d43c375c967e98231e7acd8356",
+      "entry": "skills/planar/SKILL.md",
+      "package_files": ["skills/planar/SKILL.md", "skills/planar/methodology.md", "skills/planar/response.schema.json", "skills/coach-chat.schema.json"],
+      "tasks": {"diagnosis": {"references": ["skills/planar/methodology.md"], "response_schema": "skills/planar/response.schema.json"}, "method_chat": {"references": ["skills/planar/methodology.md"], "response_schema": "skills/coach-chat.schema.json"}}
+    },
+    "reasoning.spatial": {
+      "skill_id": "spatial-reasoning-coach", "version": "1.0.0", "status": "enabled", "package_hash": "5d229f1407bddee51044db9e3fef873f72837490cb439607350be8eb42320aa7",
+      "entry": "skills/spatial/SKILL.md",
+      "package_files": ["skills/spatial/SKILL.md", "skills/spatial/candidate-driven.md", "skills/spatial/response.schema.json", "skills/coach-chat.schema.json"],
+      "tasks": {"explanation": {"references": ["skills/spatial/candidate-driven.md"], "response_schema": "skills/spatial/response.schema.json"}, "method_chat": {"references": ["skills/spatial/candidate-driven.md"], "response_schema": "skills/coach-chat.schema.json"}}
+    },
+    "shenlun.review": {
+      "skill_id": "feiyang-shenlun-perspective", "version": "1.0.0", "status": "enabled", "package_hash": "120f8d7c0632d5f4757afe38d98c1e0725d91d738a5f4e2c9c66b1ed997cccca",
+      "entry": "feiyang-skill/SKILL.md",
+      "package_files": ["feiyang-skill/SKILL.md", "feiyang-skill/references/公文模板速查.md", "feiyang-skill/references/决策启发式.md", "feiyang-skill/references/心智模型速查.md", "feiyang-skill/references/背景信息.md", "feiyang-skill/references/表达DNA.md", "skills/shenlun/response.schema.json", "skills/coach-chat.schema.json"],
+      "tasks": {"grading": {"references": ["feiyang-skill/references/心智模型速查.md", "feiyang-skill/references/决策启发式.md"], "response_schema": "skills/shenlun/response.schema.json"}, "method_chat": {"references": ["feiyang-skill/references/心智模型速查.md", "feiyang-skill/references/决策启发式.md", "feiyang-skill/references/公文模板速查.md"], "response_schema": "skills/coach-chat.schema.json"}}
+    },
+    "planning.global": {
+      "skill_id": "evidence-planning-coach", "version": "1.0.0", "status": "enabled", "package_hash": "ee718077b7222d8d06dfad8d0f8f7869f165bfde6d3f5c9a4a8712815a2acb23",
+      "entry": "skills/planning/SKILL.md",
+      "package_files": ["skills/planning/SKILL.md", "skills/planning/methodology.md", "skills/planning/response.schema.json", "skills/coach-chat.schema.json"],
+      "tasks": {"planning": {"references": ["skills/planning/methodology.md"], "response_schema": "skills/planning/response.schema.json"}}
+    }
+  }
+}
