@@ -184,6 +184,18 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0.01ms!important;animation-iteration-count:1!important;transition-duration:0.01ms!important}}
 
+@media (max-width:768px){
+  .header{padding:10px 8px 8px}.header-top{margin-bottom:8px}.header .back-btn{left:8px;padding:5px}.header .add-btn{right:8px;padding:6px 9px}
+  .header .back-btn{font-size:0}.header .back-btn svg{width:16px;height:16px}.tabs{justify-content:flex-start;overflow-x:auto;padding:0 4px}.tab-btn{flex:0 0 auto;padding:6px 10px;font-size:12px}
+  .ink-bar{width:54px;padding-top:24px}.ink-title span,.ink-title span:nth-child(1),.ink-title span:nth-child(4){font-size:31px}.ink-sub{display:none}.ink-seal{width:26px;height:26px;font-size:9px}
+  .scroll-inner{padding:12px}.scrollbar-track{left:66px;right:12px;bottom:32px}
+  #t4.tab-panel{min-width:0;width:calc(100vw - 78px)}#t4 .review-wrap{padding:8px 0 24px}
+  .review-main-row{display:grid;grid-template-columns:1fr;gap:10px}.review-side-left{width:100%;display:grid;grid-template-columns:repeat(4,1fr);padding-top:0;order:1}
+  .rv-card-center-col{order:2}.review-side-right{width:100%;display:grid!important;grid-template-columns:1fr auto;order:3;padding-top:0}.review-side-right select{text-align:left}
+  .rv-card-body,.rv-card-front,.rv-card-back{min-height:410px}.rv-card-img-wrap,.rv-back-img-top{min-height:250px}.rv-actions{width:100%;gap:8px}.rv-btn{flex:1;justify-content:center;padding:10px 8px}
+  .modal-box{padding:20px 16px;max-height:90vh;overflow:auto}.qlist-popover{width:calc(100vw - 24px);left:12px!important}
+}
+
 /* ===== 错题复习 ===== */
 .review-wrap{max-width:1100px;margin:0 auto;padding:16px 16px 30px;display:flex;flex-direction:column;align-items:center}
 .review-empty{text-align:center;padding:80px 0;display:flex;flex-direction:column;align-items:center}
@@ -258,7 +270,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 <h1>万象图绎</h1>
 <span class="sub">刘一恒 26版</span>
 </div>
-<a href="/app" class="back-btn"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 2L3 7l5 5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><line x1="3" y1="7" x2="11" y2="7" stroke="currentColor" stroke-width="0.8" opacity="0.5"/></svg> 返回</a>
+<a href="/智学成语-高级版.html?demo=verbal-ai-v3" class="back-btn"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 2L3 7l5 5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><line x1="3" y1="7" x2="11" y2="7" stroke="currentColor" stroke-width="0.8" opacity="0.5"/></svg> 返回</a>
 <button class="add-btn" onclick="openAddModal()">+ 添加错题</button>
 <div class="tabs">
 <button class="tab-btn active" data-tab="t1">万象图绎 · 全览</button>
@@ -827,8 +839,26 @@ async function api(path,opts={}){
   fetchOpts.headers['Content-Type']='application/json';
  }
  const res=await fetch(url,fetchOpts);
+ if(res.status===401){
+  localStorage.removeItem(GONTU_TOKEN_KEY);
+  const next=encodeURIComponent(location.pathname+location.search);
+  location.href='/login.html?next='+next;
+  throw new Error('登录状态已失效');
+ }
  if(!res.ok)throw new Error(await res.text());
  return res.json();
+}
+
+async function setAuthenticatedImage(img,qid,onError){
+ try{
+  const token=localStorage.getItem(GONTU_TOKEN_KEY)||'';
+  const res=await fetch(API_BASE+'/api/mindmap/questions/'+qid+'/image',{headers:{Authorization:'Bearer '+token}});
+  if(res.status===401){localStorage.removeItem(GONTU_TOKEN_KEY);location.href='/login.html?next='+encodeURIComponent(location.pathname+location.search);return;}
+  if(!res.ok)throw new Error('图片加载失败');
+  const objectUrl=URL.createObjectURL(await res.blob());
+  img.onload=()=>URL.revokeObjectURL(objectUrl);
+  img.src=objectUrl;
+ }catch(e){if(onError)onError(e);}
 }
 
 // 从树节点获取完整路径
@@ -875,10 +905,10 @@ async function loadBadges(){
    }
    walk(root,0);
   });
-  // 首次无角标时 2 秒后重试一次
-  if(totalBadges===0&&!window._badgeRetry){
-   window._badgeRetry=true;
-   setTimeout(()=>{window._badgeRetry=null;loadBadges();},2000);
+  // 有错题但导图节点尚未渲染时只补偿重试一次；空题库不轮询。
+  if(totalBadges===0&&qs.length>0&&!window._badgeRetryDone){
+   window._badgeRetryDone=true;
+   setTimeout(loadBadges,2000);
   }
   console.log('loadBadges: placed',totalBadges,'badges');
  }catch(e){console.error(e)}
@@ -954,9 +984,8 @@ async function showDetail(qid){
     let imgDiv=document.createElement('div');
     imgDiv.style.cssText='text-align:center;margin-bottom:14px;max-width:100%;overflow:hidden;border-radius:8px';
     let img=document.createElement('img');
-    img.src='/data/'+q.image_path;
     img.style.cssText='max-width:100%;max-height:520px;width:auto;height:auto;border-radius:8px;display:inline-block';
-    img.onerror=function(){this.parentElement.innerHTML='<div style=background:#faf7f0;height:280px;display:flex;align-items:center;justify-content:center;border-radius:8px;color:#b0a692;font-size:15px>图片加载失败</div>'};
+    setAuthenticatedImage(img,q.id,function(){imgDiv.innerHTML='<div style=background:#faf7f0;height:280px;display:flex;align-items:center;justify-content:center;border-radius:8px;color:#b0a692;font-size:15px>图片加载失败</div>'});
     imgDiv.appendChild(img);
     box.appendChild(imgDiv);
   } else {
@@ -1162,15 +1191,16 @@ async function editQuestion(qid,overlay){
 async function submitEdit(qid,btn){
   btn.disabled=true; btn.textContent='保存中...';
   try{
-    let fd=new FormData();
-    fd.append('title',document.getElementById('editTitle').value);
-    fd.append('notes',document.getElementById('editNotes').value);
-    fd.append('option_a',document.getElementById('editOptA').value);
-    fd.append('option_b',document.getElementById('editOptB').value);
-    fd.append('option_c',document.getElementById('editOptC').value);
-    fd.append('option_d',document.getElementById('editOptD').value);
-    fd.append('correct_answer',document.getElementById('editCorrect').value);
-    await api('/api/mindmap/questions/'+qid,{method:'PUT',body:fd});
+    const payload={
+      title:document.getElementById('editTitle').value,
+      notes:document.getElementById('editNotes').value,
+      option_a:document.getElementById('editOptA').value,
+      option_b:document.getElementById('editOptB').value,
+      option_c:document.getElementById('editOptC').value,
+      option_d:document.getElementById('editOptD').value,
+      correct_answer:document.getElementById('editCorrect').value
+    };
+    await api('/api/mindmap/questions/'+qid,{method:'PUT',body:JSON.stringify(payload)});
     btn.closest('.modal-overlay').remove();
     showToast('已保存');
     loadBadges();
@@ -1308,12 +1338,9 @@ renderPanel=function(id,data){
 };
 
 // ===== 错题复习 =====
-const REVIEW_KEY='rv_mindmap_'+todayStr();
-const REVIEW_MASTERED_KEY='rv_mastered_mindmap';
-function todayStr(){return new Date().toISOString().slice(0,10);}
-
 let reviewDeck=[];
 let reviewIndex=0;
+let reviewSessionId='';
 let reviewCardFlipped=false;
 let reviewTodayDone=0;
 let reviewMastered=0;
@@ -1327,9 +1354,11 @@ async function initReview(){
 
 async function loadReviewDeck(){
   try{
-    const data=await api('/api/mindmap/questions');
+    const data=await api('/api/mindmap/review-session');
     const all=(data.questions||[]);
+    reviewSessionId=data.session?data.session.id:'';
     if(all.length===0){
+      if(data.session&&data.session.status==='completed')showReviewComplete();
       document.getElementById('reviewEmpty').style.display='flex';
       document.getElementById('reviewActive').style.display='none';
       return;
@@ -1341,12 +1370,11 @@ async function loadReviewDeck(){
     document.getElementById('rvActions').style.display='none';
     document.getElementById('rvSelectorSide').style.display='flex';
 
-    // 打乱顺序
-    reviewDeck=all.sort(()=>Math.random()-0.5);
+    reviewDeck=all;
     reviewIndex=0;
     reviewCardFlipped=false;
-    reviewTodayDone=parseInt(localStorage.getItem(REVIEW_KEY)||'0',10);
-    reviewMastered=parseInt(localStorage.getItem(REVIEW_MASTERED_KEY)||'0',10);
+    reviewTodayDone=data.stats.studied||0;
+    reviewMastered=data.stats.mastered||0;
 
     updateReviewStats();
     populateReviewSelector();
@@ -1372,8 +1400,7 @@ function renderReviewCard(){
   imgWrap.innerHTML='';
   if(q.image_path){
     var img=document.createElement('img');
-    img.src='/data/'+q.image_path;
-    img.onerror=function(){imgWrap.innerHTML='<div class="rv-no-img">图片加载失败</div>';};
+    setAuthenticatedImage(img,q.id,function(){imgWrap.innerHTML='<div class="rv-no-img">图片加载失败</div>';});
     imgWrap.appendChild(img);
   } else {
     imgWrap.innerHTML='<div class="rv-no-img"><svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity:0.3"><rect x="5" y="5" width="30" height="30" rx="3" stroke="#b0a692" stroke-width="1.5"/><circle cx="15" cy="15" r="4" stroke="#b0a692" stroke-width="1"/><path d="M5 28l8-8 6 6 4-4 12 10" stroke="#b0a692" stroke-width="1" fill="none"/></svg><br>暂无图片</div>';
@@ -1387,8 +1414,7 @@ function renderReviewCard(){
   backImgWrap.innerHTML='';
   if(q.image_path){
     var bimg=document.createElement('img');
-    bimg.src='/data/'+q.image_path;
-    bimg.onerror=function(){backImgWrap.innerHTML='<div class="rv-no-img">图片加载失败</div>';};
+    setAuthenticatedImage(bimg,q.id,function(){backImgWrap.innerHTML='<div class="rv-no-img">图片加载失败</div>';});
     backImgWrap.appendChild(bimg);
   } else {
     backImgWrap.innerHTML='<div class="rv-no-img"><svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity:0.3"><rect x="5" y="5" width="30" height="30" rx="3" stroke="#b0a692" stroke-width="1.5"/><circle cx="15" cy="15" r="4" stroke="#b0a692" stroke-width="1"/><path d="M5 28l8-8 6 6 4-4 12 10" stroke="#b0a692" stroke-width="1" fill="none"/></svg><br>暂无图片</div>';
@@ -1440,23 +1466,8 @@ async function deleteCurrentReviewCard(){
   try{
     await api('/api/mindmap/questions/'+q.id,{method:'DELETE'});
     showToast('已删除：'+q.title);
-    // 从内存删除
-    reviewDeck.splice(reviewIndex,1);
-    // 如果删光了
-    if(reviewDeck.length===0){
-      document.getElementById('reviewEmpty').style.display='flex';
-      document.getElementById('reviewActive').style.display='none';
-      document.getElementById('rvSelectorSide').style.display='none';
-      return;
-    }
-    // 如果删的是最后一个之后
-    if(reviewIndex>=reviewDeck.length) reviewIndex=reviewDeck.length-1;
-    reviewCardFlipped=false;
-    document.getElementById('rvCardBody').classList.remove('flipped');
-    document.getElementById('rvActions').style.display='none';
-    populateReviewSelector();
-    updateReviewStats();
-    renderReviewCard();
+    reviewHasInit=false;
+    await loadReviewDeck();
   }catch(e){showToast('删除失败: '+e.message);}
 }
 
@@ -1475,60 +1486,41 @@ function flipReviewCard(){
   }
 }
 
-function reviewRemember(){
-  reviewTodayDone++;
-  reviewMastered++;
-  saveReviewProgress();
-  nextReviewCard();
+async function reviewRemember(){
+  await submitReviewOutcome('remembered');
 }
 
-function reviewForgot(){
-  reviewTodayDone++;
-  // 放入队尾
-  var q=reviewDeck[reviewIndex];
-  reviewDeck.push(q);
-  saveReviewProgress();
-  populateReviewSelector();
-  nextReviewCard();
+async function reviewForgot(){
+  await submitReviewOutcome('forgotten');
 }
 
-function nextReviewCard(){
-  reviewIndex++;
-  document.getElementById('rvActions').style.display='none';
-  updateReviewStats();
-  populateReviewSelector();
-  if(reviewIndex>=reviewDeck.length){
-    showReviewComplete();
-  } else {
-    renderReviewCard();
-  }
-}
-
-function saveReviewProgress(){
-  localStorage.setItem(REVIEW_KEY,reviewTodayDone);
-  localStorage.setItem(REVIEW_MASTERED_KEY,reviewMastered);
-  // 同步到后端
-  pushReviewToBackend();
-}
-
-function pushReviewToBackend(){
+async function submitReviewOutcome(outcome){
+  const q=reviewDeck[reviewIndex];
+  if(!q||!reviewSessionId)return;
   try{
-    api('/api/mindmap/review-progress',{
+    document.querySelectorAll('.rv-btn').forEach(btn=>btn.disabled=true);
+    const data=await api('/api/mindmap/review-session/'+reviewSessionId+'/attempt',{
       method:'POST',
-      body:JSON.stringify({
-        date:todayStr(),
-        studied:reviewTodayDone,
-        mastered:reviewMastered
-      })
+      body:JSON.stringify({question_id:q.id,outcome})
     });
-  }catch(e){/* 静默失败 */}
+    reviewDeck=data.questions||[];
+    reviewIndex=0;
+    reviewTodayDone=data.stats.studied||0;
+    reviewMastered=data.stats.mastered||0;
+    updateReviewStats(data.stats.percent);
+    populateReviewSelector();
+    if(data.session&&data.session.status==='completed')showReviewComplete(); else renderReviewCard();
+  }catch(e){showToast('保存复习结果失败: '+e.message)}
+  finally{document.querySelectorAll('.rv-btn').forEach(btn=>btn.disabled=false);}
 }
 
-function updateReviewStats(){
+function updateReviewStats(serverPercent){
   document.getElementById('rvToday').innerText=reviewTodayDone;
   document.getElementById('rvRemain').innerText=Math.max(0,reviewDeck.length-reviewIndex);
   document.getElementById('rvMastered').innerText=reviewMastered;
-  var pct=reviewDeck.length>0?Math.round((reviewMastered/reviewDeck.length)*100):0;
+  var total=reviewMastered+reviewDeck.length;
+  var pct=Number.isFinite(serverPercent)?serverPercent:(total>0?Math.round((reviewMastered/total)*100):0);
+  pct=Math.max(0,Math.min(100,pct));
   document.getElementById('rvPercent').innerText=pct+'%';
   document.getElementById('rvProgressFill').style.width=pct+'%';
 }
@@ -1541,15 +1533,17 @@ function showReviewComplete(){
   document.getElementById('rvCompleteCount').innerText=reviewTodayDone;
 }
 
-function restartReview(){
+async function restartReview(){
+  if(reviewSessionId){
+    try{await api('/api/mindmap/review-session/'+reviewSessionId,{method:'DELETE'});}catch(e){showToast('重新开始失败: '+e.message);return;}
+  }
   reviewHasInit=false;
   reviewDeck=[];
   reviewIndex=0;
   reviewCardFlipped=false;
   reviewTodayDone=0;
   reviewMastered=0;
-  localStorage.removeItem(REVIEW_KEY);
-  localStorage.removeItem(REVIEW_MASTERED_KEY);
+  reviewSessionId='';
   document.getElementById('rvComplete').style.display='none';
   document.getElementById('rvSelectorSide').style.display='none';
   initReview();
