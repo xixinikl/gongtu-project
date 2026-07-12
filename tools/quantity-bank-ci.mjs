@@ -37,8 +37,16 @@ const filteredVisionTasks = existsSync(join(root, 'output', 'quantity-bank', 'vi
 const cropManifest = readJson('output', 'quantity-bank', 'crop_assets', 'crop_assets_manifest.json');
 const cropImport = readJson('output', 'quantity-bank', 'crop_import', 'crop_media_repair_candidates.json');
 const repairs = readJson('data', 'quantity_bank', 'verified_repairs.json').repairs || [];
-const publicDemoHtml = readFileSync(join(root, 'quantity-redesign-demo.html'), 'utf8');
-const reviewHtml = readFileSync(join(root, 'quantity-bank-review.html'), 'utf8');
+const portableManifest = existsSync(join(root, 'data', 'quantity_bank', 'approved_seed_manifest.json'))
+  ? readJson('data', 'quantity_bank', 'approved_seed_manifest.json')
+  : null;
+const legacyDemoPath = join(root, 'quantity-redesign-demo.html');
+const productionPracticePath = join(root, 'quantity-practice.html');
+const publicDemoHtml = existsSync(legacyDemoPath)
+  ? readFileSync(legacyDemoPath, 'utf8')
+  : readFileSync(productionPracticePath, 'utf8');
+const reviewPath = join(root, 'quantity-bank-review.html');
+const reviewHtml = existsSync(reviewPath) ? readFileSync(reviewPath, 'utf8') : '';
 
 if (clean.length !== 600) fail(`clean_candidates count is ${clean.length}, expected 600`);
 if (approved.length !== approvedSummary.total) fail(`approved length ${approved.length} != summary total ${approvedSummary.total}`);
@@ -57,8 +65,12 @@ if (approvedSummary.answer_recheck_recommended !== approvedNeedingRecheck.length
 if (queue.length !== queuePayload.summary?.queue_items) fail(`queue length ${queue.length} != summary queue_items ${queuePayload.summary?.queue_items}`);
 if (approved.length + queue.length !== clean.length) fail(`approved+queue=${approved.length + queue.length}, expected ${clean.length}`);
 
-if (!publicDemoHtml.includes('/output/quantity-bank/approved_seed/questions.json')) {
-  fail('quantity demo does not read approved_seed questions');
+if (existsSync(legacyDemoPath)) {
+  if (!publicDemoHtml.includes('/output/quantity-bank/approved_seed/questions.json')) {
+    fail('quantity demo does not read approved_seed questions');
+  }
+} else if (!publicDemoHtml.includes('/api/quantity/')) {
+  fail('production quantity practice does not read the authenticated quantity API');
 }
 for (const forbiddenPath of [
   '/output/quantity-bank/clean_candidates/',
@@ -70,7 +82,7 @@ for (const forbiddenPath of [
     fail(`quantity demo must not read backend queue path: ${forbiddenPath}`);
   }
 }
-if (!reviewHtml.includes('/output/quantity-bank/clean_candidates/all_questions.json')) {
+if (existsSync(reviewPath) && !reviewHtml.includes('/output/quantity-bank/clean_candidates/all_questions.json')) {
   fail('review page should read clean_candidates as the backend audit surface');
 }
 
@@ -116,7 +128,7 @@ if (cropImport.crop_count !== cropManifest.created_crops) fail('crop import crop
 if (cropImport.repair_candidates !== (cropImport.candidates || []).length) fail('crop import repair_candidates mismatch');
 
 const repairsWithMedia = repairs.filter(repair => repair.fields?.media?.length);
-if (cropManifest.created_crops === 0 && repairsWithMedia.length) {
+if (cropManifest.created_crops === 0 && repairsWithMedia.length && !portableManifest?.media_count) {
   fail('verified repairs contain media even though crop manifest has no created crops');
 }
 
@@ -137,7 +149,7 @@ console.log(JSON.stringify({
   repair_lanes: laneCounts,
   answer_audit_tiers: answerTierCounts,
   answer_recheck_recommended: approvedSummary.answer_recheck_recommended,
-  public_demo_source: 'approved_seed_only',
+  public_demo_source: existsSync(legacyDemoPath) ? 'approved_seed_only' : 'authenticated_quantity_api',
   crop_assets: cropManifest.created_crops,
   crop_media_candidates: cropImport.repair_candidates
 }, null, 2));

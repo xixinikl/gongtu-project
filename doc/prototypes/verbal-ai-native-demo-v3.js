@@ -100,12 +100,31 @@
             } else {
                 learningZone.innerHTML = `<div class="big-card exam-v3"><header class="exam-head-v3"><div><div class="review-eyebrow-v3">${icon.review}<span>套题结果·流程预览</span></div><h2>交卷后先看客观结果</h2><p>正式数值由真实作答生成，不在界面原型中伪造成绩。</p></div><span class="exam-state-v3">03 · 交卷后</span></header><div class="exam-result-v3"><div><strong>—</strong><small>正确率</small></div><div><strong>—</strong><small>实际用时</small></div><div><strong>—</strong><small>标记/跳过</small></div></div><div class="exam-result-note-v3"><strong>完成后这里会回答三个问题：</strong><br>① 哪个题型丢分最多；② 哪些题用时过长或应该更早跳过；③ 下一组训练应该如何调整做题顺序。AI 只在客观结果之后做解释。</div><div class="exam-start-v3"><button type="button" data-exam-reset-v3>返回组卷</button></div></div>`;
             }
-            rightPanel.innerHTML = `<section class="context-card-v2"><div class="context-title-v2">${icon.review}本次实战</div><p class="context-sub-v2">界面已分为组卷、作答、交卷三个状态，真实题库在 Phase 3 挂接。</p><div class="context-metrics-v2"><div class="context-metric-v2"><strong>20</strong><small>题量</small></div><div class="context-metric-v2"><strong>32</strong><small>建议分钟</small></div><div class="context-metric-v2"><strong>2</strong><small>题型</small></div></div></section><section class="context-card-v2"><div class="context-title-v2">${icon.graph}考场规则</div><div class="reasoning-evidence-v3"><div><b>先做</b><span>问法明确的熟悉题</span><small>稳定拿分</small></div><div><b>标记</b><span>犹豫超过 60 秒</span><small>暂跳</small></div></div></section>`;
+            rightPanel.innerHTML = `<section class="context-card-v2"><div class="context-title-v2">${icon.review}本次实战</div><p class="context-sub-v2">言语和数量分别进入真实服务端套题，混合模式暂不以假数据开放。</p><div class="context-metrics-v2"><div class="context-metric-v2"><strong>30</strong><small>言语套数</small></div><div class="context-metric-v2"><strong>60</strong><small>数量套数</small></div><div class="context-metric-v2"><strong>0</strong><small>假组卷</small></div></div></section><section class="context-card-v2"><div class="context-title-v2">${icon.graph}考场规则</div><div class="reasoning-evidence-v3"><div><b>先做</b><span>问法明确的熟悉题</span><small>稳定拿分</small></div><div><b>标记</b><span>犹豫超过 60 秒</span><small>暂跳</small></div></div></section>`;
+            if (state === 'setup') {
+                const modes = learningZone.querySelectorAll('.exam-mode-v3 button');
+                if (modes[0]) {
+                    modes[0].querySelector('small').textContent = '30 套片段阅读 · 每套 20 题';
+                    modes[0].onclick = () => { location.href = '/verbal-reading-pilot.html'; };
+                }
+                if (modes[1]) {
+                    modes[1].querySelector('small').textContent = '60 套数量关系 · 每套 10 题';
+                    modes[1].onclick = () => { location.href = '/quantity-practice.html'; };
+                }
+                if (modes[2]) {
+                    modes[2].disabled = true;
+                    modes[2].querySelector('small').textContent = '本阶段明确不开放';
+                }
+                const start = learningZone.querySelector('[data-exam-start-v3]');
+                if (start) start.textContent = '开始真实言语专项';
+                const note = learningZone.querySelector('.exam-start-v3 small');
+                if (note) note.textContent = '言语与数量分别进入真实服务端套题；混合组卷不使用假数据。';
+            }
         }
         function renderQuantityV3(kind) {
             const views = {
                 quantityToday:['今日数量训练','先识别题型和值不值得做，再进入计算。'],
-                quantitySingle:['单题诊断','一道题要记录“看出什么、选了什么方法、卡在哪一步”。'],
+                quantitySingle:['单题诊断','一道题要记录“看出什么、选了什么方法、单题时间和卡在哪一步”。'],
                 quantitySet:['套题取舍','数量套题的目标不是全做，而是在限时内拿到属于你的分数。'],
                 quantityType:['系统学题型','按题型建立识别信号、首选方法和停损时间。'],
                 quantityReview:['数量复盘','复盘不只看算错，还要看题型没识别、方法选慢、步骤卡住和本该跳过。']
@@ -188,7 +207,7 @@
             renderQuantityV3(quantityButton.dataset.quantityDemo);
         }, { capture:true });
         learningZone.addEventListener('click', event => {
-            if (event.target.closest('[data-exam-start-v3]')) renderExamV3('running');
+            if (event.target.closest('[data-exam-start-v3]')) location.href = '/verbal-reading-pilot.html';
             else if (event.target.closest('[data-exam-result-v3]')) renderExamV3('result');
             else if (event.target.closest('[data-exam-reset-v3]')) renderExamV3('setup');
         });
