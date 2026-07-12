@@ -1,6 +1,6 @@
 """Authenticated adapter for the visually approved quantity question bank.
 
-Only ``output/quantity-bank/approved_seed/questions.json`` is read.  Answers and
+Only the versioned portable export ``data/quantity_bank/approved_seed.json`` is read. Answers and
 analysis stay server-side until a session is submitted.  The adapter owns its
 two additive tables so it can be integrated without coupling the approved bank
 to the review pipeline or to another module's persistence schema.
@@ -25,7 +25,7 @@ from database import get_db
 router = APIRouter(prefix="/api/quantity", tags=["quantity"])
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-APPROVED_BANK_PATH = PROJECT_ROOT / "output/quantity-bank/approved_seed/questions.json"
+APPROVED_BANK_PATH = PROJECT_ROOT / "data/quantity_bank/approved_seed.json"
 MAX_ITEM_ELAPSED_MS = 30 * 60 * 1000
 MAX_SESSION_ELAPSED_MS = 6 * 60 * 60 * 1000
 STUCK_STEPS = {
@@ -123,7 +123,7 @@ def _absolute_media_path(asset: str) -> Path:
     if not path.is_absolute():
         path = PROJECT_ROOT / path
     resolved = path.resolve()
-    approved_media_root = (PROJECT_ROOT / "output/quantity-bank").resolve()
+    approved_media_root = (PROJECT_ROOT / "data/quantity_bank/approved_media").resolve()
     if approved_media_root not in resolved.parents:
         raise RuntimeError("Quantity media escapes the approved output directory")
     return resolved
@@ -132,7 +132,7 @@ def _absolute_media_path(asset: str) -> Path:
 @lru_cache(maxsize=1)
 def _load_bank() -> dict:
     if not APPROVED_BANK_PATH.is_file():
-        raise RuntimeError("Approved quantity bank is missing; run npm run quantity:pipeline")
+        raise RuntimeError("Versioned approved quantity bank is missing")
     questions = json.loads(APPROVED_BANK_PATH.read_text(encoding="utf-8"))
     if not isinstance(questions, list) or len(questions) != 600:
         raise RuntimeError("Approved quantity bank must contain exactly 600 questions")

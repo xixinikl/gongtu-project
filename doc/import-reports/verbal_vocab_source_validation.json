@@ -1,0 +1,444 @@
+{
+  "summary": {
+    "vocab": {
+      "source": "/Users/miduoduo/Downloads/高频成语800词完整版（修复版）.xlsx",
+      "data_rows": 805,
+      "unique_words": 801,
+      "duplicate_word_count": 4,
+      "duplicate_words": [
+        "一目了然",
+        "不绝如缕",
+        "以邻为壑",
+        "登堂入室"
+      ],
+      "rows_with_newline_examples": 799,
+      "rows_with_examples": 805,
+      "rows_missing_meaning": 0,
+      "recommended_search_url_template": "https://search.people.cn/s?keyword=<词语>"
+    },
+    "questions": {
+      "sources": {
+        "xlsx": "/Users/miduoduo/Downloads/花生海海刷言语理解题库.xlsx",
+        "json": "/Users/miduoduo/Downloads/花生海海刷言语理解题库.json",
+        "answer_pdf": "/Users/miduoduo/Downloads/【四海】26海海刷言语理解题本-答案汇总.pdf"
+      },
+      "total_xlsx_questions": 450,
+      "total_json_questions": 450,
+      "by_type": {
+        "logic_fill": 231,
+        "reading_comprehension": 219
+      },
+      "by_source_module": {
+        "套题训练1": 30,
+        "套题训练2": 30,
+        "套题训练3": 30,
+        "套题训练4": 30,
+        "套题训练5": 30,
+        "片段刷题1": 30,
+        "片段刷题2": 30,
+        "片段刷题3": 30,
+        "片段刷题4": 30,
+        "片段刷题5": 30,
+        "选词刷题1": 25,
+        "选词刷题2": 25,
+        "选词刷题3": 25,
+        "选词刷题4": 25,
+        "选词刷题5": 25,
+        "选词刷题6": 25
+      },
+      "pdf_module_counts": {
+        "套题训练1": 30,
+        "套题训练2": 30,
+        "套题训练3": 30,
+        "套题训练4": 30,
+        "套题训练5": 30,
+        "片段刷题1": 30,
+        "片段刷题2": 30,
+        "片段刷题3": 30,
+        "片段刷题4": 30,
+        "片段刷题5": 30,
+        "选词刷题1": 25,
+        "选词刷题2": 25,
+        "选词刷题3": 25,
+        "选词刷题4": 25,
+        "选词刷题5": 25,
+        "选词刷题6": 25
+      },
+      "xlsx_json_id_mismatches": [],
+      "xlsx_json_field_mismatch_count": 0,
+      "xlsx_json_field_mismatches_sample": [],
+      "pdf_answer_mismatch_count": 0,
+      "pdf_answer_mismatches_sample": [],
+      "missing_pdf_answer_count": 0,
+      "missing_pdf_answers_sample": [],
+      "raw_question_number_anomaly_count": 306,
+      "raw_question_number_anomalies_sample": [
+        {
+          "id": "q_010",
+          "source_module": "选词刷题1",
+          "raw_question_number": "0",
+          "module_sequence": 10
+        },
+        {
+          "id": "q_011",
+          "source_module": "选词刷题1",
+          "raw_question_number": "1",
+          "module_sequence": 11
+        },
+        {
+          "id": "q_012",
+          "source_module": "选词刷题1",
+          "raw_question_number": "2",
+          "module_sequence": 12
+        },
+        {
+          "id": "q_013",
+          "source_module": "选词刷题1",
+          "raw_question_number": "3",
+          "module_sequence": 13
+        },
+        {
+          "id": "q_014",
+          "source_module": "选词刷题1",
+          "raw_question_number": "4",
+          "module_sequence": 14
+        },
+        {
+          "id": "q_015",
+          "source_module": "选词刷题1",
+          "raw_question_number": "5",
+          "module_sequence": 15
+        },
+        {
+          "id": "q_016",
+          "source_module": "选词刷题1",
+          "raw_question_number": "6",
+          "module_sequence": 16
+        },
+        {
+          "id": "q_017",
+          "source_module": "选词刷题1",
+          "raw_question_number": "7",
+          "module_sequence": 17
+        },
+        {
+          "id": "q_018",
+          "source_module": "选词刷题1",
+          "raw_question_number": "8",
+          "module_sequence": 18
+        },
+        {
+          "id": "q_019",
+          "source_module": "选词刷题1",
+          "raw_question_number": "9",
+          "module_sequence": 19
+        },
+        {
+          "id": "q_020",
+          "source_module": "选词刷题1",
+          "raw_question_number": "0",
+          "module_sequence": 20
+        },
+        {
+          "id": "q_021",
+          "source_module": "选词刷题1",
+          "raw_question_number": "1",
+          "module_sequence": 21
+        },
+        {
+          "id": "q_022",
+          "source_module": "选词刷题1",
+          "raw_question_number": "2",
+          "module_sequence": 22
+        },
+        {
+          "id": "q_023",
+          "source_module": "选词刷题1",
+          "raw_question_number": "3",
+          "module_sequence": 23
+        },
+        {
+          "id": "q_024",
+          "source_module": "选词刷题1",
+          "raw_question_number": "4",
+          "module_sequence": 24
+        },
+        {
+          "id": "q_025",
+          "source_module": "选词刷题1",
+          "raw_question_number": "5",
+          "module_sequence": 25
+        },
+        {
+          "id": "q_035",
+          "source_module": "选词刷题2",
+          "raw_question_number": "0",
+          "module_sequence": 10
+        },
+        {
+          "id": "q_036",
+          "source_module": "选词刷题2",
+          "raw_question_number": "1",
+          "module_sequence": 11
+        },
+        {
+          "id": "q_037",
+          "source_module": "选词刷题2",
+          "raw_question_number": "2",
+          "module_sequence": 12
+        },
+        {
+          "id": "q_038",
+          "source_module": "选词刷题2",
+          "raw_question_number": "3",
+          "module_sequence": 13
+        },
+        {
+          "id": "q_039",
+          "source_module": "选词刷题2",
+          "raw_question_number": "4",
+          "module_sequence": 14
+        },
+        {
+          "id": "q_040",
+          "source_module": "选词刷题2",
+          "raw_question_number": "5",
+          "module_sequence": 15
+        },
+        {
+          "id": "q_041",
+          "source_module": "选词刷题2",
+          "raw_question_number": "6",
+          "module_sequence": 16
+        },
+        {
+          "id": "q_042",
+          "source_module": "选词刷题2",
+          "raw_question_number": "7",
+          "module_sequence": 17
+        },
+        {
+          "id": "q_043",
+          "source_module": "选词刷题2",
+          "raw_question_number": "8",
+          "module_sequence": 18
+        },
+        {
+          "id": "q_044",
+          "source_module": "选词刷题2",
+          "raw_question_number": "9",
+          "module_sequence": 19
+        },
+        {
+          "id": "q_045",
+          "source_module": "选词刷题2",
+          "raw_question_number": "0",
+          "module_sequence": 20
+        },
+        {
+          "id": "q_046",
+          "source_module": "选词刷题2",
+          "raw_question_number": "1",
+          "module_sequence": 21
+        },
+        {
+          "id": "q_047",
+          "source_module": "选词刷题2",
+          "raw_question_number": "2",
+          "module_sequence": 22
+        },
+        {
+          "id": "q_048",
+          "source_module": "选词刷题2",
+          "raw_question_number": "3",
+          "module_sequence": 23
+        }
+      ],
+      "import_question_number_rule": "Do not trust Excel 题号; rebuild from source_module order as module_sequence."
+    }
+  },
+  "details": {
+    "vocab_sample": [
+      {
+        "row": 2,
+        "word": "源远流长",
+        "meaning": "源头远，水流长。也比喻历史悠久。",
+        "examples": "【例】中国和印度尼西亚隔海相望，两国友好关系的历史源远流长。\n【例】习近平指出，中斯友好源远流长，两国人民有着天然的亲近感。\n【例】如果不从源远流长的历史连续性来认识中国，就不可能理解古代中国，也不可能理解现代中国，更不可能理解未来中国。",
+        "search_label": "人民网搜索",
+        "example_line_count": 3,
+        "has_newline_examples": true
+      },
+      {
+        "row": 3,
+        "word": "连绵不绝",
+        "meaning": "意思是连续而不中断。",
+        "examples": "【例】中华民族精神之所以连绵不绝、代代相传、历久弥新，是因为其有着深厚的历史土壤和文化根脉。\n【例】这些入选全国十大考古新发现的考古成果，描绘出神州大地上早期人类的起源历程，展示着中华文明的灿烂成就，也一次次为五千年连绵不绝的中华文明提供实证。\n【例】魏晋南北朝是中国历史上一段黑暗的“乱世”。在此期间，连绵不绝的军阀混战和地方割据，持续不断的族群侵并、政权倾覆，频繁的人口迁徙和灾难。",
+        "search_label": "人民网搜索",
+        "example_line_count": 3,
+        "has_newline_examples": true
+      },
+      {
+        "row": 4,
+        "word": "博大精深",
+        "meaning": "博大:广大。精深:精湛深刻。形容学识、思想、理论广博丰富，精湛深刻。",
+        "examples": "【例】有人惊叹，祖国的语言文字博大精深，过去却知之不多，真是惭愧。\n【例】馆内设有基本陈列“中华农业文明”、专题陈列“中国传统农具”“中国土壤标本”“彩韵陶魂——田士利捐赠彩陶展”，还有农业科普馆、二十四节气传统农事园等，生动展示着历史悠久、博大精深的中华农业文明。\n【例】中国茶种类繁多，中国茶文化博大精深。",
+        "search_label": "人民网搜索",
+        "example_line_count": 3,
+        "has_newline_examples": true
+      },
+      {
+        "row": 5,
+        "word": "历久弥新",
+        "meaning": "弥: 更加。指经历长久的时间而更加鲜活, 更加有活力, 更显价值。",
+        "examples": "【例】富强作为一种价值追求，不仅为当代中国社会普遍认同，而且深深积淀在中华传统文化中，堪称历久弥新。\n【例】新时代新征程，“枫桥经验”必将薪火相传，历久弥新，续写新的精彩华章。\n【例】跨越一甲子，从乡村实践蝶变为国家治理之策，已成为“中国之治”金名片的“枫桥经验”，闪耀着历久弥新的基层治理大智慧。",
+        "search_label": "人民网搜索",
+        "example_line_count": 3,
+        "has_newline_examples": true
+      },
+      {
+        "row": 6,
+        "word": "兼收并蓄",
+        "meaning": "并: 一起。蓄: 积聚, 储存。对不同的人或事物都能同时收容保留。",
+        "examples": "【例】中国有厚重的文化底蕴，加上兼收并蓄的好学传统，经过时间的沉淀，这些优势渐渐显露出来。\n【例】习近平总书记在文化传承发展座谈会上指出：“中华文明具有突出的包容性”“决定了中华文化对世界文明兼收并蓄的开放胸怀”。\n【例】中华文明始终在兼收并蓄中历久弥新，不仅为中华民族提供了丰厚滋养，而且为世界文明贡献了华彩篇章。",
+        "search_label": "人民网搜索",
+        "example_line_count": 3,
+        "has_newline_examples": true
+      },
+      {
+        "row": 7,
+        "word": "一脉相承",
+        "meaning": "一脉:指一个血统或一个派系。相承:相续传承。由一个血统或一个派别世代相传承袭下来。比喻人或事物间的传承关系。也作\"一脉相传 一脉相通\"",
+        "examples": "【例】良渚遗址是中华五千年文明史的实证，是世界文明的瑰宝。在悠远的历史长河中，中华文明以独树一帜的创新创造、一脉相承的坚持坚守，树立起一座座文明高峰。\n【例】红旗渠精神同延安精神是一脉相承的，是中华民族不可磨灭的历史记忆，永远震撼人心。年轻一代要继承和发扬吃苦耐劳、自力更生、艰苦奋斗的精神，摒弃骄娇二气，像我们的父辈一样把青春热血镌刻在历史的丰碑上。\n【例】在历史发展中淬炼而成的中华法系彰显了中华优秀传统法律文化自我发展、回应挑战的主体性与生命力，也反映了中华文明一脉相承的连续性。中华文明具有突出的创新性，这是对中华文明内生动力的高度概括。",
+        "search_label": "人民网搜索",
+        "example_line_count": 3,
+        "has_newline_examples": true
+      },
+      {
+        "row": 8,
+        "word": "血脉相通",
+        "meaning": "血脉:血统。原指有血缘亲属关系。也比喻极亲近的关系。",
+        "examples": "【例】中泰两国毗邻而居，血脉相通。共建“一带一路”使两国关系好上加好、亲上加亲。我们要弘扬传统友好，加强高层往来，引领好两国关系发展。\n【例】干部要把人民放在心中最高位置。同人民风雨同舟、血脉相通、生死与共，是我们党战胜一切困难和风险的根本保证。离开了人民，我们就会一事无成。\n【例】从甲骨文、金文到大篆、小篆，再到隶书、楷书，汉字历经数千年演变，使中国人得以突破时空限制沟通思想。这种文化的创造与传承，承载着中华民族共同的文化记忆，成为具有强大民族凝聚力的文化基因和中华儿女血脉相通的精神纽带。",
+        "search_label": "人民网搜索",
+        "example_line_count": 3,
+        "has_newline_examples": true
+      },
+      {
+        "row": 9,
+        "word": "薪火相传",
+        "meaning": "意思是比喻学问和技艺代代相传。比喻师生授受不绝,或种族、血统、 文化精神的传承,绵延不尽。",
+        "examples": "【例】少儿京剧表演《九龙杯》《定军山》、武戏《戏武英豪》各具特色，彰显传统艺术的薪火相传与勃勃生机。\n【例】今年 4 月，德班理工大学孔子学院的师生用中文给我写信，表达对中华文化的喜爱，感谢中国为非洲青年追求梦想提供宝贵机会，让我感到十分亲切。丰富多彩的人文交流有力促进民心相通，使两国友好薪火相传。\n【例】从建科元老徐光炜，到季加孚、李子禹，再到如今的陕飞，在他们薪火相传的带领下，胃肠肿瘤中心一病区以个体化治疗为宗旨，积极推广胃肠肿瘤的规范化手术，实现了胃癌领域的多个首创：率先在全国推广胃癌 D2 根治术的标准化手术。",
+        "search_label": "人民网搜索",
+        "example_line_count": 3,
+        "has_newline_examples": true
+      },
+      {
+        "row": 10,
+        "word": "不绝如缕",
+        "meaning": "缕：线。像一根细线那样连着，差一点儿就要断了。1.形容形势十分危急。2.形容声音微弱而悠长。(现在用法有改变，常被用来形容不断绝)",
+        "examples": "【例】许多古老的民间艺术，代代有传人，不绝如缕。\n【例】我国富民思想源远流长，古代典籍中关于裕民、惠民、富民的论述不绝如缕。比如，《尚书》中记有“德惟善政，政在养民”；《周礼》中写道“以富邦国，以养万民，以生百物”；等等。\n【例】我国传统书院的文化传统和精神内核有其旺盛的生命力，千百年来，书院精神始终不绝如缕。因此，理论上说，现代书院制承袭了我国传统书院制的名称并复归部分精神内涵。",
+        "search_label": "人民网搜索",
+        "example_line_count": 3,
+        "has_newline_examples": true
+      },
+      {
+        "row": 11,
+        "word": "陈陈相因",
+        "meaning": "粮仓里的米谷一年接一年地堆积起来。比喻沿袭老一套,没有改进。",
+        "examples": "【例】延续民族文化血脉并不等于陈陈相因、泥古守旧，而是要与时俱进、推陈出新，让中华优秀传统文化焕发出勃勃生机。\n【例】止步于程序性的、领导交办的事务性工作，固守于旧有的工作方法、工作模式和工作路径，满足于干好手头的、眼前的、具体负责的事情，其结果必然是陈陈相因无法突破、陷入事务主义之中无法自拔，对新形势新任务新挑战缺乏信心。\n【例】习近平总书记指出：“故步自封、陈陈相因谈不上传承，割断血脉、凭空虚造不能算创新。要把握传承和创新的关系，学古不泥古、破法不悖法，让中华优秀传统文化成为文艺创新的重要源泉。",
+        "search_label": "人民网搜索",
+        "example_line_count": 3,
+        "has_newline_examples": true
+      },
+      {
+        "row": 12,
+        "word": "口耳相传",
+        "meaning": "口说耳听,递相传授。",
+        "examples": "【例】据《南郑县志》记载，汉中编织业历史悠久。当地民间口耳相传，藤编可追溯至汉代，楚汉相争的关键一环“明修栈道，暗度陈仓”，汉军便用到了藤编。明清之际，汉中货栈业兴起，水陆码头流通的货物中多有竹、木、棕、藤制品，足堪佐证当时藤编发展已有规模。\n【例】此外，西方童话之所以在我国大行其道，很大程度上在于综合运用了多种媒体，顺应了从口耳相传到听觉、视觉、触觉、生活日用相互影响的时代变化。\n【例】这些人物为官清正的历史故事，原本就在当地群众中口耳相传，微电影上线后，人们“眼见为实”，加深了对故事内涵的理解，民间廉洁文化的影响力由此得到放大和强化。",
+        "search_label": "人民网搜索",
+        "example_line_count": 3,
+        "has_newline_examples": true
+      },
+      {
+        "row": 13,
+        "word": "难以为继",
+        "meaning": "指难以持续下去。同\"难乎为继\"。(关于事)",
+        "examples": "【例】公司资金链断裂，经营已难以为继。\n【例】没有了后续的支持，这项工程很快就难以为继。",
+        "search_label": "人民网搜索",
+        "example_line_count": 2,
+        "has_newline_examples": true
+      },
+      {
+        "row": 14,
+        "word": "后继无人",
+        "meaning": "继:继续,继承。没有继承的人。形容事业缺少接班人。",
+        "examples": "【例】因后继无人，日本九州和冲绳地区出现企业并购潮。\n【例】马向阳介绍，白族扎染技艺虽然早已被列入第一批国家级非物质文化遗产名录，但是目前注册在案的国家级非物质文化遗产传承人仅剩一位。这样一种民族瑰宝，陷入了后继无人的局面。\n【例】随着时代的变迁，娱乐方式的日益增多，川剧逐渐被新鲜事物扯离人们的视线，一度面临后继无人的境况。近年来，随着加强文化遗产保护传承、弘扬中华优秀传统文化思想的深入，乐至川剧再次焕发荣光。",
+        "search_label": "人民网搜索",
+        "example_line_count": 3,
+        "has_newline_examples": true
+      },
+      {
+        "row": 15,
+        "word": "继往开来",
+        "meaning": "继承前人的事业,开辟未来的道路。",
+        "examples": "【例】林剑说，在中欧建交 50 周年这一承上启下的重要时间点，中方期待欧方同中方一道，秉持建交初心，坚持伙伴定位，加强对话合作，妥处分歧差异，推动中欧关系继往开来，书写更多更加精彩成功的中欧合作故事。\n【例】“五一施政纲领”将新民主主义理论与陕甘宁边区局部执政实践相结合，聚焦“抗战”“建国”两大目标，既是我党局部执政的基本方略，也是陕甘宁边区建设新民主主义共和国雏形的根本法，在我党执政历史上具有继往开来的历史地位。\n【例】持续深化以党史为重点的“四史”学习教育，加强全国职工爱国主义教育基地建设，因地制宜开展参观瞻仰、纪念缅怀、现场教学、学习体验、主题党日、研讨交流等活动，教育引导广大职工知史爱党、知史爱国，继往开来走好新时代长征路。",
+        "search_label": "人民网搜索",
+        "example_line_count": 3,
+        "has_newline_examples": true
+      },
+      {
+        "row": 16,
+        "word": "承上启下",
+        "meaning": "接续上面的,引起下面的。也指诗文中连接沟通文字的字句,使文字自然过渡。",
+        "examples": "【例】在这篇论文中，第三章起到了承上启下的作用，它总结了前两章的研究成果，并为后续章节的深入讨论打下了坚实的基础。\n【例】这位领导者的发言在会议上起到了承上启下的作用，他不仅总结了之前的工作进展，还提出了未来的发展规划，让所有人明确了方向。",
+        "search_label": "人民网搜索",
+        "example_line_count": 2,
+        "has_newline_examples": true
+      },
+      {
+        "row": 17,
+        "word": "推陈出新",
+        "meaning": "推去旧的, 产生新的。后多指在文化艺术方面去掉旧的糟粕, 吸取其精华,创造出新的来。 (多形容文化但不绝对)",
+        "examples": "【例】我们研究历史不是为了复古，而是要借鉴历史、推陈出新。\n【例】春节假期，各地夜经济消费业态推陈出新，消费场景不断丰富，为人们带来物质、精神的双重满足。\n【例】坚持高标准、高品质，在严控质量的基础上推陈出新，才能让名优特产品走向更广阔的农业大市场。",
+        "search_label": "人民网搜索",
+        "example_line_count": 3,
+        "has_newline_examples": true
+      },
+      {
+        "row": 18,
+        "word": "吐故纳新",
+        "meaning": "纳: 使进入, 吸入。道家的养生术, 吐出浊气, 吸进新鲜空气。后多比喻扬弃旧的,吸收新的。 (多形容事物在发展中呈现新的面貌)",
+        "examples": "【例】换届，就要吐故纳新，换出新精神，新思路和新气象。\n【例】把政策、文化、科技、卫生、信息送下乡，让美丽乡村吐故纳新，呈现出新时代新农村应有的新气象。\n【例】春天，万物更新，吐故纳新。于我们而言，既要从传统文化中汲取优秀因子，也当积极移风易俗、摒弃陈规陋习。",
+        "search_label": "人民网搜索",
+        "example_line_count": 3,
+        "has_newline_examples": true
+      },
+      {
+        "row": 19,
+        "word": "革故鼎新",
+        "meaning": "革:除去。鼎新:立新。指革除旧的,建立新的。多指改朝换代或重大变革。(多政治角度)",
+        "examples": "【例】太平天国定都南京后，革故鼎新，颁布《天朝田亩制》。\n【例】教育家精神蕴含着“求是创新”的鲜明导向，体现革故鼎新、与时俱进的精神追求。\n【例】广大工程师深入学习贯彻习近平新时代中国特色社会主义思想，坚持“四个面向”，以与时俱进的精神、革故鼎新的勇气、坚韧不拔的定力，不断突破关键核心技术，铸造精品工程、“大国重器”。",
+        "search_label": "人民网搜索",
+        "example_line_count": 3,
+        "has_newline_examples": true
+      },
+      {
+        "row": 20,
+        "word": "弃旧图新",
+        "meaning": "意思是抛弃旧的,谋求新的。多指由坏的转向好的,离开错误的道路走向正确的道路。",
+        "examples": "【例】他说，韩国政治应弃旧图新，推行改革，推翻独断专横的两党政治体系，创出新的多党政治体系，从而迎接充满希望与活力的民主政治时代。\n【例】在创作中，徐怀中尽力摆脱那些有形无形的思想禁锢，清除残留的概念化、公式化影响，实现弃旧图新轻装上阵。\n【例】上好弃旧图新“必修课”不断优化调整出监教育课程，认真开展形势政策、法律法规、社会美德、心理健康、社会适应性等教育。",
+        "search_label": "人民网搜索",
+        "example_line_count": 3,
+        "has_newline_examples": true
+      },
+      {
+        "row": 21,
+        "word": "去芜存菁",
+        "meaning": "意思是除去杂质、保留精华。",
+        "examples": "【例】从石库门到天安门，从兴业路到复兴路，党的百年奋斗是一座去芜存菁的历史熔炉，是一条大浪淘沙的时间长河。坚持自我革命，这是中国共产党历经百年沧桑而青春依旧、长成参天巨树还岁岁发新的基本逻辑。\n【例】去芜存菁，才能更好地服务群众。不过，清理一部分账号，不等于“一关了之”。\n【例】生活服务类平台覆盖的应用场景多而广，用户规模持续增长，每天产生海量信息，只有抓住关键环节，进行手术刀式的清理，才能去芜存菁。",
+        "search_label": "人民网搜索",
+        "example_line_count": 3,
+        "has_newline_examples": true
+      }
+    ]
+  }
+}

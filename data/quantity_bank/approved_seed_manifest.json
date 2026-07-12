@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0.0",
+  "source": "output/quantity-bank/approved_seed/questions.json",
+  "question_count": 600,
+  "set_count": 60,
+  "media_count": 71,
+  "answer_source": "full_visual_set_audit",
+  "set28_answers": "DABDCCBCCB",
+  "set08_q07": {
+    "option_keys": "ABCDEFGH",
+    "answer": "E"
+  },
+  "analysis_visual_audit": {
+    "status": "incomplete",
+    "known_reference_questions": 42
+  }
+}

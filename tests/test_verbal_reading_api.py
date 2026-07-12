@@ -13,6 +13,7 @@ sys.path.insert(0, str(BACKEND))
 
 _TEMP_DIR = tempfile.TemporaryDirectory()
 os.environ["GONTU_DB_PATH"] = str(Path(_TEMP_DIR.name) / "verbal-api-test.db")
+os.environ.setdefault("DEEPSEEK_API_KEY", "test-key-not-real")
 
 from fastapi.testclient import TestClient  # noqa: E402
 import database  # noqa: E402

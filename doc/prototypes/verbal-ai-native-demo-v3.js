@@ -111,7 +111,7 @@
                 quantityReview:['数量复盘','复盘不只看算错，还要看题型没识别、方法选慢、步骤卡住和本该跳过。']
             };
             const [title,desc] = views[kind] || views.quantityToday;
-            learningZone.innerHTML = `<div class="big-card quantity-home-v3"><div class="review-eyebrow-v3">${icon.graph}<span>数量关系·${title}</span></div><h2>${title}</h2><p>${desc}</p><div class="quantity-capabilities-v3"><article class="quantity-capability-v3"><b>先识别</b><p>从题干信号判断工程、利润、行程、容斥或排列组合。</p><em>题型识别</em></article><article class="quantity-capability-v3"><b>再取舍</b><p>根据题型熟练度、条件长度和预计用时分成必做、可做、先跳。</p><em>考场策略</em></article><article class="quantity-capability-v3"><b>后选方法</b><p>比较赋值、方程、比例、代入和极端情况，记录真正卡住的步骤。</p><em>方法与步骤</em></article></div><div class="quantity-flow-v3"><div><strong>01 读题</strong>识别题型信号</div><div><strong>02 判断</strong>必做 / 可做 / 先跳</div><div><strong>03 求解</strong>选最短稳定方法</div><div><strong>04 验证</strong>同类题确认是否掌握</div></div><div class="quantity-table-v3"><div class="quantity-row-v3"><span>类别</span><span>当前策略</span><span>单题时间</span><span>下一步</span></div><div class="quantity-row-v3"><b>必做</b><span>工程、利润、基础比例</span><span>≤ 80 秒</span><span>5 题</span></div><div class="quantity-row-v3"><b>可做</b><span>行程、容斥，条件清楚再进入</span><span>看题况</span><span>3 题</span></div><div class="quantity-row-v3"><b>先跳</b><span>复杂排列、高难几何</span><span>20 秒内决策</span><span>只练识别</span></div></div><div class="quantity-cta-v3"><span>题库最终交接后，这里挂接真实题型、用时和步骤记录。</span><button type="button">开始第一项</button></div></div>`;
+            learningZone.innerHTML = `<div class="big-card quantity-home-v3"><div class="review-eyebrow-v3">${icon.graph}<span>数量关系·${title}</span></div><h2>${title}</h2><p>${desc}</p><div class="quantity-capabilities-v3"><article class="quantity-capability-v3"><b>先识别</b><p>从题干信号判断工程、利润、行程、容斥或排列组合。</p><em>题型识别</em></article><article class="quantity-capability-v3"><b>再取舍</b><p>根据题型熟练度、条件长度和预计用时分成必做、可做、先跳。</p><em>考场策略</em></article><article class="quantity-capability-v3"><b>后选方法</b><p>比较赋值、方程、比例、代入和极端情况，记录真正卡住的步骤。</p><em>方法与步骤</em></article></div><div class="quantity-flow-v3"><div><strong>01 读题</strong>识别题型信号</div><div><strong>02 判断</strong>必做 / 可做 / 先跳</div><div><strong>03 求解</strong>选最短稳定方法</div><div><strong>04 验证</strong>同类题确认是否掌握</div></div><div class="quantity-table-v3"><div class="quantity-row-v3"><span>类别</span><span>题库基准建议</span><span>建议用时</span><span>训练动作</span></div><div class="quantity-row-v3"><b>必做</b><span>模型明确、计算量可控</span><span>按题目标签</span><span>优先作答</span></div><div class="quantity-row-v3"><b>可做</b><span>结合个人熟练度判断</span><span>看题况</span><span>记录卡点</span></div><div class="quantity-row-v3"><b>先跳</b><span>建模步骤或计算量较多</span><span>快速决策</span><span>先标后做</span></div></div><div class="quantity-cta-v3"><span>60 套 600 题已接入服务端，个人建议会根据真实作答逐步调整。</span><a class="exam-action-primary-v3" style="text-decoration:none" href="/quantity-practice.html">开始真实数量训练</a></div></div>`;
         }
         function renderHome() {
             learningZone.innerHTML = `<div class="big-card reasoning-home-v3"><div class="reasoning-kicker-v3">${icon.graph}<span>图形推理·学习入口</span></div><div class="reasoning-head-v3"><h2>先识别规律，再建立空间</h2><p>平面图推用导图建立规律索引；立体图推按先学、后练、再验证的路径进入，不把工具全部平铺。</p></div><div class="reasoning-branches-v3"><section class="reasoning-branch-v3" data-mark="平"><h3>平面规律</h3><p>位置、样式、属性、数量四类规律，配合错题节点回看。</p><div class="reasoning-path-v3"><a class="reasoning-step-v3" href="/mindmap.html"><i>1</i><span>规律思维导图</span><small>进入</small></a><a class="reasoning-step-v3" href="/mindmap.html"><i>2</i><span>错题归类与间隔复习</span><small>继续</small></a></div><a class="reasoning-branch-action-v3" href="/mindmap.html">打开平面图推</a></section><section class="reasoning-branch-v3" data-mark="立"><h3>立体空间</h3><p>四段学习主链，“典型截面精讲”不作为固定导航。</p><div class="reasoning-path-v3"><a class="reasoning-step-v3" href="/section-foundation.html"><i>1</i><span>基础截面规律</span><small>先学</small></a><a class="reasoning-step-v3" href="/three-view-training.html"><i>2</i><span>三视图专项</span><small>后练</small></a><a class="reasoning-step-v3" href="/geometry.html?app=free-section-lab-v3"><i>3</i><span>自由切面实验</span><small>验证</small></a><a class="reasoning-step-v3" href="/csg-section.html"><i>4</i><span>组合体切割</span><small>进阶</small></a></div></section></div></div>`;
@@ -143,6 +143,21 @@
             enterReasoning(view);
         });
         verbalNav.addEventListener('click', event => {
+            const logicButton = event.target.closest('[data-verbal-demo="logic"]');
+            if (logicButton) {
+                event.preventDefault();
+                event.stopPropagation();
+                verbalNav.querySelectorAll('[data-verbal-demo]').forEach(button => button.classList.toggle('active', button === logicButton));
+                if (typeof window.switchDeck === 'function') window.switchDeck('verbal');
+                return;
+            }
+            const readingButton = event.target.closest('[data-verbal-demo="reading"]');
+            if (readingButton) {
+                event.preventDefault();
+                event.stopPropagation();
+                location.href = '/verbal-reading-pilot.html';
+                return;
+            }
             const examButton = event.target.closest('[data-verbal-demo="exam"]');
             if (examButton) {
                 event.preventDefault();

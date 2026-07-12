@@ -178,7 +178,7 @@ def save_vocab_state(body: VocabStateIn, user: dict = Depends(require_user)):
 @router.get("/logic-fill/questions")
 def list_logic_questions(
     offset: int = Query(default=0, ge=0),
-    limit: int = Query(default=20, ge=1, le=100),
+    limit: int = Query(default=20, ge=1, le=231),
     source_module: str = Query(default="", max_length=80),
     user: dict = Depends(require_user),
 ):
