@@ -6,14 +6,14 @@
 
 当前 Goal：`gongtu-unified-learning-platform`
 
-当前阶段：Phase 4 图推接入与申论整改（待提交 PR）
+当前阶段：Phase 4 图推接入与申论整改（Draft PR #18 待验收）
 
 ## 阶段状态
 
 - Phase 1：PR #15 已验收。
 - Phase 2：PR #16 已验收。
 - Phase 3：Draft PR #17 待验收，真实言语与数量题库已接入。
-- Phase 4：平面图推、立体图推和申论真实整改已完成代码与本地门禁，待提交独立 PR。
+- Phase 4：平面图推、立体图推和申论真实整改已完成代码与本地门禁，Draft PR #18 待验收。
 
 ## Phase 4 已完成
 
@@ -39,5 +39,5 @@
 
 ## 下一步
 
-1. 完成 Phase 4 Goal/TASKS 文档门禁，提交、推送并创建独立 Draft PR。
-2. Phase 4 PR 建立后进入 Phase 5：真实多模块 AI 教练、上下文 envelope、版本 Skill、消息/问题卡/任务持久化与失败降级。
+1. 验收 Draft PR #18。
+2. 进入 Phase 5：真实多模块 AI 教练、上下文 envelope、版本 Skill、消息/问题卡/任务持久化与失败降级。

@@ -363,7 +363,7 @@ ai_run / ai_message
 | [x] Phase 1 统一正式外壳 | 已验收 | 将 V3 转正，重做复盘与套题 | 正式入口可用，无内部术语，真实密度与响应式通过 | [PR #15](https://github.com/xixinikl/gongtu-project/pull/15) |
 | [x] Phase 2 统一学习记录合同 | 已验收 | 全部用户数据归属 `users.id` | 合同、迁移、API、JWT、A/B 隔离测试通过 | [PR #16](https://github.com/xixinikl/gongtu-project/pull/16) |
 | [x] Phase 3 言语与数量真实题库 | 待 PR 验收 | 真实词库、言语和数量作答接入 | 真实页面、服务端判题、刷新恢复、安全、词语联动与移动端门禁已通过 | [PR #17](https://github.com/xixinikl/gongtu-project/pull/17) |
-| [x] Phase 4 图推与申论整改 | 待 PR 验收 | 平面、立体、申论输出统一证据 | 真实逻辑整改、专业页保护、统一记录、安全与响应式门禁通过 | PR-4 |
+| [x] Phase 4 图推与申论整改 | 待 PR 验收 | 平面、立体、申论输出统一证据 | 真实逻辑整改、专业页保护、统一记录、安全与响应式门禁通过 | [PR #18](https://github.com/xixinikl/gongtu-project/pull/18) |
 | [ ] Phase 5 真实 AI 教练 | 待开始 | 多模块上下文、Skill、问题卡和任务 | 真实 provider、版本 Skill、事实校验、持久化和降级通过 | PR-5 |
 | [ ] Phase 6 全链路验收 | 待开始 | 登录、刷新、重登、A/B、响应式与完成审计 | 六阶段显式要求全部有直接证据 | PR-6 |
 
