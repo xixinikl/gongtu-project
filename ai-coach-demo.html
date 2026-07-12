@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>公途 AI 教练原型</title>
+  <script>
+    if (new URLSearchParams(location.search).get('theme') === 'gongtu') {
+      document.documentElement.classList.add('gongtu-coach-theme');
+      const theme = document.createElement('link');
+      theme.rel = 'stylesheet';
+      theme.href = '/doc/prototypes/ai-coach-gongtu-theme.css?v=20260713a';
+      document.head.appendChild(theme);
+    }
+  </script>
+  <style>
+    :root {
+      --paper: #fbfaf6;
+      --panel: #ffffff;
+      --panel-soft: #f4f0e7;
+      --ink: #211d18;
+      --ink-mid: #6c6255;
+      --ink-light: #9b9182;
+      --line: #ded6c8;
+      --gold: #ae8837;
+      --gold-deep: #76581e;
+      --green: #527d67;
+      --blue: #526f9f;
+      --red: #b45c50;
+      --shadow: 0 18px 48px rgba(52, 42, 27, 0.10);
+      --mint: #eef6f2;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(174,136,55,0.06) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(174,136,55,0.04) 1px, transparent 1px),
+        var(--paper);
+      background-size: 42px 42px;
+      font-family: "Source Han Serif SC", "Noto Serif SC", "Songti SC", serif;
+    }
+
+    button, textarea, select {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .shell {
+      display: grid;
+      grid-template-columns: 252px minmax(460px, 1fr) 360px;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      border-right: 1px solid var(--line);
+      background: rgba(255,255,255,0.72);
+      padding: 24px 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .seal {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 1px solid rgba(174,136,55,0.35);
+      display: grid;
+      place-items: center;
+      color: var(--gold-deep);
+      background: #fffaf0;
+    }
+
+    .brand strong {
+      display: block;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    .brand span {
+      display: block;
+      margin-top: 3px;
+      font-size: 12px;
+      color: var(--ink-light);
+    }
+
+    .nav-label {
+      margin: 24px 8px 10px;
+      font-size: 12px;
+      color: var(--ink-light);
+    }
+
+    .module-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .module-btn {
+      width: 100%;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      padding: 12px;
+      background: transparent;
+      color: var(--ink-mid);
+      text-align: left;
+      display: grid;
+      grid-template-columns: 32px 1fr auto;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .module-btn:hover,
+    .module-btn.active {
+      border-color: rgba(174,136,55,0.28);
+      background: #fff;
+      box-shadow: 0 8px 22px rgba(52,42,27,0.06);
+      color: var(--ink);
+    }
+
+    .module-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: var(--panel-soft);
+      color: var(--gold-deep);
+    }
+
+    .module-btn strong {
+      display: block;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .module-btn span {
+      display: block;
+      margin-top: 2px;
+      font-size: 12px;
+      color: var(--ink-light);
+    }
+
+    .count {
+      min-width: 24px;
+      height: 24px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      color: var(--gold-deep);
+      background: #f7ecd1;
+    }
+
+    .main {
+      padding: 26px;
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr) auto;
+      gap: 18px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--ink-mid);
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .status-strip {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.72);
+      border-radius: 999px;
+      padding: 7px 10px;
+      color: var(--ink-mid);
+      font-size: 12px;
+    }
+
+    .teacher-head {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.86);
+      border-radius: 8px;
+      padding: 18px;
+      box-shadow: var(--shadow);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 16px;
+      align-items: center;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 28px;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    .teacher-head p {
+      margin: 8px 0 0;
+      max-width: 680px;
+      color: var(--ink-mid);
+      font-size: 14px;
+      line-height: 1.8;
+    }
+
+    .context-box {
+      min-width: 186px;
+      border-left: 1px solid var(--line);
+      padding-left: 16px;
+      color: var(--ink-mid);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .context-box strong {
+      display: block;
+      color: var(--ink);
+      font-size: 15px;
+    }
+    .context-box small {
+      display: block;
+      margin-top: 5px;
+      color: var(--gold-dark);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .chat {
+      min-height: 430px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.76);
+      border-radius: 8px;
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .chat-toolbar {
+      border-bottom: 1px solid var(--line);
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: #fffdf8;
+    }
+
+    .mode-tabs {
+      display: flex;
+      gap: 6px;
+    }
+
+    .mode-btn {
+      border: 1px solid transparent;
+      background: transparent;
+      border-radius: 7px;
+      padding: 7px 10px;
+      color: var(--ink-mid);
+      font-size: 13px;
+    }
+
+    .mode-btn.active {
+      border-color: rgba(174,136,55,0.32);
+      background: #f8f0dc;
+      color: var(--gold-deep);
+    }
+
+    .source-select {
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 7px 9px;
+      color: var(--ink-mid);
+      background: #fff;
+      font-size: 13px;
+    }
+
+    .messages {
+      padding: 18px;
+      overflow: auto;
+    }
+
+    .bubble-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      align-items: flex-start;
+    }
+
+    .bubble-row.user {
+      justify-content: flex-end;
+    }
+
+    .avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      flex: none;
+      background: #f4ead4;
+      color: var(--gold-deep);
+    }
+
+    .bubble {
+      max-width: min(680px, 82%);
+      border-radius: 8px;
+      padding: 13px 14px;
+      line-height: 1.8;
+      font-size: 14px;
+      background: #fff;
+      border: 1px solid var(--line);
+    }
+
+    .bubble-row.user .bubble {
+      background: #2b2924;
+      color: #fffaf0;
+      border-color: #2b2924;
+    }
+
+    .answer-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .mini-panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: #fffdf8;
+    }
+
+    .mini-panel strong {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--gold-deep);
+      font-size: 13px;
+    }
+
+    .composer {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 8px;
+      padding: 12px;
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 10px;
+      align-items: end;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 54px;
+      max-height: 120px;
+      resize: vertical;
+      border: 0;
+      outline: none;
+      color: var(--ink);
+      background: transparent;
+      line-height: 1.6;
+    }
+
+    .ghost-btn,
+    .send-btn {
+      border-radius: 8px;
+      min-height: 42px;
+      padding: 0 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink-mid);
+    }
+
+    .send-btn {
+      border-color: var(--gold);
+      background: var(--gold);
+      color: #fff;
+    }
+
+    .ledger {
+      border-left: 1px solid var(--line);
+      background: rgba(255,255,255,0.72);
+      padding: 24px 18px;
+      overflow: auto;
+    }
+
+    .ledger h2 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .ledger-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .view-switch {
+      display: inline-flex;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 3px;
+      flex: none;
+    }
+
+    .view-switch button {
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--ink-mid);
+      padding: 6px 8px;
+      font-size: 12px;
+    }
+
+    .view-switch button.active {
+      background: #f8f0dc;
+      color: var(--gold-deep);
+    }
+
+    .guide {
+      border: 1px solid rgba(82,125,103,0.26);
+      background: var(--mint);
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+
+    .guide h3 {
+      margin: 0 0 8px;
+      font-size: 15px;
+    }
+
+    .guide ol {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--ink-mid);
+      font-size: 13px;
+      line-height: 1.75;
+    }
+
+    .guide-example {
+      margin-top: 10px;
+      border: 1px dashed rgba(82,125,103,0.38);
+      border-radius: 7px;
+      padding: 9px;
+      color: var(--green);
+      background: rgba(255,255,255,0.58);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .ledger-subtitle {
+      margin: 6px 0 18px;
+      color: var(--ink-light);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .summary-band {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+
+    .summary-band strong {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .idea-map {
+      border: 1px solid var(--line);
+      background: #fffdf8;
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+
+    .idea-map h3 {
+      margin: 0 0 10px;
+      font-size: 15px;
+    }
+
+    .idea-row {
+      display: grid;
+      grid-template-columns: 20px 1fr;
+      gap: 8px;
+      align-items: start;
+      color: var(--ink-mid);
+      font-size: 13px;
+      line-height: 1.65;
+      margin-top: 8px;
+    }
+
+    .check {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #e7f0eb;
+      color: var(--green);
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      margin-top: 1px;
+    }
+
+    .empty-filter {
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      padding: 18px;
+      color: var(--ink-light);
+      background: rgba(255,255,255,0.56);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .meter {
+      height: 8px;
+      border-radius: 999px;
+      background: #eee7db;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .meter span {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold), var(--green));
+    }
+
+    .evidence {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      text-align: center;
+      color: var(--ink-mid);
+      font-size: 12px;
+    }
+
+    .evidence b {
+      display: block;
+      color: var(--ink);
+      font-size: 18px;
+    }
+
+    .card-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .problem-card {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 8px;
+      padding: 13px;
+    }
+
+    .problem-card.active {
+      border-color: rgba(174,136,55,0.52);
+      box-shadow: 0 10px 30px rgba(52,42,27,0.08);
+    }
+
+    .card-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      color: var(--ink-light);
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+
+    .problem-card h3 {
+      margin: 0 0 8px;
+      font-size: 15px;
+      line-height: 1.45;
+    }
+
+    .problem-card p {
+      margin: 0 0 10px;
+      color: var(--ink-mid);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tag {
+      border-radius: 999px;
+      padding: 4px 7px;
+      background: #f3ecdf;
+      color: var(--gold-deep);
+      font-size: 12px;
+    }
+
+    .tag.green { background: #e7f0eb; color: var(--green); }
+    .tag.blue { background: #e7edf7; color: var(--blue); }
+    .tag.red { background: #f7e8e5; color: var(--red); }
+
+    @media (max-width: 1120px) {
+      .shell {
+        grid-template-columns: 210px 1fr;
+      }
+      .ledger {
+        grid-column: 1 / -1;
+        border-left: 0;
+        border-top: 1px solid var(--line);
+      }
+      .card-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 760px) {
+      .shell {
+        grid-template-columns: 1fr;
+      }
+      .sidebar {
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .module-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .main {
+        padding: 16px;
+      }
+      .teacher-head {
+        grid-template-columns: 1fr;
+      }
+      .context-box {
+        border-left: 0;
+        border-top: 1px solid var(--line);
+        padding: 12px 0 0;
+      }
+      .answer-grid,
+      .card-list {
+        grid-template-columns: 1fr;
+      }
+      .composer {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="seal">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+            <path d="M5 3h10l2 2v14H5V3z" stroke="currentColor" stroke-width="1.4"/>
+            <path d="M8 8h6M8 12h6M8 16h4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div>
+          <strong>公途问老师</strong>
+          <span>轻问答 · 问题本 · 学习画像</span>
+        </div>
+      </div>
+
+      <div class="nav-label">选择提问模块</div>
+      <div class="module-list" id="moduleList">
+        <button class="module-btn active" data-module="言语理解" data-subtitle="逻辑填空先行" data-count="12">
+          <span class="module-icon"><svg width="17" height="17" viewBox="0 0 17 17" fill="none"><path d="M3 3h11M3 7h11M3 11h7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span>
+          <span><strong>言语理解</strong><span>当前可接逻辑填空</span></span>
+          <span class="count">12</span>
+        </button>
+        <button class="module-btn" data-module="申论" data-subtitle="保留独立窗口" data-count="8">
+          <span class="module-icon"><svg width="17" height="17" viewBox="0 0 17 17" fill="none"><path d="M4 2h7l2 2v11H4V2z" stroke="currentColor" stroke-width="1.4"/><path d="M7 10l4-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span>
+          <span><strong>申论</strong><span>批改记录同步摘要</span></span>
+          <span class="count">8</span>
+        </button>
+        <button class="module-btn" data-module="数量关系" data-subtitle="先做方法问答" data-count="3">
+          <span class="module-icon"><svg width="17" height="17" viewBox="0 0 17 17" fill="none"><path d="M4 5h9M4 9h9M4 13h5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M4 3v12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span>
+          <span><strong>数量关系</strong><span>用户自带题沉淀</span></span>
+          <span class="count">3</span>
+        </button>
+        <button class="module-btn" data-module="资料分析" data-subtitle="截图题优先" data-count="2">
+          <span class="module-icon"><svg width="17" height="17" viewBox="0 0 17 17" fill="none"><path d="M3 13h11M5 10V6M9 10V3M13 10V8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span>
+          <span><strong>资料分析</strong><span>适合拍图讲速算</span></span>
+          <span class="count">2</span>
+        </button>
+        <button class="module-btn" data-module="图形推理" data-subtitle="接入现有几何能力" data-count="5">
+          <span class="module-icon"><svg width="17" height="17" viewBox="0 0 17 17" fill="none"><rect x="3" y="3" width="5" height="5" stroke="currentColor" stroke-width="1.3"/><path d="M11 4l3 2-3 2-3-2 3-2zM9 11h5v3H9z" stroke="currentColor" stroke-width="1.3"/></svg></span>
+          <span><strong>图形推理</strong><span>空间题可带模型上下文</span></span>
+          <span class="count">5</span>
+        </button>
+        <button class="module-btn" data-module="学习规划" data-subtitle="只读全局问题本" data-count="30">
+          <span class="module-icon"><svg width="17" height="17" viewBox="0 0 17 17" fill="none"><path d="M4 13l3-4 3 2 3-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <span><strong>学习规划</strong><span>基于证据，不装懂</span></span>
+          <span class="count">30</span>
+        </button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <a class="back" href="/app">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M9 3L5 7.5 9 12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          返回公途
+        </a>
+        <div class="status-strip">
+          <span class="pill">本页是原型</span>
+          <span class="pill">不替代申论窗口</span>
+          <span class="pill">外部题也能复盘</span>
+        </div>
+      </div>
+
+      <section class="teacher-head">
+        <div>
+          <h1 id="teacherTitle">言语理解老师</h1>
+          <p id="teacherIntro">这里不是再做一个大聊天软件，而是在当前模块里解决一个问题。内置题、用户粘贴题、截图题都可以沉淀为复盘卡。</p>
+        </div>
+        <div class="context-box">
+          <strong id="contextTitle">当前上下文</strong>
+          <span id="contextText">逻辑填空 · 用户粘贴题目 · 证据中等</span>
+          <small id="skillText">当前 Skill：言语理解 / 逻辑填空</small>
+        </div>
+      </section>
+
+      <section class="chat" aria-label="模块问答演示">
+        <div class="chat-toolbar">
+          <div class="mode-tabs">
+            <button class="mode-btn active">讲这道题</button>
+            <button class="mode-btn">整理方法</button>
+            <button class="mode-btn">生成练习</button>
+          </div>
+          <select class="source-select" aria-label="题目来源">
+              <option>用户自带题目</option>
+              <option>上传截图识别</option>
+              <option>当前训练题</option>
+          </select>
+        </div>
+
+        <div class="messages" id="messages">
+          <div class="bubble-row user">
+            <div class="bubble">这道逻辑填空我选了 B，为什么答案是 C？</div>
+          </div>
+          <div class="bubble-row">
+            <div class="avatar">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M3 4h12v8H6l-3 3V4z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+            </div>
+            <div class="bubble">
+              <strong>先看语境关系，不先背成语。</strong><br>
+              横线前后是转折，后半句在强调“不是热闹宣传，而是长期细致地落实”。B 的词义偏声势，C 更贴“持续推进”的语境。
+              <div class="answer-grid">
+                <div class="mini-panel"><strong>题型</strong>逻辑填空 · 转折关系</div>
+                <div class="mini-panel"><strong>错因</strong>先看词义，没看关系</div>
+              <div class="mini-panel"><strong>沉淀</strong>外部题也进复盘</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="composer" aria-label="提问输入">
+        <textarea id="questionInput" placeholder="按右侧输入指南发：题目 + 你的答案/疑问 + 正确答案（如果知道）。"></textarea>
+        <button class="ghost-btn" id="saveBtn">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 3h10v10H3V3zM5 6h6M5 10h4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          加入问题本
+        </button>
+        <button class="send-btn" id="askBtn">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h9M9 5l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          问老师
+        </button>
+      </section>
+    </main>
+
+    <aside class="ledger">
+      <div class="ledger-head">
+        <div>
+          <h2 id="ledgerTitle">言语理解复盘</h2>
+          <p class="ledger-subtitle" id="ledgerSubtitle">当前模块只显示当前模块的问题卡，不和其他模块混在一起。</p>
+        </div>
+        <div class="view-switch" aria-label="复盘视图切换">
+          <button class="active" id="moduleViewBtn">当前模块</button>
+          <button id="allViewBtn">全部</button>
+        </div>
+      </div>
+
+      <section class="guide">
+        <h3>输入指南</h3>
+        <ol>
+          <li>先选模块，不确定就选“学习规划”。</li>
+          <li>发外部题时，尽量带上题干、选项、你的答案。</li>
+          <li>知道正确答案就一起写，不知道也可以让老师先判断。</li>
+          <li>讲完后点“加入问题本”，它会变成复盘卡。</li>
+        </ol>
+        <div class="guide-example">
+          示例：资料分析题，我选 B，答案是 C。题干是……请讲最快算法，并标出我错在哪。
+        </div>
+      </section>
+
+      <section class="idea-map">
+        <h3>这版覆盖的想法</h3>
+        <div class="idea-row"><span class="check">✓</span><span>不同模块先选择再提问，避免所有问题混进一个大聊天框。</span></div>
+        <div class="idea-row"><span class="check">✓</span><span>模块内右侧只看当前模块复盘；需要总览时切到“全部”。</span></div>
+        <div class="idea-row"><span class="check">✓</span><span>用户自带题、截图题、内置题都能进入复盘，不再依赖完整题库。</span></div>
+        <div class="idea-row"><span class="check">✓</span><span>申论保留独立窗口，只把批改摘要同步成复盘卡。</span></div>
+        <div class="idea-row"><span class="check">✓</span><span>学习规划基于复盘卡证据，不足时明确提示证据不够。</span></div>
+      </section>
+
+      <section class="summary-band">
+        <strong>本周证据强度</strong>
+        <div class="meter"><span style="width: 46%"></span></div>
+        <div class="evidence">
+          <span><b>30</b>问题</span>
+          <span><b>11</b>待复盘</span>
+          <span><b>中</b>置信度</span>
+        </div>
+      </section>
+
+      <div class="card-list" id="cardList">
+        <article class="problem-card active" data-module-card="言语理解">
+          <div class="card-meta"><span>言语理解 · 用户自带题</span><span>刚刚</span></div>
+          <h3>转折关系后选词方向判断不稳</h3>
+          <p>连续两次把“声势类词”误选为“落实类词”，需要补一组转折语境题。</p>
+          <div class="tags"><span class="tag">逻辑填空</span><span class="tag red">待复盘</span><span class="tag blue">外部题</span></div>
+        </article>
+
+        <article class="problem-card" data-module-card="资料分析">
+          <div class="card-meta"><span>资料分析 · 用户截图题</span><span>今天</span></div>
+          <h3>增长量题列式慢，速算方法没选对</h3>
+          <p>用户从外部 App 截图带题来问，系统不需要拥有这道题，也能沉淀速算错因。</p>
+          <div class="tags"><span class="tag">415份数</span><span class="tag blue">用户自带题</span></div>
+        </article>
+
+        <article class="problem-card" data-module-card="申论">
+          <div class="card-meta"><span>申论 · 内置题</span><span>昨天</span></div>
+          <h3>公文题格式能写，主体层次偏散</h3>
+          <p>来自申论独立窗口批改摘要，不把完整聊天搬过来，只同步结论。</p>
+          <div class="tags"><span class="tag">公文题</span><span class="tag green">已批改</span></div>
+        </article>
+
+        <article class="problem-card" data-module-card="数量关系">
+          <div class="card-meta"><span>数量关系 · 用户自带题</span><span>2 天前</span></div>
+          <h3>工程问题不会设工作总量</h3>
+          <p>目前只有 3 条咨询记录，不足以判断稳定弱项，先建议做 5 道同类题。</p>
+          <div class="tags"><span class="tag">工程问题</span><span class="tag blue">证据弱</span></div>
+        </article>
+
+        <article class="problem-card" data-module-card="图形推理">
+          <div class="card-meta"><span>图形推理 · 当前训练题</span><span>3 天前</span></div>
+          <h3>三视图左/右方向容易混</h3>
+          <p>可接现有三视图训练页的数据，保存“错因”而不是保存一串聊天。</p>
+          <div class="tags"><span class="tag">三视图</span><span class="tag red">待二刷</span></div>
+        </article>
+
+        <article class="problem-card" data-module-card="学习规划">
+          <div class="card-meta"><span>学习规划 · 全局建议</span><span>待生成</span></div>
+          <h3>记录不足时不做强结论</h3>
+          <p>示例：数量只有 3 条，不能说“数量很差”，只能说“工程问题设量需要补证据”。</p>
+          <div class="tags"><span class="tag">证据规则</span><span class="tag green">不装懂</span></div>
+        </article>
+      </div>
+      <div class="empty-filter" id="emptyFilter" hidden>当前模块还没有复盘卡。真实产品里会提示用户先粘贴一道题、上传截图，或把一次问答加入复盘。</div>
+    </aside>
+  </div>
+
+  <script>
+    const moduleList = document.getElementById('moduleList');
+    const teacherTitle = document.getElementById('teacherTitle');
+    const teacherIntro = document.getElementById('teacherIntro');
+    const contextText = document.getElementById('contextText');
+    const skillText = document.getElementById('skillText');
+    const cardList = document.getElementById('cardList');
+    const ledgerTitle = document.getElementById('ledgerTitle');
+    const ledgerSubtitle = document.getElementById('ledgerSubtitle');
+    const moduleViewBtn = document.getElementById('moduleViewBtn');
+    const allViewBtn = document.getElementById('allViewBtn');
+    const emptyFilter = document.getElementById('emptyFilter');
+    const messages = document.getElementById('messages');
+    const questionInput = document.getElementById('questionInput');
+    const askBtn = document.getElementById('askBtn');
+    const saveBtn = document.getElementById('saveBtn');
+    let activeModule = '言语理解';
+    let ledgerMode = 'module';
+
+    const moduleCopy = {
+      '言语理解': {
+        title: '言语理解老师',
+        intro: '适合当前先做“逻辑填空问老师”。内置题和用户粘贴来的外部题都能生成复盘卡。',
+        context: '逻辑填空 · 用户粘贴题目 · 证据中等',
+        skill: '言语理解 / 逻辑填空与片段阅读'
+      },
+      '申论': {
+        title: '申论老师',
+        intro: '申论仍保留独立窗口。这里不复制批改页，只接收申论批改后的摘要，进入全局问题本。',
+        context: '独立批改窗口 · 摘要同步 · 证据较强',
+        skill: '飞扬申论 / 审题、要点与结构补充'
+      },
+      '数量关系': {
+        title: '数量关系老师',
+        intro: '没有题库时先做方法问答和用户自带题解析。外部题可以进入复盘，但会标成“证据弱/中”。',
+        context: '用户自带题 · 方法咨询 · 证据较弱',
+        skill: '数量关系 / 取舍、建模与速算'
+      },
+      '资料分析': {
+        title: '资料分析老师',
+        intro: '更适合上传截图或粘贴材料，让老师拆公式、讲速算。没有足够记录时只给临时建议。',
+        context: '截图题 · 速算讲解 · 待沉淀',
+        skill: '资料分析 / 公式识别与速算'
+      },
+      '图形推理': {
+        title: '图形推理老师',
+        intro: '可以接你现有三视图和截面训练页。问答只解决当前题，错因进入问题本。',
+        context: '空间题上下文 · 模型验证 · 证据较强',
+        skill: '图形推理 / 规则与真实模型上下文'
+      },
+      '学习规划': {
+        title: '学习规划老师',
+        intro: '只读取复盘问题本和正式练习记录。记录少时直接说“不足以判断”，再给补证据任务。',
+        context: '30 条问题记录 · 11 条待复盘 · 证据中等',
+        skill: '综合规划 / 只读全局学习证据'
+      }
+    };
+
+    function syncLedger() {
+      const cards = Array.from(document.querySelectorAll('.problem-card'));
+      let visibleCount = 0;
+      cards.forEach((card) => {
+        const show = ledgerMode === 'all' || card.dataset.moduleCard === activeModule;
+        card.hidden = !show;
+        if (show) visibleCount += 1;
+      });
+      emptyFilter.hidden = visibleCount !== 0;
+      ledgerTitle.textContent = ledgerMode === 'all' ? '全局复盘中心' : `${activeModule}复盘`;
+      ledgerSubtitle.textContent = ledgerMode === 'all'
+        ? '这里才看全部模块，用于学习规划和总览筛选。'
+        : '当前模块只显示当前模块的问题卡，不和其他模块混在一起。';
+      moduleViewBtn.classList.toggle('active', ledgerMode === 'module');
+      allViewBtn.classList.toggle('active', ledgerMode === 'all');
+    }
+
+    function selectModule(moduleName) {
+      const copy = moduleCopy[moduleName];
+      teacherTitle.textContent = copy.title;
+      teacherIntro.textContent = copy.intro;
+      contextText.textContent = copy.context;
+      skillText.textContent = `当前 Skill：${copy.skill}`;
+      document.querySelectorAll('.problem-card').forEach((card) => {
+        card.classList.toggle('active', card.dataset.moduleCard === moduleName);
+      });
+      syncLedger();
+    }
+
+    moduleList.addEventListener('click', (event) => {
+      const btn = event.target.closest('.module-btn');
+      if (!btn) return;
+      document.querySelectorAll('.module-btn').forEach((item) => item.classList.remove('active'));
+      btn.classList.add('active');
+      activeModule = btn.dataset.module;
+      selectModule(activeModule);
+    });
+
+    moduleViewBtn.addEventListener('click', () => {
+      ledgerMode = 'module';
+      syncLedger();
+    });
+
+    allViewBtn.addEventListener('click', () => {
+      ledgerMode = 'all';
+      syncLedger();
+    });
+
+    function addQuestionCard(moduleName, text) {
+      const article = document.createElement('article');
+      article.className = 'problem-card active';
+      article.dataset.moduleCard = moduleName;
+      article.innerHTML = `
+        <div class="card-meta"><span>${moduleName} · 用户自带题</span><span>刚刚</span></div>
+        <h3>${text.slice(0, 28) || '新问题待整理'}</h3>
+        <p>这条由模块问答生成。正式实现时会保存来源、题型、错因、知识点、掌握状态，不把完整闲聊当复盘材料。</p>
+        <div class="tags"><span class="tag">新问题</span><span class="tag red">待复盘</span><span class="tag blue">用户自带题</span></div>
+      `;
+      document.querySelectorAll('.problem-card').forEach((card) => card.classList.remove('active'));
+      cardList.prepend(article);
+      syncLedger();
+    }
+
+    askBtn.addEventListener('click', () => {
+      const active = document.querySelector('.module-btn.active');
+      const moduleName = active ? active.dataset.module : '言语理解';
+      const text = questionInput.value.trim() || '这道题我不会，帮我拆一下。';
+      const userRow = document.createElement('div');
+      userRow.className = 'bubble-row user';
+      userRow.innerHTML = `<div class="bubble">${text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>`;
+      messages.appendChild(userRow);
+
+      const aiRow = document.createElement('div');
+      aiRow.className = 'bubble-row';
+      aiRow.innerHTML = `
+        <div class="avatar"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M3 4h12v8H6l-3 3V4z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg></div>
+        <div class="bubble"><strong>我会先判断模块和题型，再讲当前问题。</strong><br>这次回答结束后，不把整段聊天塞进历史，而是生成一张可复盘的问题卡：来源、模块、题型、错因、掌握状态和一句话结论。外部题也能进复盘。</div>
+      `;
+      messages.appendChild(aiRow);
+      messages.scrollTop = messages.scrollHeight;
+      addQuestionCard(moduleName, text);
+      questionInput.value = '';
+    });
+
+    saveBtn.addEventListener('click', () => {
+      const active = document.querySelector('.module-btn.active');
+      const moduleName = active ? active.dataset.module : '言语理解';
+      addQuestionCard(moduleName, questionInput.value.trim() || '手动加入的问题');
+      questionInput.value = '';
+    });
+
+    const requestedModule = new URLSearchParams(location.search).get('module');
+    if (requestedModule && moduleCopy[requestedModule]) {
+      activeModule = requestedModule;
+      document.querySelectorAll('.module-btn').forEach((item) => item.classList.toggle('active', item.dataset.module === activeModule));
+      selectModule(activeModule);
+    } else {
+      syncLedger();
+    }
+  </script>
+</body>
+</html>
