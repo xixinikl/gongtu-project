@@ -1,0 +1,178 @@
+{
+  "version": 1,
+  "set_id": "verbal_hs13_set09",
+  "source_name": "2025年花生片段阅读600题",
+  "range": "q11-q20",
+  "status": "visual_verified_minimal_practice",
+  "transcription_scope": {
+    "question_stem_and_options": "full_visual_transcription_from_question_book",
+    "answer_and_type": "visual_verified_from_analysis_book",
+    "official_analysis": "core_summary_from_visual_review",
+    "peanut_notes": "core_method_points_from_visual_review",
+    "ai_brief_example": "supplemental_ai_tutor_hint"
+  },
+  "source_pages": {
+    "question_book": {
+      "pdf": "/Users/miduoduo/Downloads/2025年花生片段阅读600题-题本【上】.pdf",
+      "physical_pages": [55, 56, 57],
+      "printed_pages": [53, 54, 55]
+    },
+    "analysis_book": {
+      "pdf": "/Users/miduoduo/Downloads/2025年花生片段阅读600题-解析【上】.pdf",
+      "physical_pages": [122, 123, 124, 125, 126, 127, 128],
+      "printed_pages": [120, 121, 122, 123, 124, 125, 126]
+    }
+  },
+  "questions": [
+    {
+      "id": "verbal_hs13_set09_q11", "question_no": 11,
+      "source": {"question_physical_pages": [55], "analysis_physical_pages": [122]},
+      "content": {
+        "stem": "端午节之所以物化为“粽子节”，从传统文化的角度看，固然是一种“删繁就简”，是一种退守；而从社会公众的角度看，却是一种无奈的、被动的选择。很简单，这些年来，我们在对待传统节日的问题上，往往习惯于依赖“刺激消费”这样的路径，而拙于补充一些新鲜的、健旺的文化元素，以替代那些日渐消逝的传统仪式和内容，久而久之，则只能任由那些看上去肤浅却实用的商业操作来填补“空白”。",
+        "prompt": "这段文字意在强调：",
+        "options": [{"key":"A","text":"缺少文化元素的创新导致传统节日日渐物化"},{"key":"B","text":"传统节日融入公共文化生活才能更具生命力"},{"key":"C","text":"传统节日文化现状已偏离了原有的民俗意义"},{"key":"D","text":"端午节变为“粽子节”实属文化退守的无奈之举"}]
+      },
+      "answer": "A",
+      "analysis_source": {"source_type_label":"中心理解题 + 说理类文章","answer_source":"analysis_page_visual_verified"},
+      "learning_tags": {"question_type":"中心理解题","passage_type":"说理类文章","method_tags":["因果结构","原因类选项","主题词匹配"],"option_trap_tags":{"A":["正确原因"],"B":["无中生有"],"C":["无中生有"],"D":["杂糅"]},"weak_steps":["识别物化问题后的原因分析","区分原因与现象","避免杂糅不同视角"],"estimated_seconds":55},
+      "official_analysis": "文段先提出传统节日被物化的问题，随后重点分析原因：习惯依赖刺激消费，却缺少新鲜、健旺的文化元素。A 准确概括这一原因。B、C 无中生有；D 把传统文化视角的“退守”和公众视角的“无奈”杂糅。",
+      "peanut_notes": ["行文为果因结构：先提出端午节物化，再分析传统节日商业化的原因。", "核心原因是依赖刺激消费、缺少文化元素创新。", "考场可先判断 A 为原因类选项，再排除无中生有和杂糅项。"],
+      "ai_brief_example": "题目问强调什么，重点落在第二句的原因分析：缺少文化元素创新导致节日物化，选 A。"
+    },
+    {
+      "id": "verbal_hs13_set09_q12", "question_no": 12,
+      "source": {"question_physical_pages": [55], "analysis_physical_pages": [122, 123]},
+      "content": {
+        "stem": "随着互联网科技发展，尤其是移动互联技术的推广应用，人们传统的社会经济交往行为方式逐步改变，一方面提高了社会经济效率，另一方面也极大地便利了人们的生活。与此同时，伴随着互联网新生事物的普及，一些违法和侵权现象逐渐浮出水面，相较于新兴技术的日新月异，以法律手段规范网络行为略显滞后，迫切需要厘清抢票软件等新兴技术背后的法律关系，保障公民的合法权益。",
+        "prompt": "根据上述文段可知，作者意在强调：",
+        "options": [{"key":"A","text":"需要客观地看待互联网科技的发展与变化"},{"key":"B","text":"不能让抢票软件等新兴技术成为法外之物"},{"key":"C","text":"互联网新生事物的侵权现象频繁发生"},{"key":"D","text":"新兴技术的变化可谓是一日千里"}]
+      },
+      "answer": "B",
+      "analysis_source": {"source_type_label":"中心理解题 + 说理类文章","answer_source":"analysis_page_visual_verified"},
+      "learning_tags": {"question_type":"中心理解题","passage_type":"说理类文章","method_tags":["后对策结构","问题对策对应","主题词匹配"],"option_trap_tags":{"A":["对策宽泛"],"B":["正确对策"],"C":["问题表述"],"D":["中性表述"]},"weak_steps":["识别转折后的法律滞后问题","抓住末句对策","选择含法律主题的选项"],"estimated_seconds":55},
+      "official_analysis": "文段先介绍互联网技术的好处，转折后指出法律规范滞后的问题，末句提出厘清新兴技术背后的法律关系。问题与对策的重点都是“法律”，B 是该对策的准确概括。A 过于宽泛，C 仅表述问题，D 为中性描述。",
+      "peanut_notes": ["行文结构是后对策：好处—转折引出问题—提出法律规范对策。", "问题和对策的共同主题词是“法律”。", "B 是禁止型对策，可理解为把新兴技术纳入法律监管。"],
+      "ai_brief_example": "末句要求厘清法律关系，等价于不能让新技术游离于法律之外，选 B。"
+    },
+    {
+      "id": "verbal_hs13_set09_q13", "question_no": 13,
+      "source": {"question_physical_pages": [55], "analysis_physical_pages": [123, 124]},
+      "content": {
+        "stem": "每个人心中都有一道心理防御墙，其好处是能保护自尊心，不让自己心理崩溃；坏处是让人无法理性地对待问题、做出最好的决定，更会导致与他人的激烈冲突。防御机制和成长经历、生活环境关系密切，是人格的主要组成部分。____________，因此，如果我们能够了解自己和别人的习惯化的心理防御机制，那么防御机制对人际关系的消极影响就会减少；如果我们自己能有意识地多使用积极的防御机制，无疑会促进个人的健康发展。",
+        "prompt": "填入文中画横线部分最恰当的一项是：",
+        "options": [{"key":"A","text":"人们经常在无意识中以习惯化了的某种防御机制来应对心理危机"},{"key":"B","text":"防御机制是为避免痛苦、紧张、焦虑、尴尬等心理而做出的调整"},{"key":"C","text":"人类习惯用逃避和消极方法减轻自己在挫折或冲突时感受的痛苦"},{"key":"D","text":"各种类型的消极心理防御机制通常总是含有某种自欺欺人的成分"}]
+      },
+      "answer": "A",
+      "analysis_source": {"source_type_label":"语句填入类 + 说理类文章","answer_source":"analysis_page_visual_verified"},
+      "learning_tags": {"question_type":"语句填入题","passage_type":"说理类文章","method_tags":["后对策结构","因果衔接","新增主题词"],"option_trap_tags":{"A":["正确问题"],"B":["仍在介绍"],"C":["缺主题词"],"D":["缺主题词"]},"weak_steps":["根据因此判断前文应是问题","匹配习惯化防御机制","让问题与对策形成因果"],"estimated_seconds":60},
+      "official_analysis": "横线后以“因此”引出对策：了解自己和别人的习惯化心理防御机制，并有意识地使用积极机制。因此横线应提出与“习惯化心理防御机制”相关的问题。A 既包含该新增主题词，又能与后文对策形成因果关系。",
+      "peanut_notes": ["行文为后对策结构，横线应填问题表述。", "“因此”前的问题与其后的对策应构成因果关系。", "后文新增并反复出现“习惯化的心理防御机制”，是锁定 A 的硬线索。"],
+      "ai_brief_example": "后文对策是了解习惯化机制，前文问题自然是人们无意识地习惯化使用某种机制，选 A。"
+    },
+    {
+      "id": "verbal_hs13_set09_q14", "question_no": 14,
+      "source": {"question_physical_pages": [55], "analysis_physical_pages": [124]},
+      "content": {
+        "stem": "所有的经济活动并不发生在抽象的空间内，而是发生在实实在在的社会空间里，任何经济交易都是发生在人与人之间和不同社会群体之间。或者说，经济生活不能独立于社会生活，而是社会生活的一个重要组成部分。社会的正常运作是经济发展的最基本条件，基本社会正义的重要性也在这里，如果没有基本社会正义，社会运作就会出现很大的问题。",
+        "prompt": "该段文字意在说明：",
+        "options": [{"key":"A","text":"经济生活与社会生活相互依存，密不可分"},{"key":"B","text":"经济活动能为基本社会正义创造经济条件"},{"key":"C","text":"经济的可持续发展要求基本社会正义"},{"key":"D","text":"社会缺少基本正义将使社会失去秩序和稳定"}]
+      },
+      "answer": "C",
+      "analysis_source": {"source_type_label":"中心理解题 + 说理类文章","answer_source":"analysis_page_visual_verified"},
+      "learning_tags": {"question_type":"中心理解题","passage_type":"说理类文章","method_tags":["后对策结构","必要条件","逻辑关联词"],"option_trap_tags":{"A":["区别比较关系"],"B":["逻辑相反"],"C":["正确对策"],"D":["缺主题词"]},"weak_steps":["串联两个必要条件","保留经济发展主题","避免只概括前文关系"],"estimated_seconds":60},
+      "official_analysis": "文段先介绍经济生活与社会生活的关系，随后通过必要条件建立逻辑链：经济发展需要社会正常运作，社会正常运作需要基本社会正义。二者串联可知，经济发展要求基本社会正义，对应 C。",
+      "peanut_notes": ["“最基本条件”“如果没有……就……”都是必要条件标志。", "可将逻辑链翻译为：经济发展→社会正常运作→基本社会正义。", "A 只是区别比较关系，未概括文段最终落点。"],
+      "ai_brief_example": "把两层必要条件串起来：经济要持续发展，必须有社会正常运作，而后者又必须有基本正义，选 C。"
+    },
+    {
+      "id": "verbal_hs13_set09_q15", "question_no": 15,
+      "source": {"question_physical_pages": [56], "analysis_physical_pages": [124, 125]},
+      "content": {
+        "stem": "当前，我国科技事业实现了重大发展，重大创新成果竞相涌现。但也应看到，我国科技领域仍存在一些亟待解决的问题，关键核心技术受制于人的局面没有得到根本性改变。现在，我们迎来了世界新一轮科技革命和产业变革同我国转变发展方式的历史性交汇期，科技创新角逐空前激烈，只有努力实现关键核心技术自主可控，才能抓住千载难逢的历史机遇，真正发挥创新引领发展的第一动力作用。",
+        "prompt": "最适合做这段文字标题的是：",
+        "options": [{"key":"A","text":"从关键核心技术到创新动力"},{"key":"B","text":"关键技术核心——“大国重器”"},{"key":"C","text":"把关键核心技术握在手中"},{"key":"D","text":"掌握关键核心技术岂能只争朝夕"}]
+      },
+      "answer": "C",
+      "analysis_source": {"source_type_label":"标题拟定类 + 说理类文章","answer_source":"analysis_page_visual_verified"},
+      "learning_tags": {"question_type":"标题拟定题","passage_type":"说理类文章","method_tags":["后对策结构","只有才","对策同义替换"],"option_trap_tags":{"A":["中性表述"],"B":["中性表述"],"C":["正确对策"],"D":["对策有误"]},"weak_steps":["识别核心技术受制于人的问题","抓住自主可控对策","区分对策与中性标题"],"estimated_seconds":50},
+      "official_analysis": "文段通过转折引出关键核心技术受制于人的问题，末句用“只有……才……”提出对策：实现关键核心技术自主可控。C 的“握在手中”是“自主可控”的同义替换，最适合作标题。A、B 为中性表述；D 未体现自主可控。",
+      "peanut_notes": ["行文是后对策结构：成绩—转折问题—只有才给对策。", "标题重点应落在“关键核心技术自主可控”。", "“把……握在手中”是对策的形象化同义替换。"],
+      "ai_brief_example": "作者真正主张的是核心技术自主可控，标题用“握在手中”最准确，选 C。"
+    },
+    {
+      "id": "verbal_hs13_set09_q16", "question_no": 16,
+      "source": {"question_physical_pages": [56], "analysis_physical_pages": [125]},
+      "content": {
+        "stem": "自美国F-117隐形战斗轰炸机首次亮相巴拿马上空后，隐形武器成为世界武器发展的一大趋势。有的军事专家曾预言，未来战争或为隐形武器唱主角的战争。中国武器装备发展也将隐形化作为第三代武器的一个重要指标，新列装的武器装备基本上皆具有隐形的功能。这些隐形武器，其光学特征可以隐形于地理背景之中，其电磁特征也可以湮没于电子信号频谱之内，使对手无法对其识别。",
+        "prompt": "这段文字主要介绍：",
+        "options": [{"key":"A","text":"未来世界武器发展的主要趋势"},{"key":"B","text":"军事专家对未来战争模式的预测"},{"key":"C","text":"隐形武器具备隐形性能的原因"},{"key":"D","text":"中国发展隐形武器的背景及成就"}]
+      },
+      "answer": "D",
+      "analysis_source": {"source_type_label":"中心理解题 + 科普介绍文章","answer_source":"analysis_page_visual_verified"},
+      "learning_tags": {"question_type":"中心理解题","passage_type":"科普介绍文章","method_tags":["背景加我国结构","主题词匹配","总分概括"],"option_trap_tags":{"A":["片面"],"B":["片面"],"C":["片面"],"D":["全面概括"]},"weak_steps":["区分背景与我国重点","识别我国为后半主体","避免只概括局部"],"estimated_seconds":55},
+      "official_analysis": "文段先以美国隐形战机和专家预测介绍隐形武器发展的世界背景，后半重点转入我国，介绍中国发展隐形武器的现状和装备成就，属于“背景+我国”结构。D 同时概括两部分且主体为我国。A、B、C 均只覆盖局部。",
+      "peanut_notes": ["行文是二层结构之“背景+我国”。", "开篇世界背景用于引出话题，后文我国现状与成就是重点。", "一正全面概括题中，既覆盖全文又保留重点主体的选项优先。"],
+      "ai_brief_example": "前两句是世界背景，后面连续写“中国”“新列装”，主角是我国隐形武器的发展，选 D。"
+    },
+    {
+      "id": "verbal_hs13_set09_q17", "question_no": 17,
+      "source": {"question_physical_pages": [56], "analysis_physical_pages": [126]},
+      "content": {
+        "stem": "书院是中国历史上一种独具特色的文化教育形式，在书院发展的一千多年历史进程中，它不仅是中国文化的象征，更是中国文化向域外传播的窗口。书院之名起于唐代，由最早的修书、藏书的机构，逐步演变为具有教学、研究功能的场所。书院制度在宋代不断发展、壮大、成熟，清代是书院发展的鼎盛时期，无论是穷乡僻壤，还是边陲小镇都可见到书院。不仅如此，书院还随儒学走出国门，在朝鲜半岛生根、萌芽、兴盛起来，对中国文化传播起着不可替代的作用。",
+        "prompt": "这段文字主要说明：",
+        "options": [{"key":"A","text":"书院的发展经历了漫长的历史过程"},{"key":"B","text":"书院所承载的教育及文化传播功能"},{"key":"C","text":"书院与文明传承之间有着密切关系"},{"key":"D","text":"书院制度的影响遍布我国以及域外"}]
+      },
+      "answer": "B",
+      "analysis_source": {"source_type_label":"中心理解题 + 科普介绍文章","answer_source":"analysis_page_visual_verified"},
+      "learning_tags": {"question_type":"中心理解题","passage_type":"科普介绍文章","method_tags":["总分结构","首句总观点","一正全面概括"],"option_trap_tags":{"A":["历程类片面"],"B":["正确概括"],"C":["无中生有"],"D":["片面"]},"weak_steps":["抓住首句总观点","归纳教育与文化传播两项功能","避免被历史细节带偏"],"estimated_seconds":50},
+      "official_analysis": "首句给出总观点：书院既是独特的文化教育形式，也是中国文化向域外传播的窗口。后文分别介绍其教学、研究等教育功能及域外文化传播功能。B 同时概括两项功能。A、D 仅覆盖部分内容，C 的“文明传承”无中生有。",
+      "peanut_notes": ["“书院”是全文论述主体。", "行文为总分结构，首句同时提出教育和文化传播两方面。", "一正全面概括应同时覆盖首句的两项功能，只有 B。"],
+      "ai_brief_example": "首句已经把答案框定为“教育形式+传播窗口”，B 正好合并这两点。"
+    },
+    {
+      "id": "verbal_hs13_set09_q18", "question_no": 18,
+      "source": {"question_physical_pages": [56], "analysis_physical_pages": [126, 127]},
+      "content": {
+        "stem": "我国地域广阔，各地经济社会发展的类型和水平差异显著，不同区域、层次、类型的教育发展的历史传统、现实模式和未来图景也各有特点。高质量教育体系由充满活力、因地制宜和各具特色的子系统组成，这需要将教育发展的普遍性和特殊性统一起来，既为各地、各校教育改革发展提出硬性底线要求以确保改革创新方向不动摇，也为不同地区、学校发展提供更多弹性和广阔空间以促进更丰富多样的特色发展。",
+        "prompt": "最适合做这段文字标题的是：",
+        "options": [{"key":"A","text":"建设高质量教育体系，需要实施分类指导"},{"key":"B","text":"建设高质量教育体系，需要突出制度引领"},{"key":"C","text":"建设高质量教育体系，需要持续改革创新"},{"key":"D","text":"建设高质量教育体系，需要夯实资源保障"}]
+      },
+      "answer": "A",
+      "analysis_source": {"source_type_label":"标题拟定类 + 说理类文章","answer_source":"analysis_page_visual_verified"},
+      "learning_tags": {"question_type":"标题拟定题","passage_type":"说理类文章","method_tags":["后对策结构","普遍性特殊性统一","对策概括"],"option_trap_tags":{"A":["正确对策"],"B":["无中生有"],"C":["无中生有"],"D":["无中生有"]},"weak_steps":["识别地区差异的问题背景","概括硬底线与弹性空间","抓住分类指导"],"estimated_seconds":55},
+      "official_analysis": "文段先说明各地教育情况差异显著，随后提出建设高质量教育体系既要统一普遍性和特殊性，又要在硬性底线之外给不同地区更多弹性空间。A 的“分类指导”既对应差异化现状，也概括因地制宜的对策。B、C、D 均无中生有。",
+      "peanut_notes": ["行文为后对策结构：地区差异—普遍性和特殊性统一的对策。", "对策虽为并列，但重点是针对不同地区提供差异化空间。", "“实施分类指导”能够同时照顾底线共性和地区个性。"],
+      "ai_brief_example": "各地情况不同，既设共同底线又留弹性空间，本质就是分类指导，选 A。"
+    },
+    {
+      "id": "verbal_hs13_set09_q19", "question_no": 19,
+      "source": {"question_physical_pages": [57], "analysis_physical_pages": [127, 128]},
+      "content": {
+        "stem": "水熊被认为是世界上最顽强的动物，其显著特征是能在各种极端环境中存活下来。科学家曾经将水熊冰冻在冰层之中，暴露在放射线之下，甚至将它们发送至太空，但令人惊奇的是，水熊仍能从假死状态中复活。最近，科学家揭示了水熊复活的秘密，其DNA兼具动物和细菌成分，使其成为“弗兰肯斯坦”混合体。此外，科学家们在研究水熊复活过程中哪些基因会被激活时，还发现了一组特殊蛋白质。这组蛋白质能够快速替换体内损耗的水分，并修复受损细胞，致使这种动物接近于不可毁灭状态。",
+        "prompt": "这段文字旨在说明：",
+        "options": [{"key":"A","text":"水熊的显著特征是能在各种极端环境中存活"},{"key":"B","text":"水熊是一种能复活的“弗兰肯斯坦”混合体"},{"key":"C","text":"水熊拥有神秘DNA使它接近于不可毁灭"},{"key":"D","text":"水熊拥有的特殊蛋白质能修复受损的细胞"}]
+      },
+      "answer": "C",
+      "analysis_source": {"source_type_label":"中心理解题 + 科普介绍文章","answer_source":"analysis_page_visual_verified"},
+      "learning_tags": {"question_type":"中心理解题","passage_type":"科普介绍文章","method_tags":["背景加新结构","新发现重点","主体属性概括"],"option_trap_tags":{"A":["未涉及新发现"],"B":["未涉及新发现"],"C":["正确概括"],"D":["片面"]},"weak_steps":["区分背景特征和新发现","比较DNA与蛋白质的主次","完整概括顽强原因"],"estimated_seconds":60},
+      "official_analysis": "文段先介绍水熊生命力顽强这一背景，随后重点揭示其复活秘密：神秘 DNA 和特殊蛋白质共同使它接近不可毁灭。C 既涉及重点出现的 DNA，也概括了水熊不可毁灭的特点。A、B 未体现新发现，D 只讲蛋白质修复细胞，较片面。",
+      "peanut_notes": ["行文为“背景+新”结构，也可看作先果后因。", "重点是科学家关于水熊生命力顽强原因的新发现。", "DNA 由“揭示秘密”引出，蛋白质由“此外”补充，概括时前者权重更高。"],
+      "ai_brief_example": "前半只是说水熊顽强，后半才解释为什么；C 抓住 DNA 这个主要原因并保留“不可毁灭”结果。"
+    },
+    {
+      "id": "verbal_hs13_set09_q20", "question_no": 20,
+      "source": {"question_physical_pages": [57], "analysis_physical_pages": [128]},
+      "content": {
+        "stem": "①中国企业若想出口稀土产品，必须向行业巨头缴纳高额的专利许可费，否则产品无法出口\n②稀土永磁材料领域的研发重点包括提高材料性能、扩大高端领域应用等；稀土发光材料领域的技术创新点集中在光电材料、反光材料等\n③经历了被人“扼住咽喉”的切肤之痛后，我国稀土企业的创新脚步愈加快速\n④然而在很长一段时间内，我国的稀土企业在国际市场处于受制于人的局面\n⑤多年来，在与世界各国的“稀土大战”中，我国凭借世界第一的稀土储量，逐步在开采、分离技术领域确立了全球领先的地位\n⑥目前，我国稀土领域的创新主要集中于产业链上游的稀土材料领域，多家企业重点发展具有超高性能的稀土永磁材料、稀土发光材料等",
+        "prompt": "将以上6个句子重新排列，语序正确的是：",
+        "options": [{"key":"A","text":"⑥④①③⑤②"},{"key":"B","text":"⑤④①③⑥②"},{"key":"C","text":"⑤⑥②①④③"},{"key":"D","text":"⑥②⑤④①③"}]
+      },
+      "answer": "B",
+      "analysis_source": {"source_type_label":"语句排序类 + 科普介绍文章","answer_source":"analysis_page_visual_verified"},
+      "learning_tags": {"question_type":"语句排序题","passage_type":"科普介绍文章","method_tags":["转折捆绑","因果衔接","解释说明"],"option_trap_tags":{"A":["转折前后不当"],"B":["正确排序"],"C":["转折位置错误"],"D":["背景顺序错误"]},"weak_steps":["用然而锁定⑤④","识别①③因果承接","识别⑥②总分关系"],"estimated_seconds":70},
+      "official_analysis": "④以“然而”转折，前文应说我国稀土企业曾居优势，故⑤④相连；①具体说明“受制于人”，③承接“扼住咽喉”的经历并转入创新；⑥概括当前创新集中领域，②再具体展开两类材料的研发创新点，构成⑥②。正确顺序为⑤④①③⑥②，对应 B。",
+      "peanut_notes": ["⑤④①③构成“领先背景—然而受制—具体说明—痛后创新”的完整链条。", "⑥先总说创新集中于稀土材料，②再分说永磁材料和发光材料。", "排序题先抓“然而”和解释说明关系，比直接猜首句更稳。"],
+      "ai_brief_example": "用“然而”锁定⑤④，用“被扼住咽喉”锁定①③，再用总分锁定⑥②，答案 B。"
+    }
+  ]
+}

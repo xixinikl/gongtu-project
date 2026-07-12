@@ -1,0 +1,40 @@
+{
+  "set_id": "quantity_hs13_set01",
+  "source_name": "数量关系600题",
+  "set_no": 1,
+  "analysis_summary": {
+    "overall_difficulty": "5.6/10",
+    "easy_medium_hard_ratio": "3:6:1",
+    "status": "sample_from_visual_and_ocr"
+  },
+  "questions": [
+    {
+      "id": "quantity_hs13_set01_q01",
+      "question_no": 1,
+      "topic": "和差倍比问题",
+      "answer": "D",
+      "difficulty": "★★☆",
+      "method": ["赋值法"],
+      "exam_decision": "can_do",
+      "decision_reason": "题干有明确比例关系，解析也给出赋值法；但条件较多，普通用户需要训练后再稳定拿分。",
+      "estimated_seconds": 90,
+      "review_status": "sample_only_needs_human_check"
+    },
+    {
+      "id": "quantity_hs13_set01_q02",
+      "question_no": 2,
+      "topic": "效率与统筹问题",
+      "answer": null,
+      "difficulty": null,
+      "method": ["效率计算", "返工比例"],
+      "exam_decision": "can_do",
+      "decision_reason": "题干较长，但核心是效率与 80%/20% 返工关系；适合训练，考场是否做取决于用户熟练度。",
+      "estimated_seconds": 120,
+      "review_status": "raw_ocr_only"
+    }
+  ],
+  "notes": [
+    "本文件只是样本结构，不是正式题库。",
+    "OCR 对选项、图形题和符号识别存在错误，正式入库前必须清洗。"
+  ]
+}
