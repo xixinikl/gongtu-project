@@ -20,6 +20,12 @@ from models import CardOut, QuizItemOut, SyncIn, SyncOut, VocabOut
 from auth import router as auth_router, require_user, require_admin
 from mindmap import router as mindmap_router
 from shenlun import router as shenlun_router
+from verbal_reading import router as verbal_reading_router
+from verbal_catalog import (
+    ensure_verbal_catalog_schema,
+    router as verbal_catalog_router,
+)
+from quantity import router as quantity_router
 from unified_learning import router as unified_learning_router
 
 # ── Logging ──
@@ -31,6 +37,7 @@ logger = logging.getLogger("gontu.api")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
+    ensure_verbal_catalog_schema()
     logger.info("Database initialized")
     yield
     # Background maintenance on shutdown
@@ -46,6 +53,9 @@ app = FastAPI(
 app.include_router(auth_router)
 app.include_router(mindmap_router)
 app.include_router(shenlun_router)
+app.include_router(verbal_reading_router)
+app.include_router(verbal_catalog_router)
+app.include_router(quantity_router)
 app.include_router(unified_learning_router)
 
 

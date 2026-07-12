@@ -1,0 +1,1236 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>片段阅读极简答题｜练习题 01 套</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f3ee;
+      --card: #fffdf9;
+      --ink: #241d16;
+      --muted: #776d62;
+      --line: #e6ded2;
+      --accent: #7b4d2b;
+      --accent-soft: #efe2d3;
+      --good: #247a4a;
+      --bad: #b43b32;
+      --shadow: 0 18px 48px rgba(72, 48, 28, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: radial-gradient(circle at top left, #fff9ed 0, var(--bg) 38%, #efe8df 100%);
+      color: var(--ink);
+      line-height: 1.75;
+    }
+
+    .page {
+      width: min(1120px, calc(100% - 32px));
+      margin: 28px auto 56px;
+    }
+
+    .hero {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      align-items: flex-end;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(28px, 5vw, 46px);
+      letter-spacing: -0.04em;
+      line-height: 1.08;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      max-width: 760px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .account-bar {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-bottom: 12px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .save-state {
+      min-height: 24px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .followup-form {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .followup-form select,
+    .followup-form textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fffaf3;
+      color: var(--ink);
+      padding: 11px 13px;
+      font: inherit;
+    }
+
+    .followup-form textarea {
+      min-height: 88px;
+      resize: vertical;
+    }
+
+    .message.user { border-left: 4px solid var(--accent); }
+    .message.assistant { border-left: 4px solid var(--good); }
+
+    .login-gate {
+      grid-column: 1 / -1;
+      padding: 34px;
+      text-align: center;
+    }
+
+    .set-picker {
+      display: flex;
+      justify-content: flex-end;
+      margin: 0 0 14px;
+      grid-column: 1 / -1;
+    }
+
+    .set-picker select {
+      min-width: 220px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fffaf3;
+      color: var(--ink);
+      padding: 10px 14px;
+      font: inherit;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 280px;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .card {
+      background: rgba(255, 253, 249, 0.92);
+      border: 1px solid rgba(230, 222, 210, 0.9);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .question-card {
+      padding: 28px;
+      min-height: 600px;
+    }
+
+    .meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 18px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .stem {
+      white-space: pre-line;
+      font-size: 18px;
+      margin: 0 0 18px;
+    }
+
+    .prompt {
+      margin: 18px 0 12px;
+      font-weight: 700;
+    }
+
+    .question-terms { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 16px; align-items:center; }
+    .question-terms > span { color:var(--muted); font-size:13px; }
+    .term-chip { border:1px solid var(--line); border-radius:999px; background:#fffaf3; color:var(--accent); padding:5px 10px; font-size:13px; }
+    .term-card { position:fixed; z-index:50; width:min(350px,calc(100vw - 28px)); max-height:420px; overflow:auto; padding:18px; border:1px solid var(--line); border-radius:18px; background:#fffdf9; box-shadow:0 18px 48px rgba(63,46,30,.18); }
+    .term-card h3 { margin:0 0 5px; font-family:var(--serif); }
+    .term-card .term-source { color:var(--muted); font-size:12px; }
+    .term-card .term-example { white-space:pre-line; margin-top:10px; padding-top:10px; border-top:1px solid var(--line); }
+    .term-card .term-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+    .term-card .term-actions a,.term-card .term-actions button { padding:7px 10px; border:1px solid var(--line); border-radius:999px; background:#fffaf3; color:var(--accent); text-decoration:none; font:inherit; font-size:12px; }
+
+    .options {
+      display: grid;
+      gap: 10px;
+    }
+
+    .option {
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 10px;
+      align-items: start;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fffaf3;
+      cursor: pointer;
+      transition: 0.16s ease;
+    }
+
+    .option:hover {
+      border-color: #c7a98f;
+      transform: translateY(-1px);
+    }
+
+    .option input {
+      width: 18px;
+      height: 18px;
+      margin-top: 5px;
+      accent-color: var(--accent);
+    }
+
+    .option.is-selected {
+      border-color: var(--accent);
+      background: #fff3e3;
+    }
+
+    .option.is-correct {
+      border-color: rgba(36, 122, 74, 0.6);
+      background: #eef8f1;
+    }
+
+    .option.is-wrong {
+      border-color: rgba(180, 59, 50, 0.55);
+      background: #fff0ee;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      margin-top: 22px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: 0;
+      border-radius: 999px;
+      padding: 10px 16px;
+      background: #2d2118;
+      color: #fff;
+      cursor: pointer;
+      font: inherit;
+    }
+
+    button.secondary {
+      background: #efe6db;
+      color: var(--ink);
+    }
+
+    button.ghost {
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--line);
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .side {
+      padding: 18px;
+      position: sticky;
+      top: 18px;
+    }
+
+    .progress-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .qdot {
+      height: 40px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: #fffaf3;
+      cursor: pointer;
+      color: var(--muted);
+    }
+
+    .qdot.current {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-soft);
+      font-weight: 700;
+    }
+
+    .qdot.answered::after {
+      content: "✓";
+      margin-left: 2px;
+      font-size: 12px;
+    }
+
+    .qdot.correct {
+      border-color: rgba(36, 122, 74, 0.45);
+      background: #eff8f2;
+      color: var(--good);
+    }
+
+    .qdot.wrong {
+      border-color: rgba(180, 59, 50, 0.45);
+      background: #fff0ee;
+      color: var(--bad);
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 13px;
+      margin: 8px 0 0;
+    }
+
+    .analysis {
+      margin-top: 18px;
+      border-top: 1px solid var(--line);
+      padding-top: 18px;
+      display: none;
+    }
+
+    .analysis.show {
+      display: block;
+    }
+
+    .analysis h3,
+    .report h2 {
+      margin: 0 0 8px;
+      line-height: 1.25;
+    }
+
+    .answer-line {
+      font-weight: 800;
+    }
+
+    .answer-line .good {
+      color: var(--good);
+    }
+
+    .answer-line .bad {
+      color: var(--bad);
+    }
+
+    .tags {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 10px 0;
+    }
+
+    .tag {
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: #f2ebe2;
+      color: #5f5145;
+      font-size: 12px;
+    }
+
+    .report {
+      padding: 22px;
+      margin-top: 18px;
+      display: none;
+    }
+
+    .report.show {
+      display: block;
+    }
+
+    .score {
+      font-size: 42px;
+      line-height: 1;
+      margin: 8px 0 12px;
+      letter-spacing: -0.04em;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 14px 0;
+    }
+
+    .stat {
+      padding: 12px;
+      border-radius: 16px;
+      background: #fff8ef;
+      border: 1px solid var(--line);
+    }
+
+    .stat b {
+      display: block;
+      font-size: 22px;
+    }
+
+    .review-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .review-item {
+      padding: 14px;
+      border-radius: 16px;
+      background: #fffaf3;
+      border: 1px solid var(--line);
+    }
+
+    .loading,
+    .error {
+      padding: 28px;
+    }
+
+    @media (max-width: 860px) {
+      .hero,
+      .layout {
+        display: block;
+      }
+
+      .side {
+        position: static;
+        margin-top: 14px;
+      }
+
+      .stat-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="account-bar" id="accountBar" hidden></div>
+    <section class="hero">
+      <div>
+        <h1>片段阅读极简答题</h1>
+        <p class="subtitle" id="pageSubtitle">读取题库清单中：作答前不暴露答案；交卷后展示官方解析，并由真实 AI 导师结合本次作答生成诊断。</p>
+      </div>
+      <span class="pill" id="dataStatus">读取题目中…</span>
+    </section>
+
+    <section class="layout" id="app">
+      <div class="card loading">题目加载中。如果一直卡住，请用本地静态服务打开，不要直接双击 HTML。</div>
+    </section>
+
+    <section class="card report" id="report"></section>
+  </main>
+
+  <script>
+    const API = window.__GONTU_API_BASE__ || (location.port === "8089" ? "http://127.0.0.1:8888" : location.origin);
+    const TOKEN_KEY = "gontu_token";
+
+    const state = {
+      sets: [],
+      questions: [],
+      activeSet: null,
+      sessionId: null,
+      session: null,
+      user: null,
+      current: 0,
+      answers: {},
+      submitted: false,
+      startedAt: Date.now(),
+      questionStartedAt: Date.now(),
+      saving: false,
+      saveMessage: "",
+      aiGenerating: false,
+      aiMessage: "",
+      followupSending: false,
+      followupMessage: "",
+      recommendations: [],
+      recommendationsLoading: false,
+      vocabCache: new Map()
+    };
+
+    const app = document.getElementById("app");
+    const report = document.getElementById("report");
+    const dataStatus = document.getElementById("dataStatus");
+    const pageSubtitle = document.getElementById("pageSubtitle");
+    const accountBar = document.getElementById("accountBar");
+
+    function authHeaders(extra = {}) {
+      return {
+        ...extra,
+        Authorization: `Bearer ${localStorage.getItem(TOKEN_KEY) || ""}`
+      };
+    }
+
+    async function apiFetch(path, options = {}) {
+      const response = await fetch(`${API}${path}`, {
+        ...options,
+        headers: authHeaders(options.headers || {})
+      });
+      if (response.status === 401) {
+        localStorage.removeItem(TOKEN_KEY);
+        throw new Error("AUTH_REQUIRED");
+      }
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.detail || data.error || `请求失败 ${response.status}`);
+      return data;
+    }
+
+    function closeTermCard() {
+      document.getElementById("readingTermCard")?.remove();
+    }
+
+    async function saveTermFavorite(term) {
+      const states = await apiFetch("/api/verbal-catalog/vocab/state");
+      const current = states.find((item) => item.word === term) || {};
+      await apiFetch("/api/verbal-catalog/vocab/state", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          word: term, study_count: current.study_count || 0,
+          forget_count: current.forget_count || 0, interval_idx: current.interval_idx || 0,
+          mastered: Boolean(current.mastered), favorite: true,
+          last_study_date: current.last_study_date || "", next_review_date: current.next_review_date || ""
+        })
+      });
+    }
+
+    async function addTermTask(term) {
+      await apiFetch("/api/learning/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ module_id: "verbal.vocab", task_type: "vocab_review", title: `复习词语：${term}`, target_count: 1 })
+      });
+    }
+
+    async function showTermCard(term, anchor) {
+      closeTermCard();
+      let item = state.vocabCache.get(term);
+      if (!item) {
+        const result = await apiFetch(`/api/verbal-catalog/vocab?search=${encodeURIComponent(term)}&limit=20`);
+        item = (result.items || []).find((entry) => entry.word === term);
+        if (item) state.vocabCache.set(term, item);
+      }
+      const card = document.createElement("aside");
+      card.id = "readingTermCard";
+      card.className = "term-card";
+      const known = Boolean(item);
+      const peopleUrl = item?.search_url || `https://search.people.cn/s?keyword=${encodeURIComponent(term)}`;
+      card.innerHTML = `<h3>${escapeHtml(term)}</h3><div class="term-source">${known ? "内置词库" : "待补充"}</div><p>${escapeHtml(item?.meaning || "词库暂未收录，不生成虚假释义。")}</p>${known ? `<div class="term-example"><b>例句</b><br>${(item.examples || []).map(escapeHtml).join("<br>")}</div>` : ""}<div class="term-actions"><button data-term-task>加入复习任务</button><button data-term-favorite ${known ? "" : "disabled"}>收藏</button><a target="_blank" rel="noreferrer" href="${escapeHtml(peopleUrl)}">人民网</a></div>`;
+      document.body.appendChild(card);
+      const rect = anchor.getBoundingClientRect();
+      card.style.left = `${Math.min(Math.max(14, rect.left), innerWidth - card.offsetWidth - 14)}px`;
+      card.style.top = `${Math.max(14, Math.min(rect.bottom + 8, innerHeight - card.offsetHeight - 14))}px`;
+      card.querySelector("[data-term-task]").onclick = async () => { await addTermTask(term); card.querySelector("[data-term-task]").textContent = "已加入任务"; };
+      const favorite = card.querySelector("[data-term-favorite]");
+      if (favorite) favorite.onclick = async () => { await saveTermFavorite(term); favorite.textContent = "已收藏"; };
+    }
+
+    function showLoginGate(message = "登录后才能保存答题记录") {
+      dataStatus.textContent = "需要登录";
+      accountBar.hidden = true;
+      accountBar.innerHTML = "";
+      report.classList.remove("show");
+      report.innerHTML = "";
+      state.questions = [];
+      state.answers = {};
+      state.session = null;
+      state.sessionId = null;
+      const next = encodeURIComponent(`${location.pathname}${location.search}`);
+      app.innerHTML = `<section class="card login-gate"><h2>先登录，再开始训练</h2><p>${escapeHtml(message)}</p><p class="small">登录后，每次选择都会保存；刷新或重新登录仍能继续。</p><a href="login.html?next=${next}"><button>前往登录</button></a></section>`;
+    }
+
+    function renderAccount() {
+      accountBar.hidden = false;
+      accountBar.innerHTML = `<span>学习账号：${escapeHtml(state.user.username)}</span><button class="ghost" id="logoutBtn">退出登录</button>`;
+      document.getElementById("logoutBtn").addEventListener("click", () => {
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem("username");
+        localStorage.removeItem("user_id");
+        localStorage.removeItem("is_admin");
+        showLoginGate("已安全退出。后端练习记录没有删除，下次登录仍可恢复。");
+      });
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function tagHtml(tags = []) {
+      return tags.map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`).join("");
+    }
+
+    function getQuestionType(q) {
+      return q.learning_tags?.question_type || "未标注";
+    }
+
+    function getMethodTags(q) {
+      return q.learning_tags?.method_tags || [];
+    }
+
+    function getWeakSteps(q) {
+      return q.learning_tags?.weak_steps || [];
+    }
+
+    function getSelectedTrapTags(q) {
+      const userAnswer = state.answers[q.id];
+      if (!userAnswer || userAnswer === q.answer) return [];
+      return q.learning_tags?.option_trap_tags?.[userAnswer] || [];
+    }
+
+    function getCoachDiagnosis(q) {
+      const userAnswer = state.answers[q.id];
+      if (!state.submitted) return "";
+      if (!userAnswer) {
+        return "这题未作答。优先判断是不是时间分配问题：这类题下次先用 10 秒看设问、题型和文段结构，别直接陷进全文细读。";
+      }
+      if (userAnswer === q.answer) {
+        return "这题答对了。复盘时重点记住你用对的抓手：题型、结构和正确选项的范围。";
+      }
+      const traps = getSelectedTrapTags(q);
+      const weakSteps = getWeakSteps(q).slice(0, 3);
+      const trapText = traps.length ? `你选的 ${userAnswer} 更像是「${traps.join(" / ")}」干扰。` : `你选的 ${userAnswer} 与正确项的核心差异需要回到原文定位。`;
+      const weakText = weakSteps.length ? `建议盯住：${weakSteps.join("、")}。` : "建议回到题型方法重新定位。";
+      return `${trapText}${weakText}`;
+    }
+
+    function diagnosisHtml() {
+      const run = state.session?.ai_run;
+      const status = state.session?.ai_status || "not_started";
+      if (state.aiGenerating || status === "running" || status === "queued") {
+        return `<div class="review-item"><b>真实 AI 导师 · 生成中</b><p>DeepSeek正在读取本次真实作答、官方解析和言语Skill，请稍候。</p></div>`;
+      }
+      if (status === "completed" && run?.diagnosis) {
+        const diagnosis = run.diagnosis;
+        const weakness = diagnosis.primary_weakness;
+        return `
+          <div class="review-item">
+            <b>真实 AI 导师 · 已生成</b>
+            <p>${escapeHtml(diagnosis.summary)}</p>
+            ${weakness ? `<p><b>本套关键弱项：</b>${escapeHtml(weakness.skill)}（置信度 ${Math.round(weakness.confidence * 100)}%）</p><p>${escapeHtml(weakness.reason)}</p>` : ""}
+            <p class="small">DeepSeek · ${escapeHtml(run.model)} · Skill ${escapeHtml(run.skill_version)} · ${run.latency_ms || "-"} ms</p>
+          </div>
+          ${(diagnosis.mistake_patterns || []).map((pattern) => `<div class="review-item"><b>${escapeHtml(pattern.label)}</b><p>${escapeHtml(pattern.explanation)}</p><p class="small">依据题目：${pattern.question_ids.map(escapeHtml).join("、")}</p></div>`).join("")}
+          ${(diagnosis.question_feedback || []).map((item) => `<div class="review-item"><b>第 ${escapeHtml(state.questions.find((q) => q.id === item.question_id)?.question_no || item.question_id)} 题 AI 诊断</b><p>${escapeHtml(item.why_user_missed)}</p><p><b>更稳路径：</b>${item.better_path.map(escapeHtml).join(" → ")}</p><p><b>下次信号：</b>${escapeHtml(item.next_signal)}</p></div>`).join("")}
+        `;
+      }
+      if (["failed", "timed_out", "invalid_output"].includes(status)) {
+        return `<div class="review-item"><b>真实 AI 导师 · 暂不可用</b><p>${escapeHtml(state.aiMessage || "本次模型调用失败；官方解析与花生批注仍可正常查看。")}</p><button id="diagnosisBtn">重试生成</button></div>`;
+      }
+      return `<div class="review-item"><b>真实 AI 导师 · 待生成</b><p>将基于本次真实选择、用时、官方解析和花生批注生成诊断。</p><button id="diagnosisBtn">生成真实 AI 诊断</button></div>`;
+    }
+
+    async function generateDiagnosis() {
+      if (!state.submitted || state.aiGenerating) return;
+      state.aiGenerating = true;
+      state.aiMessage = "";
+      renderReport();
+      try {
+        state.session = await apiFetch(`/api/verbal-reading/sessions/${state.sessionId}/diagnosis`, { method: "POST" });
+        void fetchRecommendations();
+      } catch (error) {
+        state.aiMessage = error.message === "provider_timeout" ? "DeepSeek响应超时，请稍后重试。" : `AI暂不可用（${error.message}），官方解析未受影响。`;
+        try {
+          state.session = await apiFetch(`/api/verbal-reading/sessions/${state.sessionId}`);
+        } catch (_) {}
+      } finally {
+        state.aiGenerating = false;
+        renderReport();
+      }
+    }
+
+    function followupHtml() {
+      const messages = state.session?.messages || [];
+      return `
+        <div class="review-list">
+          ${messages.length ? messages.map((message) => `
+            <div class="review-item message ${message.role}">
+              <b>${message.role === "user" ? "你" : "AI导师"}${message.question_id ? ` · 第 ${escapeHtml(state.questions.find((q) => q.id === message.question_id)?.question_no || "-")} 题` : " · 本套"}</b>
+              <p>${escapeHtml(message.content)}</p>
+            </div>
+          `).join("") : `<div class="review-item">还没有追问。你可以选择某道题，直接问“我为什么会被这个选项吸引？”</div>`}
+        </div>
+        <div class="followup-form">
+          <select id="followupQuestion" aria-label="追问关联题目">
+            <option value="">围绕整套练习</option>
+            ${state.questions.map((q) => `<option value="${escapeHtml(q.id)}">第 ${q.question_no} 题 · ${escapeHtml(getQuestionType(q))}</option>`).join("")}
+          </select>
+          <textarea id="followupInput" aria-label="向AI导师追问" placeholder="例如：第20题我知道尾句是对策，为什么还是会选A？"></textarea>
+          <button id="followupBtn" ${state.followupSending ? "disabled" : ""}>${state.followupSending ? "AI正在回答…" : "发送追问"}</button>
+          <div class="save-state">${escapeHtml(state.followupMessage)}</div>
+        </div>
+      `;
+    }
+
+    async function sendFollowup() {
+      if (state.followupSending) return;
+      const input = document.getElementById("followupInput");
+      const question = document.getElementById("followupQuestion");
+      const content = input?.value.trim();
+      if (!content) {
+        state.followupMessage = "请先输入问题。";
+        renderReport();
+        return;
+      }
+      state.followupSending = true;
+      state.followupMessage = "已保存你的问题，DeepSeek正在结合本次练习回答。";
+      renderReport();
+      try {
+        state.session = await apiFetch(`/api/verbal-reading/sessions/${state.sessionId}/messages`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ content, question_id: question?.value || null })
+        });
+        state.followupMessage = "回答已保存，刷新后仍会保留。";
+      } catch (error) {
+        state.followupMessage = `追问暂时失败：${error.message}`;
+        try { state.session = await apiFetch(`/api/verbal-reading/sessions/${state.sessionId}`); } catch (_) {}
+      } finally {
+        state.followupSending = false;
+        renderReport();
+      }
+    }
+
+    function recommendationsHtml() {
+      if (state.recommendationsLoading) return `<div class="review-item">正在从600题中匹配同类原题…</div>`;
+      if (!state.recommendations.length) return `<div class="review-item">真实AI诊断完成后，将从其余29套题中检索3—5道同类原题。</div>`;
+      return state.recommendations.map((item) => `
+        <div class="review-item">
+          <b>${escapeHtml(item.set_label)} · 第 ${item.question_no} 题 · ${escapeHtml(item.question_type)}</b>
+          <p>${escapeHtml(item.content.prompt)}</p>
+          <div class="tags">${tagHtml(item.reason_tags)}</div>
+          <p class="small">${escapeHtml(item.reason)}</p>
+          <button data-start-recommendation="${escapeHtml(item.question_id)}" data-set-id="${escapeHtml(item.set_id)}">开始强化</button>
+        </div>
+      `).join("");
+    }
+
+    async function fetchRecommendations() {
+      if (state.session?.ai_status !== "completed" || state.recommendationsLoading) return;
+      state.recommendationsLoading = true;
+      renderReport();
+      try {
+        state.recommendations = await apiFetch(`/api/verbal-reading/sessions/${state.sessionId}/recommendations`);
+      } catch (_) {
+        state.recommendations = [];
+      } finally {
+        state.recommendationsLoading = false;
+        renderReport();
+      }
+    }
+
+    async function beginRecommendation(setId, questionId) {
+      await loadQuestions(setId, { forceNew: true });
+      const index = state.questions.findIndex((question) => question.id === questionId);
+      if (index >= 0) goTo(index);
+    }
+
+    function countItems(items) {
+      const map = new Map();
+      items.forEach((item) => map.set(item, (map.get(item) || 0) + 1));
+      return Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
+    }
+
+    function getDrillBlueprint(label) {
+      const drills = {
+        "中心理解题": {
+          title: "同类题训练：中心理解题",
+          focus: "给 3 段说理文，每段只问主旨。要求先标主题词，再判断结构，最后排除片面项/问题项/无中生有项。",
+          prompt: "AI 出题时应刻意设置一个“只说问题”的干扰项和一个“过度扩大”的干扰项。"
+        },
+        "语句排序题": {
+          title: "同类题训练：语句排序题",
+          focus: "给 3 组 5-6 句排序题。要求先分句群，再找指代词、总起句、承上启下句。",
+          prompt: "AI 出题时应让首句不明显，逼学生用句群和衔接验证，而不是猜首句。"
+        },
+        "语句填入题": {
+          title: "同类题训练：语句填入题",
+          focus: "给 3 道横线在中间/结尾的填入题。要求横线前后各概括一句，看它是承上启下还是总结对策。",
+          prompt: "AI 出题时应设置一个只承上不启下、一个话题偷换、一个对策不针对问题的干扰项。"
+        },
+        "细节判断题": {
+          title: "同类题训练：细节判断题",
+          focus: "给 3 道“没有提及/理解正确”的细节题。要求逐项定位，特别训练对象偷换和否定设问。",
+          prompt: "AI 出题时应设置一个原文看似出现但对象不同的选项。"
+        },
+        "标题拟定题": {
+          title: "同类题训练：标题拟定题",
+          focus: "给 3 道标题题。要求先找文段主体，再判断标题范围，排除过文艺、缺主体、过具体的选项。",
+          prompt: "AI 出题时应设置一个漂亮但缺主体的标题干扰项。"
+        },
+        "尾句观点": {
+          title: "专项小练：尾句观点",
+          focus: "训练看到尾句观点、因此、对此、科学家认为等信号后，判断前文是铺垫还是核心。",
+          prompt: "AI 出题时应安排前文有醒目例子，但正确答案必须落在尾句观点。"
+        },
+        "对策优先": {
+          title: "专项小练：对策优先",
+          focus: "训练区分“问题表述”和“解决对策”。主旨题里若文段最后给对策，答案优先选对策项。",
+          prompt: "AI 出题时应设置 A/C 为问题项，D 为问题+对策完整项。"
+        },
+        "承上启下": {
+          title: "专项小练：承上启下",
+          focus: "训练横线在中间时，先概括前后两段，再找能同时连接两边的选项。",
+          prompt: "AI 出题时应让一个选项只接前文、一个只接后文、一个偷换话题。"
+        },
+        "选项排除": {
+          title: "专项小练：干扰项识别",
+          focus: "专门练片面、无中生有、问题项、缺主题词、范围扩大这些高频干扰。",
+          prompt: "AI 出题时每题要求输出“为什么其他三项错”，不只给答案。"
+        }
+      };
+      return drills[label] || {
+        title: `专项小练：${label}`,
+        focus: `围绕「${label}」做 3 道短训练题，要求每题写出定位句、排除理由和一句复盘口诀。`,
+        prompt: "AI 出题时应刻意制造一个最像正确答案的干扰项，并解释它错在哪里。"
+      };
+    }
+
+    function isCorrect(q) {
+      return state.answers[q.id] === q.answer;
+    }
+
+    async function selectAnswer(questionId, key) {
+      if (state.submitted || state.saving) return;
+      const previous = state.answers[questionId];
+      state.answers[questionId] = key;
+      state.saving = true;
+      state.saveMessage = "保存中…";
+      render();
+      try {
+        const session = await apiFetch(`/api/verbal-reading/sessions/${state.sessionId}/answers`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            question_id: questionId,
+            answer: key,
+            elapsed_ms: Math.max(0, Math.min(30 * 60 * 1000, Date.now() - state.questionStartedAt))
+          })
+        });
+        state.session = session;
+        state.saveMessage = "已保存";
+      } catch (error) {
+        if (previous) state.answers[questionId] = previous;
+        else delete state.answers[questionId];
+        state.saveMessage = error.message === "AUTH_REQUIRED" ? "登录已失效" : `保存失败：${error.message}`;
+        if (error.message === "AUTH_REQUIRED") showLoginGate("登录状态已失效，请重新登录后继续。");
+      } finally {
+        state.saving = false;
+        render();
+      }
+    }
+
+    function goTo(index) {
+      state.current = Math.max(0, Math.min(index, state.questions.length - 1));
+      state.questionStartedAt = Date.now();
+      render();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    async function submitSet() {
+      if (state.saving || Object.keys(state.answers).length !== state.questions.length) return;
+      state.saving = true;
+      state.saveMessage = "正在交卷…";
+      render();
+      try {
+        const session = await apiFetch(`/api/verbal-reading/sessions/${state.sessionId}/submit`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ elapsed_ms: Math.max(0, Math.min(6 * 60 * 60 * 1000, Date.now() - state.startedAt)) })
+        });
+        state.session = session;
+        state.questions = session.review_questions;
+        state.submitted = true;
+        state.saveMessage = "交卷成功，成绩已保存";
+        render();
+        renderReport();
+        report.classList.add("show");
+        report.scrollIntoView({ behavior: "smooth", block: "start" });
+        void generateDiagnosis();
+      } catch (error) {
+        state.saveMessage = `交卷失败：${error.message}`;
+        if (error.message === "AUTH_REQUIRED") showLoginGate("登录状态已失效，请重新登录后继续。");
+      } finally {
+        state.saving = false;
+        if (state.questions.length) render();
+      }
+    }
+
+    async function resetSet() {
+      await loadQuestions(state.activeSet.set_id, { forceNew: true });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function setPickerHtml() {
+      if (!state.sets.length) return "";
+      return `
+        <div class="set-picker">
+          <select id="setSelect" aria-label="选择套题">
+            ${state.sets.map((item) => `
+              <option value="${escapeHtml(item.set_id)}" ${state.activeSet?.set_id === item.set_id ? "selected" : ""}>
+                ${escapeHtml(item.label)}（${item.question_count} 题）
+              </option>
+            `).join("")}
+          </select>
+        </div>
+      `;
+    }
+
+    function render() {
+      const q = state.questions[state.current];
+      if (!q) return;
+      const userAnswer = state.answers[q.id];
+      const answeredCount = Object.keys(state.answers).length;
+      const elapsedMinutes = Math.max(1, Math.round((Date.now() - state.startedAt) / 60000));
+
+      app.innerHTML = `
+        ${setPickerHtml()}
+        <article class="card question-card">
+          <div class="meta">
+            <span>第 ${q.question_no} 题 / 共 ${state.questions.length} 题</span>
+            <span>${escapeHtml(getQuestionType(q))} · 建议 ${q.learning_tags?.estimated_seconds || "-"} 秒</span>
+          </div>
+          <p class="stem">${escapeHtml(q.content.stem)}</p>
+          <p class="prompt">${escapeHtml(q.content.prompt)}</p>
+          ${(q.related_terms || []).length ? `<div class="question-terms"><span>题中词语</span>${q.related_terms.map((term) => `<button class="term-chip" data-reading-term="${escapeHtml(term)}">${escapeHtml(term)}</button>`).join("")}</div>` : ""}
+          <div class="options">
+            ${q.content.options.map((option) => {
+              const selected = userAnswer === option.key;
+              const correct = state.submitted && q.answer === option.key;
+              const wrong = state.submitted && selected && !correct;
+              return `
+                <label class="option ${selected ? "is-selected" : ""} ${correct ? "is-correct" : ""} ${wrong ? "is-wrong" : ""}">
+                  <input type="radio" name="${escapeHtml(q.id)}" value="${option.key}" ${selected ? "checked" : ""} ${(state.submitted || state.saving) ? "disabled" : ""} />
+                  <span><b>${option.key}.</b> ${escapeHtml(option.text)}</span>
+                </label>
+              `;
+            }).join("")}
+          </div>
+
+          <section class="analysis ${state.submitted ? "show" : ""}">
+            <p class="answer-line">
+              你的答案：<span class="${isCorrect(q) ? "good" : "bad"}">${escapeHtml(userAnswer || "未作答")}</span>
+              ｜正确答案：<span class="good">${escapeHtml(q.answer)}</span>
+            </p>
+            <div class="tags">${tagHtml(getMethodTags(q))}</div>
+            <h3>核心解析</h3>
+            <p>${escapeHtml(q.official_analysis)}</p>
+            <h3>花生批注/方法点</h3>
+            <ul>${(q.peanut_notes || []).map((note) => `<li>${escapeHtml(note)}</li>`).join("")}</ul>
+            <h3>原题补充提示（静态资料）</h3>
+            <p>${escapeHtml(q.ai_brief_example)}</p>
+            <h3>程序规则复盘（非 AI）</h3>
+            <p>${escapeHtml(getCoachDiagnosis(q))}</p>
+          </section>
+
+          <div class="actions">
+            <div>
+              <button class="secondary" id="prevBtn" ${state.current === 0 ? "disabled" : ""}>上一题</button>
+              <button class="secondary" id="nextBtn" ${state.current === state.questions.length - 1 ? "disabled" : ""}>下一题</button>
+            </div>
+            <div>
+              ${state.submitted ? `<button class="ghost" id="resetBtn">重新开始本套</button>` : `<button id="submitBtn" ${(answeredCount !== state.questions.length || state.saving) ? "disabled" : ""}>${answeredCount === state.questions.length ? "交卷看解析" : `还差 ${state.questions.length - answeredCount} 题`}</button>`}
+            </div>
+          </div>
+          <div class="save-state" role="status">${escapeHtml(state.saveMessage || "每次选择都会自动保存")}</div>
+        </article>
+
+        <aside class="card side">
+          <b>答题进度</b>
+          <p class="small">${answeredCount}/${state.questions.length} 已作答 · 用时约 ${elapsedMinutes} 分钟</p>
+          <div class="progress-grid">
+            ${state.questions.map((item, index) => {
+              const answered = Boolean(state.answers[item.id]);
+              const cls = [
+                index === state.current ? "current" : "",
+                answered ? "answered" : "",
+                state.submitted && isCorrect(item) ? "correct" : "",
+                state.submitted && answered && !isCorrect(item) ? "wrong" : ""
+              ].join(" ");
+              return `<button class="qdot ${cls}" data-index="${index}">${item.question_no}</button>`;
+            }).join("")}
+          </div>
+          <p class="small">答题阶段服务端不会返回答案或解析。20题全部完成后才能交卷。</p>
+        </aside>
+      `;
+
+      app.querySelectorAll(".option").forEach((label) => {
+        const input = label.querySelector("input");
+        label.addEventListener("click", () => selectAnswer(q.id, input.value));
+      });
+      app.querySelectorAll("[data-reading-term]").forEach((button) => {
+        const open = () => showTermCard(button.dataset.readingTerm, button).catch((error) => {
+          if (error.message !== "AUTH_REQUIRED") console.warn("[TermCard]", error.message);
+        });
+        button.addEventListener("mouseenter", open);
+        button.addEventListener("focus", open);
+        button.addEventListener("click", open);
+      });
+      app.querySelectorAll(".qdot").forEach((button) => {
+        button.addEventListener("click", () => goTo(Number(button.dataset.index)));
+      });
+      document.getElementById("prevBtn")?.addEventListener("click", () => goTo(state.current - 1));
+      document.getElementById("nextBtn")?.addEventListener("click", () => goTo(state.current + 1));
+      document.getElementById("submitBtn")?.addEventListener("click", submitSet);
+      document.getElementById("resetBtn")?.addEventListener("click", resetSet);
+      document.getElementById("setSelect")?.addEventListener("change", (event) => loadQuestions(event.target.value));
+    }
+
+    function renderReport() {
+      const total = state.questions.length;
+      const correctItems = state.questions.filter(isCorrect);
+      const wrongItems = state.questions.filter((q) => !isCorrect(q));
+      const serverScore = Number.isInteger(state.session?.score) ? state.session.score : correctItems.length;
+      const accuracy = Math.round((serverScore / total) * 100);
+      const typeMap = new Map();
+      const methodMissMap = new Map();
+      const weakStepMissMap = new Map();
+      const trapMissMap = new Map();
+
+      state.questions.forEach((q) => {
+        const type = getQuestionType(q);
+        const bucket = typeMap.get(type) || { total: 0, wrong: 0 };
+        bucket.total += 1;
+        if (!isCorrect(q)) bucket.wrong += 1;
+        typeMap.set(type, bucket);
+      });
+
+      wrongItems.forEach((q) => {
+        getMethodTags(q).forEach((tag) => methodMissMap.set(tag, (methodMissMap.get(tag) || 0) + 1));
+        getWeakSteps(q).forEach((step) => weakStepMissMap.set(step, (weakStepMissMap.get(step) || 0) + 1));
+        getSelectedTrapTags(q).forEach((trap) => trapMissMap.set(trap, (trapMissMap.get(trap) || 0) + 1));
+      });
+
+      const weakMethods = Array.from(methodMissMap.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 6);
+      const weakSteps = Array.from(weakStepMissMap.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 6);
+      const trapTags = Array.from(trapMissMap.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 6);
+      const weakestTypes = Array.from(typeMap.entries())
+        .filter(([, item]) => item.wrong > 0)
+        .sort((a, b) => (b[1].wrong / b[1].total) - (a[1].wrong / a[1].total))
+        .slice(0, 3)
+        .map(([type]) => type);
+      const drillLabels = Array.from(new Set([
+        ...weakestTypes,
+        ...weakMethods.slice(0, 3).map(([tag]) => tag)
+      ])).slice(0, 5);
+      const drillBlueprints = drillLabels.map(getDrillBlueprint);
+      const nextPlan = wrongItems.length
+        ? `下一轮不要直接刷新一套。先做 ${drillBlueprints.length || 1} 组同类小练，再回头重做错题。重点不是背答案，而是验证你能不能稳定说出“定位句—结构—排除理由”。`
+        : "这 20 题暂时没有暴露明显弱项。下一轮可以提高速度：限定 18 分钟完成，并要求每题只写一句定位理由。";
+
+      report.innerHTML = `
+        <h2>本套结果</h2>
+        <div class="score">${serverScore}/${total} · ${accuracy}%</div>
+        <p class="small">成绩由服务端依据正式题库判定，练习记录已绑定当前登录账号。</p>
+        <p class="small">答案串：${state.questions.map((q) => q.answer).join("")}</p>
+        <div class="stat-grid">
+          <div class="stat"><b>${wrongItems.length}</b><span>错题/未作答</span></div>
+          <div class="stat"><b>${Object.keys(state.answers).length}</b><span>已作答</span></div>
+          <div class="stat"><b>${Math.max(1, Math.round((state.session?.elapsed_ms || (Date.now() - state.startedAt)) / 60000))} 分</b><span>提交用时</span></div>
+        </div>
+
+        <h3>真实 AI 导师</h3>
+        <div class="review-list">${diagnosisHtml()}</div>
+
+        <h3>继续追问</h3>
+        ${followupHtml()}
+
+        <h3>同类原题强化</h3>
+        <div class="review-list">${recommendationsHtml()}</div>
+
+        <h3>题型表现</h3>
+        <div class="review-list">
+          ${Array.from(typeMap.entries()).map(([type, item]) => `
+            <div class="review-item">${escapeHtml(type)}：错 ${item.wrong} / 共 ${item.total}</div>
+          `).join("")}
+        </div>
+
+        <h3>高频失分方法点</h3>
+        <div class="tags">${weakMethods.length ? weakMethods.map(([tag, count]) => `<span class="tag">${escapeHtml(tag)} × ${count}</span>`).join("") : `<span class="tag">暂无错题，先快乐一下</span>`}</div>
+
+        <h3>程序统计复盘</h3>
+        <p class="small">以下内容来自题库标签和程序统计，不是真实 AI 诊断；上方“真实 AI 导师”区域才是DeepSeek动态结果。</p>
+        <div class="review-list">
+          <div class="review-item">
+            <b>关键弱项</b>
+            <div class="tags">${weakSteps.length ? weakSteps.map(([step, count]) => `<span class="tag">${escapeHtml(step)} × ${count}</span>`).join("") : `<span class="tag">暂无明显弱项</span>`}</div>
+          </div>
+          <div class="review-item">
+            <b>你容易掉进的选项坑</b>
+            <div class="tags">${trapTags.length ? trapTags.map(([trap, count]) => `<span class="tag">${escapeHtml(trap)} × ${count}</span>`).join("") : `<span class="tag">暂无干扰项统计</span>`}</div>
+          </div>
+          <div class="review-item">
+            <b>下一轮训练建议</b>
+            <p>${escapeHtml(nextPlan)}</p>
+          </div>
+        </div>
+
+        <h3>训练方向草案（非 AI 推荐）</h3>
+        <div class="review-list">
+          ${drillBlueprints.length ? drillBlueprints.map((drill) => `
+            <div class="review-item">
+              <b>${escapeHtml(drill.title)}</b>
+              <p>${escapeHtml(drill.focus)}</p>
+              <p class="small">后续检索条件草案：${escapeHtml(drill.prompt)}</p>
+            </div>
+          `).join("") : `<div class="review-item">本套全对时，同类题可以改成限时训练：20 题压到 18 分钟，并要求每题一句定位理由。</div>`}
+        </div>
+
+        <h3>错题回看</h3>
+        <div class="review-list">
+          ${wrongItems.length ? wrongItems.map((q) => `
+            <div class="review-item">
+              <b>第 ${q.question_no} 题｜${escapeHtml(getQuestionType(q))}</b>
+              <p class="small">你的答案：${escapeHtml(state.answers[q.id] || "未作答")} ｜正确答案：${escapeHtml(q.answer)}</p>
+              <p class="small">程序规则复盘：${escapeHtml(getCoachDiagnosis(q))}</p>
+              <p>${escapeHtml(q.ai_brief_example)}</p>
+              <button class="secondary" data-review-jump="${q.question_no}">回到第 ${q.question_no} 题</button>
+            </div>
+          `).join("") : `<div class="review-item">全对。这个页面它甚至还没来得及教育你，挺好。</div>`}
+        </div>
+      `;
+
+      report.querySelectorAll("[data-review-jump]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const questionNo = Number(button.dataset.reviewJump);
+          const index = state.questions.findIndex((q) => q.question_no === questionNo);
+          if (index >= 0) goTo(index);
+        });
+      });
+      document.getElementById("diagnosisBtn")?.addEventListener("click", generateDiagnosis);
+      document.getElementById("followupBtn")?.addEventListener("click", sendFollowup);
+      report.querySelectorAll("[data-start-recommendation]").forEach((button) => {
+        button.addEventListener("click", () => beginRecommendation(button.dataset.setId, button.dataset.startRecommendation));
+      });
+    }
+
+    function restoreSession(session, practiceQuestions) {
+      state.session = session;
+      state.sessionId = session.id;
+      state.submitted = session.status === "submitted";
+      state.questions = state.submitted ? session.review_questions : practiceQuestions;
+      state.answers = Object.fromEntries(session.attempts.map((item) => [item.question_id, item.final_answer]));
+      state.startedAt = Date.parse(session.started_at) || Date.now();
+      state.questionStartedAt = Date.now();
+      const firstUnanswered = state.questions.findIndex((question) => !state.answers[question.id]);
+      state.current = state.submitted ? 0 : Math.max(0, firstUnanswered);
+      state.saveMessage = state.submitted ? "历史成绩已恢复" : (session.attempts.length ? "未完成练习已恢复" : "新练习已创建");
+      const url = new URL(location.href);
+      url.searchParams.set("session", session.id);
+      history.replaceState(null, "", url);
+    }
+
+    async function loadQuestions(setId = null, { forceNew = false } = {}) {
+      try {
+        dataStatus.textContent = "同步中…";
+        if (!state.sets.length) state.sets = await apiFetch("/api/verbal-reading/sets");
+        const requestedSetId = setId || state.sets[0]?.set_id;
+        const activeSet = state.sets.find((item) => item.set_id === requestedSetId) || state.sets[0];
+        if (!activeSet) throw new Error("题库清单里没有可加载的套题");
+
+        const [practiceQuestions, sessions] = await Promise.all([
+          apiFetch(`/api/verbal-reading/sets/${encodeURIComponent(activeSet.set_id)}/questions`),
+          apiFetch("/api/verbal-reading/sessions")
+        ]);
+        state.activeSet = activeSet;
+        if (practiceQuestions.length !== activeSet.question_count) {
+          throw new Error(`当前只读到 ${practiceQuestions.length} 题，预期 ${activeSet.question_count} 题`);
+        }
+
+        let session = null;
+        const requestedSessionId = new URLSearchParams(location.search).get("session");
+        if (!forceNew && requestedSessionId) {
+          session = sessions.find((item) => item.id === requestedSessionId && item.set_id === activeSet.set_id) || null;
+        }
+        if (!forceNew && !session) session = sessions.find((item) => item.set_id === activeSet.set_id) || null;
+        if (!session) {
+          session = await apiFetch("/api/verbal-reading/sessions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ set_id: activeSet.set_id })
+          });
+        } else if (session.status === "submitted" && !session.review_questions) {
+          session = await apiFetch(`/api/verbal-reading/sessions/${session.id}`);
+        }
+
+        restoreSession(session, practiceQuestions);
+        dataStatus.textContent = `${activeSet.label} · ${practiceQuestions.length} 题`;
+        pageSubtitle.textContent = `${activeSet.label}｜登录作答、实时保存、刷新恢复；交卷前服务端不返回答案，交卷后由真实DeepSeek导师生成诊断。`;
+        report.classList.remove("show");
+        report.innerHTML = "";
+        render();
+        if (state.submitted) {
+          renderReport();
+          report.classList.add("show");
+          if (state.session.ai_status === "completed") void fetchRecommendations();
+        }
+      } catch (error) {
+        if (error.message === "AUTH_REQUIRED") {
+          showLoginGate("请登录后开始片段阅读训练。");
+          return;
+        }
+        dataStatus.textContent = "读取失败";
+        app.innerHTML = `<div class="card error"><h2>题目读取失败</h2><p>${escapeHtml(error.message)}</p><p class="small">建议通过项目本地服务打开，例如 http://127.0.0.1:8089/verbal-reading-pilot.html。</p></div>`;
+      }
+    }
+
+    async function initialize() {
+      if (!localStorage.getItem(TOKEN_KEY)) {
+        showLoginGate();
+        return;
+      }
+      try {
+        state.user = await apiFetch("/api/auth/me");
+        renderAccount();
+        await loadQuestions();
+      } catch (error) {
+        if (error.message === "AUTH_REQUIRED") showLoginGate("登录状态已失效，请重新登录。");
+        else {
+          dataStatus.textContent = "初始化失败";
+          app.innerHTML = `<div class="card error"><h2>暂时无法开始训练</h2><p>${escapeHtml(error.message)}</p></div>`;
+        }
+      }
+    }
+
+    initialize();
+  </script>
+</body>
+</html>

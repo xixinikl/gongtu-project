@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "record_type": "verbal_reading_question",
+  "fields": {
+    "id": "verbal_hs13_set01_q01",
+    "source": {
+      "name": "2025年花生片段阅读600题",
+      "set_no": 1,
+      "question_no": 1,
+      "question_pdf": "2025年花生片段阅读600题-题本【上】.pdf",
+      "question_physical_pages": [3],
+      "analysis_pdf": "2025年花生片段阅读600题-解析【上】.pdf",
+      "analysis_physical_pages": [3],
+      "review_status": "page_mapped | visually_transcribed | analysis_verified | approved"
+    },
+    "content": {
+      "stem": "题干文本，必须来自题本原页视觉核验",
+      "prompt": "设问文本",
+      "options": [
+        { "key": "A", "text": "选项 A" },
+        { "key": "B", "text": "选项 B" },
+        { "key": "C", "text": "选项 C" },
+        { "key": "D", "text": "选项 D" }
+      ],
+      "answer": "C",
+      "official_analysis": "解析本【实战解析】正文",
+      "peanut_notes": [
+        {
+          "marker": "1",
+          "text": "解析旁栏花生批注",
+          "target": "stem | option | structure | method"
+        }
+      ],
+      "source_type_label": "解析原文中的【题型与文段类型】"
+    },
+    "learning_tags": {
+      "question_type": "中心理解题 | 意图判断题 | 细节理解题 | 标题填入题 | 语句填空题 | 语句排序题 | 词句理解题",
+      "passage_type": "说理类文章 | 科普介绍类文章 | 新闻类文章 | 观点评论类文章 | 叙事说明类文章",
+      "method_tags": [
+        "先看设问",
+        "主题词一致",
+        "行文结构",
+        "转折后重点",
+        "因果关系",
+        "对策优先",
+        "尾句观点",
+        "选项排除"
+      ],
+      "option_trap_tags": {
+        "A": ["片面"],
+        "B": ["区分比较联系类"],
+        "C": ["正确概括"],
+        "D": ["区分比较联系类"]
+      },
+      "weak_steps": [
+        "审问法",
+        "找主题词",
+        "找观点句",
+        "分层结构",
+        "识别对策",
+        "排除干扰项"
+      ],
+      "estimated_seconds": 55
+    },
+    "training_modes": {
+      "single_practice": true,
+      "set_practice": true,
+      "wrong_reason_review": true,
+      "ai_coach_after_answer": true,
+      "method_drill": true
+    },
+    "ai_coach_contract": {
+      "before_submit": "不得暴露答案、官方解析或花生批注。",
+      "after_submit": "先比较用户选项与正确选项，再输出短诊断。",
+      "set_report": "按正确率、耗时、题型分布、错因分布和下一轮训练建议汇总。",
+      "must_not_do": [
+        "不得覆盖官方答案",
+        "不得把 OCR 文本当事实源",
+        "不得把花生批注混入题干",
+        "不得在用户未作答前展示答案线索"
+      ]
+    }
+  }
+}

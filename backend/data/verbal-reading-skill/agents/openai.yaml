@@ -1,0 +1,4 @@
+interface:
+  display_name: "片段阅读 AI 导师"
+  short_description: "依据真实作答证据诊断片段阅读错因并推荐可复测专项训练"
+  default_prompt: "Use $verbal-reading-skill to diagnose this real practice session and recommend evidence-grounded follow-up training."

@@ -100,18 +100,37 @@
             } else {
                 learningZone.innerHTML = `<div class="big-card exam-v3"><header class="exam-head-v3"><div><div class="review-eyebrow-v3">${icon.review}<span>套题结果·流程预览</span></div><h2>交卷后先看客观结果</h2><p>正式数值由真实作答生成，不在界面原型中伪造成绩。</p></div><span class="exam-state-v3">03 · 交卷后</span></header><div class="exam-result-v3"><div><strong>—</strong><small>正确率</small></div><div><strong>—</strong><small>实际用时</small></div><div><strong>—</strong><small>标记/跳过</small></div></div><div class="exam-result-note-v3"><strong>完成后这里会回答三个问题：</strong><br>① 哪个题型丢分最多；② 哪些题用时过长或应该更早跳过；③ 下一组训练应该如何调整做题顺序。AI 只在客观结果之后做解释。</div><div class="exam-start-v3"><button type="button" data-exam-reset-v3>返回组卷</button></div></div>`;
             }
-            rightPanel.innerHTML = `<section class="context-card-v2"><div class="context-title-v2">${icon.review}本次实战</div><p class="context-sub-v2">界面已分为组卷、作答、交卷三个状态，真实题库在 Phase 3 挂接。</p><div class="context-metrics-v2"><div class="context-metric-v2"><strong>20</strong><small>题量</small></div><div class="context-metric-v2"><strong>32</strong><small>建议分钟</small></div><div class="context-metric-v2"><strong>2</strong><small>题型</small></div></div></section><section class="context-card-v2"><div class="context-title-v2">${icon.graph}考场规则</div><div class="reasoning-evidence-v3"><div><b>先做</b><span>问法明确的熟悉题</span><small>稳定拿分</small></div><div><b>标记</b><span>犹豫超过 60 秒</span><small>暂跳</small></div></div></section>`;
+            rightPanel.innerHTML = `<section class="context-card-v2"><div class="context-title-v2">${icon.review}本次实战</div><p class="context-sub-v2">言语和数量分别进入真实服务端套题，混合模式暂不以假数据开放。</p><div class="context-metrics-v2"><div class="context-metric-v2"><strong>30</strong><small>言语套数</small></div><div class="context-metric-v2"><strong>60</strong><small>数量套数</small></div><div class="context-metric-v2"><strong>0</strong><small>假组卷</small></div></div></section><section class="context-card-v2"><div class="context-title-v2">${icon.graph}考场规则</div><div class="reasoning-evidence-v3"><div><b>先做</b><span>问法明确的熟悉题</span><small>稳定拿分</small></div><div><b>标记</b><span>犹豫超过 60 秒</span><small>暂跳</small></div></div></section>`;
+            if (state === 'setup') {
+                const modes = learningZone.querySelectorAll('.exam-mode-v3 button');
+                if (modes[0]) {
+                    modes[0].querySelector('small').textContent = '30 套片段阅读 · 每套 20 题';
+                    modes[0].onclick = () => { location.href = '/verbal-reading-pilot.html'; };
+                }
+                if (modes[1]) {
+                    modes[1].querySelector('small').textContent = '60 套数量关系 · 每套 10 题';
+                    modes[1].onclick = () => { location.href = '/quantity-practice.html'; };
+                }
+                if (modes[2]) {
+                    modes[2].disabled = true;
+                    modes[2].querySelector('small').textContent = '本阶段明确不开放';
+                }
+                const start = learningZone.querySelector('[data-exam-start-v3]');
+                if (start) start.textContent = '开始真实言语专项';
+                const note = learningZone.querySelector('.exam-start-v3 small');
+                if (note) note.textContent = '言语与数量分别进入真实服务端套题；混合组卷不使用假数据。';
+            }
         }
         function renderQuantityV3(kind) {
             const views = {
                 quantityToday:['今日数量训练','先识别题型和值不值得做，再进入计算。'],
-                quantitySingle:['单题诊断','一道题要记录“看出什么、选了什么方法、卡在哪一步”。'],
+                quantitySingle:['单题诊断','一道题要记录“看出什么、选了什么方法、单题时间和卡在哪一步”。'],
                 quantitySet:['套题取舍','数量套题的目标不是全做，而是在限时内拿到属于你的分数。'],
                 quantityType:['系统学题型','按题型建立识别信号、首选方法和停损时间。'],
                 quantityReview:['数量复盘','复盘不只看算错，还要看题型没识别、方法选慢、步骤卡住和本该跳过。']
             };
             const [title,desc] = views[kind] || views.quantityToday;
-            learningZone.innerHTML = `<div class="big-card quantity-home-v3"><div class="review-eyebrow-v3">${icon.graph}<span>数量关系·${title}</span></div><h2>${title}</h2><p>${desc}</p><div class="quantity-capabilities-v3"><article class="quantity-capability-v3"><b>先识别</b><p>从题干信号判断工程、利润、行程、容斥或排列组合。</p><em>题型识别</em></article><article class="quantity-capability-v3"><b>再取舍</b><p>根据题型熟练度、条件长度和预计用时分成必做、可做、先跳。</p><em>考场策略</em></article><article class="quantity-capability-v3"><b>后选方法</b><p>比较赋值、方程、比例、代入和极端情况，记录真正卡住的步骤。</p><em>方法与步骤</em></article></div><div class="quantity-flow-v3"><div><strong>01 读题</strong>识别题型信号</div><div><strong>02 判断</strong>必做 / 可做 / 先跳</div><div><strong>03 求解</strong>选最短稳定方法</div><div><strong>04 验证</strong>同类题确认是否掌握</div></div><div class="quantity-table-v3"><div class="quantity-row-v3"><span>类别</span><span>当前策略</span><span>单题时间</span><span>下一步</span></div><div class="quantity-row-v3"><b>必做</b><span>工程、利润、基础比例</span><span>≤ 80 秒</span><span>5 题</span></div><div class="quantity-row-v3"><b>可做</b><span>行程、容斥，条件清楚再进入</span><span>看题况</span><span>3 题</span></div><div class="quantity-row-v3"><b>先跳</b><span>复杂排列、高难几何</span><span>20 秒内决策</span><span>只练识别</span></div></div><div class="quantity-cta-v3"><span>题库最终交接后，这里挂接真实题型、用时和步骤记录。</span><button type="button">开始第一项</button></div></div>`;
+            learningZone.innerHTML = `<div class="big-card quantity-home-v3"><div class="review-eyebrow-v3">${icon.graph}<span>数量关系·${title}</span></div><h2>${title}</h2><p>${desc}</p><div class="quantity-capabilities-v3"><article class="quantity-capability-v3"><b>先识别</b><p>从题干信号判断工程、利润、行程、容斥或排列组合。</p><em>题型识别</em></article><article class="quantity-capability-v3"><b>再取舍</b><p>根据题型熟练度、条件长度和预计用时分成必做、可做、先跳。</p><em>考场策略</em></article><article class="quantity-capability-v3"><b>后选方法</b><p>比较赋值、方程、比例、代入和极端情况，记录真正卡住的步骤。</p><em>方法与步骤</em></article></div><div class="quantity-flow-v3"><div><strong>01 读题</strong>识别题型信号</div><div><strong>02 判断</strong>必做 / 可做 / 先跳</div><div><strong>03 求解</strong>选最短稳定方法</div><div><strong>04 验证</strong>同类题确认是否掌握</div></div><div class="quantity-table-v3"><div class="quantity-row-v3"><span>类别</span><span>题库基准建议</span><span>建议用时</span><span>训练动作</span></div><div class="quantity-row-v3"><b>必做</b><span>模型明确、计算量可控</span><span>按题目标签</span><span>优先作答</span></div><div class="quantity-row-v3"><b>可做</b><span>结合个人熟练度判断</span><span>看题况</span><span>记录卡点</span></div><div class="quantity-row-v3"><b>先跳</b><span>建模步骤或计算量较多</span><span>快速决策</span><span>先标后做</span></div></div><div class="quantity-cta-v3"><span>60 套 600 题已接入服务端，个人建议会根据真实作答逐步调整。</span><a class="exam-action-primary-v3" style="text-decoration:none" href="/quantity-practice.html">开始真实数量训练</a></div></div>`;
         }
         function renderHome() {
             learningZone.innerHTML = `<div class="big-card reasoning-home-v3"><div class="reasoning-kicker-v3">${icon.graph}<span>图形推理·学习入口</span></div><div class="reasoning-head-v3"><h2>先识别规律，再建立空间</h2><p>平面图推用导图建立规律索引；立体图推按先学、后练、再验证的路径进入，不把工具全部平铺。</p></div><div class="reasoning-branches-v3"><section class="reasoning-branch-v3" data-mark="平"><h3>平面规律</h3><p>位置、样式、属性、数量四类规律，配合错题节点回看。</p><div class="reasoning-path-v3"><a class="reasoning-step-v3" href="/mindmap.html"><i>1</i><span>规律思维导图</span><small>进入</small></a><a class="reasoning-step-v3" href="/mindmap.html"><i>2</i><span>错题归类与间隔复习</span><small>继续</small></a></div><a class="reasoning-branch-action-v3" href="/mindmap.html">打开平面图推</a></section><section class="reasoning-branch-v3" data-mark="立"><h3>立体空间</h3><p>四段学习主链，“典型截面精讲”不作为固定导航。</p><div class="reasoning-path-v3"><a class="reasoning-step-v3" href="/section-foundation.html"><i>1</i><span>基础截面规律</span><small>先学</small></a><a class="reasoning-step-v3" href="/three-view-training.html"><i>2</i><span>三视图专项</span><small>后练</small></a><a class="reasoning-step-v3" href="/geometry.html?app=free-section-lab-v3"><i>3</i><span>自由切面实验</span><small>验证</small></a><a class="reasoning-step-v3" href="/csg-section.html"><i>4</i><span>组合体切割</span><small>进阶</small></a></div></section></div></div>`;
@@ -143,6 +162,21 @@
             enterReasoning(view);
         });
         verbalNav.addEventListener('click', event => {
+            const logicButton = event.target.closest('[data-verbal-demo="logic"]');
+            if (logicButton) {
+                event.preventDefault();
+                event.stopPropagation();
+                verbalNav.querySelectorAll('[data-verbal-demo]').forEach(button => button.classList.toggle('active', button === logicButton));
+                if (typeof window.switchDeck === 'function') window.switchDeck('verbal');
+                return;
+            }
+            const readingButton = event.target.closest('[data-verbal-demo="reading"]');
+            if (readingButton) {
+                event.preventDefault();
+                event.stopPropagation();
+                location.href = '/verbal-reading-pilot.html';
+                return;
+            }
             const examButton = event.target.closest('[data-verbal-demo="exam"]');
             if (examButton) {
                 event.preventDefault();
@@ -173,7 +207,7 @@
             renderQuantityV3(quantityButton.dataset.quantityDemo);
         }, { capture:true });
         learningZone.addEventListener('click', event => {
-            if (event.target.closest('[data-exam-start-v3]')) renderExamV3('running');
+            if (event.target.closest('[data-exam-start-v3]')) location.href = '/verbal-reading-pilot.html';
             else if (event.target.closest('[data-exam-result-v3]')) renderExamV3('result');
             else if (event.target.closest('[data-exam-reset-v3]')) renderExamV3('setup');
         });

@@ -76,7 +76,7 @@
             updateNavAuth();
             var pleaseEl = document.getElementById('pleaseLoginModal');
             if (pleaseEl && pleaseEl.classList.contains('show')) { pleaseEl.classList.remove('show'); startLearning(); }
-            syncDeckFromBackend().then(function() { generateDailyQueue(); renderAll(); });
+            syncDeckFromBackend().then(function() { autoLoadHighFreqIfNeeded().then(renderAll); });
             syncUserMetaFromBackend().then(function() { renderHeatmap(); renderStats(); });
             document.getElementById('loginPass').value = '';
         } catch(e) { showErr('loginError', '网络错误：' + (e.message || '无法连接到服务器，请确认后端已启动')); }
@@ -101,7 +101,7 @@
             updateNavAuth();
             var pleaseEl = document.getElementById('pleaseLoginModal');
             if (pleaseEl && pleaseEl.classList.contains('show')) { pleaseEl.classList.remove('show'); startLearning(); }
-            syncDeckFromBackend().then(function() { generateDailyQueue(); renderAll(); });
+            syncDeckFromBackend().then(function() { autoLoadHighFreqIfNeeded().then(renderAll); });
             syncUserMetaFromBackend().then(function() { renderHeatmap(); renderStats(); });
             document.getElementById('registerPass').value = '';
         } catch(e) { showErr('registerError', '网络错误：' + (e.message || '无法连接到服务器，请确认后端已启动')); }
@@ -2311,9 +2311,69 @@
             border-color: var(--gold) !important;
             color: var(--gold-dark) !important;
         }
+        .btn-sm.active {
+            background: var(--gold-bg) !important;
+            border-color: var(--gold) !important;
+            color: var(--gold-dark) !important;
+            font-weight: 600 !important;
+        }
         .btn-sm:active { transform: scale(0.94) !important; transition: transform 0.12s cubic-bezier(0.34,1.56,0.64,1) !important; }
         .btn-sm.danger { background: #faf5ef !important; color: #a85435 !important; border-color: #e8d5c8 !important; }
         .btn-sm.danger:hover { background: #f5ece2 !important; }
+        .gallery-filter-area { display: flex; flex-wrap: wrap; gap: 6px; margin: -8px 0 14px; }
+        .vocab-term-tooltip {
+            position: fixed;
+            z-index: 3200;
+            width: min(340px, calc(100vw - 28px));
+            max-height: 360px;
+            overflow: auto;
+            padding: 16px;
+            background: var(--card-white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            box-shadow: 0 18px 45px rgba(26,21,16,0.16);
+            color: var(--ink-mid);
+            font-size: 0.86rem;
+            line-height: 1.7;
+        }
+        .vocab-term-tooltip .term-title { color: var(--ink-deep); font-weight: 700; font-size: 1rem; margin-bottom: 4px; }
+        .vocab-term-tooltip .term-meta { color: var(--ink-light); font-size: 0.76rem; margin-bottom: 8px; }
+        .vocab-term-tooltip .term-examples { white-space: pre-line; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-light); color: var(--ink-mid); }
+        .vocab-term-tooltip .term-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+        .verbal-entry-card {
+            margin-top: 14px;
+            padding: 16px;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            background: rgba(250,247,240,0.72);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            cursor: pointer;
+            transition: var(--trans);
+        }
+        .verbal-entry-card:hover {
+            border-color: var(--gold);
+            background: var(--gold-bg);
+            transform: translateY(-1px);
+        }
+        .verbal-entry-main { display: flex; align-items: center; gap: 12px; min-width: 0; }
+        .verbal-entry-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 auto;
+            color: var(--gold-dark);
+            background: var(--card-white);
+        }
+        .verbal-entry-title { color: var(--ink-deep); font-weight: 700; font-size: 0.92rem; }
+        .verbal-entry-sub { color: var(--ink-light); font-size: 0.78rem; margin-top: 2px; }
+        .verbal-entry-arrow { color: var(--gold-dark); font-weight: 700; flex: 0 0 auto; }
 
         /* —— 迷你卡片 —— */
         .mini-card {
@@ -2772,7 +2832,7 @@
             padding: 20px 40px 80px !important;
         }
 
-        
+
         /* ═══════════════════════════════════════════════════════════
            古风装饰层 —— 墨迹 · 光晕 · 粒子 · 呼吸
            ═══════════════════════════════════════════════════════════ */
@@ -3318,9 +3378,9 @@
             <div class="study-card-container">
                 <div class="card-header">
                     <div class="mode-switch" id="modeSwitchGroup">
-                        <button class="mode-btn active" data-mode="review"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-3px"><rect x="2" y="1.5" width="14" height="15" rx="1.5" stroke="rgba(176,138,58,0.7)" stroke-width="1.2"/><path d="M4.5 1.5v15" stroke="rgba(176,138,58,0.35)" stroke-width="0.9"/><line x1="6" y1="5.5" x2="12" y2="5.5" stroke="rgba(176,138,58,0.3)" stroke-width="0.7"/><line x1="6" y1="8.5" x2="12" y2="8.5" stroke="rgba(176,138,58,0.3)" stroke-width="0.7"/><line x1="6" y1="11.5" x2="10" y2="11.5" stroke="rgba(176,138,58,0.25)" stroke-width="0.7"/></svg> 复习模式</button>
-                        <button class="mode-btn" data-mode="recite"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-3px"><path d="M9 1.5l1.8 5.5h5.7l-4.6 3.4 1.8 5.5L9 12.5l-4.7 3.4 1.8-5.5-4.6-3.4h5.7z" stroke="rgba(176,138,58,0.7)" stroke-width="1.1" stroke-linejoin="round"/></svg> 全部背诵</button>
-                        <button class="mode-btn difficult" data-mode="difficult"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-3px"><path d="M9 1c-1.5 3-3 4-3 6.5a3.5 3.5 0 007 0c0-2.5-1.5-3.5-3-6.5" stroke="rgba(176,138,58,0.7)" stroke-width="1.2" fill="rgba(176,138,58,0.06)"/><path d="M6 9c-.5 2 .5 4 2 5.5" stroke="rgba(176,138,58,0.35)" stroke-width="0.8" stroke-linecap="round"/></svg> 错题攻克</button>
+                        <button class="mode-btn active" data-mode="review"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-3px"><rect x="2" y="1.5" width="14" height="15" rx="1.5" stroke="rgba(176,138,58,0.7)" stroke-width="1.2"/><path d="M4.5 1.5v15" stroke="rgba(176,138,58,0.35)" stroke-width="0.9"/><line x1="6" y1="5.5" x2="12" y2="5.5" stroke="rgba(176,138,58,0.3)" stroke-width="0.7"/><line x1="6" y1="8.5" x2="12" y2="8.5" stroke="rgba(176,138,58,0.3)" stroke-width="0.7"/><line x1="6" y1="11.5" x2="10" y2="11.5" stroke="rgba(176,138,58,0.25)" stroke-width="0.7"/></svg> 今日任务</button>
+                        <button class="mode-btn" data-mode="recite"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-3px"><path d="M9 1.5l1.8 5.5h5.7l-4.6 3.4 1.8 5.5L9 12.5l-4.7 3.4 1.8-5.5-4.6-3.4h5.7z" stroke="rgba(176,138,58,0.7)" stroke-width="1.1" stroke-linejoin="round"/></svg> 全部词库</button>
+                        <button class="mode-btn difficult" data-mode="difficult"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-3px"><path d="M9 1c-1.5 3-3 4-3 6.5a3.5 3.5 0 007 0c0-2.5-1.5-3.5-3-6.5" stroke="rgba(176,138,58,0.7)" stroke-width="1.2" fill="rgba(176,138,58,0.06)"/><path d="M6 9c-.5 2 .5 4 2 5.5" stroke="rgba(176,138,58,0.35)" stroke-width="0.8" stroke-linecap="round"/></svg> 易忘攻克</button>
                         <button class="mode-btn math-only" data-mode="steps" style="display:none;"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-3px"><rect x="2.5" y="11" width="13" height="5.5" rx="0.5" stroke="rgba(176,138,58,0.5)" stroke-width="0.9"/><line x1="3.5" y1="12.5" x2="14.5" y2="12.5" stroke="rgba(176,138,58,0.18)" stroke-width="0.6"/><line x1="3.5" y1="14" x2="12" y2="14" stroke="rgba(176,138,58,0.14)" stroke-width="0.6"/><path d="M11 2.5l4.5 4.5-7.5 7.5L3.5 10z" stroke="rgba(176,138,58,0.7)" stroke-width="1.2" fill="rgba(176,138,58,0.04)"/><line x1="8.5" y1="5" x2="13" y2="9.5" stroke="rgba(176,138,58,0.35)" stroke-width="0.9"/></svg> 步骤填空</button>
                         <button class="mode-btn math-only" data-mode="quiz" style="display:none;"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-3px"><circle cx="9" cy="9" r="7.5" stroke="rgba(176,138,58,0.4)" stroke-width="1"/><circle cx="9" cy="9" r="4.5" stroke="rgba(176,138,58,0.55)" stroke-width="1"/><circle cx="9" cy="9" r="2" stroke="rgba(176,138,58,0.7)" stroke-width="1.2" fill="rgba(176,138,58,0.08)"/></svg> 题型识别</button>
                     </div>
@@ -3416,7 +3476,23 @@
                             <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none" aria-label="导入Excel文件" title="导入Excel文件" />
                         </div>
                     </div>
+                    <div class="gallery-filter-area" id="galleryFilterArea" aria-label="卡片库筛选">
+                        <button class="btn-sm active" data-gallery-filter="all">全部</button>
+                        <button class="btn-sm" data-gallery-filter="due">到期</button>
+                        <button class="btn-sm" data-gallery-filter="difficult">易忘</button>
+                        <button class="btn-sm" data-gallery-filter="favorite">收藏</button>
+                    </div>
                     <div class="grid-cards" id="idiomGrid"></div>
+                </div>
+                <div class="verbal-entry-card" id="verbalEntryCard" onclick="switchDeck('verbal')" title="进入花生海海刷逻辑填空题库">
+                    <div class="verbal-entry-main">
+                        <div class="verbal-entry-icon"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="2.5" y="2" width="13" height="14" rx="1.5" stroke="currentColor" stroke-width="1.1"/><line x1="5" y1="5.5" x2="13" y2="5.5" stroke="currentColor" stroke-width="0.65" opacity="0.45"/><line x1="5" y1="8.5" x2="13" y2="8.5" stroke="currentColor" stroke-width="0.65" opacity="0.45"/><line x1="5" y1="11.5" x2="10" y2="11.5" stroke="currentColor" stroke-width="0.65" opacity="0.45"/></svg></div>
+                        <div>
+                            <div class="verbal-entry-title">言语题库</div>
+                            <div class="verbal-entry-sub">花生海海刷 · 逻辑填空</div>
+                        </div>
+                    </div>
+                    <div class="verbal-entry-arrow">›</div>
                 </div>
             </div>
         </div>
@@ -3523,8 +3599,7 @@ function startLearning() {
     // 从后端同步牌组数据后再渲染（保证数据最新）
     syncDeckFromBackend().then(function() {
         // 如果成语数据为空，自动加载对应词库
-        autoLoadHighFreqIfNeeded();
-        renderAll();
+        autoLoadHighFreqIfNeeded().then(renderAll);
     });
     // 同步标签active状态
     document.querySelectorAll('.deck-tab[data-deck]').forEach(tab => {
@@ -3622,6 +3697,7 @@ const MATH_QUIZ_DATA = [
 const INTERVALS = [1, 3, 7, 14, 30];
 const DECK_CONFIGS = {
     idiom: { label: '成语', storagePrefix: 'idiom_', icon: '📖', cardType: 'idiom' },
+    verbal: { label: '言语题库', storagePrefix: 'verbal_', icon: '📝', cardType: 'verbal' },
     math: { label: '数量关系', storagePrefix: 'math_', icon: '🧮', cardType: 'math' }
 };
 const CURRENT_DECK_KEY = 'current_deck_type';
@@ -3689,6 +3765,11 @@ async function syncDeckFromBackend() {
 async function pushCurrentDeckToBackend() {
     if (!gontu_isLoggedIn()) return;
     const type = getCurrentDeckType();
+    await pushDeckToBackend(type);
+}
+
+async function pushDeckToBackend(type) {
+    if (!gontu_isLoggedIn()) return;
     const cfg = DECK_CONFIGS[type];
     const token = localStorage.getItem(GONTU_TOKEN_KEY);
     try {
@@ -3789,13 +3870,112 @@ async function syncToBackend(cardId, action) {
     }
 }
 function loadIdioms() { return loadIdiomsRaw(); }
-function updateIdiom(id, updates) { let data = loadIdioms(); let idx = data.findIndex(d => d.id === id); if (idx !== -1) { Object.assign(data[idx], updates); saveIdioms(data); } }
+function updateIdiom(id, updates) { let data = loadIdioms(); let idx = data.findIndex(d => d.id === id); if (idx !== -1) { Object.assign(data[idx], updates); saveIdioms(data); return data[idx]; } return null; }
+function escapeHtml(str) {
+    return String(str || '').replace(/[&<>"']/g, function(ch) {
+        return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]);
+    });
+}
+function getDefaultCardState() {
+    return { mastered: false, studyCount: 0, forgetCount: 0, lastStudyTime: '', nextReviewTime: today(), intervalIdx: 0, favorite: false };
+}
+function buildIdiomCard(entry, previousState) {
+    var name = (entry.name || entry.idiom || entry.word || '').trim();
+    var state = Object.assign(getDefaultCardState(), previousState || {});
+    return Object.assign({}, state, {
+        id: name,
+        type: 'idiom',
+        meaning: entry.meaning || '暂无释义',
+        examples: entry.examples || '',
+        source: entry.source || '',
+        search_url: entry.search_url || entry.searchUrl || ('https://search.people.cn/s?keyword=' + encodeURIComponent(name))
+    });
+}
+function getDeckDataForType(deckType) {
+    var prefix = (DECK_CONFIGS[deckType] || DECK_CONFIGS.idiom).storagePrefix;
+    try { return JSON.parse(localStorage.getItem(prefix + 'data')) || []; } catch(e) { return []; }
+}
+function saveDeckDataForType(deckType, data) {
+    if (deckType === getCurrentDeckType()) {
+        saveIdioms(data);
+        return;
+    }
+    if (deckType === 'idiom') {
+        saveIdiomDeckData(data);
+        return;
+    }
+    var prefix = (DECK_CONFIGS[deckType] || DECK_CONFIGS.idiom).storagePrefix;
+    localStorage.setItem(prefix + 'data', JSON.stringify(data));
+    pushDeckToBackend(deckType);
+}
+function replaceIdiomsFromSource(list, deckType) {
+    var targetDeck = deckType || getCurrentDeckType();
+    var oldData = getDeckDataForType(targetDeck);
+    var stateById = {};
+    oldData.forEach(function(item) {
+        stateById[item.id] = {
+            mastered: !!item.mastered,
+            studyCount: item.studyCount || 0,
+            forgetCount: item.forgetCount || 0,
+            lastStudyTime: item.lastStudyTime || '',
+            nextReviewTime: item.nextReviewTime || today(),
+            intervalIdx: item.intervalIdx || 0,
+            favorite: !!item.favorite
+        };
+    });
+    var seen = {};
+    var newData = [];
+    list.forEach(function(entry) {
+        var name = (entry.name || entry.idiom || entry.word || '').trim();
+        if (!name || seen[name]) return;
+        seen[name] = true;
+        newData.push(buildIdiomCard(entry, stateById[name]));
+    });
+    saveDeckDataForType(targetDeck, newData);
+    if (targetDeck === getCurrentDeckType()) pruneTodayQueueToExistingWords(newData);
+    return newData.length;
+}
+async function applyVocabStateFromBackend() {
+    if (!gontu_isLoggedIn() || getCurrentDeckType() !== 'idiom') return;
+    try {
+        var resp = await apiFetch(API_BASE + '/api/verbal-catalog/vocab/state');
+        if (!resp.ok) return;
+        var states = await resp.json();
+        if (!states || states.length === 0) return;
+        var byWord = {};
+        states.forEach(function(s) { byWord[s.word] = s; });
+        var data = loadIdioms();
+        var changed = false;
+        data.forEach(function(item) {
+            var s = byWord[item.id];
+            if (!s) return;
+            item.studyCount = s.study_count || 0;
+            item.forgetCount = s.forget_count || 0;
+            item.intervalIdx = s.interval_idx || 0;
+            item.mastered = !!s.mastered;
+            item.favorite = !!s.favorite;
+            item.lastStudyTime = s.last_study_date || '';
+            item.nextReviewTime = s.next_review_date || item.nextReviewTime || today();
+            changed = true;
+        });
+        if (changed) saveIdioms(data);
+    } catch(e) { console.warn('[VocabState] 拉取失败：', e.message); }
+}
 function mergeIdioms(list) {
     let data = loadIdioms(); let existing = new Set(data.map(d => d.id)); let added = 0;
     list.forEach(entry => {
         let name = (entry.name || entry.idiom || entry.word || '').trim();
-        if (!name || existing.has(name)) return;
-        data.push({ id: name, type: 'idiom', meaning: entry.meaning || '暂无释义', mastered: false, studyCount: 0, forgetCount: 0, lastStudyTime: '', nextReviewTime: today(), intervalIdx: 0 });
+        if (!name) return;
+        if (existing.has(name)) {
+            var idx = data.findIndex(d => d.id === name);
+            if (idx !== -1) {
+                data[idx].meaning = entry.meaning || data[idx].meaning || '暂无释义';
+                data[idx].examples = entry.examples || data[idx].examples || '';
+                data[idx].search_url = entry.search_url || entry.searchUrl || data[idx].search_url || ('https://search.people.cn/s?keyword=' + encodeURIComponent(name));
+            }
+            return;
+        }
+        data.push(buildIdiomCard(entry));
         existing.add(name); added++;
     });
     saveIdioms(data); return added;
@@ -3836,24 +4016,100 @@ function getStreak() {
 }
 function loadQueue() { try { return JSON.parse(localStorage.getItem(deckKey('queue'))); } catch(e) { return null; } }
 function saveQueue(q) { localStorage.setItem(deckKey('queue'), JSON.stringify(q)); pushCurrentDeckToBackend(); }
-function loadSettings() { try { return JSON.parse(localStorage.getItem(deckKey('settings'))) || { dailyNewCount: 10 }; } catch(e) { return { dailyNewCount: 10 }; } }
+function loadSettings() {
+    try {
+        var settings = JSON.parse(localStorage.getItem(deckKey('settings'))) || {};
+        if (!Number.isFinite(Number(settings.dailyNewCount)) || Number(settings.dailyNewCount) <= 0) {
+            settings.dailyNewCount = 10;
+        } else {
+            settings.dailyNewCount = Number(settings.dailyNewCount);
+        }
+        return settings;
+    } catch(e) {
+        return { dailyNewCount: 10 };
+    }
+}
+function hasPendingLearningItems(data) {
+    var t = today();
+    return (data || loadIdioms()).some(function(d) {
+        if (d.mastered) return false;
+        if ((d.studyCount || 0) === 0) return true;
+        return (d.nextReviewTime || t) <= t;
+    });
+}
+function shouldRegenerateTodayQueue(q, data) {
+    if (!q || q.date !== today() || !Array.isArray(q.items)) return true;
+    return q.items.length === 0 && (q.doneToday || 0) === 0 && hasPendingLearningItems(data);
+}
+function fillTodayQueueToGoal(q, data) {
+    if (!q || q.date !== today() || !Array.isArray(q.items)) return q;
+    var goal = getDailyGoal();
+    var done = getTodayStudiedCount();
+    var deficit = Math.max(0, goal - done - q.items.length);
+    if (deficit <= 0) return q;
+    var t = today();
+    var queued = new Set(q.items);
+    var candidates = (data || loadIdioms()).filter(function(d) {
+        if (!d || !d.id || d.mastered || queued.has(d.id)) return false;
+        if ((d.studyCount || 0) === 0) return true;
+        return (d.nextReviewTime || t) <= t;
+    });
+    candidates.slice(0, deficit).forEach(function(d) {
+        q.items.push(d.id);
+        queued.add(d.id);
+    });
+    q.total = Math.max(q.total || 0, q.items.length + (q.doneToday || 0));
+    return q;
+}
+function ensureTodayQueueReady(data) {
+    var q = loadQueue();
+    if (shouldRegenerateTodayQueue(q, data)) q = generateDailyQueue();
+    var beforeItems = q && Array.isArray(q.items) ? q.items.length : 0;
+    var beforeTotal = q ? (q.total || 0) : 0;
+    q = fillTodayQueueToGoal(q, data);
+    if (q && (q.items.length !== beforeItems || (q.total || 0) !== beforeTotal)) saveQueue(q);
+    return q;
+}
+function pruneTodayQueueToExistingWords(data) {
+    var q = loadQueue();
+    if (!q || !Array.isArray(q.items)) return;
+    var valid = new Set((data || loadIdioms()).map(d => d.id));
+    q.items = q.items.filter(id => valid.has(id));
+    q.total = q.items.length + (q.doneToday || 0);
+    if (q.date === today() && q.items.length === 0 && (q.doneToday || 0) === 0 && hasPendingLearningItems(data)) {
+        generateDailyQueue();
+        return;
+    }
+    saveQueue(q);
+}
 function generateDailyQueue() {
-    let data = loadIdioms(); let settings = loadSettings(); let t = today();
+    let data = loadIdioms(); let t = today();
     let reviewWords = data.filter(d => !d.mastered && d.studyCount > 0 && d.nextReviewTime <= t);
     let newWords = data.filter(d => !d.mastered && d.studyCount === 0);
-    let newCount = Math.min(newWords.length, settings.dailyNewCount);
+    let newCount = Math.max(0, Math.min(newWords.length, getDailyGoal() - reviewWords.length));
     let items = [...reviewWords.map(d => d.id), ...newWords.slice(0, newCount).map(d => d.id)];
     let q = { date: t, items, total: items.length, doneToday: 0 };
     saveQueue(q); return q;
 }
-function getTodayQueue() { let q = loadQueue(); let t = today(); if (!q || q.date !== t) { q = generateDailyQueue(); } return q; }
+function getTodayQueue() { return ensureTodayQueueReady(); }
 
 let currentMode = "review";
 let currentIdiomObj = null;
 let isFlipped = false;
+let activeModeItems = null;
+let vocabAutoLoading = false;
 let quizState = { idx: 0, score: 0, answered: false };
+let verbalState = { questions: [], idx: 0, answered: false, selected: '', result: null, loading: false };
+let galleryFilter = "all";
+let verbalTooltipHideTimer = null;
+let vocabTooltipHydrating = false;
 
 function renderAll() {
+    if (getCurrentDeckType() === 'verbal') { renderVerbalAll(); return; }
+    var galleryFilters = document.getElementById('galleryFilterArea');
+    if (galleryFilters) galleryFilters.style.display = '';
+    var verbalEntry = document.getElementById('verbalEntryCard');
+    if (verbalEntry) verbalEntry.style.display = getCurrentDeckType() === 'idiom' ? '' : 'none';
     // 错题攻克模式的容器样式
     var container = document.querySelector('.study-card-container');
     if (container) {
@@ -3876,9 +4132,124 @@ function renderStats() {
     let percent = dailyGoal === 0 ? 0 : Math.min(Math.round((todayCompleted / dailyGoal) * 100), 100);
     document.getElementById('progressPercent').innerText = percent + '%';
     document.getElementById('progressFillBar').style.width = percent + '%';
-    document.getElementById('queueBadge').innerText = remaining === 0 ? '今日已完成' : '剩余 ' + remaining;
+    document.getElementById('queueBadge').innerText = remaining === 0 ? '今日已完成' : '今日剩余 ' + remaining;
     document.getElementById('galleryDeckLabel').innerText = DECK_CONFIGS[getCurrentDeckType()].label + '库';
     updateDailyPlanDisplay();
+}
+
+function renderVerbalAll() {
+    document.getElementById('totalIdioms').innerText = '231';
+    document.getElementById('masteredCount').innerText = '0';
+    document.getElementById('todayReviewCount').innerText = '0';
+    document.getElementById('doneCountSpan').innerText = '0';
+    document.getElementById('totalPlanSpan').innerText = '逻辑填空';
+    document.getElementById('progressPercent').innerText = '花生海海刷';
+    document.getElementById('progressFillBar').style.width = '0%';
+    document.getElementById('queueBadge').innerText = '言语题库';
+    document.getElementById('galleryDeckLabel').innerText = '言语题库';
+    renderHeatmap();
+    var galleryFilters = document.getElementById('galleryFilterArea');
+    if (galleryFilters) galleryFilters.style.display = 'none';
+    var verbalEntry = document.getElementById('verbalEntryCard');
+    if (verbalEntry) verbalEntry.style.display = 'none';
+    if (!vocabTooltipHydrating && !loadIdiomDeckData().some(function(item) { return item && item.examples; })) {
+        vocabTooltipHydrating = true;
+        hydrateBuiltinVocabForTooltips().then(renderVerbalQuestionCard).finally(function() { vocabTooltipHydrating = false; });
+    }
+    renderVerbalQuestionCard();
+}
+
+async function loadVerbalQuestionsIfNeeded() {
+    if (verbalState.questions.length > 0 || verbalState.loading) return;
+    verbalState.loading = true;
+    try {
+        var resp = await apiFetch(API_BASE + '/api/verbal-catalog/logic-fill/questions?limit=231');
+        if (!resp.ok) throw new Error('后端返回 ' + resp.status);
+        var payload = await resp.json();
+        verbalState.questions = payload.items || [];
+    } catch(e) {
+        console.warn('[Verbal] 加载题库失败：', e.message);
+        verbalState.questions = [];
+    } finally {
+        verbalState.loading = false;
+    }
+}
+
+function renderVerbalQuestionCard() {
+    var zone = document.getElementById('learningZone');
+    if (!gontu_isLoggedIn()) {
+        zone.innerHTML = '<div class="completion-card"><i class="fas fa-lock"></i><h3>请先登录</h3><p>言语题库和作答记录需要登录后保存。</p></div>';
+        return;
+    }
+    if (verbalState.loading) {
+        zone.innerHTML = '<div class="completion-card"><i class="fas fa-spinner"></i><h3>正在加载题库...</h3></div>';
+        return;
+    }
+    if (verbalState.questions.length === 0) {
+        zone.innerHTML = '<div class="completion-card"><i class="fas fa-book-open"></i><h3>花生海海刷 · 逻辑填空</h3><p>正在准备题目...</p></div>';
+        loadVerbalQuestionsIfNeeded().then(renderVerbalQuestionCard);
+        return;
+    }
+    var q = verbalState.questions[verbalState.idx % verbalState.questions.length];
+    var optsHtml = ['A','B','C','D'].map(function(letter) {
+        var cls = 'quiz-option';
+        if (verbalState.answered) {
+            if (letter === verbalState.result.correct_answer) cls += ' correct-choice';
+            else if (letter === verbalState.selected) cls += ' wrong-choice';
+        } else if (letter === verbalState.selected) {
+            cls += ' selected';
+        }
+        return '<div class="' + cls + '" data-answer="' + letter + '"><span class="quiz-opt-letter">' + letter + '</span><span>' + escapeHtml(q.options[letter] || '') + '</span></div>';
+    }).join('');
+    var termsHtml = (q.related_terms || []).slice(0, 12).map(function(term) {
+        return '<button class="btn-sm verbal-term-btn" style="margin:4px 4px 0 0;" data-term="' + escapeHtml(term) + '">' + escapeHtml(term) + '</button>';
+    }).join('');
+    var explanation = '';
+    if (verbalState.answered) {
+        explanation = '<div class="quiz-explanation show"><strong>正确答案：' + verbalState.result.correct_answer + '</strong><br><span>本题暂无原书解析</span><br><span>AI讲解：尚未生成，可带本题上下文去问西西。</span></div><button class="quiz-next-btn show" id="verbalNextBtn">下一题 →</button>';
+    }
+    zone.innerHTML = '<div class="quiz-card"><div class="quiz-header"><span class="quiz-question-label">花生海海刷 · 逻辑填空</span><span class="quiz-progress">' + (verbalState.idx + 1) + ' / ' + verbalState.questions.length + '</span></div><div class="quiz-description">' + escapeHtml(q.stem) + '</div><div class="quiz-options">' + optsHtml + '</div>' + explanation + '<div style="margin-top:14px;font-size:0.85rem;color:#64748b;">题中词语可加入今日学习：' + termsHtml + '</div></div>';
+    document.querySelectorAll('.quiz-option').forEach(function(opt) {
+        opt.onclick = function() {
+            if (verbalState.answered) return;
+            submitVerbalAnswer(q.id, this.dataset.answer);
+        };
+    });
+    document.querySelectorAll('.verbal-term-btn').forEach(function(btn) {
+        btn.onclick = function() { quickLearn(this.dataset.term); };
+        btn.onmouseenter = function() { showVerbalTermTooltip(this.dataset.term, this); };
+        btn.onfocus = function() { showVerbalTermTooltip(this.dataset.term, this); };
+        btn.onmouseleave = scheduleHideVerbalTermTooltip;
+        btn.onblur = scheduleHideVerbalTermTooltip;
+    });
+    var nextBtn = document.getElementById('verbalNextBtn');
+    if (nextBtn) {
+        nextBtn.onclick = function() {
+            verbalState.idx++;
+            verbalState.answered = false;
+            verbalState.selected = '';
+            verbalState.result = null;
+            renderVerbalQuestionCard();
+        };
+    }
+}
+
+async function submitVerbalAnswer(questionId, answer) {
+    verbalState.selected = answer;
+    try {
+        var resp = await apiFetch(API_BASE + '/api/verbal-catalog/logic-fill/attempts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ question_id: questionId, selected_answer: answer, elapsed_ms: 0 })
+        });
+        if (!resp.ok) throw new Error('后端返回 ' + resp.status);
+        verbalState.result = await resp.json();
+        verbalState.answered = true;
+        recordStudy();
+    } catch(e) {
+        gontuToast('作答保存失败：' + e.message, 'error');
+    }
+    renderVerbalQuestionCard();
 }
 
 // ════════════════════════════════════════════════════
@@ -4047,27 +4418,73 @@ async function syncDailyGoalFromBackend() {
 function renderIdiomGrid() {
     let data = loadIdioms(); let grid = document.getElementById('idiomGrid');
     if (data.length === 0) { grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><i class="fas fa-inbox"></i><p>暂无卡片，请导入Excel或点击"高频词"获取</p></div>`; return; }
-    grid.innerHTML = data.map(item => {
+    var t = today();
+    var filtered = data.filter(function(item) {
+        if (galleryFilter === 'favorite') return !!item.favorite;
+        if (galleryFilter === 'difficult') return !item.mastered && (item.forgetCount || 0) >= 1;
+        if (galleryFilter === 'due') return !item.mastered && (item.studyCount || 0) > 0 && (item.nextReviewTime || t) <= t;
+        return true;
+    });
+    document.querySelectorAll('#galleryFilterArea .btn-sm').forEach(function(btn) {
+        btn.classList.toggle('active', btn.dataset.galleryFilter === galleryFilter);
+    });
+    if (filtered.length === 0) {
+        var emptyText = galleryFilter === 'favorite' ? '暂无收藏词条' : (galleryFilter === 'difficult' ? '暂无易忘词' : (galleryFilter === 'due' ? '暂无到期复习' : '暂无卡片'));
+        grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><i class="fas fa-inbox"></i><p>' + emptyText + '</p></div>';
+        return;
+    }
+    grid.innerHTML = filtered.map(item => {
         let statusClass = item.mastered ? 'mastered' : (item.studyCount > 0 ? 'reviewing' : 'new');
         let statusText = item.mastered ? '已掌握' : (item.studyCount > 0 ? '复习中' : '新卡');
         let displayName = item.type === 'math' ? (item.title || item.id) : item.id;
-        let typeBadge = item.type === 'math' ? '🧮' : '';
-        return `<div class="mini-card" onclick="quickLearn('${item.id}')"><div class="mini-word">${typeBadge} ${displayName}</div><div class="mini-meta">学习 ${item.studyCount} 次</div><div class="mini-status ${statusClass}">${statusText}</div></div>`;
+        let typeBadge = item.type === 'math' ? '🧮' : (item.favorite ? '★' : '');
+        return `<div class="mini-card" data-card-id="${escapeHtml(item.id)}"><div class="mini-word">${typeBadge} ${escapeHtml(displayName)}</div><div class="mini-meta">学习 ${item.studyCount} 次</div><div class="mini-status ${statusClass}">${statusText}</div></div>`;
     }).join('');
+    grid.querySelectorAll('.mini-card[data-card-id]').forEach(function(cardEl) {
+        cardEl.onclick = function() { quickLearn(this.dataset.cardId); };
+    });
 }
 
+document.getElementById('galleryFilterArea').addEventListener('click', function(e) {
+    var btn = e.target.closest('[data-gallery-filter]');
+    if (!btn) return;
+    galleryFilter = btn.dataset.galleryFilter || 'all';
+    renderIdiomGrid();
+});
+
 window.quickLearn = function(id) {
-    let q = getTodayQueue(); let items = q.items.filter(i => i !== id); items.unshift(id);
-    q.items = items; q.total = items.length; saveQueue(q); renderAll();
+    var name = String(id || '').trim();
+    if (!name) return;
+    if (getCurrentDeckType() === 'verbal') {
+        if (addTermToIdiomToday(name)) gontuToast('已加入成语今日任务：' + name, 'success');
+        return;
+    }
+    let data = loadIdioms();
+    if (!data.find(d => d.id === name)) {
+        ensureTermCard(name);
+        data = loadIdioms();
+    }
+    let q = getTodayQueue(); let items = q.items.filter(i => i !== name); items.unshift(name);
+    q.items = items; q.total = items.length + (q.doneToday || 0); saveQueue(q); renderAll();
 };
 
 function renderLearningCard() {
     let zone = document.getElementById('learningZone');
     if (currentMode === 'quiz') { renderQuizCard(zone); return; }
-    let q = getTodayQueue(); let data = loadIdioms(); let currentId = q.items.length > 0 ? q.items[0] : null;
-    if (!currentId && q.items.length === 0) {
-        zone.innerHTML = `<div class="completion-card"><i class="fas fa-trophy"></i><h3>今日学习完成！</h3><p>明天再来看复习任务~</p></div>`;
-        showDailySummary(); return;
+    let data = loadIdioms();
+    if (vocabAutoLoading && data.length === 0) {
+        zone.innerHTML = '<div class="completion-card"><i class="fas fa-spinner"></i><h3>正在加载词库...</h3><p>首次进入会先同步内置高频词库。</p></div>';
+        return;
+    }
+    let q = getTodayQueue();
+    let studyItems = currentMode === 'review' ? q.items : (activeModeItems || []);
+    let currentId = studyItems.length > 0 ? studyItems[0] : null;
+    if (!currentId && studyItems.length === 0) {
+        let title = currentMode === 'review' ? '今日学习完成！' : (currentMode === 'recite' ? '全部词库已浏览完' : '暂无易忘词需要攻克');
+        let sub = currentMode === 'review' ? '明天再来看复习任务~' : '切回今日任务继续学习。';
+        zone.innerHTML = `<div class="completion-card"><i class="fas fa-trophy"></i><h3>${title}</h3><p>${sub}</p></div>`;
+        if (currentMode === 'review') showDailySummary();
+        return;
     }
     let card = data.find(d => d.id === currentId);
     if (!card) { zone.innerHTML = '<div style="text-align:center;padding:40px;color:#94a3b8">数据错误</div>'; return; }
@@ -4117,23 +4534,178 @@ function renderLearningCard() {
         }
         zone.innerHTML = bannerHtml + `<div class="${cardClass}" id="flippableCard">${typeBadge}<div style="font-size:0.85rem;font-weight:600;color:${badgeColor};margin-bottom:12px;">${badgeText}</div><div class="question-text" style="white-space:pre-line;">${questionShow}</div>${solutionShow}${answerShow}<div class="flip-hint"><i class="fas fa-hand-pointer"></i> ${isFlipped ? '点击卡片收起' : '点击卡片查看解题思路'}</div>${historyInfo}</div><div class="action-buttons"><button class="btn-forget" id="forgotBtn"><i class="fas fa-times-circle"></i> 没记住</button><button class="btn-remember" id="rememberBtn"><i class="fas fa-check-circle"></i> 记住了</button></div>`;
     } else {
-        let meaningShow = isFlipped ? card.meaning : '？？？ 点击卡片查看释义';
+        let meaningShow = isFlipped ? formatIdiomMeaning(card) : '？？？ 点击卡片查看释义';
         let historyInfo = `<div style="font-size:0.8rem;color:#8b7355;margin-top:20px;"><i class="fas fa-history"></i> 已学 ${card.studyCount} 次${card.studyCount > 0 ? `<span style="margin-left:12px;">下次复习间隔 ${INTERVALS[card.intervalIdx]} 天</span>` : '<span style="margin-left:12px;">首次学习</span>'}</div>`;
         if (isDifficult) {
             historyInfo = `<div style="font-size:0.8rem;color:#8b7355;margin-top:20px;"><i class="fas fa-exclamation-triangle" style="color:#c44b3a;"></i> 已错误 ${card.forgetCount || 0} 次 · 上次学习：${card.lastStudyTime || '首次'}</div>`;
         }
-        zone.innerHTML = bannerHtml + `<div class="${cardClass}" id="flippableCard"><div style="font-size:0.85rem;font-weight:600;color:${badgeColor};margin-bottom:16px;">${badgeText}</div><div class="idiom-word">${card.id}</div><div class="meaning-text" id="dynamicMeaning">${meaningShow}</div><div class="flip-hint"><i class="fas fa-hand-pointer"></i> 点击卡片翻转</div>${historyInfo}</div><div class="action-buttons"><button class="btn-forget" id="forgotBtn"><i class="fas fa-times-circle"></i> 没记住</button><button class="btn-remember" id="rememberBtn"><i class="fas fa-check-circle"></i> 记住了</button></div>`;
+        zone.innerHTML = bannerHtml + `<div class="${cardClass}" id="flippableCard"><div style="font-size:0.85rem;font-weight:600;color:${badgeColor};margin-bottom:16px;">${badgeText}</div><div class="idiom-word">${card.id}</div><div class="meaning-text" id="dynamicMeaning">${meaningShow}</div><div class="flip-hint"><i class="fas fa-hand-pointer"></i> 点击卡片翻转</div>${historyInfo}<button class="daily-plan-edit-btn" id="favoriteBtn" title="${card.favorite ? '取消收藏' : '收藏词条'}" style="margin-top:14px;"><i class="${card.favorite ? 'fas' : 'far'} fa-star"></i></button></div><div class="action-buttons"><button class="btn-forget" id="forgotBtn"><i class="fas fa-times-circle"></i> 没记住</button><button class="btn-remember" id="rememberBtn"><i class="fas fa-check-circle"></i> 记住了</button></div>`;
     }
     document.getElementById('flippableCard').onclick = () => flipMeaning();
     document.getElementById('forgotBtn').onclick = () => handleResult(false);
     document.getElementById('rememberBtn').onclick = () => handleResult(true);
+    var favBtn = document.getElementById('favoriteBtn');
+    if (favBtn) favBtn.onclick = function(ev) { ev.stopPropagation(); toggleFavorite(currentIdiomObj.id); };
+}
+
+function formatIdiomMeaning(card) {
+    var html = escapeHtml(card.meaning || '暂无释义');
+    if (card.examples) {
+        html += '<div class="solution-text" style="white-space:pre-line;margin-top:14px;"><div style="font-weight:700;color:var(--gold-dark);margin-bottom:6px;">例句</div>' + escapeHtml(card.examples) + '</div>';
+    }
+    var url = card.search_url || ('https://search.people.cn/s?keyword=' + encodeURIComponent(card.id));
+    html += '<a class="btn-sm" style="display:inline-block;margin-top:14px;text-decoration:none;" target="_blank" rel="noreferrer" href="' + escapeHtml(url) + '"><i class="fas fa-search"></i> 人民网搜索</a>';
+    return html;
+}
+
+function toggleFavorite(id) {
+    var current = loadIdioms().find(function(d) { return d.id === id; });
+    var item = updateIdiom(id, { favorite: !(current && current.favorite) });
+    if (item) syncVocabStateToBackend(item);
+    renderAll();
+}
+
+function loadIdiomDeckData() {
+    try { return JSON.parse(localStorage.getItem('idiom_data')) || []; } catch(e) { return []; }
+}
+function saveIdiomDeckData(data) {
+    localStorage.setItem('idiom_data', JSON.stringify(data));
+    pushDeckToBackend('idiom');
+}
+function loadIdiomQueue() {
+    try { return JSON.parse(localStorage.getItem('idiom_queue')); } catch(e) { return null; }
+}
+function saveIdiomQueue(q) {
+    localStorage.setItem('idiom_queue', JSON.stringify(q));
+    pushDeckToBackend('idiom');
+}
+function findIdiomDeckEntry(term) {
+    var name = String(term || '').trim();
+    return loadIdiomDeckData().find(function(item) { return item.id === name; }) || null;
+}
+async function hydrateBuiltinVocabForTooltips() {
+    if (!gontu_isLoggedIn()) return;
+    var sample = loadIdiomDeckData().find(function(item) { return item && item.examples; });
+    if (sample) return;
+    await fetchHighFreq('idiom');
+}
+function ensureTermCard(term) {
+    var name = String(term || '').trim();
+    if (!name) return null;
+    var data = loadIdiomDeckData();
+    var idx = data.findIndex(function(item) { return item.id === name; });
+    if (idx !== -1) return data[idx];
+    var card = buildIdiomCard({
+        name: name,
+        meaning: '词库暂未收录，已作为题中词条待补充。',
+        examples: '',
+        source: '题中词条',
+        search_url: 'https://search.people.cn/s?keyword=' + encodeURIComponent(name)
+    });
+    data.push(card);
+    saveIdiomDeckData(data);
+    return card;
+}
+function setTermFavorite(term, favorite) {
+    var name = String(term || '').trim();
+    var data = loadIdiomDeckData();
+    var idx = data.findIndex(function(item) { return item.id === name; });
+    if (idx === -1) {
+        var card = ensureTermCard(name);
+        data = loadIdiomDeckData();
+        idx = data.findIndex(function(item) { return item.id === name; });
+        if (idx === -1) return null;
+    }
+    data[idx].favorite = !!favorite;
+    saveIdiomDeckData(data);
+    syncVocabStateToBackend(data[idx]);
+    if (getCurrentDeckType() === 'idiom') renderAll();
+    return data[idx];
+}
+function addTermToIdiomToday(term) {
+    var card = ensureTermCard(term);
+    if (!card) return false;
+    var q = loadIdiomQueue();
+    if (!q || q.date !== today() || !Array.isArray(q.items)) {
+        q = { date: today(), items: [], total: 0, doneToday: 0 };
+    }
+    q.items = q.items.filter(function(id) { return id !== card.id; });
+    q.items.unshift(card.id);
+    q.total = q.items.length + (q.doneToday || 0);
+    saveIdiomQueue(q);
+    return true;
+}
+function getVerbalTermTooltip() {
+    var tip = document.getElementById('verbalTermTooltip');
+    if (!tip) {
+        tip = document.createElement('div');
+        tip.id = 'verbalTermTooltip';
+        tip.className = 'vocab-term-tooltip';
+        tip.style.display = 'none';
+        tip.onmouseenter = function() { clearTimeout(verbalTooltipHideTimer); };
+        tip.onmouseleave = scheduleHideVerbalTermTooltip;
+        document.body.appendChild(tip);
+    }
+    return tip;
+}
+function scheduleHideVerbalTermTooltip() {
+    clearTimeout(verbalTooltipHideTimer);
+    verbalTooltipHideTimer = setTimeout(function() {
+        var tip = document.getElementById('verbalTermTooltip');
+        if (tip) tip.style.display = 'none';
+    }, 180);
+}
+function showVerbalTermTooltip(term, anchor) {
+    clearTimeout(verbalTooltipHideTimer);
+    var name = String(term || '').trim();
+    var card = findIdiomDeckEntry(name);
+    var known = !!card;
+    var url = (card && card.search_url) || ('https://search.people.cn/s?keyword=' + encodeURIComponent(name));
+    var examples = card && card.examples ? '<div class="term-examples"><div style="font-weight:700;color:var(--gold-dark);margin-bottom:6px;">例句</div>' + escapeHtml(card.examples) + '</div>' : '';
+    var meaning = card ? escapeHtml(card.meaning || '暂无释义') : '词库暂未收录，可先收藏为待补充词条。';
+    var source = known ? '内置词库' : '待补充';
+    var favText = card && card.favorite ? '已收藏' : '收藏';
+    var tip = getVerbalTermTooltip();
+    tip.innerHTML = '<div class="term-title">' + escapeHtml(name) + '</div>'
+        + '<div class="term-meta">' + escapeHtml(source) + '</div>'
+        + '<div>' + meaning + '</div>'
+        + examples
+        + '<div class="term-actions">'
+        + '<button class="btn-sm" data-term-action="study" data-term="' + escapeHtml(name) + '">加入今日任务</button>'
+        + '<button class="btn-sm" data-term-action="favorite" data-term="' + escapeHtml(name) + '">' + favText + '</button>'
+        + '<a class="btn-sm" target="_blank" rel="noreferrer" style="text-decoration:none;" href="' + escapeHtml(url) + '">人民网</a>'
+        + '</div>';
+    tip.querySelectorAll('[data-term-action]').forEach(function(btn) {
+        btn.onclick = function(ev) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            var action = this.dataset.termAction;
+            var value = this.dataset.term;
+            if (action === 'study') {
+                if (addTermToIdiomToday(value)) gontuToast('已加入成语今日任务：' + value, 'success');
+            } else if (action === 'favorite') {
+                var updated = setTermFavorite(value, true);
+                if (updated) {
+                    this.textContent = '已收藏';
+                    gontuToast('已加入收藏夹：' + value, 'success');
+                }
+            }
+        };
+    });
+    var rect = anchor.getBoundingClientRect();
+    tip.style.display = 'block';
+    var top = rect.bottom + 8;
+    var left = Math.min(Math.max(14, rect.left), window.innerWidth - tip.offsetWidth - 14);
+    if (top + tip.offsetHeight > window.innerHeight - 14) top = Math.max(14, rect.top - tip.offsetHeight - 8);
+    tip.style.left = left + 'px';
+    tip.style.top = top + 'px';
 }
 
 function renderBlankStepsCard(zone, card, q) {
     let bs = card.blank_steps;
     if (!bs || !bs.steps || bs.steps.length === 0) { currentMode = 'review'; renderLearningCard(); return; }
     let typeBadge = `<div class="card-type-badge math">🧮 ${card.title || '数量关系'} ${card.difficulty || ''}</div>`;
-    
+
     // 为每个空生成4个干扰选项
     function generateChoices(correctAnswer, allAnswers) {
         var correct = String(correctAnswer).trim();
@@ -4173,7 +4745,7 @@ function renderBlankStepsCard(zone, card, q) {
     }
 
     var allAnswers = bs.steps.map(function(s) { return s.blank; });
-    
+
     var stepsHtml = bs.steps.map(function(step, si) {
         var choices = generateChoices(step.blank, allAnswers);
         var letters = ['A','B','C','D'];
@@ -4288,6 +4860,26 @@ function renderQuizCard(zone) {
 
 function flipMeaning() { if (!currentIdiomObj) return; isFlipped = !isFlipped; renderLearningCard(); }
 
+async function syncVocabStateToBackend(item) {
+    if (!gontu_isLoggedIn() || !item || item.type !== 'idiom') return;
+    try {
+        await apiFetch(API_BASE + '/api/verbal-catalog/vocab/state', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                word: item.id,
+                study_count: item.studyCount || 0,
+                forget_count: item.forgetCount || 0,
+                interval_idx: item.intervalIdx || 0,
+                mastered: item.mastered ? 1 : 0,
+                favorite: item.favorite ? 1 : 0,
+                last_study_date: item.lastStudyTime || '',
+                next_review_date: item.nextReviewTime || ''
+            })
+        });
+    } catch(e) { console.warn('[VocabState] 同步失败：', e.message); }
+}
+
 function handleResult(remembered) {
     if (!currentIdiomObj) return;
     let item = currentIdiomObj; let newIntervalIdx, mastered, nextReview; let forgetCount = item.forgetCount || 0;
@@ -4295,13 +4887,19 @@ function handleResult(remembered) {
         if (item.intervalIdx >= INTERVALS.length - 1) { mastered = true; newIntervalIdx = item.intervalIdx; nextReview = item.nextReviewTime; }
         else { mastered = false; newIntervalIdx = item.intervalIdx + 1; nextReview = addDays(today(), INTERVALS[newIntervalIdx]); }
     } else { mastered = false; newIntervalIdx = 0; nextReview = addDays(today(), INTERVALS[0]); forgetCount++; }
-    updateIdiom(item.id, { mastered, intervalIdx: newIntervalIdx, studyCount: item.studyCount + 1, forgetCount, lastStudyTime: today(), nextReviewTime: nextReview });
+    let updatedItem = updateIdiom(item.id, { mastered, intervalIdx: newIntervalIdx, studyCount: item.studyCount + 1, forgetCount, lastStudyTime: today(), nextReviewTime: nextReview });
     recordStudy();
     // Phase 1 双写：异步同步到后端，失败不影响本地
     syncToBackend(item.id, remembered ? (mastered ? 'mastered' : 'correct') : 'wrong');
-    let q = getTodayQueue(); q.items = q.items.filter(i => i !== item.id); q.doneToday = (q.doneToday || 0) + 1; saveQueue(q);
+    syncVocabStateToBackend(updatedItem);
+    let q = getTodayQueue();
+    if (currentMode === 'review') {
+        q.items = q.items.filter(i => i !== item.id); q.doneToday = (q.doneToday || 0) + 1; saveQueue(q);
+    } else if (activeModeItems) {
+        activeModeItems = activeModeItems.filter(i => i !== item.id);
+    }
     isFlipped = false; renderAll();
-    if (q.items.length === 0) { setTimeout(() => showDailySummary(), 500); }
+    if (currentMode === 'review' && q.items.length === 0) { setTimeout(() => showDailySummary(), 500); }
 }
 
 let summaryShownToday = false;
@@ -4309,6 +4907,7 @@ const SUMMARY_SHOWN_KEY = 'summary_shown_date';
 function showDailySummary() {
     let t = today(); let shown = localStorage.getItem(SUMMARY_SHOWN_KEY); if (shown === t) return;
     let rec = loadGlobalRecords(); let todayCount = rec[t] || 0; let streak = getStreak();
+    if (todayCount <= 0) return;
     let data = loadIdioms(); let mastered = data.filter(d => d.mastered).length; let total = data.length;
     let pct = total === 0 ? 0 : Math.round((mastered / total) * 100);
     let overlay = document.getElementById('summaryOverlay');
@@ -4452,17 +5051,31 @@ function resetCurrentDeck() {
 function switchDeck(deckType) {
     if (deckType === getCurrentDeckType()) return;
     setCurrentDeckType(deckType);
-    document.querySelectorAll('.deck-tab').forEach(tab => { tab.classList.toggle('active', tab.dataset.deck === deckType); });
+    var activeDeckType = deckType === 'verbal' ? 'idiom' : deckType;
+    document.querySelectorAll('.deck-tab').forEach(tab => { tab.classList.toggle('active', tab.dataset.deck === activeDeckType); });
+    if (deckType === 'verbal') {
+        currentMode = 'verbal';
+        activeModeItems = null;
+        document.querySelectorAll('#modeSwitchGroup .mode-btn').forEach(b => { b.style.display = 'none'; b.classList.remove('active'); });
+        document.querySelectorAll('#modeSwitchGroup .mode-btn.math-only').forEach(b => { b.style.display = 'none'; });
+        renderAll();
+        fetchHighFreq('idiom').then(renderAll);
+        return;
+    }
     ensureDeckInitialized();
     currentMode = 'review';
-    document.querySelectorAll('#modeSwitchGroup .mode-btn').forEach((b, i) => { b.classList.toggle('active', i === 0); });
+    activeModeItems = null;
+    document.querySelectorAll('#modeSwitchGroup .mode-btn').forEach((b, i) => { b.style.display = ''; b.classList.toggle('active', i === 0); });
     document.querySelectorAll('#modeSwitchGroup .mode-btn.math-only').forEach(b => { b.style.display = deckType === 'math' ? '' : 'none'; });
     updateDailyPlanDisplay();
     renderAll();
     loadVocabSources();
 }
 
-document.getElementById('deckTabs').addEventListener('click', function(e) { if (e.target.classList.contains('deck-tab') && e.target.dataset.deck) { switchDeck(e.target.dataset.deck); } });
+document.getElementById('deckTabs').addEventListener('click', function(e) {
+    var tab = e.target.closest('.deck-tab[data-deck]');
+    if (tab) switchDeck(tab.dataset.deck);
+});
 
 function handleFileUpload(file) {
     if (typeof XLSX === 'undefined') { alert('Excel 解析库未加载，请刷新页面后重试。'); return; }
@@ -4495,10 +5108,8 @@ function handleFileUpload(file) {
                     }
                 } catch(e) { console.warn('后端保存失败，仅本地生效：', e.message); }
             }
-            // 清空当前成语数据并加载新词库
-            localStorage.setItem('idiom_data', JSON.stringify([]));
             let idiomList = list.map(w => ({ name: w.word, meaning: w.meaning }));
-            let added = mergeIdioms(idiomList);
+            let added = replaceIdiomsFromSource(idiomList);
             // 记录当前词库来源（按牌组分开存）
             localStorage.setItem('current_vocab_source_' + getCurrentDeckType(), 'custom:' + sourceName);
             // 刷新词库选择器
@@ -4511,27 +5122,26 @@ function handleFileUpload(file) {
                 msg += isLoggedIn ? '\n⚠️ 后端同步失败，仅保存在本地' : '\n⚠️ 未登录，仅保存在本地';
             }
             alert(msg);
-            generateDailyQueue(); renderAll();
+            ensureTodayQueueReady();
+            renderAll();
         } catch(e) { alert('Excel 解析失败：' + e.message + '\n\n请确保文件是 .xlsx 格式'); console.error(e); }
     };
     reader.readAsArrayBuffer(file);
 }
 
-async function fetchHighFreq() {
-    // 切换词库时先清空旧数据，再加载新数据（替换而非合并）
-    localStorage.setItem('idiom_data', JSON.stringify([]));
-    localStorage.setItem('idiom_queue', JSON.stringify(null));
+async function fetchHighFreq(deckType) {
+    var targetDeck = deckType || 'idiom';
     try {
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 5000);
-        let res = await apiFetch(API_BASE + '/api/deck/vocab/highfreq?limit=200', { signal: controller.signal });
+        let res = await apiFetch(API_BASE + '/api/verbal-catalog/vocab?limit=801', { signal: controller.signal });
         clearTimeout(timeout);
         if (res.ok) {
             let json = await res.json();
-            let list = json.map(item => ({ name: item.word, meaning: item.meaning }));
-            let added = mergeIdioms(list);
-            if (added > 0) { console.log('内置词库加载成功，新增 ' + added + ' 个成语'); }
-            else { console.log('成语词库已是最新'); }
+            let list = (json.items || []).map(item => ({ name: item.word, meaning: item.meaning, examples: Array.isArray(item.examples) ? item.examples.join('\n') : (item.examples || ''), search_url: item.search_url || '', source: '内置词库' }));
+            let count = replaceIdiomsFromSource(list, targetDeck);
+            if (targetDeck === getCurrentDeckType()) await applyVocabStateFromBackend();
+            console.log('内置词库加载成功：' + count + ' 个成语，学习状态已保留');
         } else {
             throw new Error('Server returned ' + res.status);
         }
@@ -4546,10 +5156,19 @@ async function fetchHighFreq() {
             { name: '融会贯通', meaning: '把各方面的知识和道理融化汇合，得到全面透彻的理解。' },
             { name: '博古通今', meaning: '对古代的事知道得很多，并且通晓现代的事情。形容知识丰富。' }
         ];
-        let added = mergeIdioms(mock); console.log('网络失败，已导入示例成语 ' + added + ' 个');
+        if (targetDeck === getCurrentDeckType()) {
+            let added = mergeIdioms(mock); console.log('网络失败，已导入示例成语 ' + added + ' 个');
+        } else {
+            console.warn('内置词库刷新失败：', e.message);
+        }
     }
-    generateDailyQueue(); renderAll();
-    if (gontu_isLoggedIn()) pushCurrentDeckToBackend();
+    if (targetDeck === getCurrentDeckType()) {
+        ensureTodayQueueReady();
+        renderAll();
+        if (gontu_isLoggedIn()) pushCurrentDeckToBackend();
+    } else if (targetDeck === 'idiom' && gontu_isLoggedIn()) {
+        pushDeckToBackend('idiom');
+    }
 }
 
 // ════════════════════════════════════════════════════
@@ -4614,14 +5233,8 @@ function updateVocabSourceUI() {
 async function switchVocabSource(sourceId) {
     var oldSource = getCurrentVocabSource();
     if (sourceId === oldSource) return;
-    var displayName = sourceId === 'builtin' ? '内置词库' : sourceId.replace('custom:', '');
-    if (!confirm('切换词库将清空当前成语牌组的学习进度。\n\n确定要切换到「' + displayName + '」吗？')) {
-        document.getElementById('vocabSourceSelect').value = oldSource;
-        return;
-    }
     // 备份当前数据，加载失败时恢复
     var backupData = localStorage.getItem('idiom_data');
-    var backupQueue = localStorage.getItem('idiom_queue');
     var backupSource = getCurrentVocabSource();
     try {
         if (sourceId === 'builtin') {
@@ -4634,7 +5247,6 @@ async function switchVocabSource(sourceId) {
             if (loadResult === false) {
                 // 未登录且无本地数据，恢复备份
                 localStorage.setItem('idiom_data', backupData || '[]');
-                localStorage.setItem('idiom_queue', backupQueue || JSON.stringify(null));
                 document.getElementById('vocabSourceSelect').value = backupSource;
                 return;
             }
@@ -4647,7 +5259,6 @@ async function switchVocabSource(sourceId) {
         console.error('[Vocab] 切换词库失败：', e.message);
         // 恢复备份
         localStorage.setItem('idiom_data', backupData || '[]');
-        localStorage.setItem('idiom_queue', backupQueue || JSON.stringify(null));
         alert('切换词库失败：' + e.message + '\n已恢复到原词库');
         document.getElementById('vocabSourceSelect').value = backupSource;
         return;
@@ -4662,22 +5273,20 @@ async function loadCustomVocab(sourceName) {
         var localData = loadIdioms();
         if (localData.length > 0) {
             console.log('[Vocab] 未登录，使用本地已缓存的词库数据：' + localData.length + ' 个成语');
-            generateDailyQueue();
+            ensureTodayQueueReady();
             return true;
         }
         return false;
     }
-    // 登录状态：先清空旧数据，再从后端拉取（替换而非合并）
-    localStorage.setItem('idiom_data', JSON.stringify([]));
-    localStorage.setItem('idiom_queue', JSON.stringify(null));
     var resp = await apiFetch(API_BASE + '/api/vocab/custom?source=' + encodeURIComponent(sourceName));
     if (!resp.ok) throw new Error('后端返回 ' + resp.status);
     var words = await resp.json();
     if (words.length === 0) { alert('词库「' + sourceName + '」为空'); return false; }
-    var list = words.map(w => ({ name: w.word, meaning: w.meaning }));
-    var added = mergeIdioms(list);
-    console.log('自定义词库加载成功：' + added + ' 个成语');
-    generateDailyQueue();
+    var list = words.map(w => ({ name: w.word, meaning: w.meaning, examples: w.examples || '', search_url: w.search_url || '' }));
+    var count = replaceIdiomsFromSource(list);
+    await applyVocabStateFromBackend();
+    console.log('自定义词库加载成功：' + count + ' 个成语，学习状态已保留');
+    ensureTodayQueueReady();
     pushCurrentDeckToBackend();
     return true;
 }
@@ -4694,8 +5303,6 @@ async function deleteCurrentCustomVocab() {
     }
     // 切回内置词库（按牌组分开存）
     localStorage.setItem('current_vocab_source_' + getCurrentDeckType(), 'builtin');
-    localStorage.setItem('idiom_data', JSON.stringify([]));
-    localStorage.setItem('idiom_queue', JSON.stringify(null));
     await loadVocabSources();
     await fetchHighFreq();
     renderAll();
@@ -4704,19 +5311,21 @@ async function deleteCurrentCustomVocab() {
 
 // 首次进入学习界面时自动加载词库（如果本地成语数据为空）
 function autoLoadHighFreqIfNeeded() {
-    if (getCurrentDeckType() !== 'idiom') return;
+    if (getCurrentDeckType() !== 'idiom') return Promise.resolve();
     var data = loadIdioms();
-    if (data.length === 0) {
-        var source = getCurrentVocabSource();
-        console.log('[AutoLoad] 本地成语为空，加载词库：' + source);
-        if (source === 'builtin') {
-            fetchHighFreq();
-        } else {
-            loadCustomVocab(source.slice(7));
-        }
+    var source = getCurrentVocabSource();
+    if (source === 'builtin') {
+        console.log('[AutoLoad] 刷新内置词库，保留学习状态');
+        vocabAutoLoading = data.length === 0;
+        return fetchHighFreq('idiom').then(function() { loadVocabSources(); }).finally(function() { vocabAutoLoading = false; });
     }
-    // 也加载词库列表到下拉框
-    loadVocabSources();
+    if (data.length === 0) {
+        console.log('[AutoLoad] 本地成语为空，加载词库：' + source);
+        vocabAutoLoading = true;
+        return loadCustomVocab(source.slice(7)).then(function() { loadVocabSources(); }).finally(function() { vocabAutoLoading = false; });
+    } else {
+        return applyVocabStateFromBackend().then(function() { loadVocabSources(); });
+    }
 }
 
 // 页面加载时初始化词库系统
@@ -4730,25 +5339,29 @@ document.getElementById('fileInput').onchange = (e) => { if (e.target.files[0]) 
 document.getElementById('fetchOnlineBtn').onclick = fetchHighFreq;
 
 document.getElementById('modeSwitchGroup').addEventListener('click', function(e) {
-    if (!e.target.classList.contains('mode-btn')) return;
+    var btn = e.target.closest('.mode-btn');
+    if (!btn) return;
     document.querySelectorAll('#modeSwitchGroup .mode-btn').forEach(b => b.classList.remove('active'));
-    e.target.classList.add('active'); currentMode = e.target.dataset.mode;
+    btn.classList.add('active'); currentMode = btn.dataset.mode;
     let data = loadIdioms();
     if (currentMode === 'recite') {
-        let allUnmastered = data.filter(d => !d.mastered).map(d => d.id);
-        let q = { date: today(), items: allUnmastered, total: allUnmastered.length, doneToday: 0 }; saveQueue(q);
+        activeModeItems = data.map(d => d.id);
     } else if (currentMode === 'difficult') {
         // 修复：forgetCount >= 1 即可进入错题攻克（之前 >= 2 太高了）
         let difficult = data.filter(d => !d.mastered && (d.forgetCount || 0) >= 1).map(d => d.id);
         if (difficult.length === 0) { gontuToast('🎉 暂无错题需要攻克！继续加油~', 'success'); currentMode = 'review'; document.querySelectorAll('#modeSwitchGroup .mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === 'review')); renderAll(); return; }
-        let q = { date: today(), items: difficult, total: difficult.length, doneToday: 0 }; saveQueue(q);
+        activeModeItems = difficult;
     } else if (currentMode === 'steps') {
         let stepCards = data.filter(d => d.type === 'math' && d.blank_steps && d.blank_steps.steps && d.blank_steps.steps.length > 0).map(d => d.id);
         if (stepCards.length === 0) { gontuToast('当前无可用步骤填空卡片', 'info'); currentMode = 'review'; document.querySelectorAll('#modeSwitchGroup .mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === 'review')); renderAll(); return; }
-        let q = { date: today(), items: stepCards, total: stepCards.length, doneToday: 0 }; saveQueue(q);
+        activeModeItems = stepCards;
     } else if (currentMode === 'quiz') {
         quizState = { idx: 0, score: 0, answered: false };
-    } else { generateDailyQueue(); }
+        activeModeItems = null;
+    } else {
+        activeModeItems = null;
+        getTodayQueue();
+    }
     isFlipped = false; renderAll();
 });
 

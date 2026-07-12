@@ -121,7 +121,22 @@ async def require_user(request: Request) -> dict:
     user = await get_current_user(request)
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    return user
+    # A correctly signed token is not sufficient when its account has been
+    # deleted or the browser is pointed at a fresh database.  Validate the
+    # subject here so downstream writes cannot fail later on foreign keys.
+    from database import get_db
+    with get_db() as conn:
+        row = conn.execute(
+            "SELECT id, username, is_admin FROM users WHERE id = ?",
+            (user["user_id"],),
+        ).fetchone()
+    if not row:
+        raise HTTPException(status_code=401, detail="Account no longer exists")
+    return {
+        "user_id": row["id"],
+        "username": row["username"],
+        "is_admin": row["is_admin"] or 0,
+    }
 
 
 # ── Admin dependency ───────────────────────────────────────────

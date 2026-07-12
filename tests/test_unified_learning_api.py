@@ -56,6 +56,12 @@ class UnifiedLearningAPITests(unittest.TestCase):
 
     def test_unauthenticated_and_unknown_module_are_rejected(self):
         self.assertEqual(self.client.get("/api/learning/activities").status_code, 401)
+        missing_user_headers = {
+            "Authorization": f"Bearer {create_token(9999, 'removed-user')}"
+        }
+        missing_user = self.client.get("/api/auth/me", headers=missing_user_headers)
+        self.assertEqual(missing_user.status_code, 401)
+        self.assertEqual(missing_user.json()["detail"], "Account no longer exists")
         response = self.client.post(
             "/api/learning/activities",
             headers=self.headers_a,

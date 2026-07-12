@@ -1,0 +1,301 @@
+{
+  "version": 1,
+  "set_id": "verbal_hs13_set06",
+  "source_name": "2025年花生片段阅读600题",
+  "range": "q11-q20",
+  "status": "visual_verified_minimal_practice",
+  "transcription_scope": {
+    "question_stem_and_options": "full_visual_transcription_from_question_book",
+    "answer_and_type": "visual_verified_from_analysis_book",
+    "official_analysis": "core_summary_from_visual_review",
+    "peanut_notes": "core_method_points_from_visual_review",
+    "ai_brief_example": "supplemental_ai_tutor_hint"
+  },
+  "source_pages": {
+    "question_book": {
+      "pdf": "/Users/miduoduo/Downloads/2025年花生片段阅读600题-题本【上】.pdf",
+      "rendered_images": [
+        "tmp/pdfs/verbal-reading-set06/questions-36.png",
+        "tmp/pdfs/verbal-reading-set06/questions-37.png",
+        "tmp/pdfs/verbal-reading-set06/questions-38.png",
+        "tmp/pdfs/verbal-reading-set06/questions-39.png"
+      ],
+      "printed_pages": [34, 35, 36, 37]
+    },
+    "analysis_book": {
+      "pdf": "/Users/miduoduo/Downloads/2025年花生片段阅读600题-解析【上】.pdf",
+      "rendered_images": [
+        "tmp/pdfs/verbal-reading-set06/analysis-080.png",
+        "tmp/pdfs/verbal-reading-set06/analysis-081.png",
+        "tmp/pdfs/verbal-reading-set06/analysis-082.png",
+        "tmp/pdfs/verbal-reading-set06/analysis-083.png",
+        "tmp/pdfs/verbal-reading-set06/analysis-084.png",
+        "tmp/pdfs/verbal-reading-set06/analysis-085.png",
+        "tmp/pdfs/verbal-reading-set06/analysis-086.png"
+      ],
+      "printed_pages": [78, 79, 80, 81, 82, 83, 84]
+    }
+  },
+  "questions": [
+    {
+      "id": "verbal_hs13_set06_q11",
+      "question_no": 11,
+      "source": {"question_images": ["questions-36.png", "questions-37.png"], "analysis_images": ["analysis-080.png"]},
+      "content": {
+        "stem": "经典作品中的美食，是一道耐人寻味的存在。比如在《白鹿原》中，为什么新娘会做一手好面条，是给娘家“长脸”必需的本领？又比如《京华烟云》中，经历了那么多社会动荡和家庭变故的姚木兰，为什么还会有心思慢条斯理地花费一下午的时间，料理一道焖鸡榨菜蒸笋？对于中国人来说，吃饭不仅是为了果腹，也是一种生活方式，体现着生活智慧和生命尊严。而《中国味道》试图寻找一个崭新的充满烟火气息的温暖角度，感受经典作品字里行间透露出的优雅和从容，领略千百年的寻常日子里，一茶一饭的生动气韵，在日用饮食之间带给人们强有力的文化归属感。",
+        "prompt": "这段文字表达的主要意思是：",
+        "options": [
+          {"key": "A", "text": "《中国味道》从新的角度感受经典作品中的饮食文化"},
+          {"key": "B", "text": "《中国味道》中折射出寻常日子的饮食文化归属感"},
+          {"key": "C", "text": "经典作品中耐人寻味的美食"},
+          {"key": "D", "text": "经典作品中体现的生活智慧"}
+        ]
+      },
+      "answer": "A",
+      "analysis_source": {"source_type_label": "中心理解题 + 科普介绍文章", "answer_source": "analysis_page_visual_verified"},
+      "learning_tags": {
+        "question_type": "中心理解题", "passage_type": "科普介绍文章",
+        "method_tags": ["二层结构", "背景知识加新内容", "后半部分重点", "主体匹配"],
+        "option_trap_tags": {"A": ["正确概括", "主体完整"], "B": ["杂糅", "范围缩窄"], "C": ["只概括背景"], "D": ["只概括背景"]},
+        "weak_steps": ["识别后半部分新内容", "保留《中国味道》主体", "排除背景信息项"], "estimated_seconds": 55
+      },
+      "official_analysis": "文段前半介绍经典作品中美食对中国人的意义，属于背景知识；后半引出《中国味道》这一新内容，强调它试图以崭新角度诠释经典作品中的饮食文化。新内容更重要，对应 A。B 杂糅且未体现新角度；C、D 均只概括背景部分。",
+      "peanut_notes": ["《中国味道》是全文论述主体。", "行文结构为二层结构之背景知识加新内容：前半介绍经典作品中美食的意义，后半介绍《中国味道》从新角度诠释美食文化。", "做题要优先概括后半出现的新内容。"],
+      "ai_brief_example": "先找文段真正要介绍的新对象：《中国味道》。它的核心动作是从新角度感受经典作品中的饮食文化，因此选 A。"
+    },
+    {
+      "id": "verbal_hs13_set06_q12",
+      "question_no": 12,
+      "source": {"question_images": ["questions-37.png"], "analysis_images": ["analysis-080.png", "analysis-081.png"]},
+      "content": {
+        "stem": "很长一段时间，中国文学海外传播主要依赖有规模有体系的经典作品译介，这些译介在推动中国文学走出去的过程中发挥了重要作用，但有时也会出现译介书目和目标读者的喜好、接受度之间有差距的情况，从而影响译介和推广的效果。而如今，类型文学海外传播则更注重市场需求，有时候甚至表现出从“译出”到“译入”的变化，即不是先译好了再推送，而是对方主动译入。据称，中国网络小说的许多海外读者因为等不及人工翻译，便通过机器翻译来实时阅读中文更新内容，这种如饥似渴的阅读需求是中国文学走出去的根本动力。",
+        "prompt": "这段文字意在说明：",
+        "options": [
+          {"key": "A", "text": "中国文学走出去首先需要满足市场需求"},
+          {"key": "B", "text": "类型文学在国外读者中拥有很高的人气"},
+          {"key": "C", "text": "中国文学的传播方式会直接影响到效果"},
+          {"key": "D", "text": "中国文学海外传播的路径需要与时俱进"}
+        ]
+      },
+      "answer": "A",
+      "analysis_source": {"source_type_label": "中心理解题 + 说理类文章", "answer_source": "analysis_page_visual_verified"},
+      "learning_tags": {
+        "question_type": "中心理解题", "passage_type": "说理类文章",
+        "method_tags": ["古今对比", "对策优选", "市场需求", "尾句主旨"],
+        "option_trap_tags": {"A": ["正确对策", "突出现在优势"], "B": ["缺主题词"], "C": ["中性表述", "未突出现在优势"], "D": ["无中生有"]},
+        "weak_steps": ["识别过去与现在的对比", "抓住市场需求这一核心", "优先选择对策项"], "estimated_seconds": 55
+      },
+      "official_analysis": "文段对比过去和现在的中国文学海外传播：过去的译介可能与目标读者需求有差距，现在的类型文学传播更注重市场需求并取得成功。重点在于中国文学走出去应满足市场需求，对应 A。B 未体现传播方式；C 过于中性，未突出现在方式的优势；D 的‘与时俱进’无中生有。",
+      "peanut_notes": ["中国文学海外传播是全文话题。", "行文结构为古今对比：过去传播方式效果不佳，现在注重市场需求的传播方式受到欢迎。", "通过对比突出现在的好，即中国文学海外传播要继续满足市场需求。"],
+      "ai_brief_example": "过去的问题是供给与读者需求错位，现在的成功来自读者主动需要。把对比压缩后就是 A。"
+    },
+    {
+      "id": "verbal_hs13_set06_q13",
+      "question_no": 13,
+      "source": {"question_images": ["questions-37.png"], "analysis_images": ["analysis-081.png"]},
+      "content": {
+        "stem": "纵观世界，新的垃圾处理时代正在到来。前不久，俄罗斯科学家已经可以利用等离子技术来处理垃圾焚烧过程中产生的有害气体，并对城市生活制造的“污泥浊水”进行无害化处理，使其转为腐殖酸肥料。德国科学家造出“风拣技术”，令世界看到了垃圾处理的广阔未来。该技术终结了垃圾的人工分拣，让风代替人去对垃圾中的塑料、玻璃、纸张等进行分拣，从而将垃圾处理工艺提高到了一个前所未有的新阶段。",
+        "prompt": "最适合做这段文字标题的是：",
+        "options": [
+          {"key": "A", "text": "垃圾：放错地方的资源"},
+          {"key": "B", "text": "科技：垃圾处理的关键"},
+          {"key": "C", "text": "风力：新时代的“机器人”"},
+          {"key": "D", "text": "无害化：垃圾处理的未来"}
+        ]
+      },
+      "answer": "B",
+      "analysis_source": {"source_type_label": "标题拟定类 + 科普介绍文章", "answer_source": "analysis_page_visual_verified"},
+      "learning_tags": {
+        "question_type": "标题拟定题", "passage_type": "科普介绍文章",
+        "method_tags": ["总分结构", "标题拟定", "分述归纳", "主题完整"],
+        "option_trap_tags": {"A": ["无主题词"], "B": ["正确概括"], "C": ["片面概括", "无主题词"], "D": ["片面概括"]},
+        "weak_steps": ["概括多项科技实例", "保留垃圾处理主题", "排除只覆盖单一实例的选项"], "estimated_seconds": 45
+      },
+      "official_analysis": "文段先总起新的垃圾处理时代正在到来，随后分别介绍俄罗斯等离子技术和德国风拣技术。两类实例都说明科技推动垃圾处理进入新阶段，标题应概括为‘科技：垃圾处理的关键’，选 B。A、C 未完整体现垃圾处理话题，D 只对应前半的无害化处理，片面。",
+      "peanut_notes": ["垃圾处理是全文论述话题。", "行文结构为总分结构：先总起新时代，再分述等离子技术和风拣技术。", "标题需统摄两项科技实例，不能只概括无害化或风力。"],
+      "ai_brief_example": "两段例子一个讲等离子技术，一个讲风拣技术，共同上位概念是科技，因此选 B。"
+    },
+    {
+      "id": "verbal_hs13_set06_q14",
+      "question_no": 14,
+      "source": {"question_images": ["questions-37.png"], "analysis_images": ["analysis-082.png"]},
+      "content": {
+        "stem": "据“上海发布”最新消息，“数字人民币五五欢乐购”活动正式启动，总计发放35万份红包。根据通知，符合条件的所有手机定位在上海市的公众均可参与报名。6月11日9时起，可在活动报名页面自行查询抽签结果。数字人民币支付率先在南京路、淮海中路——新天地、豫园、小陆家嘴、徐家汇、北外滩等“两街四圈”和虹桥国际开放枢纽核心商圈落地。",
+        "prompt": "这段文字最恰当的标题是：",
+        "options": [
+          {"key": "A", "text": "上海已实现数字人民币支付环境全覆盖"},
+          {"key": "B", "text": "上海数字人民币支付已在部分商圈落地"},
+          {"key": "C", "text": "上海启动35万份数字人民币红包发放活动"},
+          {"key": "D", "text": "上海公众喜迎“五五欢乐购”红包发放活动"}
+        ]
+      },
+      "answer": "C",
+      "analysis_source": {"source_type_label": "标题拟定类 + 新闻类文章", "answer_source": "analysis_page_visual_verified"},
+      "learning_tags": {
+        "question_type": "标题拟定题", "passage_type": "新闻类文章",
+        "method_tags": ["新闻导语", "活动亮点", "总分结构", "标题要素"],
+        "option_trap_tags": {"A": ["未体现活动", "夸大范围"], "B": ["未体现活动"], "C": ["正确标题", "要素完整"], "D": ["未突出活动亮点"]},
+        "weak_steps": ["优先抓新闻首句", "保留启动和35万份红包", "区分活动宣传与事后报道"], "estimated_seconds": 40
+      },
+      "official_analysis": "文段首句直接介绍‘数字人民币五五欢乐购’活动正式启动并将发放35万份红包，后文补充参与条件、查询时间及支付落地点。新闻标题应体现活动本身和亮点，C 同时包含‘启动’、‘35万份’和‘数字人民币红包’，最恰当。A、B 未体现活动；D 未突出活动亮点。",
+      "peanut_notes": ["行文结构为总分结构：开篇总体介绍活动，后文说明活动细节。", "C 适合活动开始前宣传；D 更像活动后的报道。", "新闻标题优先抓导语中的动作和数字亮点。"],
+      "ai_brief_example": "标题先看新闻导语：谁、做什么、最大亮点是什么。C 三项齐全。"
+    },
+    {
+      "id": "verbal_hs13_set06_q15",
+      "question_no": 15,
+      "source": {"question_images": ["questions-38.png"], "analysis_images": ["analysis-082.png", "analysis-083.png"]},
+      "content": {
+        "stem": "飞行表演由各种基础动作组成，如横滚、筋斗以及著名的眼镜蛇动作等。此时，飞机发动机会遭受进气畸变，发动机稳定裕度衰减，即航空发动机进口流场参数与其设计的假设不一致。进气畸变是航空发动机失稳的主要诱因，易造成压气机稳定性丧失，此时涡轮负荷和热应力增加，压气机叶片发生强迫振动，极有可能对发动机造成不可逆的损害，影响飞机飞行安全，因此有必要发展及时可靠的压气机失稳预报技术，确保在进气畸变条件下航空发动机安全稳定运行。",
+        "prompt": "这段文字所在的文章最可能讨论的是：",
+        "options": [
+          {"key": "A", "text": "航空发动机设计的技术难点"},
+          {"key": "B", "text": "航空发动机适航规定中的参数"},
+          {"key": "C", "text": "飞行表演中存在的空气动力学"},
+          {"key": "D", "text": "预报航空发动机气动失稳的方法"}
+        ]
+      },
+      "answer": "D",
+      "analysis_source": {"source_type_label": "下文推断类 + 宏观对策→展开对策", "answer_source": "analysis_page_visual_verified"},
+      "learning_tags": {
+        "question_type": "下文推断题", "passage_type": "科普介绍文章",
+        "method_tags": ["文末对策", "展开对策", "话题承接", "宏观到具体"],
+        "option_trap_tags": {"A": ["话题过宽"], "B": ["无中生有"], "C": ["背景误作主题"], "D": ["正确承接", "具体展开对策"]},
+        "weak_steps": ["锁定文末对策", "判断下文展开方向", "避免回到背景话题"], "estimated_seconds": 50
+      },
+      "official_analysis": "文段先介绍航空发动机进气畸变影响飞行安全的问题，文末提出应发展压气机失稳预报技术这一宏观对策。下文最可能沿着该对策继续展开，介绍具体预报方法，对应 D。其余选项均未扣住‘压气机失稳预报技术’。",
+      "peanut_notes": ["下文推断常见结构之一：上文给出宏观对策，下文具体展开对策。", "尾句的‘压气机失稳预报技术’是承接下文的核心话题。", "若文末已有对策，下文通常介绍如何落实该对策。"],
+      "ai_brief_example": "不要被开头的飞行表演带走，真正留给下文的是末句的新任务——怎样预报发动机气动失稳，选 D。"
+    },
+    {
+      "id": "verbal_hs13_set06_q16",
+      "question_no": 16,
+      "source": {"question_images": ["questions-38.png"], "analysis_images": ["analysis-083.png"]},
+      "content": {
+        "stem": "立秋后，自然界的阳气开始收敛、沉降，人们应当开始做好保养阳气的准备。在起居上应做到“早睡早起”，因为早睡可以顺应阳气收敛，早起可使肺气得以舒展。秋应于肺，在志为忧，这个时期是抑郁症的高发期。因而对于有抑郁症或抑郁情绪的人来说，要注意情绪的调整和把控。",
+        "prompt": "接下来最可能讲的是：",
+        "options": [
+          {"key": "A", "text": "科学选择运动方式和运动量"},
+          {"key": "B", "text": "如何保持良好的作息时间"},
+          {"key": "C", "text": "立秋后抑郁症高发的原因"},
+          {"key": "D", "text": "早睡早起的好处"}
+        ]
+      },
+      "answer": "C",
+      "analysis_source": {"source_type_label": "下文推断类 + 提出新内容→解释新内容", "answer_source": "analysis_page_visual_verified"},
+      "learning_tags": {
+        "question_type": "下文推断题", "passage_type": "说理类文章",
+        "method_tags": ["文末新话题", "解释新内容", "下文衔接", "话题推进"],
+        "option_trap_tags": {"A": ["与文末话题无关"], "B": ["与文末话题无关", "上文已提"], "C": ["正确承接"], "D": ["上文已说明"]},
+        "weak_steps": ["定位文末新内容", "排除已论述内容", "判断先解释原因再谈对策"], "estimated_seconds": 45
+      },
+      "official_analysis": "文段开篇介绍立秋，继而说明早睡早起的起居要求；文末引出新的话题‘抑郁症高发’，并提出应调整情绪。上文未解释抑郁症为何高发，下文最可能围绕这一新内容说明原因，对应 C。A、B 与情绪话题无关，D 已在上文说明。",
+      "peanut_notes": ["‘抑郁症’是上文末尾新出现的内容。", "下文推断常见结构：上文未提出新内容，下文解释新内容。", "早睡早起及其好处已经讲过，不能重复。"],
+      "ai_brief_example": "看最后一个尚未解释的点：为什么立秋后抑郁症高发。下文最自然补这个原因，选 C。"
+    },
+    {
+      "id": "verbal_hs13_set06_q17",
+      "question_no": 17,
+      "source": {"question_images": ["questions-38.png"], "analysis_images": ["analysis-084.png"]},
+      "content": {
+        "stem": "俄罗斯科学家在人造聚合材料的基础上加入从蛋壳中提取的羟基磷灰石，开发出一种新型黏合剂。目前，牙科医生修复受损牙齿用的是人造材料，普通的修复物在这种材料基础上制成。这种复合材料和固定修复物所使用的胶，在性能和化学组成方面与天然牙组织——牙质有很大不同。因此，它们与真牙结合得很不好，有时修复体会脱落。天然羟基磷灰石存在于各种固体组织中，包括牙齿、骨骼和蛋壳等，在其基础上制作的黏合剂可以很好地模拟牙质的特性和结构。",
+        "prompt": "根据文意，新型黏合剂用来固定牙齿修复效果好的原因是：",
+        "options": [
+          {"key": "A", "text": "新型黏合剂的化学组成和结构非常接近于真牙"},
+          {"key": "B", "text": "天然羟基磷灰石能广泛存在于各种固体组织中"},
+          {"key": "C", "text": "新型黏合剂提高了牙科修复物和胶的稳固性"},
+          {"key": "D", "text": "普通的牙科修复材料和胶不能存在于固体组织"}
+        ]
+      },
+      "answer": "A",
+      "analysis_source": {"source_type_label": "词句理解题", "answer_source": "analysis_page_visual_verified"},
+      "learning_tags": {
+        "question_type": "词句理解题", "passage_type": "科普介绍文章",
+        "method_tags": ["因果定位", "新旧对比", "同义替换", "结果原因区分"],
+        "option_trap_tags": {"A": ["正确原因", "同义替换"], "B": ["非直接原因"], "C": ["结果误作原因"], "D": ["曲解文意"]},
+        "weak_steps": ["对比旧黏合剂与新黏合剂", "区分原因和结果", "定位末句因果"], "estimated_seconds": 50
+      },
+      "official_analysis": "文段对比普通黏合剂和新型黏合剂：普通材料因性能和化学组成与天然牙组织差异大而结合不好；新型黏合剂以天然羟基磷灰石为基础，能够很好模拟牙质的特性和结构。因此其效果好的原因是化学组成和结构接近真牙，对应 A。B 只是材料存在范围；C 是结果而非原因；D 曲解文意。",
+      "peanut_notes": ["天然羟基磷灰石本身存在于牙齿等组织，所以能更好模拟牙质的特性和结构。", "B 只说新型黏合剂和天然牙组织接近，却没有回答为何固定效果好。", "C 所说稳固性提高是结果，不是结果的原因。"],
+      "ai_brief_example": "旧材料的问题是‘不像真牙’，新材料的优势是‘像真牙’，原因项自然是 A。"
+    },
+    {
+      "id": "verbal_hs13_set06_q18",
+      "question_no": 18,
+      "source": {"question_images": ["questions-38.png", "questions-39.png"], "analysis_images": ["analysis-084.png", "analysis-085.png"]},
+      "content": {
+        "stem": "①有了静，全部构建会组合成一种古筝独奏般的淡雅清丽\n②在摩肩接踵的拥挤中游古典园林是很叫人伤心的事\n③中国古典园林不管依傍何种建筑流派，都要以静作为自己的韵律\n④而失去了静，它内在的整体风致也就不可寻找\n⑤你有幸走在这样的园林中就会觉得走进了一种境界，虚虚浮浮而又满目生气，几乎不相信自己往常曾多次来过\n⑥如有一个偶然的机会，或许是大雨刚歇，游客未至，或许是时值黄昏，庭院冷落",
+        "prompt": "将以上6个句子重新排列，语序正确的是：",
+        "options": [
+          {"key": "A", "text": "③①④②⑥⑤"},
+          {"key": "B", "text": "⑥⑤②③①④"},
+          {"key": "C", "text": "②⑥⑤③①④"},
+          {"key": "D", "text": "②⑤⑥③①④"}
+        ]
+      },
+      "answer": "A",
+      "analysis_source": {"source_type_label": "语句排序类 + 科普介绍文章", "answer_source": "analysis_page_visual_verified"},
+      "learning_tags": {
+        "question_type": "语句排序题", "passage_type": "科普介绍文章",
+        "method_tags": ["主题句", "正反论证", "条件结果", "下定义"],
+        "option_trap_tags": {"A": ["正确排序"], "B": ["首句不完整"], "C": ["先例后定义"], "D": ["条件结果倒置"]},
+        "weak_steps": ["识别③总领句", "绑定③①④", "绑定⑥⑤条件结果"], "estimated_seconds": 70
+      },
+      "official_analysis": "观察选项可知③①④始终相连，可先排剩余三句。②介绍人多时游园体验不好，⑥⑤共同说明若偶遇游客少、环境静的园林则体验极佳，故②⑥⑤衔接。③①④则围绕中国古典园林的‘静’展开：③先提出静的意义，①说明有静的效果，④从反面说明失去静的后果。③可视为对‘中国古典园林’的下定义，应置于首句，正确顺序为③①④②⑥⑤，选 A。",
+      "peanut_notes": ["文段首句引出话题‘中国古典园林如何选静’。", "③①④正反论证‘静’对园林的意义；②⑥⑤介绍有静时的游园体验。", "③先提出中国古典园林这一完整名称，②再用‘古典园林’承接，适合作首句。"],
+      "ai_brief_example": "先锁定③①④：定义静、写有静、写失静。再接反面体验②和转好条件⑥⑤，答案 A。"
+    },
+    {
+      "id": "verbal_hs13_set06_q19",
+      "question_no": 19,
+      "source": {"question_images": ["questions-39.png"], "analysis_images": ["analysis-085.png"]},
+      "content": {
+        "stem": "①“适度距离”不单是居住空间上的物理距离，也是心理上的“代际距离”\n②个性解放、知识快速更新和年轻一代的经济独立不断冲击着传统家长权威\n③当年轻人与父辈的价值观念和行为方式难以快速趋同时，保持适度距离是确保良性代际互动的前提\n④在社会转型进程中，中国的家庭结构经历着革命式变迁\n⑤有学者提出，两代人的居住格局应保持“一碗汤的距离”，既要让子代和父代有各自的独立空间，又要维系家庭成员之间的亲密关系\n⑥不同价值观念和行为方式在同一时空并存的环境下，代际之间的适度空间和社会距离是彼此有效沟通与和谐共处的基本条件之一",
+        "prompt": "将以上6个句子重新排列，语序正确的是：",
+        "options": [
+          {"key": "A", "text": "⑤①③④②⑥"},
+          {"key": "B", "text": "②⑥③④①⑤"},
+          {"key": "C", "text": "④②⑥③⑤①"},
+          {"key": "D", "text": "⑥③⑤④①②"}
+        ]
+      },
+      "answer": "C",
+      "analysis_source": {"source_type_label": "语句排序类 + 说理类文章", "answer_source": "analysis_page_visual_verified"},
+      "learning_tags": {
+        "question_type": "语句排序题", "passage_type": "说理类文章",
+        "method_tags": ["背景问题对策", "话题衔接", "总分结构", "指代解释"],
+        "option_trap_tags": {"A": ["背景后置"], "B": ["首句缺背景"], "C": ["正确排序"], "D": ["逻辑顺序倒置"]},
+        "weak_steps": ["确定④背景开篇", "理解②④因果次序", "识别⑤①具体解释关系"], "estimated_seconds": 70
+      },
+      "official_analysis": "首句在②④⑤⑥中选择。②、④均介绍背景与问题，其中④是社会转型中家庭结构变迁的总背景，②是这种转型带来的具体冲击，故④在②前，基本锁定 C。其后⑥③⑤①都围绕‘适度距离’展开：先概括适度距离是有效沟通的条件，再说明其是良性互动前提，继而用‘一碗汤的距离’具体说明，最后解释它既是物理距离也是心理上的代际距离。正确顺序为④②⑥③⑤①。",
+      "peanut_notes": ["行文逻辑是先介绍社会转型和家庭结构变迁，再讲其带来的代际问题，最后提出适度距离这一对策。", "④是背景，②是背景带来的具体问题，④应在②前。", "⑤提出‘一碗汤的距离’，①进一步解释‘适度距离’不只是物理距离，⑤①衔接。"],
+      "ai_brief_example": "排序先抓背景层级：④总背景必须早于②具体冲击；再按‘提出适度距离—举例—解释’排列，选 C。"
+    },
+    {
+      "id": "verbal_hs13_set06_q20",
+      "question_no": 20,
+      "source": {"question_images": ["questions-39.png"], "analysis_images": ["analysis-086.png"]},
+      "content": {
+        "stem": "谈及诺贝尔奖提名的历史，不得不提爱因斯坦。1905年，爱因斯坦发表了5篇论文，提出光电效应、狭义相对论、质能等效方程，并对统计力学作出了巨大贡献。1910年，奥斯特瓦尔德便向瑞典科学院提名爱因斯坦获奖。尽管那个时代的瑞典科学院更加青睐实验物理学工作，对以思想实验为主的相对论持保留意见，但爱因斯坦仍先后被提名62次，终于在1922年荣膺诺贝尔物理学奖，可以说物理学的半壁江山都站在爱因斯坦的身后。",
+        "prompt": "由以上材料不能推知：",
+        "options": [
+          {"key": "A", "text": "爱因斯坦的狭义相对论代表了思想实验的最高成就"},
+          {"key": "B", "text": "爱因斯坦在物理学方面的贡献不属于实验物理学领域"},
+          {"key": "C", "text": "爱因斯坦对统计力学作出了巨大贡献"},
+          {"key": "D", "text": "1905年发表的论文是爱因斯坦获诺贝尔奖的基础"}
+        ]
+      },
+      "answer": "A",
+      "analysis_source": {"source_type_label": "细节判断类", "answer_source": "analysis_page_visual_verified"},
+      "learning_tags": {
+        "question_type": "细节判断题", "passage_type": "科普介绍文章",
+        "method_tags": ["选非题", "逐项对应", "绝对化表述", "合理推断"],
+        "option_trap_tags": {"A": ["绝对化", "无法推出"], "B": ["可由上下文推出"], "C": ["原文明确"], "D": ["合理推断"]},
+        "weak_steps": ["注意‘不能推知’", "警惕最高成就等绝对词", "区分明确事实与合理推断"], "estimated_seconds": 50
+      },
+      "official_analysis": "本题为选非题。A 中‘思想实验的最高成就’是绝对化表述，原文只说瑞典科学院对以思想实验为主的相对论持保留意见，不能推出其为最高成就，故选 A。B 可由瑞典科学院更青睐实验物理而对相对论保留意见推知；C 为原文明确表述；D 可由1905年论文与1910年开始提名的时间关系合理推断。",
+      "peanut_notes": ["根据文中对瑞典科学院青睐实验物理的描述，可知爱因斯坦的研究以思想实验为主，并非其青睐的实验物理。", "文中明确指出爱因斯坦对统计力学作出了巨大贡献。", "从1905年发表成果、1910年获提名可合理推知这些论文构成获奖基础。", "‘最高成就’属于原文没有支撑的绝对化表述。"],
+      "ai_brief_example": "选非题先找最强断言。原文从未比较思想实验成就高低，A 的‘最高’无法推出。"
+    }
+  ]
+}
