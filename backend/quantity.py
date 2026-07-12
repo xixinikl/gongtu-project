@@ -301,6 +301,23 @@ def create_session(body: SessionCreateIn, user: dict = Depends(require_user)):
             """,
             (session_id, user["user_id"], body.set_no, len(questions), now, now),
         )
+        conn.execute(
+            """INSERT INTO learning_activities_v2
+                   (id,user_id,module_id,activity_type,source_id,status,started_at,
+                    duration_ms,summary_json,created_at,updated_at)
+               VALUES(?,?,?,?,?,'in_progress',?,0,?,?,?)""",
+            (
+                f"quantity:{session_id}",
+                user["user_id"],
+                "quantity.exam",
+                "practice_set",
+                session_id,
+                now,
+                json.dumps({"set_no": body.set_no, "total": len(questions)}),
+                now,
+                now,
+            ),
+        )
         conn.commit()
         return _serialize_session(conn, _owned_session(conn, session_id, user["user_id"]))
 
@@ -435,6 +452,28 @@ def submit_session(
             WHERE id=? AND user_id=?
             """,
             (score, body.elapsed_ms, now, now, session_id, user["user_id"]),
+        )
+        conn.execute(
+            """UPDATE learning_activities_v2
+               SET status='completed',completed_at=?,duration_ms=?,summary_json=?,updated_at=?
+               WHERE id=? AND user_id=?""",
+            (
+                now,
+                body.elapsed_ms,
+                json.dumps(
+                    {
+                        "set_no": session["set_no"],
+                        "score": score,
+                        "total": session["question_count"],
+                        "skipped": sum(int(item["is_skipped"]) for item in attempts),
+                    },
+                    ensure_ascii=False,
+                    separators=(",", ":"),
+                ),
+                now,
+                f"quantity:{session_id}",
+                user["user_id"],
+            ),
         )
         conn.commit()
         return _serialize_session(conn, _owned_session(conn, session_id, user["user_id"]))

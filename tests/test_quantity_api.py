@@ -1,6 +1,7 @@
 """Security and behavior tests for the approved quantity adapter."""
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 import sys
@@ -135,6 +136,17 @@ class QuantityApiTests(unittest.TestCase):
         self.assertIn("analysis", result["review_questions"][6])
         self.assertEqual(result["analysis_visual_audit"]["status"], "incomplete")
         self.assertFalse(result["analysis_visual_audit"]["analysis_media_available"])
+        with get_db() as conn:
+            activity = conn.execute(
+                """SELECT user_id,module_id,status,duration_ms,summary_json
+                   FROM learning_activities_v2 WHERE id=?""",
+                (f"quantity:{session_id}",),
+            ).fetchone()
+        self.assertEqual(activity["user_id"], 101)
+        self.assertEqual(activity["module_id"], "quantity.exam")
+        self.assertEqual(activity["status"], "completed")
+        self.assertEqual(activity["duration_ms"], 130000)
+        self.assertEqual(json.loads(activity["summary_json"])["set_no"], 8)
 
     def test_skip_history_validation_and_user_isolation(self):
         created = self.client.post(
