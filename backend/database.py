@@ -200,6 +200,162 @@ def init_db():
         except sqlite3.OperationalError:
             pass  # column already exists
 
+        # ── v8 migration: vocab examples + separated learning state + verbal bank ──
+        for ddl, label in [
+            ("ALTER TABLE highfreq_vocab ADD COLUMN examples TEXT DEFAULT ''", "highfreq_vocab.examples"),
+            ("ALTER TABLE highfreq_vocab ADD COLUMN source TEXT DEFAULT '人民网'", "highfreq_vocab.source"),
+            ("ALTER TABLE highfreq_vocab ADD COLUMN search_url TEXT DEFAULT ''", "highfreq_vocab.search_url"),
+        ]:
+            try:
+                conn.execute(ddl)
+                conn.commit()
+                logger.info("Migration: added %s", label)
+            except sqlite3.OperationalError:
+                pass
+
+        conn.executescript("""
+            CREATE TABLE IF NOT EXISTS vocab_learning_state (
+                id               INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id          INTEGER NOT NULL,
+                vocab_source     TEXT NOT NULL DEFAULT 'builtin',
+                word             TEXT NOT NULL,
+                study_count      INTEGER NOT NULL DEFAULT 0,
+                forget_count     INTEGER NOT NULL DEFAULT 0,
+                interval_idx     INTEGER NOT NULL DEFAULT 0,
+                mastered         INTEGER NOT NULL DEFAULT 0,
+                favorite         INTEGER NOT NULL DEFAULT 0,
+                last_study_date  TEXT DEFAULT '',
+                next_review_date TEXT DEFAULT '',
+                updated_at       TEXT NOT NULL DEFAULT (datetime('now')),
+                UNIQUE(user_id, vocab_source, word)
+            );
+            CREATE INDEX IF NOT EXISTS idx_vocab_state_user_source
+                ON vocab_learning_state(user_id, vocab_source);
+            CREATE INDEX IF NOT EXISTS idx_vocab_state_next_review
+                ON vocab_learning_state(user_id, next_review_date);
+
+            CREATE TABLE IF NOT EXISTS question_banks (
+                id          TEXT PRIMARY KEY,
+                name        TEXT NOT NULL,
+                version     TEXT DEFAULT '',
+                description TEXT DEFAULT '',
+                created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+                updated_at  TEXT NOT NULL DEFAULT (datetime('now'))
+            );
+
+            CREATE TABLE IF NOT EXISTS verbal_questions (
+                id                 TEXT PRIMARY KEY,
+                bank_id            TEXT NOT NULL,
+                question_type      TEXT NOT NULL,
+                source_module      TEXT NOT NULL,
+                module_sequence    INTEGER NOT NULL,
+                stem               TEXT NOT NULL,
+                options_json       TEXT NOT NULL,
+                correct_answer     TEXT NOT NULL,
+                explanation        TEXT DEFAULT '',
+                related_terms_json TEXT DEFAULT '[]',
+                fingerprint        TEXT NOT NULL,
+                created_at         TEXT NOT NULL DEFAULT (datetime('now')),
+                updated_at         TEXT NOT NULL DEFAULT (datetime('now')),
+                FOREIGN KEY(bank_id) REFERENCES question_banks(id) ON DELETE CASCADE
+            );
+            CREATE INDEX IF NOT EXISTS idx_verbal_questions_bank_type
+                ON verbal_questions(bank_id, question_type);
+            CREATE INDEX IF NOT EXISTS idx_verbal_questions_module
+                ON verbal_questions(bank_id, source_module, module_sequence);
+            CREATE INDEX IF NOT EXISTS idx_verbal_questions_fingerprint
+                ON verbal_questions(fingerprint);
+
+            CREATE TABLE IF NOT EXISTS verbal_attempts (
+                id                 INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id            INTEGER NOT NULL,
+                question_id        TEXT NOT NULL,
+                selected_answer    TEXT NOT NULL,
+                is_correct         INTEGER NOT NULL,
+                time_spent_seconds INTEGER DEFAULT 0,
+                created_at         TEXT NOT NULL DEFAULT (datetime('now')),
+                FOREIGN KEY(question_id) REFERENCES verbal_questions(id) ON DELETE CASCADE
+            );
+            CREATE INDEX IF NOT EXISTS idx_verbal_attempts_user
+                ON verbal_attempts(user_id, created_at);
+            CREATE INDEX IF NOT EXISTS idx_verbal_attempts_question
+                ON verbal_attempts(question_id);
+        """)
+        conn.commit()
+
+        row = conn.execute(
+            "SELECT sql FROM sqlite_master WHERE type='table' AND name='verbal_questions'"
+        ).fetchone()
+        table_sql = row["sql"] if row else ""
+        if "fingerprint        TEXT NOT NULL UNIQUE" in table_sql or "fingerprint TEXT NOT NULL UNIQUE" in table_sql:
+            logger.info("Migration: relaxing verbal_questions.fingerprint unique constraint")
+            conn.executescript("""
+                ALTER TABLE verbal_questions RENAME TO verbal_questions_old_unique;
+                CREATE TABLE verbal_questions (
+                    id                 TEXT PRIMARY KEY,
+                    bank_id            TEXT NOT NULL,
+                    question_type      TEXT NOT NULL,
+                    source_module      TEXT NOT NULL,
+                    module_sequence    INTEGER NOT NULL,
+                    stem               TEXT NOT NULL,
+                    options_json       TEXT NOT NULL,
+                    correct_answer     TEXT NOT NULL,
+                    explanation        TEXT DEFAULT '',
+                    related_terms_json TEXT DEFAULT '[]',
+                    fingerprint        TEXT NOT NULL,
+                    created_at         TEXT NOT NULL DEFAULT (datetime('now')),
+                    updated_at         TEXT NOT NULL DEFAULT (datetime('now')),
+                    FOREIGN KEY(bank_id) REFERENCES question_banks(id) ON DELETE CASCADE
+                );
+                INSERT OR IGNORE INTO verbal_questions
+                    (id, bank_id, question_type, source_module, module_sequence,
+                     stem, options_json, correct_answer, explanation,
+                     related_terms_json, fingerprint, created_at, updated_at)
+                SELECT id, bank_id, question_type, source_module, module_sequence,
+                       stem, options_json, correct_answer, explanation,
+                       related_terms_json, fingerprint, created_at, updated_at
+                FROM verbal_questions_old_unique;
+                DROP TABLE verbal_questions_old_unique;
+                CREATE INDEX IF NOT EXISTS idx_verbal_questions_bank_type
+                    ON verbal_questions(bank_id, question_type);
+                CREATE INDEX IF NOT EXISTS idx_verbal_questions_module
+                    ON verbal_questions(bank_id, source_module, module_sequence);
+                CREATE INDEX IF NOT EXISTS idx_verbal_questions_fingerprint
+                    ON verbal_questions(fingerprint);
+            """)
+            conn.commit()
+
+        row = conn.execute(
+            "SELECT sql FROM sqlite_master WHERE type='table' AND name='verbal_attempts'"
+        ).fetchone()
+        attempts_sql = row["sql"] if row else ""
+        if "verbal_questions_old_unique" in attempts_sql:
+            logger.info("Migration: fixing verbal_attempts foreign key target")
+            conn.executescript("""
+                ALTER TABLE verbal_attempts RENAME TO verbal_attempts_old_fk;
+                CREATE TABLE verbal_attempts (
+                    id                 INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id            INTEGER NOT NULL,
+                    question_id        TEXT NOT NULL,
+                    selected_answer    TEXT NOT NULL,
+                    is_correct         INTEGER NOT NULL,
+                    time_spent_seconds INTEGER DEFAULT 0,
+                    created_at         TEXT NOT NULL DEFAULT (datetime('now')),
+                    FOREIGN KEY(question_id) REFERENCES verbal_questions(id) ON DELETE CASCADE
+                );
+                INSERT INTO verbal_attempts
+                    (id, user_id, question_id, selected_answer, is_correct, time_spent_seconds, created_at)
+                SELECT id, user_id, question_id, selected_answer, is_correct, time_spent_seconds, created_at
+                FROM verbal_attempts_old_fk;
+                DROP TABLE verbal_attempts_old_fk;
+                CREATE INDEX IF NOT EXISTS idx_verbal_attempts_user
+                    ON verbal_attempts(user_id, created_at);
+                CREATE INDEX IF NOT EXISTS idx_verbal_attempts_question
+                    ON verbal_attempts(question_id);
+            """)
+            conn.commit()
+        logger.info("Table check: vocab_learning_state + verbal question bank ready")
+
 
 def cleanup_old_events(retention_days: int = 365):
     """Remove learning events older than retention_days (must be positive)."""

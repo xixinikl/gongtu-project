@@ -16,7 +16,19 @@ import os
 from fastapi.responses import JSONResponse, FileResponse, HTMLResponse
 
 from database import get_db, init_db, cleanup_old_events
-from models import CardOut, QuizItemOut, SyncIn, SyncOut, VocabOut
+from models import (
+    CardOut,
+    QuestionBankOut,
+    QuizItemOut,
+    SyncIn,
+    SyncOut,
+    VerbalAttemptIn,
+    VerbalAttemptOut,
+    VerbalQuestionOut,
+    VocabOut,
+    VocabStateOut,
+    VocabStateUpdateIn,
+)
 from auth import router as auth_router, require_user, require_admin
 from mindmap import router as mindmap_router
 from shenlun import router as shenlun_router
@@ -130,7 +142,7 @@ async def sync_events(payload: SyncIn, user: dict = Depends(require_user)):
 async def highfreq_vocab(user: dict = Depends(require_user)):
     with get_db() as conn:
         rows = conn.execute(
-            "SELECT word, meaning, category FROM highfreq_vocab ORDER BY id"
+            "SELECT word, meaning, category, examples, source, search_url FROM highfreq_vocab ORDER BY id"
         ).fetchall()
     return [dict(r) for r in rows]
 
@@ -143,7 +155,7 @@ async def deck_vocab_highfreq(user: dict = Depends(require_user), limit: int = 1
     """兼容前端 /api/deck/vocab/highfreq?limit=100 调用"""
     with get_db() as conn:
         rows = conn.execute(
-            "SELECT word, meaning, category FROM highfreq_vocab ORDER BY id LIMIT ?",
+            "SELECT word, meaning, category, examples, source, search_url FROM highfreq_vocab ORDER BY id LIMIT ?",
             (limit,),
         ).fetchall()
     return [dict(r) for r in rows]
@@ -339,6 +351,262 @@ async def delete_custom_vocab(user: dict = Depends(require_user), source: str = 
             conn.execute("DELETE FROM custom_vocab WHERE user_id=?", (user_id,))
         conn.commit()
     return {"ok": True}
+
+
+# ═══════════════════════════════════════════════════
+#  Vocab learning state — 词条内容与用户状态分离
+# ═══════════════════════════════════════════════════
+
+@app.get("/api/vocab/state", response_model=list[VocabStateOut])
+async def get_vocab_state(
+    user: dict = Depends(require_user),
+    source: str = "builtin",
+    words: str = "",
+):
+    """获取当前用户的词条学习状态。user_id 只从 JWT 取得。"""
+    user_id = user["user_id"]
+    word_list = [w.strip() for w in words.split(",") if w.strip()]
+    with get_db() as conn:
+        if word_list:
+            placeholders = ",".join("?" for _ in word_list)
+            rows = conn.execute(
+                f"""
+                SELECT word, vocab_source, study_count, forget_count, interval_idx,
+                       mastered, favorite, last_study_date, next_review_date
+                FROM vocab_learning_state
+                WHERE user_id=? AND vocab_source=? AND word IN ({placeholders})
+                """,  # nosec B608 - placeholders are generated from word_list length only.
+                [user_id, source, *word_list],
+            ).fetchall()
+        else:
+            rows = conn.execute(
+                """
+                SELECT word, vocab_source, study_count, forget_count, interval_idx,
+                       mastered, favorite, last_study_date, next_review_date
+                FROM vocab_learning_state
+                WHERE user_id=? AND vocab_source=?
+                ORDER BY updated_at DESC, word
+                """,
+                (user_id, source),
+            ).fetchall()
+    return [dict(r) for r in rows]
+
+
+@app.put("/api/vocab/state", response_model=VocabStateOut)
+async def save_vocab_state(payload: VocabStateUpdateIn, user: dict = Depends(require_user)):
+    """Upsert 当前用户的单个词条状态，不相信前端传入 user_id。"""
+    user_id = user["user_id"]
+    source = payload.vocab_source.strip() or "builtin"
+    word = payload.word.strip()
+    with get_db() as conn:
+        existing = conn.execute(
+            """
+            SELECT study_count, forget_count, interval_idx, mastered, favorite,
+                   last_study_date, next_review_date
+            FROM vocab_learning_state
+            WHERE user_id=? AND vocab_source=? AND word=?
+            """,
+            (user_id, source, word),
+        ).fetchone()
+        current = dict(existing) if existing else {
+            "study_count": 0,
+            "forget_count": 0,
+            "interval_idx": 0,
+            "mastered": 0,
+            "favorite": 0,
+            "last_study_date": "",
+            "next_review_date": "",
+        }
+        for api_name, db_name in [
+            ("study_count", "study_count"),
+            ("forget_count", "forget_count"),
+            ("interval_idx", "interval_idx"),
+            ("mastered", "mastered"),
+            ("favorite", "favorite"),
+            ("last_study_date", "last_study_date"),
+            ("next_review_date", "next_review_date"),
+        ]:
+            value = getattr(payload, api_name)
+            if value is not None:
+                current[db_name] = value
+
+        conn.execute(
+            """
+            INSERT INTO vocab_learning_state
+                (user_id, vocab_source, word, study_count, forget_count, interval_idx,
+                 mastered, favorite, last_study_date, next_review_date, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+            ON CONFLICT(user_id, vocab_source, word) DO UPDATE SET
+                study_count=excluded.study_count,
+                forget_count=excluded.forget_count,
+                interval_idx=excluded.interval_idx,
+                mastered=excluded.mastered,
+                favorite=excluded.favorite,
+                last_study_date=excluded.last_study_date,
+                next_review_date=excluded.next_review_date,
+                updated_at=datetime('now')
+            """,
+            (
+                user_id,
+                source,
+                word,
+                current["study_count"],
+                current["forget_count"],
+                current["interval_idx"],
+                current["mastered"],
+                current["favorite"],
+                current["last_study_date"],
+                current["next_review_date"],
+            ),
+        )
+        conn.commit()
+        row = conn.execute(
+            """
+            SELECT word, vocab_source, study_count, forget_count, interval_idx,
+                   mastered, favorite, last_study_date, next_review_date
+            FROM vocab_learning_state
+            WHERE user_id=? AND vocab_source=? AND word=?
+            """,
+            (user_id, source, word),
+        ).fetchone()
+    return dict(row)
+
+
+# ═══════════════════════════════════════════════════
+#  Verbal question bank — 言语理解/逻辑填空
+# ═══════════════════════════════════════════════════
+
+@app.get("/api/verbal/banks", response_model=list[QuestionBankOut])
+async def list_verbal_banks(user: dict = Depends(require_user)):
+    """列出题库来源。题库入口也要求登录。"""
+    with get_db() as conn:
+        rows = conn.execute(
+            """
+            SELECT b.id, b.name, b.version, b.description,
+                   COUNT(q.id) AS question_count,
+                   SUM(CASE WHEN q.question_type='logic_fill' THEN 1 ELSE 0 END) AS logic_fill_count,
+                   SUM(CASE WHEN q.question_type='reading_comprehension' THEN 1 ELSE 0 END) AS reading_comprehension_count
+            FROM question_banks b
+            LEFT JOIN verbal_questions q ON q.bank_id = b.id
+            GROUP BY b.id
+            ORDER BY b.created_at, b.id
+            """
+        ).fetchall()
+    return [dict(r) for r in rows]
+
+
+@app.get("/api/verbal/questions", response_model=list[VerbalQuestionOut])
+async def list_verbal_questions(
+    user: dict = Depends(require_user),
+    bank: str = "huasheng_haihai",
+    question_type: str = "",
+    source_module: str = "",
+    limit: int = 20,
+    offset: int = 0,
+    include_answer: int = 0,
+):
+    """拉取题目。默认不返回答案；作答后再由 attempts 接口返回答案和解析。"""
+    limit = max(1, min(limit, 100))
+    offset = max(0, offset)
+    clauses = ["bank_id=?"]
+    params: list[object] = [bank]
+    if question_type:
+        clauses.append("question_type=?")
+        params.append(question_type)
+    if source_module:
+        clauses.append("source_module=?")
+        params.append(source_module)
+    params.extend([limit, offset])
+    with get_db() as conn:
+        rows = conn.execute(
+            f"""
+            SELECT id, bank_id, question_type, source_module, module_sequence, stem,
+                   options_json, correct_answer, explanation, related_terms_json
+            FROM verbal_questions
+            WHERE {' AND '.join(clauses)}
+            ORDER BY source_module, module_sequence, id
+            LIMIT ? OFFSET ?
+            """,  # nosec B608 - clauses are fixed fragments controlled by server code.
+            params,
+        ).fetchall()
+    result = []
+    for row in rows:
+        item = dict(row)
+        item["options"] = json.loads(item.pop("options_json") or "{}")
+        item["related_terms"] = json.loads(item.pop("related_terms_json") or "[]")
+        item["answer"] = item.pop("correct_answer") if include_answer else None
+        item["explanation"] = item["explanation"] if include_answer else None
+        result.append(item)
+    return result
+
+
+@app.post("/api/verbal/attempts", response_model=VerbalAttemptOut)
+async def submit_verbal_attempt(payload: VerbalAttemptIn, user: dict = Depends(require_user)):
+    """提交作答记录，后端判分并写入当前用户。"""
+    user_id = user["user_id"]
+    with get_db() as conn:
+        question = conn.execute(
+            "SELECT id, correct_answer, explanation FROM verbal_questions WHERE id=?",
+            (payload.question_id,),
+        ).fetchone()
+        if not question:
+            raise HTTPException(404, "Question not found")
+        is_correct = 1 if payload.selected_answer == question["correct_answer"] else 0
+        cur = conn.execute(
+            """
+            INSERT INTO verbal_attempts
+                (user_id, question_id, selected_answer, is_correct, time_spent_seconds, created_at)
+            VALUES (?, ?, ?, ?, ?, datetime('now'))
+            """,
+            (user_id, payload.question_id, payload.selected_answer, is_correct, payload.time_spent_seconds),
+        )
+        conn.commit()
+        row = conn.execute(
+            """
+            SELECT id, question_id, selected_answer, is_correct, created_at
+            FROM verbal_attempts
+            WHERE id=? AND user_id=?
+            """,
+            (cur.lastrowid, user_id),
+        ).fetchone()
+    result = dict(row)
+    result["correct_answer"] = question["correct_answer"]
+    result["explanation"] = question["explanation"] or ""
+    return result
+
+
+@app.get("/api/verbal/attempts")
+async def list_verbal_attempts(
+    user: dict = Depends(require_user),
+    question_id: str = "",
+    only_wrong: int = 0,
+    limit: int = 50,
+):
+    """查看当前用户作答记录。"""
+    user_id = user["user_id"]
+    limit = max(1, min(limit, 200))
+    clauses = ["a.user_id=?"]
+    params: list[object] = [user_id]
+    if question_id:
+        clauses.append("a.question_id=?")
+        params.append(question_id)
+    if only_wrong:
+        clauses.append("a.is_correct=0")
+    params.append(limit)
+    with get_db() as conn:
+        rows = conn.execute(
+            f"""
+            SELECT a.id, a.question_id, a.selected_answer, a.is_correct, a.created_at,
+                   q.correct_answer, q.question_type, q.source_module, q.module_sequence
+            FROM verbal_attempts a
+            JOIN verbal_questions q ON q.id = a.question_id
+            WHERE {' AND '.join(clauses)}
+            ORDER BY a.created_at DESC, a.id DESC
+            LIMIT ?
+            """,  # nosec B608 - clauses are fixed fragments controlled by server code.
+            params,
+        ).fetchall()
+    return [dict(r) for r in rows]
 
 
 # ═══════════════════════════════════════════════════
@@ -549,6 +817,8 @@ async def admin_delete_user(user_id: int, admin: dict = Depends(require_admin)):
         conn.execute("DELETE FROM shenlun_history WHERE user_id=?", (user_id,))
         conn.execute("DELETE FROM shenlun_mistakes WHERE user_id=?", (user_id,))
         conn.execute("DELETE FROM learning_events WHERE user_id=?", (user_id,))
+        conn.execute("DELETE FROM vocab_learning_state WHERE user_id=?", (user_id,))
+        conn.execute("DELETE FROM verbal_attempts WHERE user_id=?", (user_id,))
         conn.execute("DELETE FROM users WHERE id=?", (user_id,))
         conn.commit()
         return {"msg": f"已删除用户 {user_id} 及其全部数据"}
