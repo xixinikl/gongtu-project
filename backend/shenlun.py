@@ -10,6 +10,7 @@ from pathlib import Path
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from database import get_db
+from auth import require_user
 from dotenv import load_dotenv
 
 # 🔧 加载环境变量（LLM_API_KEY 等）
@@ -18,6 +19,8 @@ load_dotenv()
 # ── 导入真实 LLM 批改模块 ──
 from src.grader import grade as llm_grade, chat as llm_chat  # noqa: E402
 from src.models import Question  # noqa: E402
+from src.prompt_builder import get_skill_metadata  # noqa: E402
+from src.grader import BASE_URL as LLM_BASE_URL, MODEL as LLM_MODEL  # noqa: E402
 
 router = APIRouter(prefix="/api/shenlun", tags=["shenlun"])
 
@@ -48,12 +51,151 @@ def _get_question(qid: str):
 
 # ── Auth helper ────────────────────────────────────────────────────────────────
 async def _require_user(request: Request):
-    """Require valid JWT; return user dict or raise 401."""
-    from auth import get_current_user as _auth_get_user
-    user = await _auth_get_user(request)
-    if not user:
-        raise HTTPException(status_code=401, detail="未登录")
-    return user
+    """Use the shared auth gate, including checking that the account still exists."""
+    return await require_user(request)
+
+
+def _question_public(q: dict) -> dict:
+    """Return training content without answer/scoring fields."""
+    return {
+        key: value for key, value in q.items()
+        if key not in {"referenceAnswer", "scoringPoints"}
+    } | {
+        "contentStatus": "summary-only",
+        "isComplete": False,
+        "contentNotice": "当前仅有材料摘要，尚未补齐原题全文；可用于方法练习，不作为完整真题。",
+    }
+
+
+def _run_metadata() -> dict[str, str]:
+    skill = get_skill_metadata()
+    provider = "deepseek" if "deepseek" in LLM_BASE_URL.lower() else "openai-compatible"
+    return {
+        "provider": provider,
+        "model": LLM_MODEL,
+        "skillVersion": skill["version"],
+        "skillHash": skill["hash"],
+    }
+
+
+def _record_unified_grade(
+    conn,
+    *,
+    record_id: str,
+    user_id: int,
+    question: dict,
+    student_answer: str,
+    grading_result: dict,
+    word_count: int,
+    now: str,
+) -> None:
+    """Index one successful grade for cross-module review in the same transaction."""
+    activity_id = f"shenlun-grade:{record_id}"
+    dimensions = grading_result.get("dimensions") or {}
+    if not isinstance(dimensions, dict):
+        dimensions = {}
+    summary = {
+        "question_title": question["title"],
+        "question_type": question["type"],
+        "word_count": word_count,
+        "dimensions": dimensions,
+        "run_metadata": grading_result.get("runMetadata", {}),
+    }
+    conn.execute(
+        """INSERT INTO learning_activities_v2
+           (id,user_id,module_id,activity_type,source_id,status,started_at,
+            completed_at,duration_ms,summary_json,created_at,updated_at)
+           VALUES(?,?,'shenlun.review','grading',?,'completed',?,?,0,?,?,?)""",
+        (
+            activity_id,
+            user_id,
+            record_id,
+            now,
+            now,
+            json.dumps(summary, ensure_ascii=False, separators=(",", ":")),
+            now,
+            now,
+        ),
+    )
+
+    for dimension, raw_rating in dimensions.items():
+        rating = str(raw_rating).strip()
+        if "较差" in rating:
+            rating_level = "较差"
+        elif "一般" in rating:
+            rating_level = "一般"
+        else:
+            continue
+        issue_key = f"dimension:{dimension}"
+        issue_title = f"{dimension}需要加强"
+        existing = conn.execute(
+            """SELECT id FROM learning_issues_v2
+               WHERE user_id=? AND module_id='shenlun.review' AND issue_key=?""",
+            (user_id, issue_key),
+        ).fetchone()
+        issue_id = existing["id"] if existing else str(uuid.uuid4())
+        confidence = 0.9 if rating_level == "较差" else 0.7
+        if existing:
+            conn.execute(
+                """UPDATE learning_issues_v2
+                   SET user_facing_title=?,internal_confidence=?,status='training',
+                       last_seen_at=?,updated_at=?
+                   WHERE id=? AND user_id=?""",
+                (issue_title, confidence, now, now, issue_id, user_id),
+            )
+        else:
+            conn.execute(
+                """INSERT INTO learning_issues_v2
+                   (id,user_id,module_id,issue_key,user_facing_title,internal_confidence,
+                    evidence_count,status,first_seen_at,last_seen_at,created_at,updated_at)
+                   VALUES(?,?,'shenlun.review',?,?,?,0,'training',?,?,?,?)""",
+                (issue_id, user_id, issue_key, issue_title, confidence, now, now, now, now),
+            )
+        conn.execute(
+            """INSERT INTO learning_issue_evidence_v2
+               (issue_id,user_id,activity_id,item_id,evidence_type,evidence_json,created_at)
+               VALUES(?,?,?,?,?,?,?)""",
+            (
+                issue_id,
+                user_id,
+                activity_id,
+                question["id"],
+                "dimension_rating",
+                json.dumps(
+                    {
+                        "record_id": record_id,
+                        "rating": rating_level,
+                        "raw_rating": rating,
+                        "answer": student_answer,
+                    },
+                    ensure_ascii=False,
+                    separators=(",", ":"),
+                ),
+                now,
+            ),
+        )
+        conn.execute(
+            """UPDATE learning_issues_v2 SET evidence_count=(
+                   SELECT COUNT(*) FROM learning_issue_evidence_v2
+                   WHERE issue_id=? AND user_id=?
+               ),last_seen_at=?,updated_at=? WHERE id=? AND user_id=?""",
+            (issue_id, user_id, now, now, issue_id, user_id),
+        )
+        active_task = conn.execute(
+            """SELECT id FROM learning_tasks_v2
+               WHERE user_id=? AND module_id='shenlun.review' AND issue_id=?
+                 AND task_type='dimension_practice' AND status IN ('pending','in_progress')
+               LIMIT 1""",
+            (user_id, issue_id),
+        ).fetchone()
+        if not active_task:
+            conn.execute(
+                """INSERT INTO learning_tasks_v2
+                   (id,user_id,module_id,issue_id,task_type,title,target_count,status,
+                    result_json,created_at,updated_at)
+                   VALUES(?,?,'shenlun.review',?,'dimension_practice',?,3,'pending','{}',?,?)""",
+                (str(uuid.uuid4()), user_id, issue_id, f"完成3次{dimension}专项练习", now, now),
+            )
 
 
 # ── Pydantic models ────────────────────────────────────────────────────────────
@@ -70,8 +212,9 @@ class ChatRequest(BaseModel):
 # ── API Endpoints ──────────────────────────────────────────────────────────────
 
 @router.get("/questions")
-def list_questions():
+async def list_questions(request: Request):
     """获取题目列表（轻量，不含材料和参考答案全文）"""
+    await _require_user(request)
     data = _load_questions_data()
     items = []
     for q in data.get("questions", []):
@@ -85,17 +228,21 @@ def list_questions():
             "score": q["score"],
             "questionText": q["questionText"],
             "questionRequirement": q["questionRequirement"],
+            "contentStatus": "summary-only",
+            "isComplete": False,
+            "contentNotice": "当前仅有材料摘要，尚未补齐原题全文。",
         })
     return items
 
 
 @router.get("/questions/{qid}")
-def get_question_detail(qid: str):
-    """获取题目详情（含材料和参考答案）"""
+async def get_question_detail(qid: str, request: Request):
+    """获取练习详情；作答前永不返回参考答案或评分点。"""
+    await _require_user(request)
     q = _get_question(qid)
     if not q:
         raise HTTPException(status_code=404, detail="题目不存在")
-    return q
+    return _question_public(q)
 
 
 @router.post("/grade")
@@ -135,6 +282,8 @@ async def grade_answer(req: GradingRequest, request: Request):
 
     # 转为 dict
     grading_result = result.model_dump() if hasattr(result, "model_dump") else dict(result)
+    grading_result["runMetadata"] = _run_metadata()
+    grading_result["recordType"] = "grading"
 
     # 保存到历史记录
     with get_db() as conn:
@@ -155,6 +304,36 @@ async def grade_answer(req: GradingRequest, request: Request):
                 now,
             ),
         )
+        # 问题本按“用户 + 题目”聚合；完整重做历史仍保留在 shenlun_history。
+        conn.execute(
+            "DELETE FROM shenlun_mistakes WHERE user_id = ? AND question_id = ?",
+            (user_id, req.questionId),
+        )
+        conn.execute(
+            """INSERT INTO shenlun_mistakes
+               (user_id, question_id, question_title, question_type,
+                student_answer, ai_reply, created_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?)""",
+            (
+                user_id,
+                req.questionId,
+                q["title"],
+                q["type"],
+                req.studentAnswer,
+                json.dumps(grading_result, ensure_ascii=False),
+                now,
+            ),
+        )
+        _record_unified_grade(
+            conn,
+            record_id=record_id,
+            user_id=user_id,
+            question=q,
+            student_answer=req.studentAnswer,
+            grading_result=grading_result,
+            word_count=word_count,
+            now=now,
+        )
         conn.commit()
 
     logger.info(f"Graded q={req.questionId}, user={user_id}, record={record_id}")
@@ -167,6 +346,7 @@ async def grade_answer(req: GradingRequest, request: Request):
         "studentAnswer": req.studentAnswer,
         "wordCount": word_count,
         "gradingResult": grading_result,
+        "runMetadata": grading_result["runMetadata"],
         "createdAt": now,
     }
 
@@ -338,16 +518,8 @@ async def analyze_weakness(request: Request):
     user = await _require_user(request)
     user_id = user["user_id"]
 
-    # 收集所有错题记录
+    # 只读取正式批改历史；问题本是聚合视图，不能重复作为分析证据。
     with get_db() as conn:
-        rows = conn.execute(
-            """SELECT question_title, question_type, student_answer, ai_reply
-               FROM shenlun_mistakes
-               WHERE user_id = ?
-               ORDER BY created_at DESC""",
-            (user_id,),
-        ).fetchall()
-        # 也从历史记录中收集
         h_rows = conn.execute(
             """SELECT question_title, question_type, student_answer, grading_result
                FROM shenlun_history
@@ -356,7 +528,7 @@ async def analyze_weakness(request: Request):
             (user_id,),
         ).fetchall()
 
-    if not rows and not h_rows:
+    if not h_rows:
         return {
             "recordsReviewed": 0,
             "summary": "暂无足够的学习记录进行分析。请先完成几道申论题目的批改或对话。",
@@ -366,23 +538,34 @@ async def analyze_weakness(request: Request):
 
     # 构建分析文本
     texts = []
-    for r in rows:
-        texts.append(f"题目: {r['question_title']} ({r['question_type']})\n作答: {r['student_answer']}\n批改: {r['ai_reply'][:200]}")
     for r in h_rows:
         gr = r["grading_result"] or "{}"
         try:
             gd = json.loads(gr) if isinstance(gr, str) else gr
-            reply_text = gd.get("reply", "")[:200] if isinstance(gd, dict) else str(gd)[:200]
+            if not isinstance(gd, dict) or gd.get("recordType") != "grading":
+                continue
+            reply_text = gd.get("overallComment", "")[:200]
         except Exception:
-            reply_text = str(gr)[:200]
+            continue
         texts.append(f"题目: {r['question_title']} ({r['question_type']})\n作答: {r['student_answer']}\n结果: {reply_text}")
+
+    if not texts:
+        return {
+            "recordsReviewed": 0,
+            "summary": "暂无有效批改记录。普通提问不会计入薄弱点分析。",
+            "weakDimensions": [],
+            "recommendations": ["请选择题目并使用“提交批改”完成一次正式作答。"],
+        }
 
     analysis_text = "\n\n---\n\n".join(texts)
 
     # 调用 LLM 分析
     try:
         from src.grader import call_llm_api
-        prompt = f"""你是一位专业的申论备考教练。以下是一位考公学生的最近{len(texts)}条申论学习记录。
+        skill_meta = _run_metadata()
+        from src.prompt_builder import build_system_prompt
+        system_prompt = build_system_prompt("申论批改记录薄弱点分析")
+        prompt = f"""以下是一位考公学生的最近{len(texts)}条有效申论批改记录。
 
 请分析：
 1. 该学生在哪些维度最薄弱？（如：内容完整性、逻辑结构、语言表达、对策可行性、格式规范）
@@ -394,7 +577,7 @@ async def analyze_weakness(request: Request):
 请用JSON格式返回（确保是合法JSON）：
 {{"weakDimensions":["维度1","维度2"],"summary":"综合评价（2-3句话）","recommendations":["建议1","建议2","建议3"]}}"""
 
-        raw_response = call_llm_api(prompt)
+        raw_response = call_llm_api(prompt, system_prompt=system_prompt)
         import re
         json_match = re.search(r'\{.*\}', raw_response, re.DOTALL)
         if json_match:
@@ -423,6 +606,7 @@ async def analyze_weakness(request: Request):
         }
 
     result["recordsReviewed"] = len(texts)
+    result["runMetadata"] = locals().get("skill_meta") or _run_metadata()
     return result
 
 
@@ -455,7 +639,8 @@ async def chat_with_teacher(req: ChatRequest, request: Request):
         logger.error(f"Chat failed: {e}")
         raise HTTPException(status_code=503, detail=str(e))
 
-    mode = "chat" if not req.questionId else "grade"
+    mode = "chat" if not req.questionId else "question_context"
+    run_metadata = _run_metadata()
 
     # ── 保存到历史记录（所有对话都存，包括纯聊天） ──
     try:
@@ -475,7 +660,15 @@ async def chat_with_teacher(req: ChatRequest, request: Request):
                     q_type,
                     req.message,
                     len(req.message),
-                    json.dumps({"reply": reply, "mode": mode}, ensure_ascii=False),
+                    json.dumps(
+                        {
+                            "reply": reply,
+                            "mode": mode,
+                            "recordType": "chat",
+                            "runMetadata": run_metadata,
+                        },
+                        ensure_ascii=False,
+                    ),
                     datetime.now(timezone(timedelta(hours=8))).isoformat(),
                 ),
             )
@@ -483,27 +676,4 @@ async def chat_with_teacher(req: ChatRequest, request: Request):
     except Exception as e:
         logger.warning(f"Failed to save chat to history: {e}")
 
-    # 自动记录错题：当关联了题目时
-    if req.questionId and q_obj:
-        try:
-            with get_db() as conn:
-                conn.execute(
-                    """INSERT INTO shenlun_mistakes
-                       (user_id, question_id, question_title, question_type,
-                        student_answer, ai_reply, created_at)
-                       VALUES (?, ?, ?, ?, ?, ?, ?)""",
-                    (
-                        user["user_id"],
-                        req.questionId,
-                        q_obj.title,
-                        q_obj.type,
-                        req.message,
-                        reply,
-                        datetime.now(timezone(timedelta(hours=8))).isoformat(),
-                    ),
-                )
-                conn.commit()
-        except Exception as e:
-            logger.warning(f"Failed to auto-track mistake: {e}")
-
-    return {"reply": reply, "mode": mode}
+    return {"reply": reply, "mode": mode, "runMetadata": run_metadata}
