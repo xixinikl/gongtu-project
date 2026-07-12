@@ -20,6 +20,7 @@ from models import CardOut, QuizItemOut, SyncIn, SyncOut, VocabOut
 from auth import router as auth_router, require_user, require_admin
 from mindmap import router as mindmap_router
 from shenlun import router as shenlun_router
+from unified_learning import router as unified_learning_router
 
 # ── Logging ──
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -45,6 +46,7 @@ app = FastAPI(
 app.include_router(auth_router)
 app.include_router(mindmap_router)
 app.include_router(shenlun_router)
+app.include_router(unified_learning_router)
 
 
 # ── CORS ──

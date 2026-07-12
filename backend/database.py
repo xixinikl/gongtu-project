@@ -133,6 +133,197 @@ def init_db():
         except sqlite3.OperationalError:
             pass  # column already exists
 
+        # ── v9 migration: 跨模块学习活动、问题与任务索引层 ──
+        # 现有词库、片段阅读、图推和申论垂直表继续作为事实层；
+        # 这四张表只建立可跨模块查询的用户活动、问题和下一步任务。
+        conn.executescript("""
+            CREATE TABLE IF NOT EXISTS learning_activities_v2 (
+                id              TEXT PRIMARY KEY,
+                user_id         INTEGER NOT NULL,
+                module_id       TEXT NOT NULL,
+                activity_type   TEXT NOT NULL,
+                source_id       TEXT,
+                status          TEXT NOT NULL DEFAULT 'in_progress'
+                                CHECK(status IN ('in_progress','completed','abandoned')),
+                started_at      TEXT NOT NULL,
+                completed_at    TEXT,
+                duration_ms     INTEGER NOT NULL DEFAULT 0 CHECK(duration_ms >= 0),
+                summary_json    TEXT NOT NULL DEFAULT '{}',
+                created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+                updated_at      TEXT NOT NULL DEFAULT (datetime('now')),
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+            CREATE INDEX IF NOT EXISTS idx_learning_activities_v2_user_time
+                ON learning_activities_v2(user_id, started_at DESC);
+            CREATE INDEX IF NOT EXISTS idx_learning_activities_v2_user_module
+                ON learning_activities_v2(user_id, module_id, updated_at DESC);
+
+            CREATE TABLE IF NOT EXISTS learning_issues_v2 (
+                id                  TEXT PRIMARY KEY,
+                user_id             INTEGER NOT NULL,
+                module_id           TEXT NOT NULL,
+                issue_key           TEXT NOT NULL,
+                user_facing_title   TEXT NOT NULL,
+                internal_confidence REAL,
+                evidence_count      INTEGER NOT NULL DEFAULT 0 CHECK(evidence_count >= 0),
+                status              TEXT NOT NULL DEFAULT 'observing'
+                                    CHECK(status IN ('observing','training','improved','archived')),
+                first_seen_at       TEXT NOT NULL,
+                last_seen_at        TEXT NOT NULL,
+                created_at          TEXT NOT NULL DEFAULT (datetime('now')),
+                updated_at          TEXT NOT NULL DEFAULT (datetime('now')),
+                UNIQUE(user_id, module_id, issue_key),
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+            CREATE INDEX IF NOT EXISTS idx_learning_issues_v2_user_status
+                ON learning_issues_v2(user_id, module_id, status, last_seen_at DESC);
+
+            CREATE TABLE IF NOT EXISTS learning_issue_evidence_v2 (
+                id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                issue_id        TEXT NOT NULL,
+                user_id         INTEGER NOT NULL,
+                activity_id     TEXT,
+                item_id         TEXT,
+                evidence_type   TEXT NOT NULL,
+                evidence_json   TEXT NOT NULL DEFAULT '{}',
+                created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+                FOREIGN KEY (issue_id) REFERENCES learning_issues_v2(id) ON DELETE CASCADE,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (activity_id) REFERENCES learning_activities_v2(id) ON DELETE SET NULL
+            );
+            CREATE INDEX IF NOT EXISTS idx_learning_issue_evidence_v2_owner
+                ON learning_issue_evidence_v2(user_id, issue_id, created_at DESC);
+
+            CREATE TABLE IF NOT EXISTS learning_tasks_v2 (
+                id              TEXT PRIMARY KEY,
+                user_id         INTEGER NOT NULL,
+                module_id       TEXT NOT NULL,
+                issue_id        TEXT,
+                task_type       TEXT NOT NULL,
+                title           TEXT NOT NULL,
+                target_count    INTEGER NOT NULL DEFAULT 0 CHECK(target_count >= 0),
+                status          TEXT NOT NULL DEFAULT 'pending'
+                                CHECK(status IN ('pending','in_progress','completed','dismissed')),
+                result_json     TEXT NOT NULL DEFAULT '{}',
+                created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+                updated_at      TEXT NOT NULL DEFAULT (datetime('now')),
+                completed_at    TEXT,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (issue_id) REFERENCES learning_issues_v2(id) ON DELETE SET NULL
+            );
+            CREATE INDEX IF NOT EXISTS idx_learning_tasks_v2_user_status
+                ON learning_tasks_v2(user_id, status, updated_at DESC);
+        """)
+        conn.commit()
+        logger.info("Table check: unified learning activity/issue/task index ready")
+
+        # ── v8 migration: 片段阅读真实练习会话（per-user）──
+        conn.executescript("""
+            CREATE TABLE IF NOT EXISTS verbal_practice_sessions (
+                id              TEXT PRIMARY KEY,
+                user_id         INTEGER NOT NULL,
+                set_id          TEXT NOT NULL,
+                status          TEXT NOT NULL DEFAULT 'in_progress'
+                                CHECK(status IN ('in_progress', 'submitted')),
+                started_at      TEXT NOT NULL,
+                submitted_at    TEXT,
+                elapsed_ms      INTEGER NOT NULL DEFAULT 0 CHECK(elapsed_ms >= 0),
+                score           INTEGER,
+                question_count  INTEGER NOT NULL DEFAULT 20 CHECK(question_count > 0),
+                created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+                updated_at      TEXT NOT NULL DEFAULT (datetime('now')),
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_verbal_sessions_user_updated
+                ON verbal_practice_sessions(user_id, updated_at DESC);
+            CREATE INDEX IF NOT EXISTS idx_verbal_sessions_set
+                ON verbal_practice_sessions(set_id);
+
+            CREATE TABLE IF NOT EXISTS verbal_attempt_items (
+                id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                session_id      TEXT NOT NULL,
+                question_id     TEXT NOT NULL,
+                first_answer    TEXT CHECK(first_answer IN ('A','B','C','D')),
+                final_answer    TEXT CHECK(final_answer IN ('A','B','C','D')),
+                correct_answer  TEXT NOT NULL CHECK(correct_answer IN ('A','B','C','D')),
+                is_correct      INTEGER NOT NULL DEFAULT 0 CHECK(is_correct IN (0,1)),
+                elapsed_ms      INTEGER NOT NULL DEFAULT 0 CHECK(elapsed_ms >= 0),
+                change_count    INTEGER NOT NULL DEFAULT 0 CHECK(change_count >= 0),
+                answered_at     TEXT NOT NULL,
+                UNIQUE(session_id, question_id),
+                FOREIGN KEY (session_id) REFERENCES verbal_practice_sessions(id) ON DELETE CASCADE
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_verbal_attempts_session
+                ON verbal_attempt_items(session_id);
+
+            CREATE TABLE IF NOT EXISTS verbal_ai_runs (
+                id              TEXT PRIMARY KEY,
+                session_id      TEXT NOT NULL,
+                user_id         INTEGER NOT NULL,
+                kind            TEXT NOT NULL CHECK(kind IN ('diagnosis', 'follow_up')),
+                provider        TEXT NOT NULL,
+                model           TEXT NOT NULL,
+                skill_version   TEXT NOT NULL,
+                skill_hash      TEXT NOT NULL,
+                status          TEXT NOT NULL CHECK(status IN
+                                ('queued','running','completed','failed','timed_out','invalid_output')),
+                started_at      TEXT NOT NULL,
+                finished_at     TEXT,
+                latency_ms      INTEGER,
+                usage_json      TEXT,
+                error_code      TEXT,
+                output_json     TEXT,
+                created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+                FOREIGN KEY (session_id) REFERENCES verbal_practice_sessions(id) ON DELETE CASCADE,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_verbal_ai_runs_session_kind
+                ON verbal_ai_runs(session_id, kind, created_at DESC);
+            CREATE INDEX IF NOT EXISTS idx_verbal_ai_runs_user
+                ON verbal_ai_runs(user_id, created_at DESC);
+
+            CREATE TABLE IF NOT EXISTS verbal_ai_messages (
+                id              TEXT PRIMARY KEY,
+                session_id      TEXT NOT NULL,
+                user_id         INTEGER NOT NULL,
+                question_id     TEXT,
+                role            TEXT NOT NULL CHECK(role IN ('user','assistant')),
+                content         TEXT NOT NULL,
+                run_id          TEXT,
+                created_at      TEXT NOT NULL,
+                FOREIGN KEY (session_id) REFERENCES verbal_practice_sessions(id) ON DELETE CASCADE,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (run_id) REFERENCES verbal_ai_runs(id) ON DELETE SET NULL
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_verbal_messages_session_user
+                ON verbal_ai_messages(session_id, user_id, created_at);
+
+            CREATE TABLE IF NOT EXISTS verbal_training_recommendations (
+                id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                session_id      TEXT NOT NULL,
+                user_id         INTEGER NOT NULL,
+                question_id     TEXT NOT NULL,
+                reason_tags_json TEXT NOT NULL,
+                rank            INTEGER NOT NULL CHECK(rank > 0),
+                score           INTEGER NOT NULL,
+                status          TEXT NOT NULL DEFAULT 'recommended'
+                                CHECK(status IN ('recommended','started','completed')),
+                created_at      TEXT NOT NULL,
+                UNIQUE(session_id, question_id),
+                FOREIGN KEY (session_id) REFERENCES verbal_practice_sessions(id) ON DELETE CASCADE,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_verbal_recommendations_session
+                ON verbal_training_recommendations(session_id, user_id, rank);
+        """)
+        conn.commit()
+        logger.info("Table check: verbal practice sessions + attempts ready")
+
         # ── v3 migration: add user_id to reviews (per-user isolation) ──
         try:
             conn.execute("ALTER TABLE reviews ADD COLUMN user_id TEXT NOT NULL DEFAULT ''")
