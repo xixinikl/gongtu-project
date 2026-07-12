@@ -417,11 +417,54 @@
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--paper-deep); border-radius: 3px; }
   ::-webkit-scrollbar-thumb:hover { background: var(--gold-light); }
+
+  @media (max-width: 700px) {
+    body {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: auto 520px auto;
+      width: 100%;
+      height: auto;
+      min-height: 100vh;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+    #left-panel,
+    #right-panel {
+      width: calc(100% - 16px);
+      min-width: 0;
+      max-height: none;
+      margin: 8px;
+      align-self: auto;
+    }
+    #left-panel { order: 0; }
+    #canvas-wrap { order: 1; width: calc(100% - 28px); min-width: 0; min-height: 520px; }
+    #right-panel { order: 2; }
+    #cut-status {
+      right: 8px;
+      left: 8px;
+      max-width: calc(100% - 16px);
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    #offset-slider-wrap {
+      right: 8px;
+      left: 8px;
+      max-width: calc(100% - 16px);
+      padding-inline: 12px;
+      transform: none;
+    }
+    #offset-slider-wrap input[type="range"] { min-width: 0; width: 100%; }
+    #help-panel { right: 8px; max-width: calc(100% - 16px); }
+  }
 </style>
 </head>
-<body>
+<body data-spatial-module="csg">
+<link rel="stylesheet" href="/spatial-learning-shell.css?v=20260713">
 
 <div id="left-panel">
+  <nav class="spatial-module-nav" aria-label="立体图推学习路径"></nav>
+  <a class="spatial-center-link" href="/spatial-learning.html">学习中心</a>
   <div class="eyebrow">题型模板</div>
   <div id="template-list"></div>
   <div id="params-section" style="display:none;margin-top:8px;">
@@ -1202,5 +1245,7 @@
     console.error(err);
   });
 </script>
+<script src="/gontu-auth-client.js"></script>
+<script type="module" src="/spatial-learning-shell.js?v=20260713"></script>
 </body>
 </html>

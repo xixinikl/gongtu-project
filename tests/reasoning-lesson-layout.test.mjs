@@ -25,14 +25,12 @@ function pngDimensions(buffer) {
   };
 }
 
-test("student lesson keeps the spatial products as independent entry points", async () => {
+test("student lesson stays a deep lesson with one return to the spatial center", async () => {
   const html = await readFile(htmlUrl, "utf8");
 
-  assert.match(html, /href="\/reasoning-lesson\.html"/);
-  assert.match(html, /href="\/three-view-training\.html"/);
-  assert.match(html, /href="\/section-foundation\.html"/);
-  assert.match(html, /href="\/geometry\.html"/);
-  assert.match(html, /href="\/csg-section\.html"/);
+  assert.match(html, /href="\/spatial-learning\.html"/);
+  assert.doesNotMatch(html, /href="\/three-view-training\.html"/);
+  assert.doesNotMatch(html, /href="\/section-foundation\.html"/);
   assert.doesNotMatch(html, /WASM 状态|三角面数量|模板调试/);
 });
 
@@ -304,8 +302,8 @@ test("foundation page lists base solids and section entry points", async () => {
   assert.match(html, /id="knowledge-grid"/);
   assert.match(html, /id="foundation-3d"/);
   assert.doesNotMatch(html, /id="demo-buttons"/);
-  assert.match(html, /href="\/reasoning-lesson\.html"/);
-  assert.match(html, /href="\/three-view-training\.html"/);
+  assert.match(html, /spatial-learning-shell\.js/);
+  assert.match(html, /aria-label="立体图推学习路径"/);
   assert.match(css, /\.foundation-shell/);
   for (const word of ["正方体", "长方体", "圆柱", "圆锥", "棱锥"]) {
     assert.match(script, new RegExp(word));

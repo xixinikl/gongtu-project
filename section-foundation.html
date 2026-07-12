@@ -7,6 +7,7 @@
   <title>基础截面 · 立体图推</title>
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="/section-foundation.css?v=20260705c">
+  <link rel="stylesheet" href="/spatial-learning-shell.css?v=20260713">
   <script type="importmap">
     {
       "imports": {
@@ -15,22 +16,16 @@
     }
   </script>
 </head>
-<body>
+<body data-spatial-module="foundation">
   <header class="topbar">
-    <a class="brand" href="/reasoning-lesson.html" aria-label="返回动态解题">
+    <a class="brand" href="/spatial-learning.html" aria-label="返回立体图推学习中心">
       <span class="brand-mark">公途</span>
       <span>
         <strong>基础截面训练</strong>
         <small>先知道能截什么，再判断题目</small>
       </span>
     </a>
-    <nav class="product-links" aria-label="空间几何产品">
-      <a href="/reasoning-lesson.html">动态解题</a>
-      <a href="/three-view-training.html">三视图训练</a>
-      <a class="active" href="/section-foundation.html">基础截面</a>
-      <a href="/geometry.html">几何实验室</a>
-      <a href="/csg-section.html">CSG 工作台</a>
-    </nav>
+    <nav class="product-links" aria-label="立体图推学习路径"></nav>
   </header>
 
   <main class="foundation-shell">
@@ -88,6 +83,8 @@
   </main>
 
   <script type="module" src="/section-foundation.js?v=20260705c"></script>
+  <script src="/gontu-auth-client.js"></script>
+  <script type="module" src="/spatial-learning-shell.js?v=20260713"></script>
   <noscript>基础截面训练需要启用 JavaScript。</noscript>
 </body>
 </html>

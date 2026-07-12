@@ -1015,15 +1015,17 @@
     }
   </style>
 </head>
-<body>
+<body data-spatial-module="free-cut">
+  <link rel="stylesheet" href="/spatial-learning-shell.css?v=20260713">
   <header class="app-header">
-    <a class="brand" href="/" aria-label="返回公途首页">
+    <a class="brand" href="/spatial-learning.html" aria-label="返回立体图推学习中心">
       <span class="brand-mark" aria-hidden="true">公</span>
       <span class="brand-copy">
         <strong>空间几何实验室</strong>
         <span>GONGTU · SPATIAL LAB</span>
       </span>
     </a>
+    <nav class="spatial-module-nav" aria-label="立体图推学习路径"></nav>
     <div class="header-actions">
       <button class="button" type="button">使用说明</button>
       <button class="button button-primary" type="button">进入题库</button>
@@ -2227,5 +2229,7 @@
       window.addEventListener("geometry:scene-ready", placeModel, { once: true });
     }
   </script>
+  <script src="/gontu-auth-client.js"></script>
+  <script type="module" src="/spatial-learning-shell.js?v=20260713"></script>
 </body>
 </html>

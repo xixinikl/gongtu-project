@@ -186,8 +186,19 @@ class UnifiedLearningAPITests(unittest.TestCase):
             )
             conn.execute(
                 """INSERT INTO shenlun_history
-                   (id,user_id,question_id,question_title,question_type,student_answer,word_count,created_at)
-                   VALUES('sh-a',101,'s1','概括题','归纳概括','作答',2,'2026-07-13T09:00:00Z')"""
+                   (id,user_id,question_id,question_title,question_type,student_answer,
+                    word_count,grading_result,created_at)
+                   VALUES('sh-a',101,'s1','概括题','归纳概括','作答',2,
+                    '{"recordType":"grading","dimensions":{"内容完整性":"良好"}}',
+                    '2026-07-13T09:00:00Z')"""
+            )
+            conn.execute(
+                """INSERT INTO shenlun_history
+                   (id,user_id,question_id,question_title,question_type,student_answer,
+                    word_count,grading_result,created_at)
+                   VALUES('sh-chat',101,'s1','概括题','归纳概括','谢谢老师',4,
+                    '{"recordType":"chat","reply":"不客气"}',
+                    '2026-07-13T09:30:00Z')"""
             )
             conn.execute(
                 """INSERT INTO questions(node_path,title,user_id,created_at)
@@ -204,6 +215,7 @@ class UnifiedLearningAPITests(unittest.TestCase):
         )
         ids = {str(item["id"]) for item in all_a.json()}
         self.assertNotIn("20202", ids)
+        self.assertNotIn("sh-chat", ids)
 
         reading = self.client.get(
             "/api/learning/timeline?module_id=verbal.reading", headers=self.headers_a
@@ -242,6 +254,49 @@ class UnifiedLearningAPITests(unittest.TestCase):
         )
         self.assertEqual(response.status_code, 200, response.text)
         self.assertEqual([item["id"] for item in response.json()], [reading["id"]])
+
+    def test_timeline_does_not_double_count_vertical_rows_already_indexed(self):
+        with database.get_db() as conn:
+            conn.execute(
+                """INSERT INTO shenlun_history
+                   (id,user_id,question_id,question_title,question_type,student_answer,
+                    word_count,grading_result,created_at)
+                   VALUES('grade-1',101,'q1','概括题','概括题','作答',2,
+                    '{"recordType":"grading","dimensions":{"内容完整性":"一般"}}',
+                    '2026-07-13T12:00:00Z')"""
+            )
+            conn.execute(
+                """INSERT INTO learning_activities_v2
+                   (id,user_id,module_id,activity_type,source_id,status,started_at,
+                    completed_at,summary_json,created_at,updated_at)
+                   VALUES('ua-grade',101,'shenlun.review','grading','grade-1','completed',
+                    '2026-07-13T12:00:00Z','2026-07-13T12:00:00Z','{}',
+                    '2026-07-13T12:00:00Z','2026-07-13T12:00:00Z')"""
+            )
+            cursor = conn.execute(
+                """INSERT INTO questions(node_path,title,user_id,created_at)
+                   VALUES('位置/旋转','图推错题','101','2026-07-13T12:10:00Z')"""
+            )
+            qid = str(cursor.lastrowid)
+            conn.execute(
+                """INSERT INTO learning_activities_v2
+                   (id,user_id,module_id,activity_type,source_id,status,started_at,
+                    completed_at,summary_json,created_at,updated_at)
+                   VALUES('ua-planar',101,'reasoning.planar','mistake_saved',?,'completed',
+                    '2026-07-13T12:10:00Z','2026-07-13T12:10:00Z','{}',
+                    '2026-07-13T12:10:00Z','2026-07-13T12:10:00Z')""",
+                (qid,),
+            )
+            conn.commit()
+
+        shenlun = self.client.get(
+            "/api/learning/timeline?module_id=shenlun.review", headers=self.headers_a
+        ).json()
+        planar = self.client.get(
+            "/api/learning/timeline?module_id=reasoning.planar", headers=self.headers_a
+        ).json()
+        self.assertEqual([item["id"] for item in shenlun], ["ua-grade"])
+        self.assertEqual([item["id"] for item in planar], ["ua-planar"])
 
 
 if __name__ == "__main__":

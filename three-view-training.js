@@ -99,6 +99,7 @@ const state = {
   groupStartedAt: 0,
   timerId: null,
   animationId: null,
+  accountRecords: null,
 };
 
 function normalizeGridCell(cell) {
@@ -129,7 +130,27 @@ function writeRecords(records) {
 }
 
 function lastRecordForGroup(groupId) {
-  return readRecords().find((record) => record.groupId === groupId) || null;
+  const auth = window.GontuAuth;
+  const records = auth?.token() ? (state.accountRecords || []) : readRecords();
+  return records.find((record) => record.groupId === groupId) || null;
+}
+
+async function loadAccountRecords() {
+  const auth = window.GontuAuth;
+  if (!auth?.token()) return;
+  const response = await auth.request("/api/spatial-learning/records");
+  if (!response.ok) return;
+  const rows = await response.json();
+  state.accountRecords = rows
+    .filter((row) => row.stage_id === "three-view" && row.activity_kind === "three_view_group")
+    .map((row) => ({
+      groupId: row.source_id,
+      total: row.total,
+      correct: row.score,
+      durationMs: row.duration_ms,
+      completedAt: row.updated_at,
+      answers: row.detail?.answers || [],
+    }));
 }
 
 function renderHistory() {
@@ -481,6 +502,8 @@ function completeGroup() {
     answers,
   };
   writeRecords([record, ...readRecords()]);
+  const auth = window.GontuAuth;
+  if (auth?.token()) state.accountRecords = [record, ...(state.accountRecords || [])];
   renderHistory();
   renderGroupResult(record);
   elements.nextQuestion.disabled = true;
@@ -488,6 +511,25 @@ function completeGroup() {
   if (state.timerId) {
     clearInterval(state.timerId);
     state.timerId = null;
+  }
+  if (auth?.token()) {
+    auth.request("/api/spatial-learning/records", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        stage_id: "three-view",
+        activity_kind: "three_view_group",
+        source_id: record.groupId,
+        status: "completed",
+        score: record.correct,
+        total: record.total,
+        duration_ms: record.durationMs,
+        last_position: `${record.groupId}:${state.questionIndex + 1}`,
+        detail: { answers: record.answers },
+      }),
+    }).then((response) => {
+      if (!response.ok) elements.historyLabel.textContent = "账号记录保存失败，请稍后重试";
+    }).catch(() => { elements.historyLabel.textContent = "账号记录保存失败，请稍后重试"; });
   }
 }
 
@@ -538,6 +580,7 @@ async function loadBank() {
   elements.canvas.dataset.bankValidation = "pass";
   elements.canvas.dataset.caseCount = String(bank.cases.length);
   renderGroupOptions(bank);
+  await loadAccountRecords();
   const requestedGroup = new URLSearchParams(location.search).get("group");
   startGroup(requestedGroup || bank.groups[0].id);
 }

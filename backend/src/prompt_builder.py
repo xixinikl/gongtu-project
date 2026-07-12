@@ -8,6 +8,8 @@ Architecture:
 """
 from __future__ import annotations
 
+import hashlib
+import re
 from pathlib import Path
 from src.models import Question
 
@@ -29,11 +31,32 @@ ALWAYS_LOAD = ["背景信息.md", "表达DNA.md"]
 
 
 def _load(path: Path) -> str:
-    """Load a markdown file, return empty string if missing."""
+    """Load a required skill file and fail closed when it is unavailable."""
     try:
-        return path.read_text(encoding="utf-8")
-    except Exception:
-        return ""
+        content = path.read_text(encoding="utf-8")
+    except Exception as exc:
+        raise RuntimeError(f"Required Feiyang skill file is unavailable: {path.name}") from exc
+    if not content.strip():
+        raise RuntimeError(f"Required Feiyang skill file is empty: {path.name}")
+    return content
+
+
+def get_skill_metadata() -> dict[str, str]:
+    """Return a reproducible version/hash for the exact skill files in use."""
+    skill_text = _load(SKILL_DIR / "SKILL.md")
+    version_match = re.search(r"^version:\s*([^\s]+)\s*$", skill_text, re.MULTILINE)
+    if not version_match:
+        raise RuntimeError("Feiyang skill version is missing")
+    files = [SKILL_DIR / "SKILL.md", *sorted(REFERENCES_DIR.glob("*.md"))]
+    if not files[1:]:
+        raise RuntimeError("Feiyang skill references are missing")
+    digest = hashlib.sha256()
+    for path in files:
+        digest.update(path.relative_to(SKILL_DIR).as_posix().encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(_load(path).encode("utf-8"))
+        digest.update(b"\0")
+    return {"version": version_match.group(1), "hash": digest.hexdigest()}
 
 
 def _route(user_message: str, question: Question | None) -> list[str]:
