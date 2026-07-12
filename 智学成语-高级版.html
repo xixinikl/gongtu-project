@@ -11,7 +11,7 @@
     // ============================================
     // 公途 · 认证模块（最先加载，确保登录/注册始终可用）
     // ============================================
-    var GONTU_API_BASE = 'http://127.0.0.1:8888';
+    var GONTU_API_BASE = window.__GONTU_API_BASE__ || (location.port === '8089' ? 'http://127.0.0.1:8888' : location.origin);
     var GONTU_TOKEN_KEY = 'gontu_token';
     var GONTU_USER_KEY = 'gontu_user';
 
@@ -3749,7 +3749,7 @@ async function syncUserMetaFromBackend() {
 // ════════════════════════════════════════════════════
 //  DataAdapter — Phase 1 双写层（localStorage 主，后端备）
 // ════════════════════════════════════════════════════
-const API_BASE = window.__GONTU_API_BASE__ || 'http://127.0.0.1:8888';
+const API_BASE = window.__GONTU_API_BASE__ || GONTU_API_BASE;
 
 function generateUUID() {
     if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -4784,6 +4784,30 @@ document.getElementById('modeSwitchGroup').addEventListener('click', function(e)
         <text x="30" y="84" text-anchor="middle" font-family="'ZCOOL XiaoWei','Ma Shan Zheng','KaiTi','STKaiti',serif" font-size="36" font-weight="900" fill="rgba(165,60,40,0.7)">西</text>
     </svg>
 </div>
+
+<script>
+var verbalAiDemoMode = new URLSearchParams(location.search).get('demo');
+var verbalAiUnifiedShell = !verbalAiDemoMode || verbalAiDemoMode === 'verbal-ai-v3';
+if (verbalAiDemoMode === 'verbal-ai' || verbalAiDemoMode === 'verbal-ai-v2' || verbalAiUnifiedShell) {
+    var verbalAiDemoScript = document.createElement('script');
+    verbalAiDemoScript.src = 'doc/prototypes/verbal-ai-native-demo.js?v=20260712e';
+    if (verbalAiDemoMode === 'verbal-ai-v2' || verbalAiUnifiedShell) {
+        verbalAiDemoScript.onload = function () {
+            var verbalAiDemoV2Script = document.createElement('script');
+            verbalAiDemoV2Script.src = 'doc/prototypes/verbal-ai-native-demo-v2.js?v=20260712a';
+            if (verbalAiUnifiedShell) {
+                verbalAiDemoV2Script.onload = function () {
+                    var verbalAiDemoV3Script = document.createElement('script');
+                    verbalAiDemoV3Script.src = 'doc/prototypes/verbal-ai-native-demo-v3.js?v=20260713a';
+                    document.body.appendChild(verbalAiDemoV3Script);
+                };
+            }
+            document.body.appendChild(verbalAiDemoV2Script);
+        };
+    }
+    document.body.appendChild(verbalAiDemoScript);
+}
+</script>
 
 </body>
 </html>
