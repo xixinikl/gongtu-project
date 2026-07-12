@@ -26,6 +26,10 @@ from verbal_catalog import (
     router as verbal_catalog_router,
 )
 from quantity import router as quantity_router
+from spatial_learning import (
+    ensure_spatial_learning_schema,
+    router as spatial_learning_router,
+)
 from unified_learning import router as unified_learning_router
 
 # ── Logging ──
@@ -38,6 +42,7 @@ logger = logging.getLogger("gontu.api")
 async def lifespan(app: FastAPI):
     init_db()
     ensure_verbal_catalog_schema()
+    ensure_spatial_learning_schema()
     logger.info("Database initialized")
     yield
     # Background maintenance on shutdown
@@ -56,6 +61,7 @@ app.include_router(shenlun_router)
 app.include_router(verbal_reading_router)
 app.include_router(verbal_catalog_router)
 app.include_router(quantity_router)
+app.include_router(spatial_learning_router)
 app.include_router(unified_learning_router)
 
 
@@ -563,17 +569,33 @@ async def admin_delete_user(user_id: int, admin: dict = Depends(require_admin)):
     """删除整个用户（含所有关联数据）"""
     if user_id == admin["user_id"]:
         raise HTTPException(400, "不能删除自己的账号")
+    owned_question_ids: list[int] = []
     with get_db() as conn:
+        owned_question_ids = [row["id"] for row in conn.execute(
+            "SELECT id FROM questions WHERE user_id=?", (str(user_id),)
+        ).fetchall()]
         # 删除关联数据
         conn.execute("DELETE FROM custom_vocab WHERE user_id=?", (user_id,))
         conn.execute("DELETE FROM user_decks WHERE user_id=?", (user_id,))
         conn.execute("DELETE FROM user_meta WHERE user_id=?", (user_id,))
         conn.execute("DELETE FROM shenlun_history WHERE user_id=?", (user_id,))
         conn.execute("DELETE FROM shenlun_mistakes WHERE user_id=?", (user_id,))
+        if conn.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='mindmap_review_attempts'").fetchone():
+            conn.execute("DELETE FROM mindmap_review_attempts WHERE user_id=?", (user_id,))
+        if conn.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='mindmap_review_sessions'").fetchone():
+            conn.execute("DELETE FROM mindmap_review_sessions WHERE user_id=?", (user_id,))
+        conn.execute("DELETE FROM reviews WHERE user_id=?", (str(user_id),))
+        conn.execute("DELETE FROM questions WHERE user_id=?", (str(user_id),))
+        if conn.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='spatial_learning_records'").fetchone():
+            conn.execute("DELETE FROM spatial_learning_records WHERE user_id=?", (user_id,))
         conn.execute("DELETE FROM learning_events WHERE user_id=?", (user_id,))
         conn.execute("DELETE FROM users WHERE id=?", (user_id,))
         conn.commit()
-        return {"msg": f"已删除用户 {user_id} 及其全部数据"}
+    import shutil
+    shutil.rmtree(os.path.join(PARENT_DIR, "backend", "data", "mindmap-images", str(user_id)), ignore_errors=True)
+    for qid in owned_question_ids:
+        shutil.rmtree(os.path.join(PARENT_DIR, "data", "images", str(qid)), ignore_errors=True)
+    return {"msg": f"已删除用户 {user_id} 及其全部数据"}
 
 
 # ── Catch-all static file server (for JS/CSS/images in parent dir) ──
@@ -585,6 +607,11 @@ async def serve_static(filename: str):
     """Serve any static file from the parent directory (not under /api/ or named routes)."""
     # Skip API routes — FastAPI matches /api/* first, but just in case:
     if filename.startswith("api/"):
+        raise HTTPException(404)
+    # Legacy mind-map uploads used enumerable /data/images/<question-id>/...
+    # paths.  They remain readable only through the JWT-owned image endpoint.
+    parts = filename.split("/")
+    if len(parts) >= 4 and parts[:2] == ["data", "images"] and parts[2].isdigit():
         raise HTTPException(404)
     # Skip named page routes that already have dedicated handlers
     if filename in ("", "mindmap", "shenlun"):

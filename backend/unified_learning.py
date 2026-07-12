@@ -410,6 +410,11 @@ def timeline(
             item = _activity(row)
             item["source"] = "unified"
             entries.append(item)
+        unified_sources = {
+            (item["module_id"], str(item.get("source_id") or ""))
+            for item in entries
+            if item.get("source_id") is not None
+        }
 
         if (not module_id or module_id == "verbal.reading") and _table_exists(
             conn, "verbal_practice_sessions"
@@ -419,6 +424,8 @@ def timeline(
                    FROM verbal_practice_sessions WHERE user_id=? ORDER BY started_at DESC LIMIT ?""",
                 (uid, limit),
             ).fetchall():
+                if ("verbal.reading", str(row["set_id"])) in unified_sources:
+                    continue
                 entries.append(
                     {
                         "id": row["id"],
@@ -438,10 +445,18 @@ def timeline(
             conn, "shenlun_history"
         ):
             for row in conn.execute(
-                """SELECT id,question_id,question_title,question_type,word_count,created_at
+                """SELECT id,question_id,question_title,question_type,word_count,
+                          grading_result,created_at
                    FROM shenlun_history WHERE user_id=? ORDER BY created_at DESC LIMIT ?""",
                 (uid, limit),
             ).fetchall():
+                if ("shenlun.review", str(row["id"])) in unified_sources:
+                    continue
+                grading_payload = _parsed(row["grading_result"])
+                # The historical table also contains ordinary teacher chat.
+                # Only real grading attempts belong in learning evidence.
+                if grading_payload.get("recordType") != "grading" and not grading_payload.get("dimensions"):
+                    continue
                 entries.append(
                     {
                         "id": row["id"],
@@ -456,6 +471,8 @@ def timeline(
                             "title": row["question_title"],
                             "type": row["question_type"],
                             "word_count": row["word_count"],
+                            "dimensions": grading_payload.get("dimensions", {}),
+                            "run_metadata": grading_payload.get("runMetadata", {}),
                         },
                         "source": "shenlun_history",
                     }
@@ -469,6 +486,8 @@ def timeline(
                    WHERE user_id=? ORDER BY created_at DESC LIMIT ?""",
                 (str(uid), limit),
             ).fetchall():
+                if ("reasoning.planar", str(row["id"])) in unified_sources:
+                    continue
                 entries.append(
                     {
                         "id": str(row["id"]),
