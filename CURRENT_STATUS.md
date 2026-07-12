@@ -6,7 +6,7 @@
 
 当前 Goal：`gongtu-unified-learning-platform`
 
-当前阶段：Phase 3 言语与数量真实题库接入（待提交 PR）
+当前阶段：Phase 3 言语与数量真实题库接入（PR #17 待验收）
 
 ## 已完成
 
@@ -38,12 +38,11 @@
 
 ## 未完成
 
-- Phase 3 尚需提交、推送并创建 PR-3。
+- Phase 3 已提交并推送，Draft PR #17 待验收。
 - Phase 4 才开始接平面/空间图推，并真实审计整改申论题库、错题追踪和 `feiyang-skill` 接入。
 - 六阶段后再执行干净 GitHub 总装：汇总已验收 PR，盘点本地改动并分为“正式纳入 / 继续开发 / 历史归档”，建立干净总集成分支完整回归。
 
 ## 下一步
 
-1. 完成 Phase 3 文档与 Git diff 门禁。
-2. 提交并推送 `cx/phase3-integrated`，创建以 Phase 2 分支为基线的 PR-3。
-3. Phase 3 验收后再启动 Phase 4，不在当前 PR 混入图推或申论整改。
+1. 验收 Draft PR #17。
+2. Phase 3 验收后再启动 Phase 4，不在当前 PR 混入图推或申论整改。
