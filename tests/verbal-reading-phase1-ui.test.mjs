@@ -30,6 +30,15 @@ test("answers remain hidden until all 20 questions are submitted", () => {
   assert.match(page, /不是真实 AI 诊断/);
 });
 
+test("reading questions expose real vocab cards and user-owned actions", () => {
+  assert.match(page, /data-reading-term/);
+  assert.match(page, /\/api\/verbal-catalog\/vocab\?search=/);
+  assert.match(page, /加入复习任务/);
+  assert.match(page, /\/api\/learning\/tasks/);
+  assert.match(page, /人民网/);
+  assert.match(page, /不生成虚假释义/);
+});
+
 test("login safely returns ordinary users to the requested local page", () => {
   assert.match(login, /function safeNextPath\(\)/);
   assert.match(login, /parsed\.origin === location\.origin/);

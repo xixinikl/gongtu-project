@@ -173,6 +173,16 @@
       font-weight: 700;
     }
 
+    .question-terms { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 16px; align-items:center; }
+    .question-terms > span { color:var(--muted); font-size:13px; }
+    .term-chip { border:1px solid var(--line); border-radius:999px; background:#fffaf3; color:var(--accent); padding:5px 10px; font-size:13px; }
+    .term-card { position:fixed; z-index:50; width:min(350px,calc(100vw - 28px)); max-height:420px; overflow:auto; padding:18px; border:1px solid var(--line); border-radius:18px; background:#fffdf9; box-shadow:0 18px 48px rgba(63,46,30,.18); }
+    .term-card h3 { margin:0 0 5px; font-family:var(--serif); }
+    .term-card .term-source { color:var(--muted); font-size:12px; }
+    .term-card .term-example { white-space:pre-line; margin-top:10px; padding-top:10px; border-top:1px solid var(--line); }
+    .term-card .term-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+    .term-card .term-actions a,.term-card .term-actions button { padding:7px 10px; border:1px solid var(--line); border-radius:999px; background:#fffaf3; color:var(--accent); text-decoration:none; font:inherit; font-size:12px; }
+
     .options {
       display: grid;
       gap: 10px;
@@ -462,7 +472,8 @@
       followupSending: false,
       followupMessage: "",
       recommendations: [],
-      recommendationsLoading: false
+      recommendationsLoading: false,
+      vocabCache: new Map()
     };
 
     const app = document.getElementById("app");
@@ -490,6 +501,56 @@
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.detail || data.error || `请求失败 ${response.status}`);
       return data;
+    }
+
+    function closeTermCard() {
+      document.getElementById("readingTermCard")?.remove();
+    }
+
+    async function saveTermFavorite(term) {
+      const states = await apiFetch("/api/verbal-catalog/vocab/state");
+      const current = states.find((item) => item.word === term) || {};
+      await apiFetch("/api/verbal-catalog/vocab/state", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          word: term, study_count: current.study_count || 0,
+          forget_count: current.forget_count || 0, interval_idx: current.interval_idx || 0,
+          mastered: Boolean(current.mastered), favorite: true,
+          last_study_date: current.last_study_date || "", next_review_date: current.next_review_date || ""
+        })
+      });
+    }
+
+    async function addTermTask(term) {
+      await apiFetch("/api/learning/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ module_id: "verbal.vocab", task_type: "vocab_review", title: `复习词语：${term}`, target_count: 1 })
+      });
+    }
+
+    async function showTermCard(term, anchor) {
+      closeTermCard();
+      let item = state.vocabCache.get(term);
+      if (!item) {
+        const result = await apiFetch(`/api/verbal-catalog/vocab?search=${encodeURIComponent(term)}&limit=20`);
+        item = (result.items || []).find((entry) => entry.word === term);
+        if (item) state.vocabCache.set(term, item);
+      }
+      const card = document.createElement("aside");
+      card.id = "readingTermCard";
+      card.className = "term-card";
+      const known = Boolean(item);
+      const peopleUrl = item?.search_url || `https://search.people.cn/s?keyword=${encodeURIComponent(term)}`;
+      card.innerHTML = `<h3>${escapeHtml(term)}</h3><div class="term-source">${known ? "内置词库" : "待补充"}</div><p>${escapeHtml(item?.meaning || "词库暂未收录，不生成虚假释义。")}</p>${known ? `<div class="term-example"><b>例句</b><br>${(item.examples || []).map(escapeHtml).join("<br>")}</div>` : ""}<div class="term-actions"><button data-term-task>加入复习任务</button><button data-term-favorite ${known ? "" : "disabled"}>收藏</button><a target="_blank" rel="noreferrer" href="${escapeHtml(peopleUrl)}">人民网</a></div>`;
+      document.body.appendChild(card);
+      const rect = anchor.getBoundingClientRect();
+      card.style.left = `${Math.min(Math.max(14, rect.left), innerWidth - card.offsetWidth - 14)}px`;
+      card.style.top = `${Math.max(14, Math.min(rect.bottom + 8, innerHeight - card.offsetHeight - 14))}px`;
+      card.querySelector("[data-term-task]").onclick = async () => { await addTermTask(term); card.querySelector("[data-term-task]").textContent = "已加入任务"; };
+      const favorite = card.querySelector("[data-term-favorite]");
+      if (favorite) favorite.onclick = async () => { await saveTermFavorite(term); favorite.textContent = "已收藏"; };
     }
 
     function showLoginGate(message = "登录后才能保存答题记录") {
@@ -863,6 +924,7 @@
           </div>
           <p class="stem">${escapeHtml(q.content.stem)}</p>
           <p class="prompt">${escapeHtml(q.content.prompt)}</p>
+          ${(q.related_terms || []).length ? `<div class="question-terms"><span>题中词语</span>${q.related_terms.map((term) => `<button class="term-chip" data-reading-term="${escapeHtml(term)}">${escapeHtml(term)}</button>`).join("")}</div>` : ""}
           <div class="options">
             ${q.content.options.map((option) => {
               const selected = userAnswer === option.key;
@@ -927,6 +989,14 @@
       app.querySelectorAll(".option").forEach((label) => {
         const input = label.querySelector("input");
         label.addEventListener("click", () => selectAnswer(q.id, input.value));
+      });
+      app.querySelectorAll("[data-reading-term]").forEach((button) => {
+        const open = () => showTermCard(button.dataset.readingTerm, button).catch((error) => {
+          if (error.message !== "AUTH_REQUIRED") console.warn("[TermCard]", error.message);
+        });
+        button.addEventListener("mouseenter", open);
+        button.addEventListener("focus", open);
+        button.addEventListener("click", open);
       });
       app.querySelectorAll(".qdot").forEach((button) => {
         button.addEventListener("click", () => goTo(Number(button.dataset.index)));

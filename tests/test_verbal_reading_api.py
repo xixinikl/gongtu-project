@@ -199,11 +199,18 @@ class VerbalReadingAPITests(unittest.TestCase):
             self.assertNotIn(forbidden, first)
         self.assertNotIn("method_tags", first["learning_tags"])
         self.assertNotIn("option_trap_tags", first["learning_tags"])
+        self.assertIsInstance(first["related_terms"], list)
 
         unauthenticated = self.client.get(
             "/api/verbal-reading/sets/verbal_hs13_set28/questions"
         )
         self.assertEqual(unauthenticated.status_code, 401)
+
+        set_one = self.client.get(
+            "/api/verbal-reading/sets/verbal_hs13_set01/questions",
+            headers=self.headers_a,
+        ).json()
+        self.assertIn("一成不变", set_one[2]["related_terms"])
 
     def test_real_diagnosis_contract_is_persisted_and_user_owned(self):
         session_id = self._create().json()["id"]

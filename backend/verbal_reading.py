@@ -29,6 +29,7 @@ router = APIRouter(prefix="/api/verbal-reading", tags=["verbal-reading"])
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 MANIFEST_PATH = PROJECT_ROOT / "data" / "verbal_reading" / "sets_manifest.json"
+VOCAB_PATH = PROJECT_ROOT / "data" / "verbal_catalog" / "vocab_801.json"
 ALLOWED_ANSWERS = {"A", "B", "C", "D"}
 MAX_ITEM_ELAPSED_MS = 30 * 60 * 1000
 MAX_SESSION_ELAPSED_MS = 6 * 60 * 60 * 1000
@@ -85,6 +86,32 @@ def _get_set(set_id: str) -> dict:
     if not set_data:
         raise HTTPException(status_code=404, detail="Practice set not found")
     return set_data
+
+
+@lru_cache(maxsize=1)
+def _vocab_terms() -> tuple[str, ...]:
+    if not VOCAB_PATH.is_file():
+        return ()
+    payload = json.loads(VOCAB_PATH.read_text(encoding="utf-8"))
+    return tuple(
+        sorted(
+            {item["word"] for item in payload.get("items", []) if item.get("word")},
+            key=lambda word: (-len(word), word),
+        )
+    )
+
+
+def _related_terms(question: dict) -> list[str]:
+    content = question.get("content") or {}
+    text = " ".join(
+        [content.get("stem", ""), content.get("prompt", "")]
+        + [item.get("text", "") for item in content.get("options", [])]
+    )
+    return [word for word in _vocab_terms() if word in text][:12]
+
+
+def _review_question(question: dict) -> dict:
+    return {**question, "related_terms": _related_terms(question)}
 
 
 def _owned_session(conn, session_id: str, user_id: int):
@@ -165,7 +192,9 @@ def _serialize_session(conn, row) -> dict:
     ).fetchall()
     payload["messages"] = [dict(message) for message in message_rows]
     if submitted:
-        payload["review_questions"] = _get_set(row["set_id"])["questions"]
+        payload["review_questions"] = [
+            _review_question(question) for question in _get_set(row["set_id"])["questions"]
+        ]
     return payload
 
 
@@ -180,6 +209,7 @@ def _practice_question(question: dict) -> dict:
             "question_type": learning_tags.get("question_type", "未标注"),
             "estimated_seconds": learning_tags.get("estimated_seconds"),
         },
+        "related_terms": _related_terms(question),
     }
 
 

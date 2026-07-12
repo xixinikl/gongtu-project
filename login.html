@@ -293,7 +293,30 @@
     </div>
 
     <script>
-        const API = 'http://127.0.0.1:8888';
+            const API = window.__GONTU_API_BASE__ || (location.port === '8089' ? 'http://127.0.0.1:8888' : location.origin);
+
+            function safeNextPath() {
+                const raw = new URLSearchParams(location.search).get('next');
+                if (!raw) return '';
+                try {
+                    const parsed = new URL(raw, location.origin);
+                    return parsed.origin === location.origin && parsed.pathname.startsWith('/')
+                        ? parsed.pathname + parsed.search + parsed.hash
+                        : '';
+                } catch (_) {
+                    return '';
+                }
+            }
+
+            function storeIdentity(data) {
+                localStorage.setItem('gontu_token', data.token);
+                localStorage.setItem('gontu_user', JSON.stringify({
+                    id: data.user_id,
+                    username: data.username,
+                    is_admin: data.is_admin || 0
+                }));
+                localStorage.setItem('is_admin', data.is_admin || 0);
+            }
 
         function switchTab(tab) {
             document.getElementById('form-login').style.display = tab === 'login' ? 'block' : 'none';
@@ -335,12 +358,9 @@
                 });
                 const data = await res.json();
                 if (res.ok) {
-                    localStorage.setItem('gontu_token', data.token);
-                    localStorage.setItem('username', data.username);
-                    localStorage.setItem('user_id', data.user_id);
-                    localStorage.setItem('is_admin', data.is_admin || 0);
+                        storeIdentity(data);
                     // 管理员跳转到管理后台，普通用户跳功能页
-                    var redirectTo = (data.is_admin === 1) ? '/admin' : '/app';
+                        var redirectTo = (data.is_admin === 1) ? '/admin' : (safeNextPath() || '/app');
                     showMsg('login-msg', '登录成功，正在跳转...', 'success');
                     setTimeout(() => { window.location.href = redirectTo; }, 800);
                 } else {
@@ -382,11 +402,8 @@
                 });
                 const data = await res.json();
                 if (res.ok) {
-                    localStorage.setItem('gontu_token', data.token);
-                    localStorage.setItem('username', data.username);
-                    localStorage.setItem('user_id', data.user_id);
-                    localStorage.setItem('is_admin', data.is_admin || 0);
-                    var redirectTo = (data.is_admin === 1) ? '/admin' : '/app';
+                        storeIdentity(data);
+                        var redirectTo = (data.is_admin === 1) ? '/admin' : (safeNextPath() || '/app');
                     showMsg('reg-msg', '注册成功，正在跳转...', 'success');
                     setTimeout(() => { window.location.href = redirectTo; }, 800);
                 } else {
@@ -417,7 +434,7 @@
                     if (!r.ok) return;
                     const me = await r.json();
                     localStorage.setItem('is_admin', me.is_admin || 0);
-                    window.location.href = (me.is_admin === 1) ? '/admin' : '/app';
+                        window.location.href = (me.is_admin === 1) ? '/admin' : (safeNextPath() || '/app');
                 })
                 .catch(() => null);
         }
