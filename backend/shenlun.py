@@ -35,18 +35,49 @@ QUESTIONS_FILE = DATA_DIR / "questions.json"
 
 
 def _load_questions_data():
-    if not QUESTIONS_FILE.exists():
-        return {"questions": []}
+    if not QUESTIONS_FILE.is_file():
+        raise RuntimeError("Shenlun question source is missing")
     with open(QUESTIONS_FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
+        data = json.load(f)
+    if not isinstance(data, dict) or not isinstance(data.get("questions"), list):
+        raise RuntimeError("Shenlun question source has an invalid shape")
+    return data
+
+
+def _questions_or_unavailable() -> dict:
+    try:
+        return _load_questions_data()
+    except (OSError, UnicodeError, ValueError, KeyError, TypeError, RuntimeError) as exc:
+        logger.warning(
+            "question_source_unavailable module_id=shenlun.review error_type=%s",
+            type(exc).__name__,
+        )
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "question_source_unavailable",
+                "module_id": "shenlun.review",
+                "content_status": "not_provided",
+                "message": "申论题源暂未提供，请稍后再试。",
+                "retryable": True,
+            },
+        ) from None
 
 
 def _get_question(qid: str):
-    data = _load_questions_data()
+    data = _questions_or_unavailable()
     for q in data.get("questions", []):
         if q["id"] == qid:
             return q
-    return None
+    raise HTTPException(
+        status_code=404,
+        detail={
+            "code": "question_not_provided",
+            "content_status": "not_provided",
+            "message": "当前题库未提供这道题。",
+            "retryable": False,
+        },
+    )
 
 
 # ── Auth helper ────────────────────────────────────────────────────────────────
@@ -211,11 +242,26 @@ class ChatRequest(BaseModel):
 
 # ── API Endpoints ──────────────────────────────────────────────────────────────
 
+@router.get("/catalog")
+async def get_catalog(request: Request):
+    """Return the authoritative completeness statement for the current source."""
+    await _require_user(request)
+    data = _questions_or_unavailable()
+    return {
+        "catalogStatus": data.get("catalogStatus", "summary-only"),
+        "isComplete": bool(data.get("isComplete", False)),
+        "contentNotice": data.get(
+            "contentNotice",
+            "当前仅提供材料摘要，不作为完整真题库。",
+        ),
+        "questionCount": len(data["questions"]),
+    }
+
 @router.get("/questions")
 async def list_questions(request: Request):
     """获取题目列表（轻量，不含材料和参考答案全文）"""
     await _require_user(request)
-    data = _load_questions_data()
+    data = _questions_or_unavailable()
     items = []
     for q in data.get("questions", []):
         items.append({
@@ -240,8 +286,6 @@ async def get_question_detail(qid: str, request: Request):
     """获取练习详情；作答前永不返回参考答案或评分点。"""
     await _require_user(request)
     q = _get_question(qid)
-    if not q:
-        raise HTTPException(status_code=404, detail="题目不存在")
     return _question_public(q)
 
 
@@ -252,8 +296,6 @@ async def grade_answer(req: GradingRequest, request: Request):
     user_id = user["user_id"]
 
     q = _get_question(req.questionId)
-    if not q:
-        raise HTTPException(status_code=404, detail="题目不存在")
     if not req.studentAnswer.strip():
         raise HTTPException(status_code=400, detail="作答不能为空")
 
@@ -618,8 +660,6 @@ async def chat_with_teacher(req: ChatRequest, request: Request):
     q_obj = None
     if req.questionId:
         q = _get_question(req.questionId)
-        if not q:
-            raise HTTPException(status_code=404, detail="题目不存在")
         # 构造 Question 模型
         q_copy = dict(q)
         scoring_points = q_copy.pop("scoringPoints", [])

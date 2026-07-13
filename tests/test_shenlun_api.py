@@ -63,6 +63,21 @@ class ShenlunAPITests(unittest.TestCase):
         catalog = json.loads((BACKEND / "data/questions.json").read_text(encoding="utf-8"))
         self.assertEqual(catalog["catalogStatus"], "summary-only")
         self.assertFalse(catalog["isComplete"])
+        catalog_response = self.client.get(
+            "/api/shenlun/catalog", headers=self.headers_a
+        )
+        self.assertEqual(
+            catalog_response.json(),
+            {
+                "catalogStatus": "summary-only",
+                "isComplete": False,
+                "contentNotice": catalog["contentNotice"],
+                "questionCount": 10,
+            },
+        )
+        self.assertNotIn("referenceAnswer", catalog_response.text)
+        self.assertNotIn("scoringPoints", catalog_response.text)
+        self.assertEqual(self.client.get("/api/shenlun/catalog").status_code, 401)
         self.assertEqual(self.client.get("/api/shenlun/questions").status_code, 401)
         listed = self.client.get("/api/shenlun/questions", headers=self.headers_a)
         self.assertEqual(listed.status_code, 200, listed.text)
@@ -81,6 +96,84 @@ class ShenlunAPITests(unittest.TestCase):
             headers={"Authorization": f"Bearer {deleted_token}"},
         )
         self.assertEqual(stale.status_code, 401)
+
+    def test_missing_or_corrupt_question_source_is_explicit_and_private(self):
+        expected = {
+            "detail": {
+                "code": "question_source_unavailable",
+                "module_id": "shenlun.review",
+                "content_status": "not_provided",
+                "message": "申论题源暂未提供，请稍后再试。",
+                "retryable": True,
+            }
+        }
+        missing = Path(_TEMP_DIR.name) / "private-missing-questions.json"
+        with patch.object(shenlun, "QUESTIONS_FILE", missing):
+            for method, path, payload in (
+                ("get", "/api/shenlun/catalog", None),
+                ("get", "/api/shenlun/questions", None),
+                ("get", "/api/shenlun/questions/q3-1", None),
+                (
+                    "post",
+                    "/api/shenlun/grade",
+                    {"questionId": "q3-1", "studentAnswer": "测试作答"},
+                ),
+                (
+                    "post",
+                    "/api/shenlun/chat",
+                    {"questionId": "q3-1", "message": "如何审题？"},
+                ),
+            ):
+                response = self.client.request(
+                    method.upper(), path, headers=self.headers_a, json=payload
+                )
+                self.assertEqual(response.status_code, 503, response.text)
+                self.assertEqual(response.json(), expected)
+                self.assertNotIn(str(missing), response.text)
+                self.assertNotIn("Shenlun question source is missing", response.text)
+
+        corrupt = Path(_TEMP_DIR.name) / "private-corrupt-questions.json"
+        corrupt.write_text("{not-json", encoding="utf-8")
+        with patch.object(shenlun, "QUESTIONS_FILE", corrupt):
+            response = self.client.get(
+                "/api/shenlun/catalog", headers=self.headers_a
+            )
+            self.assertEqual(response.status_code, 503)
+            self.assertEqual(response.json(), expected)
+            self.assertNotIn(str(corrupt), response.text)
+
+    def test_unknown_question_is_not_provided_and_never_reaches_ai(self):
+        expected = {
+            "detail": {
+                "code": "question_not_provided",
+                "content_status": "not_provided",
+                "message": "当前题库未提供这道题。",
+                "retryable": False,
+            }
+        }
+        with patch.object(shenlun, "llm_grade") as grade_mock, patch.object(
+            shenlun, "llm_chat"
+        ) as chat_mock:
+            responses = [
+                self.client.get(
+                    "/api/shenlun/questions/not-provided", headers=self.headers_a
+                ),
+                self.client.post(
+                    "/api/shenlun/grade",
+                    headers=self.headers_a,
+                    json={"questionId": "not-provided", "studentAnswer": "测试作答"},
+                ),
+                self.client.post(
+                    "/api/shenlun/chat",
+                    headers=self.headers_a,
+                    json={"questionId": "not-provided", "message": "如何审题？"},
+                ),
+            ]
+        for response in responses:
+            self.assertEqual(response.status_code, 404, response.text)
+            self.assertEqual(response.json(), expected)
+        grade_mock.assert_not_called()
+        chat_mock.assert_not_called()
 
     def test_chat_is_not_a_mistake_and_grade_is_aggregated_with_history(self):
         with patch.object(shenlun, "llm_chat", return_value="这是一次方法提问回复"):
