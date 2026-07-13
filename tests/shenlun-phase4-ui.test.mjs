@@ -20,6 +20,18 @@ test('formal grading and ordinary questions are separate actions', () => {
   assert.match(page, /向老师提问，不进入错题本/);
 });
 
+test('question source truth is loaded and missing content disables grading', () => {
+  assert.match(page, /\/api\/shenlun\/catalog/);
+  assert.match(page, /questionSourceUnavailable/);
+  assert.match(page, /题源暂未提供/);
+  assert.match(page, /当前题库 ·.*题材料摘要/);
+  assert.match(page, /catalog\.value=\{catalogStatus:'not-provided'/);
+  assert.match(page, /questions\.value=\[\]; selectedQuestion\.value=null/);
+  assert.match(page, /:disabled="loading\|\|!inputText\.trim\(\)\|\|questionSourceUnavailable\|\|!!questionError"/);
+  assert.match(page, /detail&&detail\.message/);
+  assert.doesNotMatch(page, /questions\.value\s*=\s*\[\s*\{[^\]]+占位/);
+});
+
 test('mistake cards expose redo and single-delete actions', () => {
   assert.match(page, /@click="redoMistake\(m\)"/);
   assert.match(page, /@click="deleteMistake\(m\)"/);
