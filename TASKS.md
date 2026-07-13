@@ -9,7 +9,7 @@
 - [x] GT-P5-5 综合复盘：当前模块线程隔离；跨模块只聚合本人真实垂直记录；证据不足明确承认。
 - [x] GT-P5-6 Provider 降级：缺配置/超时/非法输出保留问题与失败 run，支持重试，不展示静态 AI 文案。
 
-当前证据：Python 57/57；Node 619/619；浏览器 1440/390 无横向溢出；详见 `doc/PHASE5_AI_COACH_AUDIT.md`。
+当前证据：Python 57/57；Node 620/620；浏览器 1440/390 无横向溢出，A→退出→B 隔离→退出→A 恢复通过；详见 `doc/PHASE5_AI_COACH_AUDIT.md`。
 
 Phase 5 未通过真实成功调用前，不启动 Phase 6。
 
