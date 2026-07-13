@@ -1,8 +1,15 @@
 # 当前开发状态
 
-更新时间：2026-07-09
-当前分支：`cx/lesson-015-dynamic-explore`
-当前里程碑：M5A 考公立体图推动态解题与讲解
+更新时间：2026-07-13
+当前分支：`cx/realtime-preview-v1`
+当前里程碑：PR #20 实时预览收口（进行中）
+
+## 当前 Goal：`realtime-preview-closure`
+
+- PR #20 为 Draft、CLEAN；远端仅含 `755cb96`，本地 `0aae184` 仅新增实时预览 CI，工作树干净且领先远端 1 个提交。
+- 与工作流一致的 Node 24 合同测试 3/3、启动器语法和 Python 编译均通过。
+- 完整 `npm run test:geometry` 的两项失败是既有 `backend/.env.example` 缺失和登录安全回跳合同缺失，均不在预览提交 diff 中；不混入 #20。
+- `workflow` 授权已恢复，`0aae184` 与 Goal 记录已推送；实时预览的 GitHub push/PR workflow 均成功。PR #20 仍为 Draft/CLEAN、无审阅意见，接下来仅等待用户或仓库流程决定 Ready、审阅和合并。详情见 `doc/REALTIME_PREVIEW_CLOSURE.md`。
 
 ## 当前任务
 

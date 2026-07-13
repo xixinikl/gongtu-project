@@ -11,7 +11,7 @@
     // ============================================
     // 公途 · 认证模块（最先加载，确保登录/注册始终可用）
     // ============================================
-    var GONTU_API_BASE = 'http://127.0.0.1:8888';
+    var GONTU_API_BASE = window.__GONTU_API_BASE__ || location.origin;
     var GONTU_TOKEN_KEY = 'gontu_token';
     var GONTU_USER_KEY = 'gontu_user';
 

@@ -1,6 +1,12 @@
-"""Start FastAPI server - run me from the backend/ directory"""
-import subprocess
+"""Start the FastAPI server with the active Python environment."""
 import os
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
-python = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'venv', 'Scripts', 'python.exe')
-subprocess.run([python, '-m', 'uvicorn', 'main:app', '--host', '127.0.0.1', '--port', '8888'], check=True)
+import subprocess
+import sys
+
+backend_dir = os.path.dirname(os.path.abspath(__file__))
+os.chdir(backend_dir)
+port = os.environ.get("API_PORT", "8888")
+subprocess.run(
+    [sys.executable, "-m", "uvicorn", "main:app", "--host", "127.0.0.1", "--port", port],
+    check=True,
+)

@@ -55,6 +55,7 @@ function checkCommandVersion(command, args, minMajor, minMinor, label) {
 
 function checkPython() {
   const candidates = [
+    process.env.XDS_PYTHON,
     join(rootDir, "backend", "venv", "bin", "python"),
     join(rootDir, "backend", "venv", "bin", "python3"),
     "python3",
@@ -63,7 +64,7 @@ function checkPython() {
 
   let selected = null;
   let selectedVersion = null;
-  for (const candidate of candidates) {
+  for (const candidate of candidates.filter(Boolean)) {
     if (candidate.startsWith("/") && !existsSync(candidate)) continue;
     const result = run(candidate, ["--version"]);
     if (result.error || result.status !== 0) continue;
@@ -161,8 +162,8 @@ checkPackageManager();
 checkPython();
 checkFiles();
 checkGit();
-await checkPort(8089, "Static dev server");
-await checkPort(8888, "FastAPI backend");
+await checkPort(Number.parseInt(process.env.PORT || "8089", 10), "Static dev server");
+await checkPort(Number.parseInt(process.env.API_PORT || "8888", 10), "FastAPI backend");
 
 const icons = {
   pass: "PASS",

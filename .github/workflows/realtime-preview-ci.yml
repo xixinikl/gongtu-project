@@ -1,0 +1,30 @@
+name: Realtime preview CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - cx/realtime-preview-v1
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: npm ci
+      - name: Verify realtime preview contract
+        run: node --test tests/realtime-preview-contract.test.mjs
+      - name: Check launchers
+        run: |
+          node --check tools/realtime-preview.mjs
+          python -m py_compile backend/start_server.py
