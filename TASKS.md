@@ -5,7 +5,10 @@
 - [x] ● GT-P6-1A 跨平台运行基线：恢复 Windows/macOS 打包配置、跨平台 Python 解析和 Windows 启动入口；跨平台脚本不得再依赖单台 Mac 绝对路径。
   - 结果：桌面打包同时声明 macOS/Windows，Python 优先读取 `GONTU_PYTHON` 或平台虚拟环境且无单机绝对路径，Windows 启动脚本检查 Python/依赖后启动正式服务。
   - 验证：`node --check desktop/main.js`、desktop package JSON 解析通过；跨平台脚本中本任务覆盖的 14 项通过，剩余 `.gitignore` 与本地 main 状态断言归入 GT-P6-1B。
-- [ ] ◐ GT-P6-1B 静态/单元/合同回归：修正环境门禁与测试口径，运行 lint/schema/migration/adapter、Python 与 Node 全量。
+- [x] ● GT-P6-1B 可移植运行时声明：提交 `.nvmrc` / `.python-version` 并补 Windows 系统文件忽略，换终端或换设备时不再依赖 Agent 临时 PATH。
+  - 结果：Node 24 与 Python 3.10 最低运行入口可被 nvm/pyenv 读取；`Thumbs.db`、`Desktop.ini` 不会混入提交。
+  - 验证：版本文件精确值检查、忽略项检索与 `git diff --check` 通过；跨平台脚本提升为 15/16。
+- [ ] ◐ GT-P6-1C 静态/单元/合同回归：移除不属于产品正确性的本地 main 同步断言，运行 lint/schema/migration/adapter、Python 与 Node 全量。
 - [ ] ○ GT-P6-2—6 全链路验收：六模块真实主路径、身份持久化、A/B、失败降级、桌面/手机与可访问性。
 - [ ] ○ GT-P6-7—8 完成审计与干净总装：六 PR 证据、全部 worktree 三分类、干净集成分支和完整回归。
 
