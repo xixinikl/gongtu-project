@@ -39,8 +39,8 @@
   - 自动回归：`backend/venv/bin/python` 分别运行统一学习、认证、言语词库/阅读、数量、平面图推、立体图推、申论、AI 教练和题库不可用合同，共 62/62；Node 六页/认证/正式外壳测试 45/45。
   - 响应式与可访问性：六页在 390px 与 1280px 都无横向溢出、无破图；最终 console error/warn 为 0。正式外壳覆盖跳转链接、可见焦点、移动端展开/`Escape` 收起和减少动效。
 - [ ] ◐ GT-P6-7—8 完成审计与干净总装：六 PR 证据、全部 worktree 三分类、干净集成分支和完整回归。
-  - 已核实：Phase 1→6 的提交链连续；PR #15—#19 皆为 open 未合并（#17—#19 为 Draft），Phase 6 尚未建立 PR。所有状态和 9 个 worktree 的三分类已写入 `doc/PHASE6_COMPLETION_AUDIT.md`。
-  - 当前：只在干净 Phase 6 提交链上建立总装分支；不从原始脏树、旧 UI 树或临时验证树拣取文件。
+  - 已核实：Phase 1→6 的提交链连续；Draft PR #21 已建立并以 Phase 5 为基线。PR #15—#21 皆为 open 未合并（#17—#21 为 Draft）；所有状态和 9 个 worktree 的三分类已写入 `doc/PHASE6_COMPLETION_AUDIT.md`。
+  - 当前：`cx/phase6-clean-integration` 只包含干净 Phase 6 提交链；不从原始脏树、旧 UI 树或临时验证树拣取文件，正在重跑总装回归。
 
 - [x] GT-P5-1 服务端可信上下文：独立提问与训练引用分离，JWT 垂直 resolver，综合规划不信任客户端摘要。
 - [x] GT-P5-2 版本 Skill Registry：七模块、严格路径、package/bundle hash、响应 Schema、fail closed。
