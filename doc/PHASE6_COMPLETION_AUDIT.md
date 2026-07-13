@@ -1,7 +1,7 @@
 # Phase 6 完成审计与干净总装清单
 
-更新时间：2026-07-13  
-审计分支：`cx/phase6-e2e-hardening`  
+更新时间：2026-07-13
+审计分支：`cx/phase6-e2e-hardening`
 审计方式：本地 Git 提交图、全部已登记 worktree 的只读状态、GitHub PR 元数据与已记录的自动/真实浏览器验收。
 
 > 本文是 `phase6-clean-integration` Goal 的**唯一权威入口**；任何完成结论必须以本文的当前事实、证据、非范围和完成审计为准。
