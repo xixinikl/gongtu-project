@@ -11,7 +11,7 @@ test('unified V3 shell is the default formal entry while historical demos remain
   assert.match(shell, /dataset\.productShell = 'gongtu-unified-v3'/);
   assert.match(shell, /公途统一学习页/);
   assert.match(shell, /setTimeout\(\(\) => \{[\s\S]*note\.textContent = '公途统一学习页'/);
-  assert.match(shell, /ai-coach-demo\.html\?theme=gongtu&module=/);
+  assert.match(shell, /\/ai-coach\?module=/);
 });
 
 test('review UI uses learner language instead of internal evidence jargon', () => {

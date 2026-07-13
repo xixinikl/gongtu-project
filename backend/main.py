@@ -31,6 +31,7 @@ from spatial_learning import (
     router as spatial_learning_router,
 )
 from unified_learning import router as unified_learning_router
+from ai_coach import ensure_ai_coach_schema, router as ai_coach_router
 
 # ── Logging ──
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -43,6 +44,7 @@ async def lifespan(app: FastAPI):
     init_db()
     ensure_verbal_catalog_schema()
     ensure_spatial_learning_schema()
+    ensure_ai_coach_schema()
     logger.info("Database initialized")
     yield
     # Background maintenance on shutdown
@@ -63,6 +65,7 @@ app.include_router(verbal_catalog_router)
 app.include_router(quantity_router)
 app.include_router(spatial_learning_router)
 app.include_router(unified_learning_router)
+app.include_router(ai_coach_router)
 
 
 # ── CORS ──
@@ -422,6 +425,16 @@ async def serve_shenlun():
     path = os.path.join(PARENT_DIR, "shenlun.html")
     if not os.path.exists(path):
         raise HTTPException(404, "申论文件不存在")
+    with open(path, "r", encoding="utf-8") as f:
+        return f.read()
+
+
+@app.get("/ai-coach", response_class=HTMLResponse)
+async def serve_ai_coach():
+    """正式 AI 教练入口；旧文件名仅作静态兼容。"""
+    path = os.path.join(PARENT_DIR, "ai-coach-demo.html")
+    if not os.path.exists(path):
+        raise HTTPException(404, "AI 教练页面不存在")
     with open(path, "r", encoding="utf-8") as f:
         return f.read()
 

@@ -14,6 +14,13 @@ test('unified shell loads the shared auth client before its inline auth module',
   assert.ok(shared >= 0 && shared < inline);
 });
 
+test('formal shell exposes the account area required for logout and A/B switching', () => {
+  assert.match(shell, /id="navAuthArea"/);
+  assert.match(shell, /onclick="logout\(\)"/);
+  assert.match(shell, /localStorage\.removeItem\(GONTU_TOKEN_KEY\)/);
+  assert.match(shell, /localStorage\.removeItem\(GONTU_USER_KEY\)/);
+});
+
 test('shared auth client uses the existing token and user identity keys', () => {
   assert.match(auth, /TOKEN_KEY = 'gontu_token'/);
   assert.match(auth, /USER_KEY = 'gontu_user'/);
