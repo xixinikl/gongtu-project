@@ -84,7 +84,9 @@ class ShenlunAPITests(unittest.TestCase):
         _TEMP_DIR.cleanup()
 
     def setUp(self):
+        self._grade_counter = 0
         with database.get_db() as conn:
+            conn.execute("DELETE FROM shenlun_grade_requests")
             conn.execute("DELETE FROM learning_issue_evidence_v2")
             conn.execute("DELETE FROM learning_tasks_v2")
             conn.execute("DELETE FROM learning_issues_v2")
@@ -92,6 +94,18 @@ class ShenlunAPITests(unittest.TestCase):
             conn.execute("DELETE FROM shenlun_mistakes")
             conn.execute("DELETE FROM shenlun_history")
             conn.commit()
+
+    def post_grade(self, *, headers: dict, payload: dict, key: str | None = None):
+        self._grade_counter += 1
+        request_headers = dict(headers)
+        request_headers["Idempotency-Key"] = (
+            key or f"test-grade-{self._grade_counter:04d}"
+        )
+        return self.client.post(
+            "/api/shenlun/grade",
+            headers=request_headers,
+            json=payload,
+        )
 
     def test_questions_require_live_account_and_never_leak_answers(self):
         catalog = json.loads(
@@ -162,8 +176,11 @@ class ShenlunAPITests(unittest.TestCase):
                     {"questionId": "q3-1", "message": "如何审题？"},
                 ),
             ):
+                headers = dict(self.headers_a)
+                if path == "/api/shenlun/grade":
+                    headers["Idempotency-Key"] = "source-unavailable"
                 response = self.client.request(
-                    method.upper(), path, headers=self.headers_a, json=payload
+                    method.upper(), path, headers=headers, json=payload
                 )
                 self.assertEqual(response.status_code, 503, response.text)
                 self.assertEqual(response.json(), expected)
@@ -195,10 +212,9 @@ class ShenlunAPITests(unittest.TestCase):
                 self.client.get(
                     "/api/shenlun/questions/not-provided", headers=self.headers_a
                 ),
-                self.client.post(
-                    "/api/shenlun/grade",
+                self.post_grade(
                     headers=self.headers_a,
-                    json={"questionId": "not-provided", "studentAnswer": "测试作答"},
+                    payload={"questionId": "not-provided", "studentAnswer": "测试作答"},
                 ),
                 self.client.post(
                     "/api/shenlun/chat",
@@ -243,10 +259,9 @@ class ShenlunAPITests(unittest.TestCase):
         )
         with patch.object(shenlun, "llm_grade", side_effect=[first, second]):
             for answer in ("第一次正式作答", "第二次正式作答"):
-                response = self.client.post(
-                    "/api/shenlun/grade",
+                response = self.post_grade(
                     headers=self.headers_a,
-                    json={"questionId": "q3-1", "studentAnswer": answer},
+                    payload={"questionId": "q3-1", "studentAnswer": answer},
                 )
                 self.assertEqual(response.status_code, 200, response.text)
                 meta = response.json()["runMetadata"]
@@ -306,15 +321,13 @@ class ShenlunAPITests(unittest.TestCase):
             suggestions=["先列提纲", "合并同类项", "检查层次"],
         )
         with patch.object(shenlun, "llm_grade", return_value=result):
-            self.client.post(
-                "/api/shenlun/grade",
+            self.post_grade(
                 headers=self.headers_a,
-                json={"questionId": "q3-1", "studentAnswer": "A用户作答"},
+                payload={"questionId": "q3-1", "studentAnswer": "A用户作答"},
             )
-            self.client.post(
-                "/api/shenlun/grade",
+            self.post_grade(
                 headers=self.headers_b,
-                json={"questionId": "q3-1", "studentAnswer": "B用户作答"},
+                payload={"questionId": "q3-1", "studentAnswer": "B用户作答"},
             )
         with database.get_db() as conn:
             owners = conn.execute(
@@ -363,10 +376,9 @@ class ShenlunAPITests(unittest.TestCase):
                 "/api/shenlun/chat", headers=self.headers_a, json={"message": "老师好"}
             )
         with patch.object(shenlun, "llm_grade", return_value=grade_result):
-            self.client.post(
-                "/api/shenlun/grade",
+            self.post_grade(
                 headers=self.headers_a,
-                json={"questionId": "q3-2", "studentAnswer": "正式作答"},
+                payload={"questionId": "q3-2", "studentAnswer": "正式作答"},
             )
         llm_json = json.dumps(
             {
@@ -454,10 +466,9 @@ class ShenlunAPITests(unittest.TestCase):
                 patch.object(shenlun, "llm_grade", side_effect=error),
                 self.assertLogs("shenlun", level="WARNING") as captured,
             ):
-                response = self.client.post(
-                    "/api/shenlun/grade",
+                response = self.post_grade(
                     headers=self.headers_a,
-                    json={"questionId": "q3-1", "studentAnswer": "测试作答"},
+                    payload={"questionId": "q3-1", "studentAnswer": "测试作答"},
                 )
             self.assertEqual(response.status_code, status, response.text)
             self.assertEqual(response.json()["detail"]["code"], code)
@@ -504,10 +515,9 @@ class ShenlunAPITests(unittest.TestCase):
             "llm_grade",
             return_value=valid_grade(dimensions={"内容完整性": "一般"}),
         ):
-            graded = self.client.post(
-                "/api/shenlun/grade",
+            graded = self.post_grade(
                 headers=self.headers_a,
-                json={"questionId": "q3-1", "studentAnswer": "有效作答"},
+                payload={"questionId": "q3-1", "studentAnswer": "有效作答"},
             )
         self.assertEqual(graded.status_code, 200, graded.text)
         with database.get_db() as conn:
@@ -557,6 +567,220 @@ class ShenlunAPITests(unittest.TestCase):
                 for table in before
             }
         self.assertEqual(after, before)
+
+    def test_grade_requires_a_well_formed_idempotency_key(self):
+        payload = {"questionId": "q3-1", "studentAnswer": "正式作答"}
+        with patch.object(shenlun, "llm_grade") as provider:
+            missing = self.client.post(
+                "/api/shenlun/grade",
+                headers=self.headers_a,
+                json=payload,
+            )
+            invalid = self.client.post(
+                "/api/shenlun/grade",
+                headers={**self.headers_a, "Idempotency-Key": "short"},
+                json=payload,
+            )
+        self.assertEqual(missing.status_code, 400, missing.text)
+        self.assertEqual(invalid.status_code, 400, invalid.text)
+        self.assertEqual(missing.json()["detail"]["code"], "idempotency_key_invalid")
+        self.assertEqual(invalid.json()["detail"]["code"], "idempotency_key_invalid")
+        provider.assert_not_called()
+        with database.get_db() as conn:
+            self.assertEqual(
+                conn.execute("SELECT COUNT(*) FROM shenlun_grade_requests").fetchone()[
+                    0
+                ],
+                0,
+            )
+
+    def test_completed_grade_replays_once_and_new_key_is_an_intentional_redo(self):
+        payload = {"questionId": "q3-1", "studentAnswer": "同一次正式作答"}
+        result = valid_grade(dimensions={"内容完整性": "一般"})
+        provider = MagicMock(return_value=result)
+        with patch.object(shenlun, "llm_grade", provider):
+            first = self.post_grade(
+                headers=self.headers_a,
+                payload=payload,
+                key="completed-grade-key",
+            )
+            replay = self.post_grade(
+                headers=self.headers_a,
+                payload=payload,
+                key="completed-grade-key",
+            )
+            conflict = self.post_grade(
+                headers=self.headers_a,
+                payload={**payload, "studentAnswer": "另一份作答"},
+                key="completed-grade-key",
+            )
+            redo = self.post_grade(
+                headers=self.headers_a,
+                payload=payload,
+                key="intentional-redo-key",
+            )
+
+        self.assertEqual(first.status_code, 200, first.text)
+        self.assertEqual(replay.status_code, 200, replay.text)
+        self.assertEqual(replay.json(), first.json())
+        self.assertEqual(conflict.status_code, 409, conflict.text)
+        self.assertEqual(conflict.json()["detail"]["code"], "idempotency_conflict")
+        self.assertEqual(redo.status_code, 200, redo.text)
+        self.assertNotEqual(redo.json()["id"], first.json()["id"])
+        self.assertEqual(provider.call_count, 2)
+
+        with database.get_db() as conn:
+            counts = {
+                "requests": conn.execute(
+                    "SELECT COUNT(*) FROM shenlun_grade_requests WHERE status='completed'"
+                ).fetchone()[0],
+                "history": conn.execute(
+                    "SELECT COUNT(*) FROM shenlun_history"
+                ).fetchone()[0],
+                "mistakes": conn.execute(
+                    "SELECT COUNT(*) FROM shenlun_mistakes"
+                ).fetchone()[0],
+                "activities": conn.execute(
+                    "SELECT COUNT(*) FROM learning_activities_v2"
+                ).fetchone()[0],
+                "evidence": conn.execute(
+                    "SELECT COUNT(*) FROM learning_issue_evidence_v2"
+                ).fetchone()[0],
+                "tasks": conn.execute(
+                    "SELECT COUNT(*) FROM learning_tasks_v2"
+                ).fetchone()[0],
+            }
+        self.assertEqual(
+            counts,
+            {
+                "requests": 2,
+                "history": 2,
+                "mistakes": 1,
+                "activities": 2,
+                "evidence": 2,
+                "tasks": 1,
+            },
+        )
+
+    def test_pending_failed_and_persistence_outcomes_replay_without_side_effects(self):
+        pending_payload = {"questionId": "q3-1", "studentAnswer": "处理中作答"}
+        pending_key = "pending-grade-key"
+        pending_hash = shenlun._grade_request_hash(
+            question_id=pending_payload["questionId"],
+            student_answer=pending_payload["studentAnswer"],
+        )
+        with database.get_db() as conn:
+            conn.execute(
+                """INSERT INTO shenlun_grade_requests
+                   (user_id,idempotency_key,request_hash,status,created_at,updated_at)
+                   VALUES(301,?,?, 'pending','2026-07-13T00:00:00','2026-07-13T00:00:00')""",
+                (pending_key, pending_hash),
+            )
+            conn.commit()
+
+        with patch.object(shenlun, "llm_grade") as provider:
+            pending = self.post_grade(
+                headers=self.headers_a,
+                payload=pending_payload,
+                key=pending_key,
+            )
+        self.assertEqual(pending.status_code, 409, pending.text)
+        self.assertEqual(pending.json()["detail"]["code"], "idempotency_in_progress")
+        provider.assert_not_called()
+
+        failed_payload = {"questionId": "q3-1", "studentAnswer": "失败作答"}
+        failure = MagicMock(
+            side_effect=grader.ProviderFailure("provider_invalid_output")
+        )
+        with patch.object(shenlun, "llm_grade", failure):
+            first_failed = self.post_grade(
+                headers=self.headers_a,
+                payload=failed_payload,
+                key="failed-grade-key",
+            )
+            replay_failed = self.post_grade(
+                headers=self.headers_a,
+                payload=failed_payload,
+                key="failed-grade-key",
+            )
+        self.assertEqual(first_failed.status_code, 503, first_failed.text)
+        self.assertEqual(replay_failed.status_code, 503, replay_failed.text)
+        self.assertEqual(replay_failed.json(), first_failed.json())
+        self.assertEqual(failure.call_count, 1)
+
+        persistence_provider = MagicMock(return_value=valid_grade())
+        with (
+            patch.object(shenlun, "llm_grade", persistence_provider),
+            patch.object(
+                shenlun,
+                "_record_unified_grade",
+                side_effect=RuntimeError("private database detail"),
+            ),
+        ):
+            persistence = self.post_grade(
+                headers=self.headers_a,
+                payload={"questionId": "q3-1", "studentAnswer": "保存失败作答"},
+                key="persistence-failure-key",
+            )
+            persistence_replay = self.post_grade(
+                headers=self.headers_a,
+                payload={"questionId": "q3-1", "studentAnswer": "保存失败作答"},
+                key="persistence-failure-key",
+            )
+        self.assertEqual(persistence.status_code, 503, persistence.text)
+        self.assertEqual(
+            persistence.json()["detail"]["code"], "persistence_unavailable"
+        )
+        self.assertEqual(persistence_replay.json(), persistence.json())
+        self.assertNotIn("private database detail", persistence.text)
+        self.assertEqual(persistence_provider.call_count, 1)
+
+        with database.get_db() as conn:
+            rows = conn.execute(
+                """SELECT idempotency_key,status,error_code FROM shenlun_grade_requests
+                   ORDER BY idempotency_key"""
+            ).fetchall()
+            history_count = conn.execute(
+                "SELECT COUNT(*) FROM shenlun_history"
+            ).fetchone()[0]
+            activity_count = conn.execute(
+                "SELECT COUNT(*) FROM learning_activities_v2"
+            ).fetchone()[0]
+        self.assertEqual(
+            {row["idempotency_key"]: row["status"] for row in rows},
+            {
+                "failed-grade-key": "failed",
+                "pending-grade-key": "pending",
+                "persistence-failure-key": "failed",
+            },
+        )
+        self.assertEqual(history_count, 0)
+        self.assertEqual(activity_count, 0)
+
+    def test_idempotency_keys_are_scoped_to_the_jwt_user(self):
+        shared_key = "shared-user-grade-key"
+        provider = MagicMock(return_value=valid_grade())
+        with patch.object(shenlun, "llm_grade", provider):
+            response_a = self.post_grade(
+                headers=self.headers_a,
+                payload={"questionId": "q3-1", "studentAnswer": "A用户作答"},
+                key=shared_key,
+            )
+            response_b = self.post_grade(
+                headers=self.headers_b,
+                payload={"questionId": "q3-1", "studentAnswer": "B用户作答"},
+                key=shared_key,
+            )
+        self.assertEqual(response_a.status_code, 200, response_a.text)
+        self.assertEqual(response_b.status_code, 200, response_b.text)
+        self.assertEqual(provider.call_count, 2)
+        with database.get_db() as conn:
+            owners = conn.execute(
+                """SELECT user_id FROM shenlun_grade_requests
+                   WHERE idempotency_key=? ORDER BY user_id""",
+                (shared_key,),
+            ).fetchall()
+        self.assertEqual([row["user_id"] for row in owners], [301, 302])
 
     def test_skill_loader_fails_closed_when_required_files_are_missing(self):
         with patch.object(
