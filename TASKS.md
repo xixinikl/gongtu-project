@@ -43,6 +43,11 @@
   - 总装回归：`cx/phase6-clean-integration` 新建 Python 3.12 venv 后服务端 62/62、Node 46/46、portable 数量门禁 600/60/71 通过；B 作答刷新 1/20、C 同套题 0/20；六页在 390px/1280px 无溢出、破图 0、console error/warn 0。临时环境已清理。
   - 补救：默认数量流水线在无 OCR 中间产物的干净树自动转为已提交 approved seed 的 portable CI；不再要求未提交 `output/quantity-bank/raw_sets`。
 
+- [ ] ◐ PRC-1—4 Phase 1—6 外部审阅与合并收口：记录 PR #15—#21 的检查、评论与审阅，处理实际可执行反馈，并保留 Ready/批准/合并的外部决策。
+  - 当前结果（2026-07-13）：#15—#21 均 open、`CLEAN`、无 GitHub checks、无 reviews；#15/#16 非 Draft，#17—#19/#21 为 Draft。无待处理反馈，因此不修改阶段分支。
+  - 外部边界：未经用户明确授权，不标记 Ready、不批准、不合并；具体路由、证据与停止条件见 `doc/PHASE_REVIEW_CLOSURE.md`。
+  - 独立后续：#20 实时预览工具不属于阶段链，已记录 OAuth 写入权限跟进，待本 Goal 停止或完成后另建 Goal。
+
 - [x] GT-P5-1 服务端可信上下文：独立提问与训练引用分离，JWT 垂直 resolver，综合规划不信任客户端摘要。
 - [x] GT-P5-2 版本 Skill Registry：七模块、严格路径、package/bundle hash、响应 Schema、fail closed。
 - [x] GT-P5-3 真实对话持久化：真实 DeepSeek 自由咨询与数量activity上下文均完成；线程/消息/run/usage/hash/幂等/重试/A-B通过。

@@ -4,9 +4,9 @@
 
 当前分支：`cx/phase6-e2e-hardening`
 
-当前 Goal：`gongtu-unified-learning-platform`
+当前 Goal：`phase-review-closure`
 
-当前阶段：Phase 6 全链路、安全、响应式与干净总装（进行中）
+当前阶段：Phase 1—6 外部审阅与合并收口（进行中）
 
 ## 阶段状态
 
@@ -15,7 +15,7 @@
 - Phase 3：Draft PR #17；801成语、231逻辑填空、600片段阅读、600数量已接入，本地门禁通过，待审阅。
 - Phase 4：Draft PR #18；平面/空间图推和申论整改已通过本地门禁，待审阅。
 - Phase 5：Draft PR #19；真实上下文、版本 Skill、消息/run、问题卡、真实 DeepSeek 与浏览器门禁均已通过，待审阅。
-- Phase 6：从 Phase 5 精确提交 `4afaf90` 建立独立工作树；GT-P6-1—6 已有直接证据，Draft PR #21 已建立，尚待干净总装回归与外部审阅。
+- Phase 6：从 Phase 5 精确提交 `4afaf90` 建立独立工作树；GT-P6-1—6 已有直接证据，Draft PR #21 已建立，干净总装回归已完成，尚待外部审阅。
 
 ## Phase 6 当前基线
 
@@ -74,4 +74,5 @@
 
 ## 下一步
 
-1. 等待 PR #15—#21 的外部审阅结论；若出现反馈，只回到所属阶段分支修订，不直接合并 `main`。
+1. 继续 `phase-review-closure`：等待 PR #15—#21 的外部审阅结论；若出现反馈，只回到所属阶段分支修订，不直接合并 `main`。权威清单见 `doc/PHASE_REVIEW_CLOSURE.md`。
+2. PR #20（实时预览工具）不属于 Phase 1—6；当前仅记录其 OAuth 写入权限跟进，待本 Goal 停止或完成后建立独立 Goal。
