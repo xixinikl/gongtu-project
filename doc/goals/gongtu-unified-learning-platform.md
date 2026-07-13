@@ -367,7 +367,7 @@ ai_run / ai_message
 | [x] Phase 3 言语与数量真实题库 | 待 PR 验收 | 真实词库、言语和数量作答接入 | 真实页面、服务端判题、刷新恢复、安全、词语联动与移动端门禁已通过 | [PR #17](https://github.com/xixinikl/gongtu-project/pull/17) |
 | [x] Phase 4 图推与申论整改 | 待 PR 验收 | 平面、立体、申论输出统一证据 | 真实逻辑整改、专业页保护、统一记录、安全与响应式门禁通过 | [PR #18](https://github.com/xixinikl/gongtu-project/pull/18) |
 | [x] Phase 5 真实 AI 教练 | 待 PR 验收 | 多模块上下文、Skill、问题卡和任务 | 真实 DeepSeek、版本 Skill、事实校验、持久化、问题卡和降级门禁通过 | [Draft PR #19](https://github.com/xixinikl/gongtu-project/pull/19) |
-| [ ] Phase 6 全链路验收 | GT-P6-1—7 已完成，GT-P6-8 总装回归中 | 登录、刷新、重登、A/B、响应式与完成审计 | 六阶段显式要求均有直接证据；干净总装回归待重跑 | [Draft PR #21](https://github.com/xixinikl/gongtu-project/pull/21) |
+| [x] Phase 6 全链路验收 | 本地待审总装完成，外部审阅待定 | 登录、刷新、重登、A/B、响应式与完成审计 | 六阶段显式要求均有直接证据；干净总装 62/62、46/46、portable 数据门禁和浏览器回归通过 | [Draft PR #21](https://github.com/xixinikl/gongtu-project/pull/21) |
 
 ---
 
@@ -455,7 +455,7 @@ ai_run / ai_message
 | [x] | GT-P6-5 负面与失败路径 | 无效 token、伪造 ID、重复提交、题库缺失、AI 超时、输出无效均安全降级；申论缺套/缺题只能显示“未提供”，不得生成占位真题或虚报完整度 | JWT、题库不可用、Provider/幂等安全失败合同均有专项测试 |
 | [x] | GT-P6-6 视觉与可访问性 | 桌面/手机无溢出、遮挡、破图、突兀组件；键盘焦点、按钮高度和减少动效可用 | 390/1280 六页；正式外壳 skip link/focus/导航/Escape/reduced-motion |
 | [x] | GT-P6-7 完成审计 | 本 Goal 每个显式要求有直接证据；六个 PR 范围清晰；未完成项不隐藏 | `doc/PHASE6_COMPLETION_AUDIT.md`，Draft PR #21；PR #15—#21 未合并状态已明确 |
-| [ ] | GT-P6-8 GitHub 干净总装 | 按顺序汇总六个已验收 PR；剩余本地改动全部归入正式纳入/继续开发/历史归档；干净集成分支完整回归通过，未提交数据库、密钥、临时产物或未验收半成品 | `cx/phase6-clean-integration` 已建立，完整回归进行中 |
+| [x] | GT-P6-8 GitHub 干净总装 | 按顺序汇总六个已验收 PR；剩余本地改动全部归入正式纳入/继续开发/历史归档；干净集成分支完整回归通过，未提交数据库、密钥、临时产物或未验收半成品 | `cx/phase6-clean-integration`：Python 62/62、Node 46/46、portable 数量门禁、B/C 和 390/1280 浏览器通过；审阅/合并仍待外部结论 |
 
 ---
 

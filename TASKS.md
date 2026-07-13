@@ -38,9 +38,10 @@
   - 浏览器：独立 8910 服务/临时 SQLite 注册 B；言语、数量、平面图推、立体三视图、申论和 AI 教练均进入真实路径。言语作答刷新后 1/20；B 登出后 C 为 0/20 且 AI 无历史；重新登录 B 后恢复 1/20；临时服务重启后 C 的登录态仍可用。无 AI 配置时真实消息被保存且显示可重试失败态，不伪造回答。
   - 自动回归：`backend/venv/bin/python` 分别运行统一学习、认证、言语词库/阅读、数量、平面图推、立体图推、申论、AI 教练和题库不可用合同，共 62/62；Node 六页/认证/正式外壳测试 45/45。
   - 响应式与可访问性：六页在 390px 与 1280px 都无横向溢出、无破图；最终 console error/warn 为 0。正式外壳覆盖跳转链接、可见焦点、移动端展开/`Escape` 收起和减少动效。
-- [ ] ◐ GT-P6-7—8 完成审计与干净总装：六 PR 证据、全部 worktree 三分类、干净集成分支和完整回归。
+- [x] ● GT-P6-7—8 完成审计与干净总装：六 PR 证据、全部 worktree 三分类、干净集成分支和完整回归。
   - 已核实：Phase 1→6 的提交链连续；Draft PR #21 已建立并以 Phase 5 为基线。PR #15—#21 皆为 open 未合并（#17—#21 为 Draft）；所有状态和 9 个 worktree 的三分类已写入 `doc/PHASE6_COMPLETION_AUDIT.md`。
-  - 当前：`cx/phase6-clean-integration` 只包含干净 Phase 6 提交链；不从原始脏树、旧 UI 树或临时验证树拣取文件，正在重跑总装回归。
+  - 总装回归：`cx/phase6-clean-integration` 新建 Python 3.12 venv 后服务端 62/62、Node 46/46、portable 数量门禁 600/60/71 通过；B 作答刷新 1/20、C 同套题 0/20；六页在 390px/1280px 无溢出、破图 0、console error/warn 0。临时环境已清理。
+  - 补救：默认数量流水线在无 OCR 中间产物的干净树自动转为已提交 approved seed 的 portable CI；不再要求未提交 `output/quantity-bank/raw_sets`。
 
 - [x] GT-P5-1 服务端可信上下文：独立提问与训练引用分离，JWT 垂直 resolver，综合规划不信任客户端摘要。
 - [x] GT-P5-2 版本 Skill Registry：七模块、严格路径、package/bundle hash、响应 Schema、fail closed。
