@@ -14,7 +14,7 @@
 - Phase 2：PR #16 已验收。
 - Phase 3：Draft PR #17 待验收；801成语、231逻辑填空、600片段阅读、600数量已接入。
 - Phase 4：Draft PR #18 待验收；平面/空间图推和申论整改已通过本地门禁。
-- Phase 5：真实上下文、版本 Skill、消息/run、问题卡和页面已落地；待已轮换 DeepSeek 密钥的真实成功调用补证。
+- Phase 5：Draft PR #19；真实上下文、版本 Skill、消息/run、问题卡和页面已落地；待已轮换 DeepSeek 密钥的真实成功调用补证。
 - Phase 6：未开始；Phase 5 门禁未完整通过前不得进入。
 
 ## Phase 5 已完成

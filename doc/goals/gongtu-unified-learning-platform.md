@@ -366,7 +366,7 @@ ai_run / ai_message
 | [x] Phase 2 统一学习记录合同 | 已验收 | 全部用户数据归属 `users.id` | 合同、迁移、API、JWT、A/B 隔离测试通过 | [PR #16](https://github.com/xixinikl/gongtu-project/pull/16) |
 | [x] Phase 3 言语与数量真实题库 | 待 PR 验收 | 真实词库、言语和数量作答接入 | 真实页面、服务端判题、刷新恢复、安全、词语联动与移动端门禁已通过 | [PR #17](https://github.com/xixinikl/gongtu-project/pull/17) |
 | [x] Phase 4 图推与申论整改 | 待 PR 验收 | 平面、立体、申论输出统一证据 | 真实逻辑整改、专业页保护、统一记录、安全与响应式门禁通过 | [PR #18](https://github.com/xixinikl/gongtu-project/pull/18) |
-| [ ] Phase 5 真实 AI 教练 | 实施中 | 多模块上下文、Skill、问题卡和任务 | 代码、合同、失败降级和浏览器门禁已通过；待轮换密钥后的真实 DeepSeek 成功调用补证 | PR-5 |
+| [ ] Phase 5 真实 AI 教练 | 实施中 | 多模块上下文、Skill、问题卡和任务 | 代码、合同、失败降级和浏览器门禁已通过；待轮换密钥后的真实 DeepSeek 成功调用补证 | [Draft PR #19](https://github.com/xixinikl/gongtu-project/pull/19) |
 | [ ] Phase 6 全链路验收 | 待开始 | 登录、刷新、重登、A/B、响应式与完成审计 | 六阶段显式要求全部有直接证据 | PR-6 |
 
 ---
