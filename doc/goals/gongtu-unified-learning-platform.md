@@ -366,7 +366,7 @@ ai_run / ai_message
 | [x] Phase 2 统一学习记录合同 | 已验收 | 全部用户数据归属 `users.id` | 合同、迁移、API、JWT、A/B 隔离测试通过 | [PR #16](https://github.com/xixinikl/gongtu-project/pull/16) |
 | [x] Phase 3 言语与数量真实题库 | 待 PR 验收 | 真实词库、言语和数量作答接入 | 真实页面、服务端判题、刷新恢复、安全、词语联动与移动端门禁已通过 | [PR #17](https://github.com/xixinikl/gongtu-project/pull/17) |
 | [x] Phase 4 图推与申论整改 | 待 PR 验收 | 平面、立体、申论输出统一证据 | 真实逻辑整改、专业页保护、统一记录、安全与响应式门禁通过 | [PR #18](https://github.com/xixinikl/gongtu-project/pull/18) |
-| [ ] Phase 5 真实 AI 教练 | 实施中 | 多模块上下文、Skill、问题卡和任务 | 代码、合同、失败降级和浏览器门禁已通过；待轮换密钥后的真实 DeepSeek 成功调用补证 | [Draft PR #19](https://github.com/xixinikl/gongtu-project/pull/19) |
+| [x] Phase 5 真实 AI 教练 | 待 PR 验收 | 多模块上下文、Skill、问题卡和任务 | 真实 DeepSeek、版本 Skill、事实校验、持久化、问题卡和降级门禁通过 | [Draft PR #19](https://github.com/xixinikl/gongtu-project/pull/19) |
 | [ ] Phase 6 全链路验收 | 待开始 | 登录、刷新、重登、A/B、响应式与完成审计 | 六阶段显式要求全部有直接证据 | PR-6 |
 
 ---
@@ -439,7 +439,7 @@ ai_run / ai_message
 | --- | --- | --- | --- | --- |
 | [x] | GT-P5-1 上下文 envelope | schema 与服务端装配 | 只从当前用户和可访问 activity 装配；防止伪造模块/题号/答案 | 垂直 resolver + standalone/planning 两路；伪造摘要/A-B/预交卷脱敏测试，见 `doc/PHASE5_AI_COACH_AUDIT.md` |
 | [x] | GT-P5-2 Skill 路由 | 模块→版本 Skill 映射 | 言语、数量、图推、申论、规划方法隔离；每次 run 记版本/哈希 | 7模块 registry；package/bundle/context 双层审计；路径逃逸/篡改 fail closed，Skill 测试 5/5 |
-| [ ] | GT-P5-3 真实对话持久化 | AI run/message API | 发送、生成、失败、刷新恢复；A/B 隔离；密钥仅服务端 | 线程/消息/run/幂等/重试/A-B 已通过；真实 DeepSeek 成功调用待轮换密钥后补证，当前不能勾选 |
+| [x] | GT-P5-3 真实对话持久化 | AI run/message API | 发送、生成、失败、刷新恢复；A/B 隔离；密钥仅服务端 | 自由咨询713 tokens/3207ms；真实数量activity咨询1176 tokens/3772ms；刷新/重试/A-B/usage/hash通过，密钥仅在ignored 0600 `.env` |
 | [x] | GT-P5-4 问题卡提炼 | issue/card/task pipeline | 只保存可训练结论、证据和任务；不把闲聊全文当复盘 | 服务端证据阈值→候选→用户确认；问候/无证据0问题；普通保存只进 coach_note |
 | [x] | GT-P5-5 综合复盘与下一步 | 全部/当前模块视图 | 当前模块不混入其他模块；“全部”用于规划；数据不足时承认不足 | 模块线程过滤；planning 只聚合本人垂直表；standalone 无证据边界；浏览器验证 |
 | [x] | GT-P5-6 Provider 失败降级 | 状态和重试 | AI 不可用时仍能看官方结果、历史和本地任务；静态文案不冒充 AI | 实际缺配置 503；消息/run保留、刷新恢复、重试按钮；页面无固定老师回复 |

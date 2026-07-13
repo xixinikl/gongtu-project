@@ -40,8 +40,12 @@ test('persists threads, renders loading and failure, and supports explicit retry
   assert.match(html, /id="errorPanel" hidden/);
   assert.match(html, /id="retryBtn"/);
   assert.match(html, /async function retry/);
+  assert.match(html, /const runId=state\.lastFailedRun/);
+  assert.match(html, /API\.retry\(state\.thread\.id,runId\)/);
   assert.match(html, /发送失败，问题已保存/);
   assert.match(html, /AI 待配置 · 可查看历史/);
+  assert.match(html, /\['failed','timed_out','invalid_output'\]\.includes\(run\.status\)/);
+  assert.match(html, /上次 AI 回答未完成，可以重试/);
 });
 
 test('problem proposals require an explicit save action', () => {

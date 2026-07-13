@@ -362,7 +362,7 @@ def _valid_schema_value(value: Any, schema: dict[str, Any]) -> bool:
 
 
 def _display_output(output: dict[str, Any]) -> str:
-    if isinstance(output.get("answer"), str):
+    if isinstance(output.get("answer"), str) and output["answer"].strip():
         return output["answer"].strip()
     if output.get("status") == "insufficient_evidence":
         limitations = output.get("limitations") or []
@@ -382,7 +382,20 @@ def _display_output(output: dict[str, Any]) -> str:
 
 def _call_provider(bundle, context: dict, messages: list[dict]) -> tuple[str, dict, int, str, dict]:
     settings = load_verbal_ai_settings()
-    system = "只能依据服务端JSON事实回答；证据不足必须直说，不得改写官方答案。\n\n" + bundle.content
+    system = (
+        "只能依据服务端JSON事实回答；证据不足必须直说，不得改写官方答案。"
+        "只输出一个JSON对象，不要使用Markdown代码块。输出必须严格符合下方JSON Schema，"
+        "不得增加、删除或改名字段：\n"
+        + _json(bundle.response_schema)
+        + "\n\n"
+        + bundle.content
+    )
+    if context.get("scope") == "standalone_method_question":
+        system += (
+            "\n\n当前是自由方法咨询。可以依据本 Skill 讲通用判断步骤和方法，"
+            "但不得据此诊断用户个人弱项，不得声称引用了用户作答证据；"
+            "evidence_refs 必须为空。"
+        )
     result = call_deepseek_json(
         settings,
         system_prompt=system,

@@ -4,14 +4,14 @@
 
 - [x] GT-P5-1 服务端可信上下文：独立提问与训练引用分离，JWT 垂直 resolver，综合规划不信任客户端摘要。
 - [x] GT-P5-2 版本 Skill Registry：七模块、严格路径、package/bundle hash、响应 Schema、fail closed。
-- [ ] ◐ GT-P5-3 真实对话持久化：线程/消息/run/幂等/重试/A-B 已通过；等待轮换密钥后的真实 DeepSeek 成功调用补证。
+- [x] GT-P5-3 真实对话持久化：真实 DeepSeek 自由咨询与数量activity上下文均完成；线程/消息/run/usage/hash/幂等/重试/A-B通过。
 - [x] GT-P5-4 问题卡边界：闲聊/无证据0问题；服务端证据门槛→候选→用户确认；普通保存仅 `coach_note`。
 - [x] GT-P5-5 综合复盘：当前模块线程隔离；跨模块只聚合本人真实垂直记录；证据不足明确承认。
 - [x] GT-P5-6 Provider 降级：缺配置/超时/非法输出保留问题与失败 run，支持重试，不展示静态 AI 文案。
 
-当前证据：Python 57/57；Node 620/620；浏览器 1440/390 无横向溢出，A→退出→B 隔离→退出→A 恢复通过；详见 `doc/PHASE5_AI_COACH_AUDIT.md`。
+当前证据：Python 61/61；Node 620/620；真实 DeepSeek 两条路径；浏览器 1440/390 无横向溢出，A→退出→B 隔离→退出→A 恢复通过；详见 `doc/PHASE5_AI_COACH_AUDIT.md`。
 
-Phase 5 未通过真实成功调用前，不启动 Phase 6。
+Phase 5 门禁已通过；下一步 Phase 6。
 
 > 状态：`○ 待开始` · `◐ 进行中` · `● 已完成` · `⛔ 阻塞`
 > 这是用户验收主看板。同一时刻只能有一个 `◐`；只有验收通过、写明证据并提交后才可标记 `●`。

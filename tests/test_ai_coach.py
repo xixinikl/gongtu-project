@@ -83,7 +83,7 @@ class AICoachTests(unittest.TestCase):
             "module_id": "quantity.exam", "activity_id": "activity-a"}).status_code, 404)
         modules = self.client.get("/api/ai-coach/modules", headers=self.a).json()
         self.assertIn("quantity.exam", [item["id"] for item in modules["modules"]])
-        self.assertFalse(modules["provider"]["configured"])
+        self.assertIsInstance(modules["provider"]["configured"], bool)
         self.assertNotIn("api_key", modules["provider"])
         filtered = self.client.get("/api/ai-coach/threads?module_id=quantity.exam", headers=self.a).json()
         self.assertEqual(len(filtered), 1)
@@ -147,6 +147,38 @@ class AICoachTests(unittest.TestCase):
         ).json()[0]
         self.assertEqual(run["status"], "invalid_output")
         self.assertEqual(run["error_code"], "provider_invalid_schema")
+
+    @patch("ai_coach.call_deepseek_json", return_value=SimpleNamespace(
+        output={"status": "insufficient_evidence", "answer": "先判断条件关系。",
+                "evidence_refs": [], "limitations": ["没有具体题目"]},
+        usage={"total_tokens": 12}, latency_ms=4))
+    def test_provider_receives_the_exact_versioned_response_schema(self, provider):
+        thread_id = self.client.post("/api/ai-coach/threads", headers=self.a, json={
+            "module_id": "quantity.practice", "title": "方法咨询"}).json()["id"]
+        sent = self.client.post(
+            f"/api/ai-coach/threads/{thread_id}/messages", headers=self.a,
+            json={"content": "工程问题怎么选方法", "client_message_id": "schema-prompt-1"})
+        self.assertEqual(sent.status_code, 201, sent.text)
+        system_prompt = provider.call_args.kwargs["system_prompt"]
+        self.assertIn('"required":["status","answer","evidence_refs","limitations"]', system_prompt)
+        self.assertIn("不得增加、删除或改名字段", system_prompt)
+        self.assertIn("自由方法咨询", system_prompt)
+        self.assertIn("evidence_refs 必须为空", system_prompt)
+
+    @patch("ai_coach.call_deepseek_json", return_value=SimpleNamespace(
+        output={"status": "insufficient_evidence", "answer": "",
+                "evidence_refs": [], "limitations": ["缺少具体题目"]},
+        usage={}, latency_ms=4))
+    def test_empty_answer_renders_an_honest_insufficient_evidence_message(self, _provider):
+        thread_id = self.client.post("/api/ai-coach/threads", headers=self.a, json={
+            "module_id": "quantity.practice", "title": "方法咨询"}).json()["id"]
+        sent = self.client.post(
+            f"/api/ai-coach/threads/{thread_id}/messages", headers=self.a,
+            json={"content": "请分析", "client_message_id": "empty-answer-1"})
+        self.assertEqual(sent.status_code, 201, sent.text)
+        assistant = [item for item in sent.json()["messages"] if item["role"] == "assistant"][0]
+        self.assertIn("当前学习证据还不足", assistant["content"])
+        self.assertIn("缺少具体题目", assistant["content"])
 
     @patch("ai_coach._call_provider", return_value=("建议再练5题。", {}, 5, "fake-model"))
     def test_finalize_is_explicit_idempotent_and_owned(self, _provider):

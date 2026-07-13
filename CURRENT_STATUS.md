@@ -6,7 +6,7 @@
 
 当前 Goal：`gongtu-unified-learning-platform`
 
-当前阶段：Phase 5 真实多模块 AI 教练（实现中）
+当前阶段：Phase 5 真实多模块 AI 教练（门禁完成，Draft PR #19 待验收）
 
 ## 阶段状态
 
@@ -14,8 +14,8 @@
 - Phase 2：PR #16 已验收。
 - Phase 3：Draft PR #17 待验收；801成语、231逻辑填空、600片段阅读、600数量已接入。
 - Phase 4：Draft PR #18 待验收；平面/空间图推和申论整改已通过本地门禁。
-- Phase 5：Draft PR #19；真实上下文、版本 Skill、消息/run、问题卡和页面已落地；待已轮换 DeepSeek 密钥的真实成功调用补证。
-- Phase 6：未开始；Phase 5 门禁未完整通过前不得进入。
+- Phase 5：Draft PR #19；真实上下文、版本 Skill、消息/run、问题卡、真实 DeepSeek 与浏览器门禁均已通过。
+- Phase 6：下一阶段，开始全链路、安全、响应式与完成审计。
 
 ## Phase 5 已完成
 
@@ -31,8 +31,7 @@
 
 ## 验证证据
 
-- Python AI Coach + Skill：16/16。
-- Python 全模块分进程回归：57/57。
+- Python AI Coach/Skill/配置专项：20/20；全模块分进程回归：61/61。
 - Node/几何全量：620/620。
 - 浏览器：注册、登录、模块加载、无上下文数量新对话、缺配置失败、消息保留、重试、刷新恢复；A→退出→B 隔离→退出→A 恢复通过。
 - 响应式：1440px 与 390px 均 `scrollWidth == clientWidth`。
@@ -40,8 +39,7 @@
 
 ## 未完成与事实边界
 
-- 当前没有 `backend/.env`，真实 DeepSeek 成功响应尚未验收；mock 成功不能冒充真实调用。
-- 用户曾在聊天中粘贴 API Key，该密钥应视为已暴露；不得自动写入仓库或工具日志。需先轮换，再仅写本机 `backend/.env`。
+- 真实 DeepSeek 已通过；本机 `.env` 权限0600且被Git忽略。用户暂未轮换聊天中曾暴露的旧 Key，后续平台允许时仍建议更换。
 - 申论仍只有10道摘要题且缺套/缺题；AI 教练不会掩盖题库不完整。
 - 数量仍有42题解析视觉引用待独立审计。
 - `python -m unittest discover` 会因历史测试文件共享已缓存 `database.DB_PATH` 而互相污染；本次使用每文件独立进程验证，全部57项通过。
@@ -49,7 +47,5 @@
 
 ## 下一步
 
-1. 用户轮换聊天中暴露的 DeepSeek Key，并在 Phase 5 工作树运行 `npm run ai:configure`（隐藏输入，仅写本机 `backend/.env`）。
-2. 运行真实 DeepSeek 独立提问、带上下文提问、刷新恢复和 run/usage 审计。
-3. 门禁通过后更新 Goal，提交/推送并创建 Phase 5 Draft PR。
-4. 然后进入 Phase 6 全链路、安全、响应式与干净总装。
+1. 提交并推送 Phase 5 最终证据，更新 Draft PR #19。
+2. 进入 Phase 6 全链路、安全、响应式与干净总装。

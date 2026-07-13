@@ -2,7 +2,7 @@
 
 > 日期：2026-07-13  
 > 分支：`cx/phase5-real-ai-coach`  
-> 状态：实现与本地门禁完成；真实 DeepSeek 成功调用仍需本机配置一枚已轮换的密钥后补证
+> 状态：完成；真实 DeepSeek 自由咨询与带作答上下文路径均已通过
 
 ## 已落地
 
@@ -31,16 +31,22 @@
 
 ## 验证证据
 
-- Python API/Skill 专项：16/16。
-- Python 各模块隔离进程回归：57/57。
+- Python AI Coach/Skill/密钥配置专项：20/20。
+- Python 各模块隔离进程回归：61/61。
 - Node 全量：620/620。
 - 浏览器：注册/登录、正式入口、后端模块列表、无上下文新建数量对话、Provider 未配置失败、问题保留、重试、刷新恢复；并完成 A→退出→B 看不到 A 对话→退出→A 对话恢复。
 - 响应式：1440px 与 390px；`scrollWidth == clientWidth`。
 - Goal 文档 lint：pass。
 
-## 尚未完成/不能宣称
+### 真实 DeepSeek 证据
 
-- 当前工作树没有 `backend/.env`，因此未进行真实 DeepSeek 成功响应验收；不能把 mock provider 的成功测试写成真实线上调用。
-- 用户曾在聊天中粘贴过一枚 API Key。该密钥已经暴露在聊天记录中，不应自动写入仓库或工具日志；应先在 DeepSeek 控制台轮换，再由用户在本机 `backend/.env` 设置 `DEEPSEEK_API_KEY`。
-- 安全配置入口：在 Phase 5 工作树运行 `npm run ai:configure`；终端隐藏输入，脚本原子写入 Git 忽略的 `backend/.env` 并设置 `0600` 权限。
-- 完成一次不泄密的真实调用、刷新恢复和 usage/run 审计前，Phase 5 保持“实施中”，Phase 6 不启动。
+- 自由数量方法咨询：`deepseek-chat`、`quantity-coach@1.0.0`、状态 `completed`、713 tokens、3207ms；回答包含方程法/比例法三步判断；`evidence_refs=[]`，未生成问题卡；刷新后回答恢复。
+- 带真实数量 activity：第1套作答5题、得1分、4道错题、前三题记录“列式关系”卡点；服务端装配 activity、题号、用户答案、正确答案、用时与卡点。
+- 带上下文回答：`deepseek-chat`、`quantity-coach@1.0.0`、状态 `completed`、1176 tokens、3772ms；package/bundle/context hash 均为64位并保存结构化输出。
+- 问题卡：模型普通回答不会直接写问题；服务端从4道真实错题生成候选，用户点击后写入 `quantity.exam` observing issue 和4条带 activity/item 的证据；刷新后回答和已保存状态恢复。
+- 真实调用发现并修复：Schema 未进入 prompt、空 answer 无可读降级、失败会话刷新后无法重试、重试前清空 run id 四个问题；均有自动化覆盖。
+
+## 保留的安全提醒
+
+- 本机 `backend/.env` 已存在、权限 `0600`、被 Git 忽略，密钥未进入提交、输出或审计文档。
+- 用户没有轮换聊天中曾暴露的旧 Key，因为控制台暂时无法删除；功能验收不再阻塞，但仍建议在平台支持时更换。安全配置入口继续使用 `npm run ai:configure`。
