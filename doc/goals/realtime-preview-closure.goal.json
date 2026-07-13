@@ -1,0 +1,31 @@
+{
+  "id": "realtime-preview-closure",
+  "title": "PR #20 实时预览收口",
+  "objective": "收口 Draft PR #20 的本地未推送 CI 提交：核对提交和 PR 状态，验证隔离全栈预览合同，明确完整基线失败的归属，并在不越权的前提下推进到只剩 GitHub 写入凭证、审阅或合并决定。",
+  "authority": "doc/REALTIME_PREVIEW_CLOSURE.md",
+  "tasks": [
+    {
+      "id": "RTP-1",
+      "title": "核对 PR 与本地未推送提交",
+      "acceptance": "PR #20、远端提交和本地领先提交的 SHA、变更范围、评论、检查和审阅状态均有可复查记录。"
+    },
+    {
+      "id": "RTP-2",
+      "title": "验证实时预览合同和基线边界",
+      "acceptance": "与新工作流完全一致的合同测试和启动器检查通过；完整测试入口的失败数、失败原因及其与预览提交的关系有直接证据。",
+      "dependsOn": ["RTP-1"]
+    },
+    {
+      "id": "RTP-3",
+      "title": "路由可执行问题",
+      "acceptance": "预览提交本身没有未处理的可执行问题；基线失败被精确标记为缺少 backend/.env.example 和 login.html 安全回跳合同，不混入 PR #20。",
+      "dependsOn": ["RTP-2"]
+    },
+    {
+      "id": "RTP-4",
+      "title": "等待写入凭证与外部审阅",
+      "acceptance": "本地提交保持可恢复，GitHub OAuth contents 写入权限、PR Ready、审阅和合并被清晰列为外部决策；未经授权不改写凭证或合并 PR。",
+      "dependsOn": ["RTP-3"]
+    }
+  ]
+}
