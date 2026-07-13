@@ -8,7 +8,10 @@
 - [x] ● GT-P6-1B 可移植运行时声明：提交 `.nvmrc` / `.python-version` 并补 Windows 系统文件忽略，换终端或换设备时不再依赖 Agent 临时 PATH。
   - 结果：Node 24 与 Python 3.10 最低运行入口可被 nvm/pyenv 读取；`Thumbs.db`、`Desktop.ini` 不会混入提交。
   - 验证：版本文件精确值检查、忽略项检索与 `git diff --check` 通过；跨平台脚本提升为 15/16。
-- [ ] ◐ GT-P6-1C 静态/单元/合同回归：移除不属于产品正确性的本地 main 同步断言，运行 lint/schema/migration/adapter、Python 与 Node 全量。
+- [x] ● GT-P6-1C AI/空间静态回归：清理 AI 教练单行复合语句、修复 AI/空间类型收窄，并把本地 main 同步从产品测试改为 origin 配置检查。
+  - 结果：AI 教练57项 Ruff错误归零；AI/空间 mypy 归零；跨平台测试不再通过移动用户本地 main 来修绿。
+  - 验证：Ruff pass、AI/空间 mypy pass、AI/空间/JWT 19/19、跨平台16/16、`git diff --check`通过。
+- [ ] ◐ GT-P6-1D 申论静态与全量回归：修复旧 grader/mistake tracker 的8项空值类型错误，并运行 lint/schema/migration/adapter、Python、Node、Bandit和依赖全量。
 - [x] ● GT-P6-4A JWT 签名安全：删除仓库公开固定密钥；本地使用0600持久随机密钥，生产环境强制显式配置；证明旧公开密钥不能伪造用户身份且重启后登录态稳定。
   - 结果：旧公开 HMAC 值已退役；本地按数据库目录生成并复用0600随机密钥；生产只接受至少32字节且非旧公开值的 `GONTU_JWT_SECRET`。
   - 验证：安全专项 3/3（旧密钥伪造拒绝、跨重启稳定、生产 fail closed）；既有 API 分进程 61/61；`py_compile` 与 `git diff --check` 通过。

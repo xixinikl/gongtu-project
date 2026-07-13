@@ -107,7 +107,7 @@ def create_record(body: SpatialRecordIn, user: dict = Depends(require_user)):
     if body.activity_kind == "three_view_group":
         _grade_three_view(body)
     record_id, now = str(uuid.uuid4()), _now()
-    summary = {
+    summary: dict[str, Any] = {
         "stage_id": body.stage_id,
         "activity_kind": body.activity_kind,
         "last_position": body.last_position,
