@@ -1,5 +1,6 @@
 const { app, BrowserWindow } = require('electron');
 const { spawn } = require('child_process');
+const fs = require('fs');
 const path = require('path');
 const http = require('http');
 
@@ -13,7 +14,15 @@ let backendProcess = null;
 
 // ── 启动 Python 后端 ──
 function startBackend() {
-  const pythonCmd = '/Users/xixi/Workbuddy/2026-06-28-19-13-40/venv/bin/python';
+  const platform = process.platform;
+  const configuredPython = process.env.GONTU_PYTHON?.trim();
+  const venvPython = platform === 'win32'
+    ? path.join(BACKEND_DIR, 'venv', 'Scripts', 'python.exe')
+    : path.join(BACKEND_DIR, 'venv', 'bin', 'python3');
+  const pythonCmd = configuredPython
+    || (fs.existsSync(venvPython) ? venvPython : (platform === 'win32' ? 'python' : 'python3'));
+
+  console.log(`[启动] 平台: ${platform}, Python: ${pythonCmd}`);
 
   backendProcess = spawn(pythonCmd, ['-m', 'uvicorn', 'main:app', '--host', '127.0.0.1', '--port', String(PORT)], {
     cwd: BACKEND_DIR,

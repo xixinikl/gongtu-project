@@ -2,11 +2,11 @@
 
 更新时间：2026-07-13
 
-当前分支：`cx/phase5-real-ai-coach`
+当前分支：`cx/phase6-e2e-hardening`
 
 当前 Goal：`gongtu-unified-learning-platform`
 
-当前阶段：Phase 5 真实多模块 AI 教练（门禁完成，Draft PR #19 待验收）
+当前阶段：Phase 6 全链路、安全、响应式与干净总装（进行中）
 
 ## 阶段状态
 
@@ -15,7 +15,14 @@
 - Phase 3：Draft PR #17 待验收；801成语、231逻辑填空、600片段阅读、600数量已接入。
 - Phase 4：Draft PR #18 待验收；平面/空间图推和申论整改已通过本地门禁。
 - Phase 5：Draft PR #19；真实上下文、版本 Skill、消息/run、问题卡、真实 DeepSeek 与浏览器门禁均已通过。
-- Phase 6：下一阶段，开始全链路、安全、响应式与完成审计。
+- Phase 6：已从 Phase 5 精确提交 `4afaf90` 建立独立工作树；当前执行 GT-P6-1 静态、运行时与跨平台基线整改。
+
+## Phase 6 当前基线
+
+- Phase 5 最终复核：Python 61/61、Node 620/620、Goal lint 通过，分支与远端均为 `4afaf90`。
+- 默认 shell 仍指向 Node 18 / Python 3.9；使用项目要求的 Node 24 / Python 3.12 后 doctor 为 0 fail，后续需把运行入口与版本提示收口。
+- GT-P6-1A 已完成：桌面跨平台配置、Python 解析与 Windows 启动入口相关门禁全部通过；跨平台脚本由 8/16 提升为 14/16。
+- 当前 GT-P6-1B：补 Windows 忽略项并把“本地 main 必须等于 origin/main”的机器状态断言移出产品门禁，然后跑静态/单元/合同全量。
 
 ## Phase 5 已完成
 
@@ -47,5 +54,6 @@
 
 ## 下一步
 
-1. 提交并推送 Phase 5 最终证据，更新 Draft PR #19。
-2. 进入 Phase 6 全链路、安全、响应式与干净总装。
+1. 完成 GT-P6-1B 静态/单元/合同全量门禁。
+2. 依次执行六模块真实主路径、身份持久化、A/B 隔离、失败路径和响应式门禁。
+3. 建立 Phase 6 PR 后执行六阶段干净总装与剩余改动三分类。

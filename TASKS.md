@@ -2,6 +2,13 @@
 
 ## 当前统一平台 Goal（优先于下方历史空间看板）
 
+- [x] ● GT-P6-1A 跨平台运行基线：恢复 Windows/macOS 打包配置、跨平台 Python 解析和 Windows 启动入口；跨平台脚本不得再依赖单台 Mac 绝对路径。
+  - 结果：桌面打包同时声明 macOS/Windows，Python 优先读取 `GONTU_PYTHON` 或平台虚拟环境且无单机绝对路径，Windows 启动脚本检查 Python/依赖后启动正式服务。
+  - 验证：`node --check desktop/main.js`、desktop package JSON 解析通过；跨平台脚本中本任务覆盖的 14 项通过，剩余 `.gitignore` 与本地 main 状态断言归入 GT-P6-1B。
+- [ ] ◐ GT-P6-1B 静态/单元/合同回归：修正环境门禁与测试口径，运行 lint/schema/migration/adapter、Python 与 Node 全量。
+- [ ] ○ GT-P6-2—6 全链路验收：六模块真实主路径、身份持久化、A/B、失败降级、桌面/手机与可访问性。
+- [ ] ○ GT-P6-7—8 完成审计与干净总装：六 PR 证据、全部 worktree 三分类、干净集成分支和完整回归。
+
 - [x] GT-P5-1 服务端可信上下文：独立提问与训练引用分离，JWT 垂直 resolver，综合规划不信任客户端摘要。
 - [x] GT-P5-2 版本 Skill Registry：七模块、严格路径、package/bundle hash、响应 Schema、fail closed。
 - [x] GT-P5-3 真实对话持久化：真实 DeepSeek 自由咨询与数量activity上下文均完成；线程/消息/run/usage/hash/幂等/重试/A-B通过。
