@@ -7,6 +7,7 @@ const shell = fs.readFileSync('智学成语-高级版.html', 'utf8');
 const mindmap = fs.readFileSync('mindmap.html', 'utf8');
 const shenlun = fs.readFileSync('shenlun.html', 'utf8');
 const reading = fs.readFileSync('verbal-reading-pilot.html', 'utf8');
+const home = fs.readFileSync('index.html', 'utf8');
 
 test('unified shell loads the shared auth client before its inline auth module', () => {
   const shared = shell.indexOf('/gontu-auth-client.js');
@@ -42,4 +43,12 @@ test('existing specialist pages already share the same JWT token key', () => {
     assert.match(page, /gontu_token/, `${name} must use the shared token key`);
     assert.match(page, /Authorization/, `${name} must send JWT authorization`);
   }
+});
+
+test('home page and formal shell use the current origin outside static port 8089', () => {
+  for (const [name, page] of Object.entries({ home, shell })) {
+    assert.match(page, /window\.__GONTU_API_BASE__/u, `${name} must allow an explicit API override`);
+    assert.match(page, /location\.origin/u, `${name} must use the current origin for formal hosting`);
+  }
+  assert.doesNotMatch(home, /var GONTU_API_BASE = 'http:\/\/127\.0\.0\.1:8888';/u);
 });
