@@ -25,7 +25,8 @@
 - GT-P6-1B 已完成：提交 Node/Python 版本入口并补 Windows 忽略项；跨平台脚本提升为 15/16。
 - GT-P6-4A 已完成：公开固定 JWT 密钥已删除；旧密钥伪造失败、本地0600随机密钥跨重启稳定、生产缺密钥/旧密钥 fail closed 均有直接测试。
 - GT-P6-1C 已完成：AI教练57项Ruff错误归零，AI/空间mypy归零，专项19/19，跨平台16/16。
-- 当前 GT-P6-1D：修复申论旧 grader/mistake tracker 的8项mypy错误并执行静态、类型、安全、依赖、Python与Node全量。
+- GT-P6-1D 已完成：Ruff、mypy 26文件、Bandit中高危、依赖、Python64/64、Node620/620、跨平台16/16、Goal lint全部通过。
+- 当前 GT-P6-1E：修复数量CI对未跟踪output的依赖，以及 `dev:open` / `preview:*` / `python:venv` 悬空命令，建立干净工作树可重现证据。
 
 ## Phase 5 已完成
 
@@ -57,6 +58,6 @@
 
 ## 下一步
 
-1. 完成 GT-P6-1D 申论静态与全量回归门禁。
+1. 完成 GT-P6-1E 干净工作树可重现门禁。
 2. 依次执行六模块真实主路径、身份持久化、A/B 隔离、失败路径和响应式门禁。
 3. 建立 Phase 6 PR 后执行六阶段干净总装与剩余改动三分类。

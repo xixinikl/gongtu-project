@@ -11,7 +11,10 @@
 - [x] ● GT-P6-1C AI/空间静态回归：清理 AI 教练单行复合语句、修复 AI/空间类型收窄，并把本地 main 同步从产品测试改为 origin 配置检查。
   - 结果：AI 教练57项 Ruff错误归零；AI/空间 mypy 归零；跨平台测试不再通过移动用户本地 main 来修绿。
   - 验证：Ruff pass、AI/空间 mypy pass、AI/空间/JWT 19/19、跨平台16/16、`git diff --check`通过。
-- [ ] ◐ GT-P6-1D 申论静态与全量回归：修复旧 grader/mistake tracker 的8项空值类型错误，并运行 lint/schema/migration/adapter、Python、Node、Bandit和依赖全量。
+- [x] ● GT-P6-1D 申论静态与全量回归：修复旧 grader/mistake tracker 的8项空值类型错误，并运行 lint/schema/migration/adapter、Python、Node、Bandit和依赖全量。
+  - 结果：模型空响应明确失败，不再把 `None` 继续当批改/分析文本；全库静态、类型、安全和自动回归通过。
+  - 验证：Ruff pass；mypy 26文件 pass；Bandit 中高危0；依赖树 pass；Python 64/64；Node 620/620；跨平台16/16；Goal lint pass。
+- [ ] ◐ GT-P6-1E 干净工作树可重现门禁：修复数量CI对未跟踪output的依赖和悬空npm命令，确保新工作树可启动、可预览、可重建题库门禁。
 - [x] ● GT-P6-4A JWT 签名安全：删除仓库公开固定密钥；本地使用0600持久随机密钥，生产环境强制显式配置；证明旧公开密钥不能伪造用户身份且重启后登录态稳定。
   - 结果：旧公开 HMAC 值已退役；本地按数据库目录生成并复用0600随机密钥；生产只接受至少32字节且非旧公开值的 `GONTU_JWT_SECRET`。
   - 验证：安全专项 3/3（旧密钥伪造拒绝、跨重启稳定、生产 fail closed）；既有 API 分进程 61/61；`py_compile` 与 `git diff --check` 通过。

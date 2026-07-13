@@ -19,6 +19,13 @@ MODEL = os.getenv("LLM_MODEL", "deepseek-chat")
 TIMEOUT = int(os.getenv("LLM_TIMEOUT", "30"))
 
 
+def _require_text(content: str | None) -> str:
+    """Reject empty provider payloads before parsing or persisting them."""
+    if not isinstance(content, str) or not content.strip():
+        raise RuntimeError("LLM returned an empty response")
+    return content
+
+
 def _extract_json(text: str) -> str:
     """Try to extract JSON from LLM output (may be wrapped in ```json ... ```)."""
     # Try direct parse first
@@ -82,7 +89,7 @@ def grade(question, student_answer: str) -> GradingResult:
                 max_tokens=1000,
             )
             
-            raw_output = response.choices[0].message.content
+            raw_output = _require_text(response.choices[0].message.content)
             elapsed = time.time() - start_time
             logger.info(f"LLM responded in {elapsed:.1f}s, output={len(raw_output)} chars")
             
@@ -155,7 +162,7 @@ def call_llm_api(prompt: str, system_prompt: str | None = None) -> str:
                 temperature=0.5,
                 max_tokens=2000,
             )
-            return response.choices[0].message.content
+            return _require_text(response.choices[0].message.content)
         except Exception as e:
             error_msg = str(e)
             logger.error(f"call_llm_api failed attempt {attempt+1}: {error_msg}")
@@ -202,7 +209,7 @@ def chat(question, user_message: str) -> str:
                 max_tokens=1500,
             )
             
-            reply = response.choices[0].message.content
+            reply = _require_text(response.choices[0].message.content)
             logger.info(f"Chat reply: {len(reply)} chars")
             return reply
             

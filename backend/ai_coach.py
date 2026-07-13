@@ -154,8 +154,9 @@ def _owned(conn, table: str, row_id: str, uid: int):
     }:
         raise RuntimeError("invalid ownership table")
     row = conn.execute(
-        f"SELECT * FROM {table} WHERE id=? AND user_id=?", (row_id, uid)
-    ).fetchone()  # nosec B608
+        f"SELECT * FROM {table} WHERE id=? AND user_id=?",  # nosec B608 -- table is allowlisted above
+        (row_id, uid),
+    ).fetchone()
     if not row:
         raise HTTPException(status_code=404, detail="Record not found")
     return row
