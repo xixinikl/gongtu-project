@@ -107,6 +107,14 @@ body::before {
 }
 .sidebar-header h2 { font-size:16px; font-weight:700; letter-spacing:2px; color:#e0d6b8; line-height:1.3; }
 .sidebar-header p { font-size:11px; color:rgba(224,214,184,0.5); line-height:1.2; }
+.source-status {
+  margin:12px 12px 0; padding:10px 12px; border:1px solid rgba(176,138,58,0.18);
+  border-radius:10px; background:var(--gold-bg); color:var(--ink-mid); line-height:1.55;
+}
+.source-status strong { display:block; color:var(--gold-dark); font-size:12px; margin-bottom:2px; }
+.source-status span { display:block; font-size:11px; }
+.source-status.unavailable { border-color:rgba(160,70,55,0.24); background:#fff7f4; }
+.source-status.unavailable strong { color:#9a493c; }
 
 .question-list { flex:1; overflow-y:auto; padding:12px; background:var(--card-cool); }
 .question-list::-webkit-scrollbar { width:4px; }
@@ -480,6 +488,10 @@ body::before {
         <p>点击题目关联到对话</p>
       </div>
     </div>
+    <div class="source-status" :class="{unavailable:questionSourceUnavailable}" role="status" aria-live="polite">
+      <strong>{{questionSourceUnavailable ? '题源暂未提供' : '当前题库 · '+catalog.questionCount+'题材料摘要'}}</strong>
+      <span>{{questionSourceError || catalog.contentNotice || '正在核对题库状态…'}}</span>
+    </div>
     <div class="filter-bar">
       <button class="filter-tag" :class="{active:filterType==='全部'}" @click="filterType='全部'">全部</button>
       <button class="filter-tag" :class="{active:filterType===t}" v-for="t in types" :key="t" @click="filterType=t">{{t}}</button>
@@ -556,6 +568,9 @@ body::before {
       </div>
 
       <div class="messages" ref="msgContainer">
+        <div class="context-hint" v-if="questionError" style="margin:0;padding:12px 14px;display:block;color:#9a493c;background:#fff7f4;border:1px solid rgba(160,70,55,0.2);border-radius:10px" role="alert">
+          {{questionError}}
+        </div>
         <div class="empty-state" v-if="messages.length===0">
           <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity:0.5">
             <path d="M8 12h28v20H16l-8 8V12z" stroke="#b0a692" stroke-width="1.5" stroke-linejoin="round" fill="none"/>
@@ -600,7 +615,7 @@ body::before {
           <textarea id="shenlun-input" name="shenlun-input" v-model="inputText" @keydown.enter.exact.prevent="sendMessage"
                     placeholder="输入你的问题或作答..." rows="1"
                     :disabled="loading" ref="inputEl"></textarea>
-          <button class="btn btn-primary" v-if="selectedQuestion" @click="gradeAnswer" :disabled="loading||!inputText.trim()">提交批改</button>
+          <button class="btn btn-primary" v-if="selectedQuestion" @click="gradeAnswer" :disabled="loading||!inputText.trim()||questionSourceUnavailable||!!questionError">提交批改</button>
           <button class="send-btn" @click="sendMessage" :disabled="loading||!inputText.trim()" title="向老师提问，不进入错题本">➤</button>
         </div>
         <div class="context-hint" v-if="selectedQuestion">
@@ -917,7 +932,7 @@ function _iconBrush() {
 }
 
 // ─── JWT 认证 helpers ────────────────────────────────────────────────
-const API_BASE = 'http://127.0.0.1:8888';
+const API_BASE = window.__GONTU_API_BASE__ || (location.port === '8089' ? 'http://127.0.0.1:8888' : location.origin);
 function getToken() {
   return localStorage.getItem('gontu_token');
 }
@@ -933,6 +948,42 @@ function apiFetch(path, options = {}) {
 function checkAuth() {
   if (!getToken()) { window.location.href = API_BASE + '/'; }
 }
+function responseMessage(payload,fallback){
+  const detail=payload&&payload.detail
+  return typeof detail==='string' ? detail : (detail&&detail.message)||fallback
+}
+function createGradeRequestKey(){
+  if(window.crypto&&typeof window.crypto.randomUUID==='function') return window.crypto.randomUUID()
+  return 'grade-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2)
+}
+function waitForGradeRetry(delay){
+  return new Promise(resolve=>setTimeout(resolve,delay))
+}
+async function requestFormalGrade(payload,key){
+  const retryDelays=[0,600,1200,2400,4800]
+  let lastNetworkError=null
+  for(let attempt=0;attempt<retryDelays.length;attempt+=1){
+    if(retryDelays[attempt]) await waitForGradeRetry(retryDelays[attempt])
+    try{
+      const response=await apiFetch('/api/shenlun/grade',{
+        method:'POST',
+        headers:{'Idempotency-Key':key},
+        body:JSON.stringify(payload)
+      })
+      const body=await response.json().catch(()=>({}))
+      const code=body&&body.detail&&body.detail.code
+      if(response.status===409&&code==='idempotency_in_progress'&&attempt<retryDelays.length-1) continue
+      return {response,body}
+    }catch(error){
+      lastNetworkError=error
+      if(attempt===retryDelays.length-1) break
+    }
+  }
+  const error=new Error('网络连接中断，已保留本次提交，可再次点击继续查询。')
+  error.code='network_unavailable'
+  error.cause=lastNetworkError
+  throw error
+}
 
 // ─── Vue App ─────────────────────────────────────────────────────────
 const {createApp,ref,computed,nextTick,onMounted} = Vue
@@ -941,6 +992,9 @@ createApp({
   setup(){
     const questions = ref([])
     const selectedQuestion = ref(null)
+    const catalog = ref({catalogStatus:'loading',isComplete:false,contentNotice:'正在核对题库状态…',questionCount:0})
+    const questionSourceError = ref('')
+    const questionError = ref('')
     const filterType = ref('全部')
     const messages = ref([])
     const inputText = ref('')
@@ -952,6 +1006,8 @@ createApp({
     const mistakeCount = ref(0)
     const analysis = ref(null)
     const analyzing = ref(false)
+    let pendingGradeAttempt=null
+    const questionSourceUnavailable = computed(()=>catalog.value.catalogStatus==='not-provided')
 
     const types = computed(()=>[...new Set(questions.value.map(q=>q.type))].sort())
     const filteredQuestions = computed(()=>{
@@ -960,19 +1016,46 @@ createApp({
     })
 
     async function loadQuestions(){
-      try{const r=await apiFetch('/api/shenlun/questions'); questions.value=await r.json()}catch(e){}
+      questionSourceError.value=''; questionError.value=''
+      try{
+        const catalogResponse=await apiFetch('/api/shenlun/catalog')
+        if(!catalogResponse.ok){
+          const payload=await catalogResponse.json().catch(()=>({}))
+          throw new Error(responseMessage(payload,'申论题源暂未提供，请稍后再试。'))
+        }
+        catalog.value=await catalogResponse.json()
+        const r=await apiFetch('/api/shenlun/questions')
+        if(!r.ok){
+          const payload=await r.json().catch(()=>({}))
+          throw new Error(responseMessage(payload,'申论题源暂未提供，请稍后再试。'))
+        }
+        questions.value=await r.json()
+      }catch(e){
+        catalog.value={catalogStatus:'not-provided',isComplete:false,contentNotice:'',questionCount:0}
+        questionSourceError.value=e.message||'申论题源暂未提供，请稍后再试。'
+        questions.value=[]; selectedQuestion.value=null
+      }
     }
 
     async function selectQuestion(q){
+      if(questionSourceUnavailable.value){gontuToast(questionSourceError.value||'申论题源暂未提供','warning');return}
+      questionError.value=''
       if(selectedQuestion.value&&selectedQuestion.value.id===q.id){
         selectedQuestion.value=null
       }else{
         selectedQuestion.value=q; activeTab.value='chat'
         try{
           const r=await apiFetch('/api/shenlun/questions/'+encodeURIComponent(q.id))
-          if(!r.ok) throw new Error('题目材料读取失败')
+          if(!r.ok){
+            const payload=await r.json().catch(()=>({}))
+            throw new Error(responseMessage(payload,'当前题库未提供这道题。'))
+          }
           selectedQuestion.value=await r.json()
-        }catch(e){ gontuToast(e.message,'error') }
+        }catch(e){
+          selectedQuestion.value=null
+          questionError.value=e.message||'当前题库未提供这道题。'
+          gontuToast(questionError.value,'error')
+        }
       }
     }
 
@@ -995,7 +1078,7 @@ createApp({
         const body={message:text}
         if(selectedQuestion.value) body.questionId=selectedQuestion.value.id
         const r=await apiFetch('/api/shenlun/chat',{method:'POST',body:JSON.stringify(body)})
-        if(!r.ok){const e=await r.json();throw new Error(e.detail||'请求失败')}
+        if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(responseMessage(e,'请求失败'))}
         const d=await r.json()
         messages.value.push({role:'ai',content:d.reply,formatted:formatTeacherReview(d.reply)})
         await scrollToBottom()
@@ -1010,19 +1093,34 @@ createApp({
 
     async function gradeAnswer(){
       const text=inputText.value.trim()
-      if(!selectedQuestion.value||!text||loading.value)return
-      messages.value.push({role:'user',content:text})
+      if(!selectedQuestion.value||!text||loading.value||questionSourceUnavailable.value||questionError.value)return
+      const questionId=selectedQuestion.value.id
+      const attempt=pendingGradeAttempt&&pendingGradeAttempt.questionId===questionId&&pendingGradeAttempt.studentAnswer===text
+        ? pendingGradeAttempt
+        : {questionId,studentAnswer:text,key:createGradeRequestKey(),displayed:false}
+      pendingGradeAttempt=attempt
+      if(!attempt.displayed){
+        messages.value.push({role:'user',content:text})
+        attempt.displayed=true
+      }
       inputText.value=''; loading.value=true
       await scrollToBottom()
       try{
-        const r=await apiFetch('/api/shenlun/grade',{method:'POST',body:JSON.stringify({
-          questionId:selectedQuestion.value.id, studentAnswer:text
-        })})
-        if(!r.ok){const e=await r.json();throw new Error(e.detail||'批改失败')}
-        const d=await r.json()
+        const {response,body}=await requestFormalGrade({
+          questionId:attempt.questionId,studentAnswer:attempt.studentAnswer
+        },attempt.key)
+        if(!response.ok){
+          const error=new Error(responseMessage(body,'批改失败'))
+          error.code=body&&body.detail&&body.detail.code
+          throw error
+        }
+        const d=body
+        pendingGradeAttempt=null
         messages.value.push({role:'ai',content:JSON.stringify(d.gradingResult),formatted:formatTeacherReview(d.gradingResult)})
         await loadMistakes(); await scrollToBottom()
       }catch(e){
+        if(e.code!=='network_unavailable'&&e.code!=='idempotency_in_progress') pendingGradeAttempt=null
+        inputText.value=text
         messages.value.push({role:'ai',content:'批改失败：'+e.message,formatted:'<span style="color:#c4493a">批改失败：'+_esc(e.message)+'</span>'})
       }finally{ loading.value=false; nextTick(()=>inputEl.value?.focus()) }
     }
@@ -1064,7 +1162,7 @@ createApp({
     async function deleteMistake(m){
       if(!confirm('确定删除这条问题记录？批改历史仍会保留。'))return
       const r=await apiFetch('/api/shenlun/mistakes/'+encodeURIComponent(m.id),{method:'DELETE'})
-      if(!r.ok){const e=await r.json().catch(()=>({}));gontuToast(e.detail||'删除失败','error');return}
+      if(!r.ok){const e=await r.json().catch(()=>({}));gontuToast(responseMessage(e,'删除失败'),'error');return}
       await loadMistakes(); analysis.value=null
     }
 
@@ -1072,7 +1170,7 @@ createApp({
       analyzing.value=true; analysis.value=null
       try{
         const r=await apiFetch('/api/shenlun/mistakes/analyze',{method:'POST'})
-        if(!r.ok){const e=await r.json();throw new Error(e.detail||'分析失败')}
+        if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(responseMessage(e,'分析失败'))}
         analysis.value=await r.json()
       }catch(e){alert('分析失败：'+e.message)}
       finally{analyzing.value=false}
@@ -1126,14 +1224,14 @@ createApp({
     async function clearMistakes(){
       if(!confirm('确定清空所有错题记录？此操作不可恢复。')) return
       const r=await apiFetch('/api/shenlun/mistakes',{method:'DELETE'})
-      if(!r.ok){const e=await r.json().catch(()=>({}));gontuToast(e.detail||'清空失败','error');return}
+      if(!r.ok){const e=await r.json().catch(()=>({}));gontuToast(responseMessage(e,'清空失败'),'error');return}
       mistakes.value=[]; mistakeCount.value=0; analysis.value=null
     }
 
     onMounted(()=>{ checkAuth(); loadQuestions(); loadMistakes(); inputEl.value?.focus() })
 
     return{
-      questions,selectedQuestion,filterType,types,filteredQuestions,
+      questions,selectedQuestion,catalog,questionSourceError,questionError,questionSourceUnavailable,filterType,types,filteredQuestions,
       messages,inputText,loading,msgContainer,inputEl,activeTab,
       mistakes,mistakeCount,analysis,analyzing,
       selectQuestion,sendMessage,gradeAnswer,renderMessage,

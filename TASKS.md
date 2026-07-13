@@ -2,6 +2,52 @@
 
 ## 当前统一平台 Goal（优先于下方历史空间看板）
 
+- [x] ● GT-P6-1A 跨平台运行基线：恢复 Windows/macOS 打包配置、跨平台 Python 解析和 Windows 启动入口；跨平台脚本不得再依赖单台 Mac 绝对路径。
+  - 结果：桌面打包同时声明 macOS/Windows，Python 优先读取 `GONTU_PYTHON` 或平台虚拟环境且无单机绝对路径，Windows 启动脚本检查 Python/依赖后启动正式服务。
+  - 验证：`node --check desktop/main.js`、desktop package JSON 解析通过；跨平台脚本中本任务覆盖的 14 项通过，剩余 `.gitignore` 与本地 main 状态断言归入 GT-P6-1B。
+- [x] ● GT-P6-1B 可移植运行时声明：提交 `.nvmrc` / `.python-version` 并补 Windows 系统文件忽略，换终端或换设备时不再依赖 Agent 临时 PATH。
+  - 结果：Node 24 与 Python 3.10 最低运行入口可被 nvm/pyenv 读取；`Thumbs.db`、`Desktop.ini` 不会混入提交。
+  - 验证：版本文件精确值检查、忽略项检索与 `git diff --check` 通过；跨平台脚本提升为 15/16。
+- [x] ● GT-P6-1C AI/空间静态回归：清理 AI 教练单行复合语句、修复 AI/空间类型收窄，并把本地 main 同步从产品测试改为 origin 配置检查。
+  - 结果：AI 教练57项 Ruff错误归零；AI/空间 mypy 归零；跨平台测试不再通过移动用户本地 main 来修绿。
+  - 验证：Ruff pass、AI/空间 mypy pass、AI/空间/JWT 19/19、跨平台16/16、`git diff --check`通过。
+- [x] ● GT-P6-1D 申论静态与全量回归：修复旧 grader/mistake tracker 的8项空值类型错误，并运行 lint/schema/migration/adapter、Python、Node、Bandit和依赖全量。
+  - 结果：模型空响应明确失败，不再把 `None` 继续当批改/分析文本；全库静态、类型、安全和自动回归通过。
+  - 验证：Ruff pass；mypy 26文件 pass；Bandit 中高危0；依赖树 pass；Python 64/64；Node 620/620；跨平台16/16；Goal lint pass。
+- [x] ● GT-P6-1E 可移植预览与Python环境：补齐无缓存静态服务的 open/serve、独立端口和安全路径；补齐跨平台 Python 3.10+ venv 助手；旧 Demo 预览改到正式数量页与真实AI教练页。
+  - 结果：不同worktree不会静默复用他人8089；可用 `GONTU_STATIC_PORT` 独立启动；`GONTU_NO_OPEN=1` 支持CI验证；`python:venv`不再指向缺失文件。
+  - 验证：8096端口两条正式预览均HTTP200、no-cache；status识别正确PID、stop成功；Python3.12探测通过；两个脚本语法与diff检查通过。
+- [x] ● GT-P6-1F 数量数据门禁可移植：批准导出识别 `full_visual_set_audit`，portable导出归一化审计字段；CI在干净工作树验证600题、60套、71媒体、第28套、第8套q7和42题解析视觉边界，并已证明会拒绝当前1800个陈旧字段。
+- [x] ● GT-P6-1G 数量portable seed迁移：600题只迁移三个审计字段，答案/题文/71媒体零变化；干净工作树数量CI与5项数量页面测试通过，仍明确42题解析视觉未完成。
+- [x] ● GT-P6-2A 正式页面同源API：三页已移除固定8888合同；8897临时DB收到平面题、AI线程和消息，申论无Key未写正式记录，23项页面/认证测试通过。
+- [x] ● GT-P6-5A 题库不可用合同：两类题库缺失/损坏/计数异常统一503且响应脱敏；401先于加载、深层路由一致、健康未知套题仍404；专项3项、数量4项、片段阅读8项通过。
+- [x] ● GT-P6-5B 申论题源事实合同：认证catalog、缺失/损坏503、未知题404、路径/原异常脱敏、AI不调用和10题summary-only均有直接断言，申论7项通过。
+- [x] ● GT-P6-5C 申论题源状态UI：侧栏持续展示catalog题数/摘要事实；不可用时清空题目与选中态，未知题明确提示并禁用批改，不生成占位题；UI/认证11项通过。
+- [x] ● GT-P6-5D Provider失败关闭与脱敏：严格校验5维度、评级、总结和3条建议；超时/无效/不可用均返回稳定安全码，响应/日志/数据库不得含原始Provider内容，失败不得写学习事实。
+  - 验证：专项10项、Python分进程72项、跨平台16/16、Node页面/认证11项、Ruff与mypy通过；含密钥形态的Provider异常与原始输出均未进入响应、日志或数据库，分析失败不再生成伪建议。
+- [x] ● GT-P6-5E 申论批改幂等后端：按 `users.id + Idempotency-Key` 保存请求哈希与状态；同键同载荷回放同一结果、不同载荷409、处理中409、失败安全回放，新键才允许有意重做。
+  - 验证：专项14项、Python分进程76项、Ruff与mypy通过；同键重放只调用一次Provider且只写一套事实，保存事务故障时历史/问题/活动全部回滚，A/B可安全复用同名键。
+- [x] ● GT-P6-5F 申论批改幂等界面：每次有意提交生成并复用请求键，网络重试不得重复写记录；安全错误对象显示人类可读文案。
+  - 验证：Node页面/认证13项通过；8898临时DB浏览器实测UUID键长36、Provider无配置只写1条failed请求，页面恢复原作答并显示中文安全错误，历史/问题/活动/证据均为0，服务与浏览器已清理。
+- [x] ● GT-P6-2B 正式登录同源合同：首页与正式外壳登录/注册不再固定请求8888；8089 静态预览仍使用8888，其余正式入口使用当前origin。
+  - 验证：Node 页面/认证 14/14；全新 Chrome 用户目录在8899临时服务/临时数据库完成首页注册、申论题库加载与刷新，服务日志确认`POST /api/auth/register -> 200`及所有申论请求均在8899；临时数据库只有测试用户，申论批改请求为0，服务/浏览器已清理。
+- [x] ● GT-P6-4A JWT 签名安全：删除仓库公开固定密钥；本地使用0600持久随机密钥，生产环境强制显式配置；证明旧公开密钥不能伪造用户身份且重启后登录态稳定。
+  - 结果：旧公开 HMAC 值已退役；本地按数据库目录生成并复用0600随机密钥；生产只接受至少32字节且非旧公开值的 `GONTU_JWT_SECRET`。
+  - 验证：安全专项 3/3（旧密钥伪造拒绝、跨重启稳定、生产 fail closed）；既有 API 分进程 61/61；`py_compile` 与 `git diff --check` 通过。
+- [x] ● GT-P6-2—6 全链路验收：六模块真实主路径、身份持久化、A/B、失败降级、桌面/手机与可访问性。
+  - 浏览器：独立 8910 服务/临时 SQLite 注册 B；言语、数量、平面图推、立体三视图、申论和 AI 教练均进入真实路径。言语作答刷新后 1/20；B 登出后 C 为 0/20 且 AI 无历史；重新登录 B 后恢复 1/20；临时服务重启后 C 的登录态仍可用。无 AI 配置时真实消息被保存且显示可重试失败态，不伪造回答。
+  - 自动回归：`backend/venv/bin/python` 分别运行统一学习、认证、言语词库/阅读、数量、平面图推、立体图推、申论、AI 教练和题库不可用合同，共 62/62；Node 六页/认证/正式外壳测试 45/45。
+  - 响应式与可访问性：六页在 390px 与 1280px 都无横向溢出、无破图；最终 console error/warn 为 0。正式外壳覆盖跳转链接、可见焦点、移动端展开/`Escape` 收起和减少动效。
+- [x] ● GT-P6-7—8 完成审计与干净总装：六 PR 证据、全部 worktree 三分类、干净集成分支和完整回归。
+  - 已核实：Phase 1→6 的提交链连续；Draft PR #21 已建立并以 Phase 5 为基线。PR #15—#21 皆为 open 未合并（#17—#21 为 Draft）；所有状态和 9 个 worktree 的三分类已写入 `doc/PHASE6_COMPLETION_AUDIT.md`。
+  - 总装回归：`cx/phase6-clean-integration` 新建 Python 3.12 venv 后服务端 62/62、Node 46/46、portable 数量门禁 600/60/71 通过；B 作答刷新 1/20、C 同套题 0/20；六页在 390px/1280px 无溢出、破图 0、console error/warn 0。临时环境已清理。
+  - 补救：默认数量流水线在无 OCR 中间产物的干净树自动转为已提交 approved seed 的 portable CI；不再要求未提交 `output/quantity-bank/raw_sets`。
+
+- [ ] ◐ PRC-1—4 Phase 1—6 外部审阅与合并收口：记录 PR #15—#21 的检查、评论与审阅，处理实际可执行反馈，并保留 Ready/批准/合并的外部决策。
+  - 当前结果（2026-07-13）：#15—#21 均 open、`CLEAN`、无 GitHub checks、无 reviews；#15/#16 非 Draft，#17—#19/#21 为 Draft。无待处理反馈，因此不修改阶段分支。
+  - 外部边界：未经用户明确授权，不标记 Ready、不批准、不合并；具体路由、证据与停止条件见 `doc/PHASE_REVIEW_CLOSURE.md`。
+  - 独立后续：#20 实时预览工具不属于阶段链，已记录 OAuth 写入权限跟进，待本 Goal 停止或完成后另建 Goal。
+
 - [x] GT-P5-1 服务端可信上下文：独立提问与训练引用分离，JWT 垂直 resolver，综合规划不信任客户端摘要。
 - [x] GT-P5-2 版本 Skill Registry：七模块、严格路径、package/bundle hash、响应 Schema、fail closed。
 - [x] GT-P5-3 真实对话持久化：真实 DeepSeek 自由咨询与数量activity上下文均完成；线程/消息/run/usage/hash/幂等/重试/A-B通过。

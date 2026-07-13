@@ -53,6 +53,7 @@ function hasSupportedOptions(item) {
 
 function answerAuditTier(source) {
   if ([
+    'full_visual_set_audit',
     'manual_original_page_recovery',
     'manual_analysis_page_recovery',
     'verified_original_page',
@@ -99,6 +100,7 @@ const canonicalTopics = new Set(approved.map(item => item.learning_tags.primary_
 
 const publicItems = approved.map(item => {
   const tier = answerAuditTier(item.learning_tags.answer_source);
+  const fullyVisuallyAudited = item.learning_tags.answer_source === 'full_visual_set_audit';
   return {
     id: item.id,
     set_no: item.set_no,
@@ -124,7 +126,9 @@ const publicItems = approved.map(item => {
     },
     source: {
       name: '数量关系600题',
-      processing_stage: 'approved_seed_from_ocr_high_confidence',
+      processing_stage: fullyVisuallyAudited
+        ? 'approved_seed_from_full_visual_audit'
+        : 'approved_seed_from_ocr_high_confidence',
       verified_repair: item.source.verified_repair || null
     }
   };
@@ -153,7 +157,9 @@ const answerRecheckItems = publicItems
   }));
 
 const summary = {
-  status: 'approved_seed_high_confidence_only',
+  status: publicItems.every(item => item.tags.answer_source === 'full_visual_set_audit')
+    ? 'approved_seed_full_visual_set_audit'
+    : 'approved_seed_high_confidence_only',
   total: publicItems.length,
   excluded: questions.length - publicItems.length,
   by_decision: byDecision,

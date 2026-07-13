@@ -18,6 +18,12 @@ for (const question of questions) {
   if (question?.tags?.answer_source !== 'full_visual_set_audit') {
     throw new Error(`unapproved answer source: ${question?.id}`);
   }
+  if (question?.source?.verified_repair?.type !== 'full_visual_set_audit') {
+    throw new Error(`missing full visual repair evidence: ${question?.id}`);
+  }
+  question.tags.answer_audit_tier = 'manual_or_original_page_verified';
+  question.tags.answer_requires_original_recheck = false;
+  question.source.processing_stage = 'approved_seed_from_full_visual_audit';
   for (let index = 0; index < (question.media || []).length; index += 1) {
     const media = question.media[index];
     if (media.type !== 'question_figure_crop') {

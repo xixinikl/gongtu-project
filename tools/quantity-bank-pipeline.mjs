@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { spawnSync } from 'node:child_process';
-import { resolve } from 'node:path';
+import { existsSync } from 'node:fs';
+import { join, resolve } from 'node:path';
 
 const root = resolve(new URL('..', import.meta.url).pathname);
 
@@ -12,11 +13,14 @@ function printHelp() {
   console.log(`quantity-bank-pipeline
 
 Usage:
-  node tools/quantity-bank-pipeline.mjs [--skip-build]
+  node tools/quantity-bank-pipeline.mjs [--skip-build] [--portable]
 
 Options:
   --skip-build   Reuse existing raw_sets/page OCR outputs and run the cheaper
                  clean/export/queue/assets/validation/CI chain.
+  --portable     Validate the committed approved seed without raw OCR outputs.
+                 This mode is selected automatically for --skip-build in a
+                 clean worktree that does not contain output/quantity-bank/raw_sets.
   --help         Show this help without running the pipeline.
 
 Notes:
@@ -51,6 +55,21 @@ if (hasFlag('help') || hasFlag('h')) {
 }
 
 const skipBuild = hasFlag('skip-build');
+const portable = hasFlag('portable')
+  || (skipBuild && !existsSync(join(root, 'output', 'quantity-bank', 'raw_sets')));
+
+if (portable) {
+  console.log('\n▶ node tools/quantity-bank-ci.mjs (portable approved seed)');
+  run('tools/quantity-bank-ci.mjs');
+  console.log(JSON.stringify({
+    status: 'quantity_bank_pipeline_passed',
+    mode: 'portable_approved_seed',
+    skipped_build: true,
+    steps: 1
+  }, null, 2));
+  process.exit(0);
+}
+
 const scripts = [
   ...(skipBuild ? [] : ['tools/quantity-bank-build-raw-sets.mjs']),
   'tools/quantity-bank-clean-candidates.mjs',

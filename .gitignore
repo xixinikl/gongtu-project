@@ -12,10 +12,16 @@ __pycache__/
 # macOS 系统文件
 .DS_Store
 
+# Windows 系统文件
+Thumbs.db
+Desktop.ini
+
 # 本地数据库（每个开发者自己重建）
 backend/data.db
 backend/data.db-shm
 backend/data.db-wal
+backend/.gontu-jwt-secret
+.gontu-jwt-secret
 
 # 日志
 backend/logs/

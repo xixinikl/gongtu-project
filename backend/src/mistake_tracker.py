@@ -130,6 +130,8 @@ def analyze_with_ai() -> MistakeAnalysis:
     )
 
     ai_reply = response.choices[0].message.content
+    if not isinstance(ai_reply, str) or not ai_reply.strip():
+        raise RuntimeError("LLM returned an empty response")
 
     # 从AI回复中提取弱维度（简单关键词匹配）
     weak_keywords = []

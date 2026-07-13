@@ -2,20 +2,47 @@
 
 更新时间：2026-07-13
 
-当前分支：`cx/phase5-real-ai-coach`
+当前分支：`cx/phase6-e2e-hardening`
 
-当前 Goal：`gongtu-unified-learning-platform`
+当前 Goal：`phase-review-closure`
 
-当前阶段：Phase 5 真实多模块 AI 教练（门禁完成，Draft PR #19 待验收）
+当前阶段：Phase 1—6 外部审阅与合并收口（进行中）
 
 ## 阶段状态
 
-- Phase 1：PR #15 已验收。
-- Phase 2：PR #16 已验收。
-- Phase 3：Draft PR #17 待验收；801成语、231逻辑填空、600片段阅读、600数量已接入。
-- Phase 4：Draft PR #18 待验收；平面/空间图推和申论整改已通过本地门禁。
-- Phase 5：Draft PR #19；真实上下文、版本 Skill、消息/run、问题卡、真实 DeepSeek 与浏览器门禁均已通过。
-- Phase 6：下一阶段，开始全链路、安全、响应式与完成审计。
+- Phase 1：PR #15 本地门禁证据齐全；GitHub 状态为 open、未合并，尚无外部审阅结论。
+- Phase 2：PR #16 本地门禁证据齐全；GitHub 状态为 open、未合并，尚无外部审阅结论。
+- Phase 3：Draft PR #17；801成语、231逻辑填空、600片段阅读、600数量已接入，本地门禁通过，待审阅。
+- Phase 4：Draft PR #18；平面/空间图推和申论整改已通过本地门禁，待审阅。
+- Phase 5：Draft PR #19；真实上下文、版本 Skill、消息/run、问题卡、真实 DeepSeek 与浏览器门禁均已通过，待审阅。
+- Phase 6：从 Phase 5 精确提交 `4afaf90` 建立独立工作树；GT-P6-1—6 已有直接证据，Draft PR #21 已建立，干净总装回归已完成，尚待外部审阅。
+
+## Phase 6 当前基线
+
+- Phase 5 最终复核：Python 61/61、Node 620/620、Goal lint 通过，分支与远端均为 `4afaf90`。
+- 默认 shell 仍指向 Node 18 / Python 3.9；使用项目要求的 Node 24 / Python 3.12 后 doctor 为 0 fail，后续需把运行入口与版本提示收口。
+- GT-P6-1A 已完成：桌面跨平台配置、Python 解析与 Windows 启动入口相关门禁全部通过；跨平台脚本由 8/16 提升为 14/16。
+- GT-P6-1B 已完成：提交 Node/Python 版本入口并补 Windows 忽略项；跨平台脚本提升为 15/16。
+- GT-P6-4A 已完成：公开固定 JWT 密钥已删除；旧密钥伪造失败、本地0600随机密钥跨重启稳定、生产缺密钥/旧密钥 fail closed 均有直接测试。
+- GT-P6-1C 已完成：AI教练57项Ruff错误归零，AI/空间mypy归零，专项19/19，跨平台16/16。
+- GT-P6-1D 已完成：Ruff、mypy 26文件、Bandit中高危、依赖、Python64/64、Node620/620、跨平台16/16、Goal lint全部通过。
+- GT-P6-1E 已完成：无缓存静态服务支持独立端口/open/serve，正式数量与AI页HTTP200；Python venv助手可移植且命令不再悬空。
+- GT-P6-1F 已完成：批准导出正确识别600题全量视觉核验，portable导出会归一化审计字段；数量CI在没有未跟踪output时直接执行60套/600题/71媒体/答案与42题解析视觉边界门禁，并能拒绝当前1800个陈旧字段。
+- GT-P6-1G 已完成：600题portable seed只迁移 `answer_audit_tier`、`answer_requires_original_recheck`、`processing_stage` 三个审计字段；答案、题文与71媒体零变化。干净工作树数量CI通过，42题解析视觉边界仍为 `incomplete`。
+- GT-P6-2A 已完成：平面图推、申论和AI教练统一API基址合同；独立8897端口与临时DB回归中，平面题写入1、AI线程/消息各写入1，申论无Key按预期未写正式批改记录，未再串到8888；23项页面/认证测试通过。
+- PR #19 描述已校正为Phase 5真实DeepSeek、Python61/61、Node620/620和Phase 6已启动的当前事实。
+- GT-P6-5A 已完成：数量与片段阅读所有题库读取统一映射为503 `bank_unavailable`；缺失、损坏、计数异常、路径/原异常脱敏、401认证优先、深层路由和健康404均有专项证据。新增3项负路径、数量4项、片段阅读8项均通过。
+- GT-P6-5B 已完成：申论新增认证catalog事实接口；缺失/损坏题源在列表、详情、批改、带题聊天统一503 `question_source_unavailable`，未知题统一404 `question_not_provided`，响应不泄露路径/异常且AI不被调用；10题summary-only与答案脱敏保持。申论7项通过。
+- GT-P6-5C 已完成：申论侧栏持续显示catalog题数与材料摘要说明；题源不可用会清空题目/选中态并显示明确状态，未知题显示“未提供”，批改动作被禁用且不造占位题；UI/认证11项通过。
+- GT-P6-5D 已完成：申论评分严格校验5个维度、合法评级、非空总评和恰好3条建议；Provider超时、无效输出与不可用统一返回脱敏安全码，第三次无效输出不再伪装为成功；评分/聊天/分析失败不写学习事实，薄弱点分析失败返回 `unavailable` 且建议为空。专项10项、Python分进程72项、跨平台16/16、Node页面/认证11项通过。
+- GT-P6-5E 已完成：申论正式批改要求合法 `Idempotency-Key`，并按 `users.id + key` 保存请求哈希和 pending/completed/failed 状态；同键同载荷回放原结果且不再调用Provider，同键不同载荷409，处理中409，失败安全回放；成功结果、历史、问题本、跨模块活动/证据/任务与幂等完成态同事务提交，保存失败全部回滚。专项14项、Python分进程76项通过。
+- GT-P6-5F 已完成：正式申论界面每次有意批改生成一次UUID请求键，网络异常与 `idempotency_in_progress` 自动以同键重试；未决作答与键保持绑定，失败恢复输入，安全错误对象显示人类可读文案。Node页面/认证13项通过；8898独立端口临时DB浏览器实测仅写1条36位failed请求，界面无 `[object Object]`，历史/问题/活动/证据均为0。
+- GT-P6-2B 已完成：首页认证基址与正式外壳一致，静态 8089 预览保留 8888 后端例外，其他运行环境使用当前 `location.origin`。Node 页面/认证回归 14/14；全新 Chrome 用户目录在 8899 临时服务/临时数据库完成首页注册、进入申论、刷新保留登录态，数据库仅有该测试用户且无申论批改请求；服务和浏览器均已关闭。
+- GT-P6-6A 已完成：正式外壳在 390px 时以“学习导航”按钮收起/展开模块入口，`Escape` 收起后焦点回到触发按钮；加入跳转至学习内容链接、统一可见焦点样式，以及全局 `prefers-reduced-motion` 降低动效规则。Node 静态/认证 9/9 通过；浏览器实测 390px 无横向溢出、展开/键盘收起正确，1024px 保留桌面导航。
+- GT-P6-2—6 已完成：在独立临时 SQLite 与 8910 服务中，以真实浏览器注册 B 账号，进入言语、数量、平面图推、立体三视图、申论、AI 教练六条主路径；言语作答后刷新恢复 1/20，服务重启后登录态仍有效。B 登出后新建 C 账号，同一言语套题为 0/20、AI 对话为空；重新登录 B 后恢复 1/20。AI 未配置时消息保留并显示可重试的诚实失败态。服务端 10 个独立进程测试文件共 62/62、页面/认证静态测试 45/45 通过；六页在 390px 与 1280px 均 `scrollWidth == clientWidth`、破图数为 0，最终浏览器 console error/warn 为 0。
+- GT-P6-7 已完成：已确认 Phase 1→6 的提交链连续，Phase 6 Draft PR #21 已以 Phase 5 为基线建立；PR #15—#21 都未合并（#17—#21 为 Draft），因此总装只能作为待审分支，不能声称已合并或已获得审阅。9 个 worktree 的只读盘点与三分类见 `doc/PHASE6_COMPLETION_AUDIT.md`。
+- GT-P6-8 已完成（本地待审总装）：干净 `cx/phase6-clean-integration` 只包含线性 Phase 1→6 提交链与审计提交；其新建 Python 3.12 venv 后，服务端独立进程 62/62、Node 46/46、`npm run quantity:pipeline` portable 600/60/71 门禁均通过。真实浏览器在临时 8912 服务中注册 B，言语作答刷新恢复 1/20；登出后注册 C，同套题为 0/20。六个正式路由在 390px 和 1280px 均无横向溢出、破图 0、最终 console error/warn 0。临时服务、浏览器和数据库已清理。
+- GT-P6-8 补救：总装首次运行发现默认 `quantity:pipeline` 仍依赖未提交的 `output/quantity-bank/raw_sets`；现已在干净树自动切换到已提交 `approved_seed` 的 portable CI，并新增回归测试，不复制或提交任何 OCR 中间产物。
 
 ## Phase 5 已完成
 
@@ -47,5 +74,5 @@
 
 ## 下一步
 
-1. 提交并推送 Phase 5 最终证据，更新 Draft PR #19。
-2. 进入 Phase 6 全链路、安全、响应式与干净总装。
+1. 继续 `phase-review-closure`：等待 PR #15—#21 的外部审阅结论；若出现反馈，只回到所属阶段分支修订，不直接合并 `main`。权威清单见 `doc/PHASE_REVIEW_CLOSURE.md`。
+2. PR #20（实时预览工具）不属于 Phase 1—6；当前仅记录其 OAuth 写入权限跟进，待本 Goal 停止或完成后建立独立 Goal。

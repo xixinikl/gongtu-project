@@ -1,11 +1,14 @@
 """SQLite database connection & lifecycle."""
+
 import os
 import sqlite3
 import logging
 from contextlib import contextmanager
 from typing import Generator
 
-DB_PATH = os.environ.get("GONTU_DB_PATH", os.path.join(os.path.dirname(__file__), "data.db"))
+DB_PATH = os.environ.get(
+    "GONTU_DB_PATH", os.path.join(os.path.dirname(__file__), "data.db")
+)
 
 logger = logging.getLogger("gontu.db")
 
@@ -122,12 +125,34 @@ def init_db():
                 ai_reply        TEXT,
                 created_at      TEXT NOT NULL DEFAULT (datetime('now'))
             );
+
+            CREATE TABLE IF NOT EXISTS shenlun_grade_requests (
+                user_id         INTEGER NOT NULL,
+                idempotency_key TEXT NOT NULL,
+                request_hash    TEXT NOT NULL,
+                status          TEXT NOT NULL
+                                CHECK(status IN ('pending','completed','failed')),
+                record_id       TEXT,
+                response_json   TEXT,
+                error_code      TEXT,
+                http_status     INTEGER,
+                created_at      TEXT NOT NULL,
+                updated_at      TEXT NOT NULL,
+                finished_at     TEXT,
+                PRIMARY KEY (user_id, idempotency_key),
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (record_id) REFERENCES shenlun_history(id) ON DELETE SET NULL
+            );
+            CREATE INDEX IF NOT EXISTS idx_shenlun_grade_requests_owner_status
+                ON shenlun_grade_requests(user_id, status, updated_at DESC);
         """)
         conn.commit()
 
         # ── v3 migration: add user_id to questions (per-user isolation) ──
         try:
-            conn.execute("ALTER TABLE questions ADD COLUMN user_id TEXT NOT NULL DEFAULT ''")
+            conn.execute(
+                "ALTER TABLE questions ADD COLUMN user_id TEXT NOT NULL DEFAULT ''"
+            )
             conn.commit()
             logger.info("Migration: added user_id column to questions")
         except sqlite3.OperationalError:
@@ -326,7 +351,9 @@ def init_db():
 
         # ── v3 migration: add user_id to reviews (per-user isolation) ──
         try:
-            conn.execute("ALTER TABLE reviews ADD COLUMN user_id TEXT NOT NULL DEFAULT ''")
+            conn.execute(
+                "ALTER TABLE reviews ADD COLUMN user_id TEXT NOT NULL DEFAULT ''"
+            )
             conn.commit()
             logger.info("Migration: added user_id column to reviews")
         except sqlite3.OperationalError:
@@ -377,7 +404,9 @@ def init_db():
 
         # ── v6 migration: user_meta.mindmap_review_json 字段 ──
         try:
-            conn.execute("ALTER TABLE user_meta ADD COLUMN mindmap_review_json TEXT DEFAULT '{}'")
+            conn.execute(
+                "ALTER TABLE user_meta ADD COLUMN mindmap_review_json TEXT DEFAULT '{}'"
+            )
             conn.commit()
             logger.info("Migration: added mindmap_review_json column to user_meta")
         except sqlite3.OperationalError:
@@ -385,7 +414,9 @@ def init_db():
 
         # ── v7 migration: users.is_admin 字段 ──
         try:
-            conn.execute("ALTER TABLE users ADD COLUMN is_admin INTEGER NOT NULL DEFAULT 0")
+            conn.execute(
+                "ALTER TABLE users ADD COLUMN is_admin INTEGER NOT NULL DEFAULT 0"
+            )
             conn.commit()
             logger.info("Migration: added is_admin column to users")
         except sqlite3.OperationalError:
@@ -395,15 +426,19 @@ def init_db():
 def cleanup_old_events(retention_days: int = 365):
     """Remove learning events older than retention_days (must be positive)."""
     if retention_days <= 0:
-        logger.warning(f"cleanup_old_events called with invalid retention_days={retention_days}, skipping")
+        logger.warning(
+            f"cleanup_old_events called with invalid retention_days={retention_days}, skipping"
+        )
         return 0
     with get_db() as conn:
         cursor = conn.execute(
             "DELETE FROM learning_events WHERE created_at < datetime('now', ? || ' days')",
-            (f'-{retention_days}',)
+            (f"-{retention_days}",),
         )
         conn.commit()
         deleted = cursor.rowcount
         if deleted:
-            logger.info(f"Cleaned up {deleted} old learning events (>{retention_days}d)")
+            logger.info(
+                f"Cleaned up {deleted} old learning events (>{retention_days}d)"
+            )
         return deleted

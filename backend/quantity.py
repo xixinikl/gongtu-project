@@ -5,11 +5,13 @@ analysis stay server-side until a session is submitted.  The adapter owns its
 two additive tables so it can be integrated without coupling the approved bank
 to the review pipeline or to another module's persistence schema.
 """
+
 from __future__ import annotations
 
 from datetime import datetime, timezone
 from functools import lru_cache
 import json
+import logging
 from pathlib import Path
 import sqlite3
 import uuid
@@ -20,7 +22,6 @@ from pydantic import BaseModel, Field, model_validator
 
 from auth import require_user
 from database import get_db
-
 
 router = APIRouter(prefix="/api/quantity", tags=["quantity"])
 
@@ -41,6 +42,7 @@ DECISION_LABELS = {
     "can_do": "可做",
     "skip_first": "先跳",
 }
+logger = logging.getLogger("quantity")
 
 
 class SessionCreateIn(BaseModel):
@@ -77,8 +79,7 @@ def _utc_now() -> str:
 
 def _ensure_tables(conn: sqlite3.Connection) -> None:
     """Create additive quantity tables; safe to call on every request."""
-    conn.executescript(
-        """
+    conn.executescript("""
         CREATE TABLE IF NOT EXISTS quantity_practice_sessions (
             id              TEXT PRIMARY KEY,
             user_id         INTEGER NOT NULL,
@@ -113,8 +114,7 @@ def _ensure_tables(conn: sqlite3.Connection) -> None:
             FOREIGN KEY (session_id) REFERENCES quantity_practice_sessions(id)
                 ON DELETE CASCADE
         );
-        """
-    )
+        """)
     conn.commit()
 
 
@@ -142,9 +142,13 @@ def _load_bank() -> dict:
     for question in questions:
         set_no = question.get("set_no")
         if set_no not in sets or question.get("id") in by_id:
-            raise RuntimeError("Approved quantity bank has an invalid set or duplicate id")
+            raise RuntimeError(
+                "Approved quantity bank has an invalid set or duplicate id"
+            )
         if question.get("tags", {}).get("answer_source") != "full_visual_set_audit":
-            raise RuntimeError("Every approved quantity answer must be visually audited")
+            raise RuntimeError(
+                "Every approved quantity answer must be visually audited"
+            )
         option_keys = [option.get("key") for option in question.get("options", [])]
         expected_keys = [chr(ord("A") + index) for index in range(len(option_keys))]
         if option_keys != expected_keys or question.get("answer") not in option_keys:
@@ -164,9 +168,38 @@ def _load_bank() -> dict:
     if "".join(item["answer"] for item in sets[28]) != "DABDCCBCCB":
         raise RuntimeError("Set 28 answer evidence does not match the approved handoff")
     q8_7 = sets[8][6]
-    if [item["key"] for item in q8_7["options"]] != list("ABCDEFGH") or q8_7["answer"] != "E":
+    if [item["key"] for item in q8_7["options"]] != list("ABCDEFGH") or q8_7[
+        "answer"
+    ] != "E":
         raise RuntimeError("Set 08 question 07 must remain A-H with answer E")
     return {"sets": sets, "by_id": by_id}
+
+
+def _bank_or_unavailable() -> dict:
+    """Map private bank loader failures to one stable, non-sensitive API contract."""
+    try:
+        return _load_bank()
+    except (
+        OSError,
+        UnicodeError,
+        ValueError,
+        KeyError,
+        TypeError,
+        RuntimeError,
+    ) as exc:
+        logger.warning(
+            "bank_unavailable module_id=quantity.exam error_type=%s",
+            type(exc).__name__,
+        )
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "bank_unavailable",
+                "module_id": "quantity.exam",
+                "message": "题库暂不可用，请稍后再试。",
+                "retryable": True,
+            },
+        ) from None
 
 
 def _question_for_practice(question: dict) -> dict:
@@ -195,7 +228,7 @@ def _question_for_practice(question: dict) -> dict:
 
 
 def _get_set(set_no: int) -> list[dict]:
-    items = _load_bank()["sets"].get(set_no)
+    items = _bank_or_unavailable()["sets"].get(set_no)
     if not items:
         raise HTTPException(status_code=404, detail="Quantity set not found")
     return items
@@ -266,7 +299,7 @@ def list_sets(user: dict = Depends(require_user)):
     del user
     return [
         {"set_no": set_no, "label": f"第{set_no:02d}套", "question_count": len(items)}
-        for set_no, items in _load_bank()["sets"].items()
+        for set_no, items in _bank_or_unavailable()["sets"].items()
     ]
 
 
@@ -277,9 +310,11 @@ def get_questions(set_no: int, user: dict = Depends(require_user)):
 
 
 @router.get("/media/{question_id}/{media_index}")
-def get_question_media(question_id: str, media_index: int, user: dict = Depends(require_user)):
+def get_question_media(
+    question_id: str, media_index: int, user: dict = Depends(require_user)
+):
     del user
-    question = _load_bank()["by_id"].get(question_id)
+    question = _bank_or_unavailable()["by_id"].get(question_id)
     if not question or media_index < 0 or media_index >= len(question.get("media", [])):
         raise HTTPException(status_code=404, detail="Quantity media not found")
     path = _absolute_media_path(question["media"][media_index]["asset"])
@@ -319,7 +354,9 @@ def create_session(body: SessionCreateIn, user: dict = Depends(require_user)):
             ),
         )
         conn.commit()
-        return _serialize_session(conn, _owned_session(conn, session_id, user["user_id"]))
+        return _serialize_session(
+            conn, _owned_session(conn, session_id, user["user_id"])
+        )
 
 
 @router.get("/sessions")
@@ -337,22 +374,32 @@ def list_sessions(user: dict = Depends(require_user)):
 def get_session(session_id: str, user: dict = Depends(require_user)):
     with get_db() as conn:
         _ensure_tables(conn)
-        return _serialize_session(conn, _owned_session(conn, session_id, user["user_id"]))
+        return _serialize_session(
+            conn, _owned_session(conn, session_id, user["user_id"])
+        )
 
 
 @router.put("/sessions/{session_id}/attempts")
-def save_attempt(session_id: str, body: AttemptSaveIn, user: dict = Depends(require_user)):
+def save_attempt(
+    session_id: str, body: AttemptSaveIn, user: dict = Depends(require_user)
+):
     with get_db() as conn:
         _ensure_tables(conn)
         session = _owned_session(conn, session_id, user["user_id"])
         if session["status"] != "in_progress":
-            raise HTTPException(status_code=409, detail="Quantity session already submitted")
-        question = _load_bank()["by_id"].get(body.question_id)
+            raise HTTPException(
+                status_code=409, detail="Quantity session already submitted"
+            )
+        question = _bank_or_unavailable()["by_id"].get(body.question_id)
         if not question or question["set_no"] != session["set_no"]:
-            raise HTTPException(status_code=422, detail="Question does not belong to this set")
+            raise HTTPException(
+                status_code=422, detail="Question does not belong to this set"
+            )
         allowed_answers = {option["key"] for option in question["options"]}
         if body.answer is not None and body.answer not in allowed_answers:
-            raise HTTPException(status_code=422, detail="Answer is not an option for this question")
+            raise HTTPException(
+                status_code=422, detail="Answer is not an option for this question"
+            )
         existing = conn.execute(
             "SELECT * FROM quantity_attempt_items WHERE session_id=? AND question_id=?",
             (session_id, body.question_id),
@@ -410,7 +457,9 @@ def save_attempt(session_id: str, body: AttemptSaveIn, user: dict = Depends(requ
             (now, session_id, user["user_id"]),
         )
         conn.commit()
-        return _serialize_session(conn, _owned_session(conn, session_id, user["user_id"]))
+        return _serialize_session(
+            conn, _owned_session(conn, session_id, user["user_id"])
+        )
 
 
 @router.post("/sessions/{session_id}/submit")
@@ -429,12 +478,15 @@ def submit_session(
             (session_id,),
         ).fetchall()
         if not attempts:
-            raise HTTPException(status_code=422, detail="Record at least one attempt before submitting")
+            raise HTTPException(
+                status_code=422, detail="Record at least one attempt before submitting"
+            )
         score = 0
         for attempt in attempts:
-            question = _load_bank()["by_id"][attempt["question_id"]]
+            question = _bank_or_unavailable()["by_id"][attempt["question_id"]]
             is_correct = int(
-                not attempt["is_skipped"] and attempt["final_answer"] == question["answer"]
+                not attempt["is_skipped"]
+                and attempt["final_answer"] == question["answer"]
             )
             score += is_correct
             conn.execute(
@@ -476,4 +528,6 @@ def submit_session(
             ),
         )
         conn.commit()
-        return _serialize_session(conn, _owned_session(conn, session_id, user["user_id"]))
+        return _serialize_session(
+            conn, _owned_session(conn, session_id, user["user_id"])
+        )

@@ -3,11 +3,13 @@
 Phase 1 deliberately contains no model call. It persists real user attempts and
 computes results from the manifest-approved question bank on the server.
 """
+
 from __future__ import annotations
 
 from datetime import datetime, timezone
 from functools import lru_cache
 import json
+import logging
 from pathlib import Path
 import time
 import uuid
@@ -21,9 +23,12 @@ from database import get_db
 from verbal_reading_ai_config import load_verbal_ai_settings
 from verbal_reading_diagnosis import normalize_diagnosis_shape, validate_diagnosis
 from verbal_reading_prompt import build_diagnosis_prompt, build_followup_prompt
-from verbal_reading_provider import ProviderError, call_deepseek_json, call_deepseek_text
+from verbal_reading_provider import (
+    ProviderError,
+    call_deepseek_json,
+    call_deepseek_text,
+)
 from verbal_reading_recommender import recommend_original_questions
-
 
 router = APIRouter(prefix="/api/verbal-reading", tags=["verbal-reading"])
 
@@ -33,6 +38,7 @@ VOCAB_PATH = PROJECT_ROOT / "data" / "verbal_catalog" / "vocab_801.json"
 ALLOWED_ANSWERS = {"A", "B", "C", "D"}
 MAX_ITEM_ELAPSED_MS = 30 * 60 * 1000
 MAX_SESSION_ELAPSED_MS = 6 * 60 * 60 * 1000
+logger = logging.getLogger("verbal-reading")
 
 
 class SessionCreateIn(BaseModel):
@@ -81,8 +87,35 @@ def _load_bank() -> dict[str, dict]:
     return result
 
 
+def _bank_or_unavailable() -> dict[str, dict]:
+    """Map private bank loader failures to one stable, non-sensitive API contract."""
+    try:
+        return _load_bank()
+    except (
+        OSError,
+        UnicodeError,
+        ValueError,
+        KeyError,
+        TypeError,
+        RuntimeError,
+    ) as exc:
+        logger.warning(
+            "bank_unavailable module_id=verbal.reading error_type=%s",
+            type(exc).__name__,
+        )
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "bank_unavailable",
+                "module_id": "verbal.reading",
+                "message": "题库暂不可用，请稍后再试。",
+                "retryable": True,
+            },
+        ) from None
+
+
 def _get_set(set_id: str) -> dict:
-    set_data = _load_bank().get(set_id)
+    set_data = _bank_or_unavailable().get(set_id)
     if not set_data:
         raise HTTPException(status_code=404, detail="Practice set not found")
     return set_data
@@ -179,7 +212,9 @@ def _serialize_session(conn, row) -> dict:
             "latency_ms": ai_run["latency_ms"],
             "usage": json.loads(ai_run["usage_json"]) if ai_run["usage_json"] else None,
             "error_code": ai_run["error_code"],
-            "diagnosis": json.loads(ai_run["output_json"]) if ai_run["output_json"] else None,
+            "diagnosis": (
+                json.loads(ai_run["output_json"]) if ai_run["output_json"] else None
+            ),
             "created_at": ai_run["created_at"],
         }
     message_rows = conn.execute(
@@ -193,7 +228,8 @@ def _serialize_session(conn, row) -> dict:
     payload["messages"] = [dict(message) for message in message_rows]
     if submitted:
         payload["review_questions"] = [
-            _review_question(question) for question in _get_set(row["set_id"])["questions"]
+            _review_question(question)
+            for question in _get_set(row["set_id"])["questions"]
         ]
     return payload
 
@@ -222,7 +258,7 @@ def list_practice_sets(user: dict = Depends(require_user)):
             "label": data["meta"].get("label", set_id),
             "question_count": data["meta"]["question_count"],
         }
-        for set_id, data in _load_bank().items()
+        for set_id, data in _bank_or_unavailable().items()
     ]
 
 
@@ -291,11 +327,15 @@ def save_answer(
     with get_db() as conn:
         session = _owned_session(conn, session_id, user["user_id"])
         if session["status"] != "in_progress":
-            raise HTTPException(status_code=409, detail="Practice session already submitted")
+            raise HTTPException(
+                status_code=409, detail="Practice session already submitted"
+            )
         set_data = _get_set(session["set_id"])
         question = set_data["by_id"].get(body.question_id)
         if not question:
-            raise HTTPException(status_code=422, detail="Question does not belong to this set")
+            raise HTTPException(
+                status_code=422, detail="Question does not belong to this set"
+            )
         existing = conn.execute(
             "SELECT * FROM verbal_attempt_items WHERE session_id=? AND question_id=?",
             (session_id, body.question_id),
@@ -366,7 +406,9 @@ def submit_session(
             (session_id,),
         ).fetchall()
         if not attempts:
-            raise HTTPException(status_code=422, detail="Answer at least one question before submitting")
+            raise HTTPException(
+                status_code=422, detail="Answer at least one question before submitting"
+            )
         score = sum(int(item["is_correct"]) for item in attempts)
         now = _utc_now()
         conn.execute(
@@ -442,7 +484,9 @@ def generate_diagnosis(session_id: str, user: dict = Depends(require_user)):
     with get_db() as conn:
         session = _owned_session(conn, session_id, user["user_id"])
         if session["status"] != "submitted":
-            raise HTTPException(status_code=409, detail="Submit the practice session first")
+            raise HTTPException(
+                status_code=409, detail="Submit the practice session first"
+            )
         completed = conn.execute(
             """
             SELECT id FROM verbal_ai_runs
@@ -454,7 +498,9 @@ def generate_diagnosis(session_id: str, user: dict = Depends(require_user)):
         if completed:
             return _serialize_session(conn, session)
 
-        context, attempts = _diagnosis_context(conn, session, _get_set(session["set_id"]))
+        context, attempts = _diagnosis_context(
+            conn, session, _get_set(session["set_id"])
+        )
         prompt = build_diagnosis_prompt(context)
         run_id = uuid.uuid4().hex
         started_at = _utc_now()
@@ -495,7 +541,14 @@ def generate_diagnosis(session_id: str, user: dict = Depends(require_user)):
                 SET status=?, finished_at=?, latency_ms=?, error_code=?
                 WHERE id=? AND user_id=?
                 """,
-                (error.status, _utc_now(), latency_ms, error.code, run_id, user["user_id"]),
+                (
+                    error.status,
+                    _utc_now(),
+                    latency_ms,
+                    error.code,
+                    run_id,
+                    user["user_id"],
+                ),
             )
             conn.commit()
         status_code = 504 if error.status == "timed_out" else 503
@@ -554,13 +607,17 @@ def create_message(
     with get_db() as conn:
         session = _owned_session(conn, session_id, user["user_id"])
         if session["status"] != "submitted":
-            raise HTTPException(status_code=409, detail="Submit the practice session first")
+            raise HTTPException(
+                status_code=409, detail="Submit the practice session first"
+            )
         set_data = _get_set(session["set_id"])
         selected_question = None
         if body.question_id:
             selected_question = set_data["by_id"].get(body.question_id)
             if not selected_question:
-                raise HTTPException(status_code=422, detail="Question does not belong to this session")
+                raise HTTPException(
+                    status_code=422, detail="Question does not belong to this session"
+                )
 
         attempt_rows = conn.execute(
             """
@@ -609,7 +666,9 @@ def create_message(
                 "question_count": session["question_count"],
             },
             "selected_question": question_context,
-            "diagnosis": json.loads(diagnosis_row["output_json"]) if diagnosis_row else None,
+            "diagnosis": (
+                json.loads(diagnosis_row["output_json"]) if diagnosis_row else None
+            ),
             "recent_messages": [dict(message) for message in reversed(recent_messages)],
         }
         prompt = build_followup_prompt(context, content)
@@ -623,8 +682,15 @@ def create_message(
                  skill_hash, status, started_at)
             VALUES (?, ?, ?, 'follow_up', 'deepseek', ?, ?, ?, 'running', ?)
             """,
-            (run_id, session_id, user["user_id"], settings.model,
-             prompt.skill_version, prompt.skill_hash, now),
+            (
+                run_id,
+                session_id,
+                user["user_id"],
+                settings.model,
+                prompt.skill_version,
+                prompt.skill_hash,
+                now,
+            ),
         )
         conn.execute(
             """
@@ -632,7 +698,15 @@ def create_message(
                 (id, session_id, user_id, question_id, role, content, run_id, created_at)
             VALUES (?, ?, ?, ?, 'user', ?, ?, ?)
             """,
-            (user_message_id, session_id, user["user_id"], body.question_id, content, run_id, now),
+            (
+                user_message_id,
+                session_id,
+                user["user_id"],
+                body.question_id,
+                content,
+                run_id,
+                now,
+            ),
         )
         conn.commit()
 
@@ -649,7 +723,14 @@ def create_message(
             conn.execute(
                 """UPDATE verbal_ai_runs SET status=?, finished_at=?, latency_ms=?, error_code=?
                    WHERE id=? AND user_id=?""",
-                (error.status, _utc_now(), latency_ms, error.code, run_id, user["user_id"]),
+                (
+                    error.status,
+                    _utc_now(),
+                    latency_ms,
+                    error.code,
+                    run_id,
+                    user["user_id"],
+                ),
             )
             conn.commit()
         raise HTTPException(
@@ -666,16 +747,28 @@ def create_message(
                 (id, session_id, user_id, question_id, role, content, run_id, created_at)
             VALUES (?, ?, ?, ?, 'assistant', ?, ?, ?)
             """,
-            (assistant_message_id, session_id, user["user_id"], body.question_id,
-             result.content, run_id, finished),
+            (
+                assistant_message_id,
+                session_id,
+                user["user_id"],
+                body.question_id,
+                result.content,
+                run_id,
+                finished,
+            ),
         )
         conn.execute(
             """
             UPDATE verbal_ai_runs SET status='completed', finished_at=?, latency_ms=?, usage_json=?
             WHERE id=? AND user_id=?
             """,
-            (finished, result.latency_ms, json.dumps(result.usage, ensure_ascii=False),
-             run_id, user["user_id"]),
+            (
+                finished,
+                result.latency_ms,
+                json.dumps(result.usage, ensure_ascii=False),
+                run_id,
+                user["user_id"],
+            ),
         )
         conn.commit()
         session = _owned_session(conn, session_id, user["user_id"])
@@ -687,7 +780,9 @@ def get_recommendations(session_id: str, user: dict = Depends(require_user)):
     with get_db() as conn:
         session = _owned_session(conn, session_id, user["user_id"])
         if session["status"] != "submitted":
-            raise HTTPException(status_code=409, detail="Submit the practice session first")
+            raise HTTPException(
+                status_code=409, detail="Submit the practice session first"
+            )
         diagnosis_row = conn.execute(
             """
             SELECT output_json FROM verbal_ai_runs
@@ -714,7 +809,7 @@ def get_recommendations(session_id: str, user: dict = Depends(require_user)):
                 item["question_id"] for item in diagnosis.get("question_feedback", [])
             ]
             recommendations = recommend_original_questions(
-                _load_bank(),
+                _bank_or_unavailable(),
                 current_set_id=session["set_id"],
                 evidence_question_ids=evidence_ids,
                 limit=5,
@@ -727,9 +822,15 @@ def get_recommendations(session_id: str, user: dict = Depends(require_user)):
                         (session_id, user_id, question_id, reason_tags_json, rank, score, created_at)
                     VALUES (?, ?, ?, ?, ?, ?, ?)
                     """,
-                    (session_id, user["user_id"], item["question_id"],
-                     json.dumps(item["reason_tags"], ensure_ascii=False), rank,
-                     item["score"], now),
+                    (
+                        session_id,
+                        user["user_id"],
+                        item["question_id"],
+                        json.dumps(item["reason_tags"], ensure_ascii=False),
+                        rank,
+                        item["score"],
+                        now,
+                    ),
                 )
             conn.commit()
             rows = conn.execute(
@@ -743,7 +844,7 @@ def get_recommendations(session_id: str, user: dict = Depends(require_user)):
 
         question_index = {
             question["id"]: (set_id, question)
-            for set_id, set_data in _load_bank().items()
+            for set_id, set_data in _bank_or_unavailable().items()
             for question in set_data["questions"]
         }
         response = []
@@ -757,9 +858,13 @@ def get_recommendations(session_id: str, user: dict = Depends(require_user)):
                 {
                     "question_id": question["id"],
                     "set_id": set_id,
-                    "set_label": _load_bank()[set_id]["meta"].get("label", set_id),
+                    "set_label": _bank_or_unavailable()[set_id]["meta"].get(
+                        "label", set_id
+                    ),
                     "question_no": question["question_no"],
-                    "question_type": question.get("learning_tags", {}).get("question_type"),
+                    "question_type": question.get("learning_tags", {}).get(
+                        "question_type"
+                    ),
                     "content": question["content"],
                     "reason_tags": reason_tags,
                     "reason": "同时匹配" + "、".join(reason_tags),

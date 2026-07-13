@@ -3346,6 +3346,56 @@
         will-change: auto;
     }
 
+        /* ========== Phase 6 · accessible formal shell ========== */
+        .skip-link {
+            position: fixed;
+            top: 12px;
+            left: 12px;
+            z-index: 12000;
+            padding: 10px 14px;
+            border-radius: 8px;
+            background: var(--ink-deep);
+            color: var(--parchment);
+            text-decoration: none;
+            transform: translateY(-160%);
+            transition: transform 0.2s ease;
+        }
+        .skip-link:focus { transform: translateY(0); }
+        :where(button, a, input, select, textarea, [tabindex]):focus-visible {
+            outline: 3px solid var(--gold-light) !important;
+            outline-offset: 3px;
+        }
+        .app-nav-toggle {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            min-height: 40px;
+            padding: 8px 12px;
+            border: 1px solid rgba(176,138,58,0.45);
+            border-radius: 8px;
+            background: rgba(26,21,16,0.78);
+            color: #e0d6b8;
+            font: inherit;
+            cursor: pointer;
+        }
+        @media (max-width: 720px) {
+            .app-navbar { padding: 10px 14px !important; }
+            .app-navbar .nav-right { width: 100%; flex-wrap: wrap; justify-content: flex-end; }
+            .app-nav-toggle { display: inline-flex; margin-right: auto; }
+            .app-navbar .deck-tabs { display: none; order: 3; width: 100%; justify-content: flex-start; overflow-x: auto; padding: 4px 0 2px; }
+            .app-navbar[data-nav-open="true"] .deck-tabs { display: flex; }
+            .app-navbar .deck-tab { flex: 0 0 auto; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            html { scroll-behavior: auto; }
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                scroll-behavior: auto !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -3353,7 +3403,8 @@
 <!-- ========== NAVBAR ========== -->
 <!-- ========== APP Section ========== -->
 <section class="app-section active" id="app">
-    <nav class="app-navbar">
+    <a class="skip-link" href="#learningZone">跳至学习内容</a>
+    <nav class="app-navbar" data-nav-open="false">
         <div class="deck-tabs" id="deckTabs">
             <button class="deck-tab active" data-deck="idiom"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-3px"><rect x="2" y="1.5" width="14" height="15" rx="1.5" stroke="rgba(176,138,58,0.7)" stroke-width="1.2"/><path d="M4.5 1.5v15" stroke="rgba(176,138,58,0.35)" stroke-width="0.9"/><line x1="6" y1="5.5" x2="12" y2="5.5" stroke="rgba(176,138,58,0.3)" stroke-width="0.7"/><line x1="6" y1="8.5" x2="12" y2="8.5" stroke="rgba(176,138,58,0.3)" stroke-width="0.7"/><line x1="6" y1="11.5" x2="10" y2="11.5" stroke="rgba(176,138,58,0.25)" stroke-width="0.7"/></svg> 成语</button>
             <button class="deck-tab" data-deck="math"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-3px"><circle cx="9" cy="9" r="7.5" stroke="rgba(176,138,58,0.7)" stroke-width="1.2"/><text x="9" y="12.5" text-anchor="middle" font-family="serif" font-size="10" font-weight="600" fill="rgba(176,138,58,0.7)">数</text></svg> 数量关系</button>
@@ -3361,6 +3412,9 @@
             <button class="deck-tab" onclick="window.location.href='/shenlun'" title="申论批改"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-3px"><rect x="2.5" y="1.5" width="13" height="15" rx="1.5" stroke="rgba(176,138,58,0.7)" stroke-width="1.1"/><line x1="5" y1="5.5" x2="13" y2="5.5" stroke="rgba(176,138,58,0.35)" stroke-width="0.8"/><line x1="5" y1="8" x2="13" y2="8" stroke="rgba(176,138,58,0.35)" stroke-width="0.8"/><line x1="5" y1="10.5" x2="10" y2="10.5" stroke="rgba(176,138,58,0.35)" stroke-width="0.8"/><path d="M10 12.5l2.5 1.5v-3z" fill="rgba(176,138,58,0.5)"/></svg> 申论批改</button>
         </div>
         <div class="nav-right">
+            <button class="app-nav-toggle" type="button" aria-controls="deckTabs" aria-expanded="false">
+                <i class="fas fa-bars" aria-hidden="true"></i><span>学习导航</span>
+            </button>
             <div class="logo-app" style="display:flex;align-items:center;gap:8px;">
                 <div class="logo-seal" style="width:32px;height:32px;font-size:0.82rem;font-family:'Noto Serif SC',serif;font-weight:900;color:#1a1510;background:linear-gradient(135deg,#c9a96e,#e8d5a3);border-radius:6px;display:flex;align-items:center;justify-content:center;">公</div>
                 <span class="logo-name-app" style="font-family:'Noto Serif SC',serif;font-weight:700;color:#e0d6b8;letter-spacing:2px;">公途</span>
@@ -5365,6 +5419,32 @@ document.getElementById('modeSwitchGroup').addEventListener('click', function(e)
     }
     isFlipped = false; renderAll();
 });
+
+// 正式外壳：移动端模块导航与键盘收起。
+(function () {
+    var formalNavigationShell = document.querySelector('.app-navbar');
+    var formalNavigationToggle = document.querySelector('.app-nav-toggle');
+    if (!formalNavigationShell || !formalNavigationToggle) return;
+
+    function setFormalNavigationOpen(open) {
+        formalNavigationShell.dataset.navOpen = String(open);
+        formalNavigationToggle.setAttribute('aria-expanded', String(open));
+    }
+
+    formalNavigationToggle.addEventListener('click', function () {
+        setFormalNavigationOpen(formalNavigationShell.dataset.navOpen !== 'true');
+    });
+
+    formalNavigationShell.querySelectorAll('.deck-tab').forEach(function (tab) {
+        tab.addEventListener('click', function () { setFormalNavigationOpen(false); });
+    });
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key !== 'Escape' || formalNavigationShell.dataset.navOpen !== 'true') return;
+        setFormalNavigationOpen(false);
+        formalNavigationToggle.focus();
+    });
+})();
 
 </script>
 

@@ -733,7 +733,7 @@
 
   <script>
     // 与后端对齐只需调整这个集中合同；页面其他逻辑不拼接 API 路径。
-    const API_BASE = `${location.protocol}//${location.hostname}:8888`;
+    const API_BASE = window.__GONTU_API_BASE__ || (location.port === '8089' ? 'http://127.0.0.1:8888' : location.origin);
     const API = Object.freeze({
       modules: '/api/ai-coach/modules',
       threads: '/api/ai-coach/threads',

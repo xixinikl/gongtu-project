@@ -1,0 +1,31 @@
+{
+  "id": "phase6-clean-integration",
+  "title": "Phase 6 完成审计与干净总装",
+  "objective": "审计六阶段的直接验收证据和全部相关 worktree；只在连续、干净的 Phase 6 提交链上建立待审总装分支，并重跑自动与真实浏览器回归，不混入临时文件、数据库、密钥或未验收半成品。",
+  "authority": "doc/PHASE6_COMPLETION_AUDIT.md",
+  "tasks": [
+    {
+      "id": "P6I-1",
+      "title": "审计阶段证据与 PR 状态",
+      "acceptance": "Phase 1→6 的提交锚点、直接验收来源、PR 开放/草稿/合并状态和未完成边界均写入审计文档。"
+    },
+    {
+      "id": "P6I-2",
+      "title": "分类全部相关 worktree",
+      "acceptance": "每个相关 worktree 的未提交内容都有正式纳入、继续开发或历史归档结论；不移动、重置、删除或混入保全树内容。",
+      "dependsOn": ["P6I-1"]
+    },
+    {
+      "id": "P6I-3",
+      "title": "建立干净待审总装分支",
+      "acceptance": "总装分支从连续 Phase 6 提交链建立，工作树干净，且只含阶段成果与审计/项目记忆文件；Phase 6 PR 保持 Draft，不合并 main。",
+      "dependsOn": ["P6I-2"]
+    },
+    {
+      "id": "P6I-4",
+      "title": "重跑总装回归与主路径",
+      "acceptance": "在总装分支通过服务端、Node、数据门禁和真实浏览器主路径/A-B 隔离验证；任何失败均明确记录，不伪称通过。",
+      "dependsOn": ["P6I-3"]
+    }
+  ]
+}
