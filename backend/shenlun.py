@@ -1,4 +1,5 @@
 """申论批改 API — 接入真实 LLM 批改（DeepSeek）。"""
+
 from __future__ import annotations
 
 import json
@@ -17,7 +18,13 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # ── 导入真实 LLM 批改模块 ──
-from src.grader import grade as llm_grade, chat as llm_chat  # noqa: E402
+from src.grader import (  # noqa: E402
+    GRADING_DIMENSIONS,
+    ProviderFailure,
+    chat as llm_chat,
+    grade as llm_grade,
+    validate_grading_result,
+)
 from src.models import Question  # noqa: E402
 from src.prompt_builder import get_skill_metadata  # noqa: E402
 from src.grader import BASE_URL as LLM_BASE_URL, MODEL as LLM_MODEL  # noqa: E402
@@ -28,6 +35,12 @@ router = APIRouter(prefix="/api/shenlun", tags=["shenlun"])
 LOG_DIR = Path(os.environ.get("GONTU_LOG_DIR", str(Path(__file__).parent / "logs")))
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 logger = logging.getLogger("shenlun")
+
+PROVIDER_FAILURE_MESSAGES = {
+    "provider_timeout": "AI服务响应超时，请稍后重试。",
+    "provider_invalid_output": "AI返回格式异常，请重新提交。",
+    "provider_unavailable": "AI服务暂不可用，请稍后重试。",
+}
 
 # ── Questions data ──────────────────────────────────────────────────────────────
 DATA_DIR = Path(__file__).parent / "data"
@@ -47,7 +60,14 @@ def _load_questions_data():
 def _questions_or_unavailable() -> dict:
     try:
         return _load_questions_data()
-    except (OSError, UnicodeError, ValueError, KeyError, TypeError, RuntimeError) as exc:
+    except (
+        OSError,
+        UnicodeError,
+        ValueError,
+        KeyError,
+        TypeError,
+        RuntimeError,
+    ) as exc:
         logger.warning(
             "question_source_unavailable module_id=shenlun.review error_type=%s",
             type(exc).__name__,
@@ -86,10 +106,78 @@ async def _require_user(request: Request):
     return await require_user(request)
 
 
+def _safe_provider_failure(exc: Exception, *, operation: str) -> HTTPException:
+    """Map all provider failures to a stable response without raw details."""
+    if isinstance(exc, ProviderFailure):
+        code = exc.code
+    elif isinstance(exc, TimeoutError):
+        code = "provider_timeout"
+    else:
+        code = "provider_unavailable"
+    logger.warning(
+        "provider_failure module_id=shenlun.review operation=%s code=%s error_type=%s",
+        operation,
+        code,
+        type(exc).__name__,
+    )
+    return HTTPException(
+        status_code=504 if code == "provider_timeout" else 503,
+        detail={
+            "code": code,
+            "module_id": "shenlun.review",
+            "message": PROVIDER_FAILURE_MESSAGES[code],
+            "retryable": True,
+        },
+    )
+
+
+def _validate_analysis_payload(payload: object) -> dict:
+    if not isinstance(payload, dict):
+        raise ProviderFailure("provider_invalid_output")
+    weak_dimensions = payload.get("weakDimensions")
+    summary = payload.get("summary")
+    recommendations = payload.get("recommendations")
+    if (
+        not isinstance(weak_dimensions, list)
+        or any(item not in GRADING_DIMENSIONS for item in weak_dimensions)
+        or len(set(weak_dimensions)) != len(weak_dimensions)
+        or not isinstance(summary, str)
+        or not summary.strip()
+        or not isinstance(recommendations, list)
+        or not 3 <= len(recommendations) <= 5
+        or any(
+            not isinstance(item, str) or not item.strip() for item in recommendations
+        )
+    ):
+        raise ProviderFailure("provider_invalid_output")
+    return {
+        "status": "completed",
+        "weakDimensions": weak_dimensions,
+        "summary": summary.strip(),
+        "recommendations": [item.strip() for item in recommendations],
+    }
+
+
+def _analysis_unavailable(
+    *, code: str, records_reviewed: int, run_metadata: dict
+) -> dict:
+    safe_code = code if code in PROVIDER_FAILURE_MESSAGES else "provider_unavailable"
+    return {
+        "status": "unavailable",
+        "errorCode": safe_code,
+        "recordsReviewed": records_reviewed,
+        "summary": PROVIDER_FAILURE_MESSAGES[safe_code],
+        "weakDimensions": [],
+        "recommendations": [],
+        "runMetadata": run_metadata,
+    }
+
+
 def _question_public(q: dict) -> dict:
     """Return training content without answer/scoring fields."""
     return {
-        key: value for key, value in q.items()
+        key: value
+        for key, value in q.items()
         if key not in {"referenceAnswer", "scoringPoints"}
     } | {
         "contentStatus": "summary-only",
@@ -180,7 +268,17 @@ def _record_unified_grade(
                    (id,user_id,module_id,issue_key,user_facing_title,internal_confidence,
                     evidence_count,status,first_seen_at,last_seen_at,created_at,updated_at)
                    VALUES(?,?,'shenlun.review',?,?,?,0,'training',?,?,?,?)""",
-                (issue_id, user_id, issue_key, issue_title, confidence, now, now, now, now),
+                (
+                    issue_id,
+                    user_id,
+                    issue_key,
+                    issue_title,
+                    confidence,
+                    now,
+                    now,
+                    now,
+                    now,
+                ),
             )
         conn.execute(
             """INSERT INTO learning_issue_evidence_v2
@@ -225,7 +323,14 @@ def _record_unified_grade(
                    (id,user_id,module_id,issue_id,task_type,title,target_count,status,
                     result_json,created_at,updated_at)
                    VALUES(?,?,'shenlun.review',?,'dimension_practice',?,3,'pending','{}',?,?)""",
-                (str(uuid.uuid4()), user_id, issue_id, f"完成3次{dimension}专项练习", now, now),
+                (
+                    str(uuid.uuid4()),
+                    user_id,
+                    issue_id,
+                    f"完成3次{dimension}专项练习",
+                    now,
+                    now,
+                ),
             )
 
 
@@ -242,6 +347,7 @@ class ChatRequest(BaseModel):
 
 # ── API Endpoints ──────────────────────────────────────────────────────────────
 
+
 @router.get("/catalog")
 async def get_catalog(request: Request):
     """Return the authoritative completeness statement for the current source."""
@@ -257,6 +363,7 @@ async def get_catalog(request: Request):
         "questionCount": len(data["questions"]),
     }
 
+
 @router.get("/questions")
 async def list_questions(request: Request):
     """获取题目列表（轻量，不含材料和参考答案全文）"""
@@ -264,20 +371,22 @@ async def list_questions(request: Request):
     data = _questions_or_unavailable()
     items = []
     for q in data.get("questions", []):
-        items.append({
-            "id": q["id"],
-            "setName": q["setName"],
-            "number": q["number"],
-            "title": q["title"],
-            "type": q["type"],
-            "wordLimit": q["wordLimit"],
-            "score": q["score"],
-            "questionText": q["questionText"],
-            "questionRequirement": q["questionRequirement"],
-            "contentStatus": "summary-only",
-            "isComplete": False,
-            "contentNotice": "当前仅有材料摘要，尚未补齐原题全文。",
-        })
+        items.append(
+            {
+                "id": q["id"],
+                "setName": q["setName"],
+                "number": q["number"],
+                "title": q["title"],
+                "type": q["type"],
+                "wordLimit": q["wordLimit"],
+                "score": q["score"],
+                "questionText": q["questionText"],
+                "questionRequirement": q["questionRequirement"],
+                "contentStatus": "summary-only",
+                "isComplete": False,
+                "contentNotice": "当前仅有材料摘要，尚未补齐原题全文。",
+            }
+        )
     return items
 
 
@@ -314,16 +423,14 @@ async def grade_answer(req: GradingRequest, request: Request):
     record_id = str(uuid.uuid4())[:8]
 
     try:
-        result = llm_grade(question_obj, req.studentAnswer)
-    except TimeoutError as e:
-        logger.error(f"Grading timeout for q={req.questionId}")
-        raise HTTPException(status_code=504, detail=str(e))
-    except RuntimeError as e:
-        logger.error(f"Grading failed for q={req.questionId}: {e}")
-        raise HTTPException(status_code=503, detail=str(e))
+        result = validate_grading_result(llm_grade(question_obj, req.studentAnswer))
+    except Exception as exc:
+        raise _safe_provider_failure(exc, operation="grade") from None
 
     # 转为 dict
-    grading_result = result.model_dump() if hasattr(result, "model_dump") else dict(result)
+    grading_result = (
+        result.model_dump() if hasattr(result, "model_dump") else dict(result)
+    )
     grading_result["runMetadata"] = _run_metadata()
     grading_result["recordType"] = "grading"
 
@@ -418,7 +525,9 @@ async def list_history(request: Request, limit: int = 50, offset: int = 0):
             "questionType": r["question_type"],
             "studentAnswer": r["student_answer"],
             "wordCount": r["word_count"],
-            "gradingResult": json.loads(r["grading_result"]) if r["grading_result"] else None,
+            "gradingResult": (
+                json.loads(r["grading_result"]) if r["grading_result"] else None
+            ),
             "createdAt": r["created_at"],
         }
         for r in rows
@@ -448,7 +557,9 @@ async def get_history_record(record_id: str, request: Request):
         "questionType": r["question_type"],
         "studentAnswer": r["student_answer"],
         "wordCount": r["word_count"],
-        "gradingResult": json.loads(r["grading_result"]) if r["grading_result"] else None,
+        "gradingResult": (
+            json.loads(r["grading_result"]) if r["grading_result"] else None
+        ),
         "createdAt": r["created_at"],
     }
 
@@ -572,6 +683,7 @@ async def analyze_weakness(request: Request):
 
     if not h_rows:
         return {
+            "status": "insufficient_evidence",
             "recordsReviewed": 0,
             "summary": "暂无足够的学习记录进行分析。请先完成几道申论题目的批改或对话。",
             "weakDimensions": [],
@@ -589,10 +701,13 @@ async def analyze_weakness(request: Request):
             reply_text = gd.get("overallComment", "")[:200]
         except Exception:
             continue
-        texts.append(f"题目: {r['question_title']} ({r['question_type']})\n作答: {r['student_answer']}\n结果: {reply_text}")
+        texts.append(
+            f"题目: {r['question_title']} ({r['question_type']})\n作答: {r['student_answer']}\n结果: {reply_text}"
+        )
 
     if not texts:
         return {
+            "status": "insufficient_evidence",
             "recordsReviewed": 0,
             "summary": "暂无有效批改记录。普通提问不会计入薄弱点分析。",
             "weakDimensions": [],
@@ -604,8 +719,10 @@ async def analyze_weakness(request: Request):
     # 调用 LLM 分析
     try:
         from src.grader import call_llm_api
+
         skill_meta = _run_metadata()
         from src.prompt_builder import build_system_prompt
+
         system_prompt = build_system_prompt("申论批改记录薄弱点分析")
         prompt = f"""以下是一位考公学生的最近{len(texts)}条有效申论批改记录。
 
@@ -621,31 +738,31 @@ async def analyze_weakness(request: Request):
 
         raw_response = call_llm_api(prompt, system_prompt=system_prompt)
         import re
-        json_match = re.search(r'\{.*\}', raw_response, re.DOTALL)
+
+        json_match = re.search(r"\{.*\}", raw_response, re.DOTALL)
         if json_match:
-            result = json.loads(json_match.group())
+            result = _validate_analysis_payload(json.loads(json_match.group()))
         else:
-            raise RuntimeError("LLM未返回有效JSON")
-    except TimeoutError:
-        logger.warning("Analyze timeout")
-        result = {
-            "recordsReviewed": len(texts),
-            "summary": f"AI分析超时。已收集{len(texts)}条学习记录，建议稍后重试。",
-            "weakDimensions": [],
-            "recommendations": [f"当前有{len(texts)}条记录可供分析，请重试获取详细诊断。"],
-        }
-    except Exception as e:
-        logger.warning(f"Analyze failed: {e}")
-        result = {
-            "recordsReviewed": len(texts),
-            "summary": f"AI暂时不可用，但已收集{len(texts)}条学习记录。建议继续练习后再分析。",
-            "weakDimensions": [],
-            "recommendations": [
-                "多阅读人民日报评论员文章，学习官方表达方式",
-                "练习时注意控制字数，培养精炼表达能力",
-                "每道题完成后对照参考答案找差距",
-            ],
-        }
+            raise ProviderFailure("provider_invalid_output")
+    except Exception as exc:
+        if isinstance(exc, json.JSONDecodeError):
+            failure = ProviderFailure("provider_invalid_output")
+        elif isinstance(exc, ProviderFailure):
+            failure = exc
+        elif isinstance(exc, TimeoutError):
+            failure = ProviderFailure("provider_timeout")
+        else:
+            failure = ProviderFailure("provider_unavailable")
+        logger.warning(
+            "provider_failure module_id=shenlun.review operation=analyze code=%s error_type=%s",
+            failure.code,
+            type(exc).__name__,
+        )
+        return _analysis_unavailable(
+            code=failure.code,
+            records_reviewed=len(texts),
+            run_metadata=locals().get("skill_meta") or _run_metadata(),
+        )
 
     result["recordsReviewed"] = len(texts)
     result["runMetadata"] = locals().get("skill_meta") or _run_metadata()
@@ -672,12 +789,11 @@ async def chat_with_teacher(req: ChatRequest, request: Request):
     # 调用真实 LLM 对话
     try:
         reply = llm_chat(q_obj, req.message)
-    except TimeoutError as e:
-        logger.error("Chat timeout")
-        raise HTTPException(status_code=504, detail=str(e))
-    except RuntimeError as e:
-        logger.error(f"Chat failed: {e}")
-        raise HTTPException(status_code=503, detail=str(e))
+        if not isinstance(reply, str) or not reply.strip():
+            raise ProviderFailure("provider_invalid_output")
+        reply = reply.strip()
+    except Exception as exc:
+        raise _safe_provider_failure(exc, operation="chat") from None
 
     mode = "chat" if not req.questionId else "question_context"
     run_metadata = _run_metadata()
@@ -713,7 +829,7 @@ async def chat_with_teacher(req: ChatRequest, request: Request):
                 ),
             )
             conn.commit()
-    except Exception as e:
-        logger.warning(f"Failed to save chat to history: {e}")
+    except Exception as exc:
+        logger.warning("chat_history_save_failed error_type=%s", type(exc).__name__)
 
     return {"reply": reply, "mode": mode, "runMetadata": run_metadata}

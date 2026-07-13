@@ -4,8 +4,8 @@ from pathlib import Path
 import sys
 import tempfile
 import unittest
-from unittest.mock import patch
-
+from types import SimpleNamespace
+from unittest.mock import MagicMock, patch
 
 ROOT = Path(__file__).resolve().parents[1]
 BACKEND = ROOT / "backend"
@@ -19,9 +19,43 @@ from fastapi import FastAPI  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
 import database  # noqa: E402
 from auth import create_token, hash_password  # noqa: E402
-from src.models import GradingResult  # noqa: E402
+from src.models import GradingResult, Question  # noqa: E402
 import shenlun  # noqa: E402
-from src import prompt_builder  # noqa: E402
+from src import grader, prompt_builder  # noqa: E402
+
+VALID_DIMENSIONS = {
+    "内容完整性": "优秀",
+    "逻辑结构": "优秀",
+    "语言表达": "优秀",
+    "对策可行性": "优秀",
+    "格式规范": "优秀",
+}
+
+
+def valid_grade(
+    *,
+    dimensions: dict[str, str] | None = None,
+    comment: str = "总体评价",
+    suggestions: list[str] | None = None,
+) -> GradingResult:
+    values = dict(VALID_DIMENSIONS)
+    values.update(dimensions or {})
+    return GradingResult(
+        dimensions=values,
+        overallComment=comment,
+        suggestions=suggestions or ["建议一", "建议二", "建议三"],
+    )
+
+
+def question_model(qid: str = "q3-1") -> Question:
+    question = shenlun._get_question(qid)
+    payload = dict(question)
+    scoring_points = payload.pop("scoringPoints", [])
+    payload["referenceAnswer"] = {
+        "fullText": payload.pop("referenceAnswer", ""),
+        "scoringPoints": scoring_points,
+    }
+    return Question(**payload)
 
 
 class ShenlunAPITests(unittest.TestCase):
@@ -60,7 +94,9 @@ class ShenlunAPITests(unittest.TestCase):
             conn.commit()
 
     def test_questions_require_live_account_and_never_leak_answers(self):
-        catalog = json.loads((BACKEND / "data/questions.json").read_text(encoding="utf-8"))
+        catalog = json.loads(
+            (BACKEND / "data/questions.json").read_text(encoding="utf-8")
+        )
         self.assertEqual(catalog["catalogStatus"], "summary-only")
         self.assertFalse(catalog["isComplete"])
         catalog_response = self.client.get(
@@ -82,7 +118,9 @@ class ShenlunAPITests(unittest.TestCase):
         listed = self.client.get("/api/shenlun/questions", headers=self.headers_a)
         self.assertEqual(listed.status_code, 200, listed.text)
         self.assertEqual(len(listed.json()), 10)
-        self.assertTrue(all(item["contentStatus"] == "summary-only" for item in listed.json()))
+        self.assertTrue(
+            all(item["contentStatus"] == "summary-only" for item in listed.json())
+        )
 
         detail = self.client.get("/api/shenlun/questions/q4-4", headers=self.headers_a)
         self.assertEqual(detail.status_code, 200, detail.text)
@@ -135,9 +173,7 @@ class ShenlunAPITests(unittest.TestCase):
         corrupt = Path(_TEMP_DIR.name) / "private-corrupt-questions.json"
         corrupt.write_text("{not-json", encoding="utf-8")
         with patch.object(shenlun, "QUESTIONS_FILE", corrupt):
-            response = self.client.get(
-                "/api/shenlun/catalog", headers=self.headers_a
-            )
+            response = self.client.get("/api/shenlun/catalog", headers=self.headers_a)
             self.assertEqual(response.status_code, 503)
             self.assertEqual(response.json(), expected)
             self.assertNotIn(str(corrupt), response.text)
@@ -151,9 +187,10 @@ class ShenlunAPITests(unittest.TestCase):
                 "retryable": False,
             }
         }
-        with patch.object(shenlun, "llm_grade") as grade_mock, patch.object(
-            shenlun, "llm_chat"
-        ) as chat_mock:
+        with (
+            patch.object(shenlun, "llm_grade") as grade_mock,
+            patch.object(shenlun, "llm_chat") as chat_mock,
+        ):
             responses = [
                 self.client.get(
                     "/api/shenlun/questions/not-provided", headers=self.headers_a
@@ -194,15 +231,15 @@ class ShenlunAPITests(unittest.TestCase):
                 0,
             )
 
-        first = GradingResult(
-            dimensions={"内容完整性": "一般", "语言表达": "优秀"},
-            overallComment="第一次批改",
-            suggestions=["补齐要点"],
+        first = valid_grade(
+            dimensions={"内容完整性": "一般"},
+            comment="第一次批改",
+            suggestions=["补齐要点", "分类表达", "核对题干"],
         )
-        second = GradingResult(
-            dimensions={"内容完整性": "一般", "语言表达": "优秀"},
-            overallComment="第二次批改",
-            suggestions=["继续精炼"],
+        second = valid_grade(
+            dimensions={"内容完整性": "一般"},
+            comment="第二次批改",
+            suggestions=["继续精炼", "补全要点", "复核材料"],
         )
         with patch.object(shenlun, "llm_grade", side_effect=[first, second]):
             for answer in ("第一次正式作答", "第二次正式作答"):
@@ -218,13 +255,18 @@ class ShenlunAPITests(unittest.TestCase):
                 self.assertTrue(meta["model"])
                 self.assertTrue(meta["provider"])
 
-        mistakes = self.client.get("/api/shenlun/mistakes", headers=self.headers_a).json()
+        mistakes = self.client.get(
+            "/api/shenlun/mistakes", headers=self.headers_a
+        ).json()
         self.assertEqual(len(mistakes), 1)
         self.assertEqual(mistakes[0]["studentAnswer"], "第二次正式作答")
         history = self.client.get("/api/shenlun/history", headers=self.headers_a).json()
         self.assertEqual(len(history), 3)  # one chat + two preserved grading attempts
         self.assertEqual(
-            sum(item["gradingResult"].get("recordType") == "grading" for item in history), 2
+            sum(
+                item["gradingResult"].get("recordType") == "grading" for item in history
+            ),
+            2,
         )
         self.assertEqual(
             self.client.get("/api/shenlun/mistakes", headers=self.headers_b).json(), []
@@ -241,10 +283,8 @@ class ShenlunAPITests(unittest.TestCase):
             evidence = conn.execute(
                 "SELECT user_id,evidence_type FROM learning_issue_evidence_v2"
             ).fetchall()
-            tasks = conn.execute(
-                """SELECT user_id,module_id,task_type,status,title
-                   FROM learning_tasks_v2"""
-            ).fetchall()
+            tasks = conn.execute("""SELECT user_id,module_id,task_type,status,title
+                   FROM learning_tasks_v2""").fetchall()
         self.assertEqual(len(activities), 2)
         self.assertTrue(all(row["user_id"] == 301 for row in activities))
         self.assertTrue(all(row["module_id"] == "shenlun.review" for row in activities))
@@ -253,15 +293,17 @@ class ShenlunAPITests(unittest.TestCase):
         self.assertEqual(issues[0]["issue_key"], "dimension:内容完整性")
         self.assertEqual(issues[0]["evidence_count"], 2)
         self.assertEqual(len(evidence), 2)
-        self.assertEqual(len(tasks), 1)  # redo adds evidence, not a duplicate active task
+        self.assertEqual(
+            len(tasks), 1
+        )  # redo adds evidence, not a duplicate active task
         self.assertEqual(tasks[0]["task_type"], "dimension_practice")
         self.assertEqual(tasks[0]["status"], "pending")
 
     def test_delete_and_clear_are_scoped_to_jwt_owner(self):
-        result = GradingResult(
+        result = valid_grade(
             dimensions={"逻辑结构": "一般"},
-            overallComment="需要调整",
-            suggestions=["先列提纲"],
+            comment="需要调整",
+            suggestions=["先列提纲", "合并同类项", "检查层次"],
         )
         with patch.object(shenlun, "llm_grade", return_value=result):
             self.client.post(
@@ -284,23 +326,37 @@ class ShenlunAPITests(unittest.TestCase):
         self.assertEqual({row["user_id"] for row in owners}, {301, 302})
         for owner_id in (301, 302):
             self.assertTrue(any(row["user_id"] == owner_id for row in owners))
-        mistake_a = self.client.get("/api/shenlun/mistakes", headers=self.headers_a).json()[0]
+        mistake_a = self.client.get(
+            "/api/shenlun/mistakes", headers=self.headers_a
+        ).json()[0]
         forbidden = self.client.delete(
             f"/api/shenlun/mistakes/{mistake_a['id']}", headers=self.headers_b
         )
         self.assertEqual(forbidden.status_code, 404)
-        self.assertEqual(len(self.client.get("/api/shenlun/mistakes", headers=self.headers_a).json()), 1)
+        self.assertEqual(
+            len(
+                self.client.get("/api/shenlun/mistakes", headers=self.headers_a).json()
+            ),
+            1,
+        )
 
         cleared = self.client.delete("/api/shenlun/mistakes", headers=self.headers_a)
         self.assertEqual(cleared.status_code, 200)
-        self.assertEqual(self.client.get("/api/shenlun/mistakes", headers=self.headers_a).json(), [])
-        self.assertEqual(len(self.client.get("/api/shenlun/mistakes", headers=self.headers_b).json()), 1)
+        self.assertEqual(
+            self.client.get("/api/shenlun/mistakes", headers=self.headers_a).json(), []
+        )
+        self.assertEqual(
+            len(
+                self.client.get("/api/shenlun/mistakes", headers=self.headers_b).json()
+            ),
+            1,
+        )
 
     def test_weakness_analysis_uses_only_valid_grading_attempts_and_skill(self):
-        grade_result = GradingResult(
+        grade_result = valid_grade(
             dimensions={"语言表达": "一般"},
-            overallComment="表达需要精炼",
-            suggestions=["缩短长句"],
+            comment="表达需要精炼",
+            suggestions=["缩短长句", "替换口语", "核对主谓"],
         )
         with patch.object(shenlun, "llm_chat", return_value="普通聊天"):
             self.client.post(
@@ -312,22 +368,200 @@ class ShenlunAPITests(unittest.TestCase):
                 headers=self.headers_a,
                 json={"questionId": "q3-2", "studentAnswer": "正式作答"},
             )
-        llm_json = json.dumps({
-            "weakDimensions": ["语言表达"],
-            "summary": "表达需要精炼",
-            "recommendations": ["缩短长句"],
-        }, ensure_ascii=False)
+        llm_json = json.dumps(
+            {
+                "weakDimensions": ["语言表达"],
+                "summary": "表达需要精炼",
+                "recommendations": ["缩短长句", "替换口语", "复盘病句"],
+            },
+            ensure_ascii=False,
+        )
         with patch("src.grader.call_llm_api", return_value=llm_json) as mocked:
             response = self.client.post(
                 "/api/shenlun/mistakes/analyze", headers=self.headers_a
             )
         self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(response.json()["status"], "completed")
         self.assertEqual(response.json()["recordsReviewed"], 1)
         self.assertEqual(response.json()["runMetadata"]["skillVersion"], "1.0.0")
         self.assertIn("飞扬", mocked.call_args.kwargs["system_prompt"])
 
+    def test_grader_rejects_invalid_schema_and_never_returns_raw_provider_text(self):
+        valid_payload = {
+            **VALID_DIMENSIONS,
+            "overallComment": "结构完整",
+            "suggestions": ["建议一", "建议二", "建议三"],
+        }
+        self.assertEqual(
+            grader.validate_grading_result(valid_payload).dimensions,
+            VALID_DIMENSIONS,
+        )
+        invalid_payloads = [
+            {**valid_payload, "格式规范": "满分"},
+            {**valid_payload, "逻辑结构": None},
+            {**valid_payload, "overallComment": " "},
+            {**valid_payload, "suggestions": ["只有一条"]},
+            {
+                "dimensions": {"内容完整性": "优秀"},
+                "overallComment": "不完整",
+                "suggestions": ["建议一", "建议二", "建议三"],
+            },
+        ]
+        for payload in invalid_payloads:
+            with self.subTest(payload=payload):
+                with self.assertRaisesRegex(
+                    grader.ProviderFailure, "provider_invalid_output"
+                ):
+                    grader.validate_grading_result(payload)
+
+        secret = "Authorization: Bearer sk-provider-secret"
+        create = MagicMock(
+            return_value=SimpleNamespace(
+                choices=[SimpleNamespace(message=SimpleNamespace(content=secret))]
+            )
+        )
+        client = SimpleNamespace(
+            chat=SimpleNamespace(completions=SimpleNamespace(create=create))
+        )
+        with (
+            patch.object(grader, "API_KEY", "test-key"),
+            patch.object(grader, "OpenAI", return_value=client),
+            patch.object(grader.time, "sleep"),
+            self.assertLogs("grader", level="WARNING") as captured,
+            self.assertRaisesRegex(grader.ProviderFailure, "provider_invalid_output"),
+        ):
+            grader.grade(question_model(), "学生作答")
+        self.assertEqual(create.call_count, 3)
+        self.assertNotIn(secret, "\n".join(captured.output))
+
+    def test_provider_failures_are_safe_and_write_no_learning_facts(self):
+        cases = (
+            (grader.ProviderFailure("provider_timeout"), 504, "provider_timeout"),
+            (
+                grader.ProviderFailure("provider_invalid_output"),
+                503,
+                "provider_invalid_output",
+            ),
+            (
+                RuntimeError("Authorization: Bearer sk-route-secret"),
+                503,
+                "provider_unavailable",
+            ),
+        )
+        for error, status, code in cases:
+            with (
+                self.subTest(code=code),
+                patch.object(shenlun, "llm_grade", side_effect=error),
+                self.assertLogs("shenlun", level="WARNING") as captured,
+            ):
+                response = self.client.post(
+                    "/api/shenlun/grade",
+                    headers=self.headers_a,
+                    json={"questionId": "q3-1", "studentAnswer": "测试作答"},
+                )
+            self.assertEqual(response.status_code, status, response.text)
+            self.assertEqual(response.json()["detail"]["code"], code)
+            self.assertTrue(response.json()["detail"]["retryable"])
+            self.assertNotIn("sk-route-secret", response.text)
+            self.assertNotIn("sk-route-secret", "\n".join(captured.output))
+
+        with database.get_db() as conn:
+            counts = {
+                table: conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
+                for table in (
+                    "shenlun_history",
+                    "shenlun_mistakes",
+                    "learning_activities_v2",
+                    "learning_issues_v2",
+                    "learning_issue_evidence_v2",
+                    "learning_tasks_v2",
+                )
+            }
+        self.assertEqual(set(counts.values()), {0}, counts)
+
+    def test_chat_and_analysis_failures_are_redacted_and_never_fabricate_results(self):
+        secret = "upstream said sk-chat-analysis-secret"
+        with (
+            patch.object(shenlun, "llm_chat", side_effect=RuntimeError(secret)),
+            self.assertLogs("shenlun", level="WARNING") as chat_logs,
+        ):
+            chat = self.client.post(
+                "/api/shenlun/chat",
+                headers=self.headers_a,
+                json={"questionId": "q3-1", "message": "请讲解方法"},
+            )
+        self.assertEqual(chat.status_code, 503, chat.text)
+        self.assertEqual(chat.json()["detail"]["code"], "provider_unavailable")
+        self.assertNotIn(secret, chat.text)
+        self.assertNotIn(secret, "\n".join(chat_logs.output))
+        with database.get_db() as conn:
+            self.assertEqual(
+                conn.execute("SELECT COUNT(*) FROM shenlun_history").fetchone()[0], 0
+            )
+
+        with patch.object(
+            shenlun,
+            "llm_grade",
+            return_value=valid_grade(dimensions={"内容完整性": "一般"}),
+        ):
+            graded = self.client.post(
+                "/api/shenlun/grade",
+                headers=self.headers_a,
+                json={"questionId": "q3-1", "studentAnswer": "有效作答"},
+            )
+        self.assertEqual(graded.status_code, 200, graded.text)
+        with database.get_db() as conn:
+            before = {
+                table: conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
+                for table in (
+                    "shenlun_history",
+                    "shenlun_mistakes",
+                    "learning_activities_v2",
+                    "learning_issues_v2",
+                    "learning_issue_evidence_v2",
+                    "learning_tasks_v2",
+                )
+            }
+
+        with (
+            patch("src.grader.call_llm_api", side_effect=RuntimeError(secret)),
+            self.assertLogs("shenlun", level="WARNING") as analysis_logs,
+        ):
+            analysis = self.client.post(
+                "/api/shenlun/mistakes/analyze", headers=self.headers_a
+            )
+        self.assertEqual(analysis.status_code, 200, analysis.text)
+        self.assertEqual(analysis.json()["status"], "unavailable")
+        self.assertEqual(analysis.json()["errorCode"], "provider_unavailable")
+        self.assertEqual(analysis.json()["recommendations"], [])
+        self.assertNotIn(secret, analysis.text)
+        self.assertNotIn(secret, "\n".join(analysis_logs.output))
+
+        with (
+            patch("src.grader.call_llm_api", return_value=f"not-json {secret}"),
+            self.assertLogs("shenlun", level="WARNING") as invalid_logs,
+        ):
+            invalid = self.client.post(
+                "/api/shenlun/mistakes/analyze", headers=self.headers_a
+            )
+        self.assertEqual(invalid.status_code, 200, invalid.text)
+        self.assertEqual(invalid.json()["status"], "unavailable")
+        self.assertEqual(invalid.json()["errorCode"], "provider_invalid_output")
+        self.assertEqual(invalid.json()["recommendations"], [])
+        self.assertNotIn(secret, invalid.text)
+        self.assertNotIn(secret, "\n".join(invalid_logs.output))
+
+        with database.get_db() as conn:
+            after = {
+                table: conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
+                for table in before
+            }
+        self.assertEqual(after, before)
+
     def test_skill_loader_fails_closed_when_required_files_are_missing(self):
-        with patch.object(prompt_builder, "SKILL_DIR", Path(_TEMP_DIR.name) / "missing-skill"):
+        with patch.object(
+            prompt_builder, "SKILL_DIR", Path(_TEMP_DIR.name) / "missing-skill"
+        ):
             with self.assertRaisesRegex(RuntimeError, "Required Feiyang skill file"):
                 prompt_builder.get_skill_metadata()
 
