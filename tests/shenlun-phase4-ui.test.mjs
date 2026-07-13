@@ -20,6 +20,65 @@ test('formal grading and ordinary questions are separate actions', () => {
   assert.match(page, /向老师提问，不进入错题本/);
 });
 
+test('formal grading reuses one idempotency key across network and pending retries', async () => {
+  const start = page.indexOf('function responseMessage(');
+  const end = page.indexOf('// ─── Vue App', start);
+  assert.ok(start >= 0 && end > start);
+  const calls = [];
+  const responses = [
+    {
+      status: 409,
+      ok: false,
+      async json() {
+        return {detail:{code:'idempotency_in_progress',message:'仍在处理'}};
+      },
+    },
+    {
+      status: 200,
+      ok: true,
+      async json() {
+        return {id:'same-result'};
+      },
+    },
+  ];
+  const context = {
+    window: {crypto:{randomUUID:()=> 'fixed-grade-key'}},
+    setTimeout(callback) { callback(); },
+    apiFetch: async (path, options) => {
+      calls.push({path, options});
+      return responses.shift();
+    },
+  };
+  vm.runInNewContext(
+    `${page.slice(start, end)}\nglobalThis.gradeHelpers={responseMessage,createGradeRequestKey,requestFormalGrade};`,
+    context,
+  );
+  assert.equal(context.gradeHelpers.createGradeRequestKey(), 'fixed-grade-key');
+  const result = await context.gradeHelpers.requestFormalGrade(
+    {questionId:'q3-1',studentAnswer:'同一作答'},
+    'fixed-grade-key',
+  );
+  assert.equal(result.response.status, 200);
+  assert.equal(result.body.id, 'same-result');
+  assert.equal(calls.length, 2);
+  assert.ok(calls.every(call => call.path === '/api/shenlun/grade'));
+  assert.ok(calls.every(call => call.options.headers['Idempotency-Key'] === 'fixed-grade-key'));
+  assert.equal(calls[0].options.body, calls[1].options.body);
+  assert.equal(
+    context.gradeHelpers.responseMessage({detail:{message:'可读错误'}}, '后备'),
+    '可读错误',
+  );
+});
+
+test('a retryable grade stays attached to its original answer and key', () => {
+  assert.match(page, /let pendingGradeAttempt=null/);
+  assert.match(page, /pendingGradeAttempt&&pendingGradeAttempt\.questionId===questionId&&pendingGradeAttempt\.studentAnswer===text/);
+  assert.match(page, /\{questionId,studentAnswer:text,key:createGradeRequestKey\(\),displayed:false\}/);
+  assert.match(page, /e\.code!==['"]network_unavailable['"]&&e\.code!==['"]idempotency_in_progress['"]/);
+  assert.match(page, /inputText\.value=text/);
+  assert.doesNotMatch(page, /throw new Error\(e\.detail\|\|['"]批改失败['"]\)/);
+});
+
 test('question source truth is loaded and missing content disables grading', () => {
   assert.match(page, /\/api\/shenlun\/catalog/);
   assert.match(page, /questionSourceUnavailable/);

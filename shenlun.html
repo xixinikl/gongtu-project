@@ -948,6 +948,42 @@ function apiFetch(path, options = {}) {
 function checkAuth() {
   if (!getToken()) { window.location.href = API_BASE + '/'; }
 }
+function responseMessage(payload,fallback){
+  const detail=payload&&payload.detail
+  return typeof detail==='string' ? detail : (detail&&detail.message)||fallback
+}
+function createGradeRequestKey(){
+  if(window.crypto&&typeof window.crypto.randomUUID==='function') return window.crypto.randomUUID()
+  return 'grade-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2)
+}
+function waitForGradeRetry(delay){
+  return new Promise(resolve=>setTimeout(resolve,delay))
+}
+async function requestFormalGrade(payload,key){
+  const retryDelays=[0,600,1200,2400,4800]
+  let lastNetworkError=null
+  for(let attempt=0;attempt<retryDelays.length;attempt+=1){
+    if(retryDelays[attempt]) await waitForGradeRetry(retryDelays[attempt])
+    try{
+      const response=await apiFetch('/api/shenlun/grade',{
+        method:'POST',
+        headers:{'Idempotency-Key':key},
+        body:JSON.stringify(payload)
+      })
+      const body=await response.json().catch(()=>({}))
+      const code=body&&body.detail&&body.detail.code
+      if(response.status===409&&code==='idempotency_in_progress'&&attempt<retryDelays.length-1) continue
+      return {response,body}
+    }catch(error){
+      lastNetworkError=error
+      if(attempt===retryDelays.length-1) break
+    }
+  }
+  const error=new Error('网络连接中断，已保留本次提交，可再次点击继续查询。')
+  error.code='network_unavailable'
+  error.cause=lastNetworkError
+  throw error
+}
 
 // ─── Vue App ─────────────────────────────────────────────────────────
 const {createApp,ref,computed,nextTick,onMounted} = Vue
@@ -970,6 +1006,7 @@ createApp({
     const mistakeCount = ref(0)
     const analysis = ref(null)
     const analyzing = ref(false)
+    let pendingGradeAttempt=null
     const questionSourceUnavailable = computed(()=>catalog.value.catalogStatus==='not-provided')
 
     const types = computed(()=>[...new Set(questions.value.map(q=>q.type))].sort())
@@ -977,11 +1014,6 @@ createApp({
       if(filterType.value==='全部') return questions.value
       return questions.value.filter(q=>q.type===filterType.value)
     })
-
-    function responseMessage(payload,fallback){
-      const detail=payload&&payload.detail
-      return typeof detail==='string' ? detail : (detail&&detail.message)||fallback
-    }
 
     async function loadQuestions(){
       questionSourceError.value=''; questionError.value=''
@@ -1046,7 +1078,7 @@ createApp({
         const body={message:text}
         if(selectedQuestion.value) body.questionId=selectedQuestion.value.id
         const r=await apiFetch('/api/shenlun/chat',{method:'POST',body:JSON.stringify(body)})
-        if(!r.ok){const e=await r.json();throw new Error(e.detail||'请求失败')}
+        if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(responseMessage(e,'请求失败'))}
         const d=await r.json()
         messages.value.push({role:'ai',content:d.reply,formatted:formatTeacherReview(d.reply)})
         await scrollToBottom()
@@ -1062,18 +1094,33 @@ createApp({
     async function gradeAnswer(){
       const text=inputText.value.trim()
       if(!selectedQuestion.value||!text||loading.value||questionSourceUnavailable.value||questionError.value)return
-      messages.value.push({role:'user',content:text})
+      const questionId=selectedQuestion.value.id
+      const attempt=pendingGradeAttempt&&pendingGradeAttempt.questionId===questionId&&pendingGradeAttempt.studentAnswer===text
+        ? pendingGradeAttempt
+        : {questionId,studentAnswer:text,key:createGradeRequestKey(),displayed:false}
+      pendingGradeAttempt=attempt
+      if(!attempt.displayed){
+        messages.value.push({role:'user',content:text})
+        attempt.displayed=true
+      }
       inputText.value=''; loading.value=true
       await scrollToBottom()
       try{
-        const r=await apiFetch('/api/shenlun/grade',{method:'POST',body:JSON.stringify({
-          questionId:selectedQuestion.value.id, studentAnswer:text
-        })})
-        if(!r.ok){const e=await r.json();throw new Error(e.detail||'批改失败')}
-        const d=await r.json()
+        const {response,body}=await requestFormalGrade({
+          questionId:attempt.questionId,studentAnswer:attempt.studentAnswer
+        },attempt.key)
+        if(!response.ok){
+          const error=new Error(responseMessage(body,'批改失败'))
+          error.code=body&&body.detail&&body.detail.code
+          throw error
+        }
+        const d=body
+        pendingGradeAttempt=null
         messages.value.push({role:'ai',content:JSON.stringify(d.gradingResult),formatted:formatTeacherReview(d.gradingResult)})
         await loadMistakes(); await scrollToBottom()
       }catch(e){
+        if(e.code!=='network_unavailable'&&e.code!=='idempotency_in_progress') pendingGradeAttempt=null
+        inputText.value=text
         messages.value.push({role:'ai',content:'批改失败：'+e.message,formatted:'<span style="color:#c4493a">批改失败：'+_esc(e.message)+'</span>'})
       }finally{ loading.value=false; nextTick(()=>inputEl.value?.focus()) }
     }
@@ -1115,7 +1162,7 @@ createApp({
     async function deleteMistake(m){
       if(!confirm('确定删除这条问题记录？批改历史仍会保留。'))return
       const r=await apiFetch('/api/shenlun/mistakes/'+encodeURIComponent(m.id),{method:'DELETE'})
-      if(!r.ok){const e=await r.json().catch(()=>({}));gontuToast(e.detail||'删除失败','error');return}
+      if(!r.ok){const e=await r.json().catch(()=>({}));gontuToast(responseMessage(e,'删除失败'),'error');return}
       await loadMistakes(); analysis.value=null
     }
 
@@ -1123,7 +1170,7 @@ createApp({
       analyzing.value=true; analysis.value=null
       try{
         const r=await apiFetch('/api/shenlun/mistakes/analyze',{method:'POST'})
-        if(!r.ok){const e=await r.json();throw new Error(e.detail||'分析失败')}
+        if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(responseMessage(e,'分析失败'))}
         analysis.value=await r.json()
       }catch(e){alert('分析失败：'+e.message)}
       finally{analyzing.value=false}
@@ -1177,7 +1224,7 @@ createApp({
     async function clearMistakes(){
       if(!confirm('确定清空所有错题记录？此操作不可恢复。')) return
       const r=await apiFetch('/api/shenlun/mistakes',{method:'DELETE'})
-      if(!r.ok){const e=await r.json().catch(()=>({}));gontuToast(e.detail||'清空失败','error');return}
+      if(!r.ok){const e=await r.json().catch(()=>({}));gontuToast(responseMessage(e,'清空失败'),'error');return}
       mistakes.value=[]; mistakeCount.value=0; analysis.value=null
     }
 
