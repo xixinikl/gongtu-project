@@ -9,7 +9,7 @@
 - PR #20 为 Draft、CLEAN；远端仅含 `755cb96`，本地 `0aae184` 仅新增实时预览 CI，工作树干净且领先远端 1 个提交。
 - 与工作流一致的 Node 24 合同测试 3/3、启动器语法和 Python 编译均通过。
 - 完整 `npm run test:geometry` 的两项失败是既有 `backend/.env.example` 缺失和登录安全回跳合同缺失，均不在预览提交 diff 中；不混入 #20。
-- 当前唯一阻塞是 OAuth App 缺 GitHub `workflow` scope；实际推送被拒绝，因而不能推送含 `.github/workflows/realtime-preview-ci.yml` 的 `0aae184` 或触发远端 CI。不会改写凭证、不自行 Ready/批准/合并。详情见 `doc/REALTIME_PREVIEW_CLOSURE.md`。
+- `workflow` 授权已恢复，`0aae184` 与 Goal 记录已推送；实时预览的 GitHub push/PR workflow 均成功。PR #20 仍为 Draft/CLEAN、无审阅意见，接下来仅等待用户或仓库流程决定 Ready、审阅和合并。详情见 `doc/REALTIME_PREVIEW_CLOSURE.md`。
 
 ## 当前任务
 

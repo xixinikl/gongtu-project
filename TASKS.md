@@ -15,9 +15,9 @@
 
 ## 当前独立 Goal
 
-- [ ] ◐ RTP-1—4 PR #20 实时预览收口：核对未推送 CI 提交、验证隔离预览合同、路由基线失败，并等待有 GitHub contents 写入权限的流程推送和触发远端 CI。
-  - 当前结果：PR #20 为 Draft/CLEAN，`0aae184` 只新增预览 CI；Node 24 专项 3/3、启动器语法与 Python 编译通过。
-  - 外部边界：完整基线的两个失败不属于本 PR；实际推送证明 OAuth App 缺 GitHub `workflow` scope，故不改凭证、不伪称远端 CI 已跑。
+- [x] ● RTP-1—4 PR #20 实时预览收口：已核对未推送 CI 提交、验证隔离预览合同、路由基线失败，并成功推送及触发远端 CI。
+  - 当前结果：PR #20 为 Draft/CLEAN，`0aae184` 只新增预览 CI；Node 24 专项 3/3、启动器语法与 Python 编译通过；GitHub push/PR workflow 均成功。
+  - 外部边界：完整基线的两个失败不属于本 PR；是否 Ready、审阅或合并仍由用户/仓库流程决定。
   - 权威记录：`doc/REALTIME_PREVIEW_CLOSURE.md`。
 
 ## 交接与上传
