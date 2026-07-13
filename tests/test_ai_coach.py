@@ -82,7 +82,9 @@ class AICoachTests(unittest.TestCase):
         self.assertEqual(self.client.post("/api/ai-coach/threads", headers=self.b, json={
             "module_id": "quantity.exam", "activity_id": "activity-a"}).status_code, 404)
         modules = self.client.get("/api/ai-coach/modules", headers=self.a).json()
-        self.assertIn("quantity.exam", [item["id"] for item in modules])
+        self.assertIn("quantity.exam", [item["id"] for item in modules["modules"]])
+        self.assertFalse(modules["provider"]["configured"])
+        self.assertNotIn("api_key", modules["provider"])
         filtered = self.client.get("/api/ai-coach/threads?module_id=quantity.exam", headers=self.a).json()
         self.assertEqual(len(filtered), 1)
 

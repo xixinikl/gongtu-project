@@ -41,6 +41,7 @@ test('persists threads, renders loading and failure, and supports explicit retry
   assert.match(html, /id="retryBtn"/);
   assert.match(html, /async function retry/);
   assert.match(html, /发送失败，问题已保存/);
+  assert.match(html, /AI 待配置 · 可查看历史/);
 });
 
 test('problem proposals require an explicit save action', () => {

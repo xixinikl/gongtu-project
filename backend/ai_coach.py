@@ -423,7 +423,10 @@ def modules(user: dict = Depends(require_user)):
         label, description = MODULE_LABELS[module]
         result.append({"id": module, "label": label, "description": description,
                        "skill_id": enabled[registry_module]["skill_id"], "skill_version": enabled[registry_module]["version"]})
-    return result
+    return {
+        "modules": result,
+        "provider": load_verbal_ai_settings().safe_summary(),
+    }
 
 
 @router.post("/threads", status_code=201)

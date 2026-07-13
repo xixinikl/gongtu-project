@@ -743,7 +743,7 @@
       saveProposal: proposalId => `/api/ai-coach/issue-proposals/${encodeURIComponent(proposalId)}/save`
     });
     const MODULE_ALIASES = Object.freeze({'言语理解':'verbal.reading','申论':'shenlun.review','数量关系':'quantity.practice','图形推理':'reasoning.spatial','学习规划':'planning.global'});
-    const state = {modules:[],activeModule:'',threads:[],thread:null,lastFailedRun:null,sending:false};
+    const state = {modules:[],activeModule:'',threads:[],thread:null,lastFailedRun:null,sending:false,providerConfigured:false};
     const $ = id => document.getElementById(id);
 
     function safeReturnUrl() {
@@ -813,7 +813,7 @@
     async function sendMessage(){const content=$('questionInput').value.trim();if(!content||state.sending)return;if(!state.thread)await newThread();if(!state.thread)return;state.sending=true;$('askBtn').disabled=true;$('providerStatus').textContent='AI 正在思考';clearFailure();const pending={role:'user',content,status:'sending'};state.thread.messages=[...(state.thread.messages||[]),pending];renderMessages();try{const payload=await api(API.messages(state.thread.id),{method:'POST',body:JSON.stringify({content,client_message_id:crypto.randomUUID()})});$('questionInput').value='';applyThread(payload);}catch(error){pending.status='failed';renderMessages();showFailure(error);}finally{state.sending=false;$('askBtn').disabled=false;}}
     async function retry(){if(!state.thread||!state.lastFailedRun)return;try{clearFailure();applyThread(await api(API.retry(state.thread.id,state.lastFailedRun),{method:'POST'}));}catch(error){showFailure(error,state.lastFailedRun);}}
     async function saveProposal(id,button){try{button.disabled=true;await api(API.saveProposal(id),{method:'POST'});button.textContent='已保存';if(state.thread){const p=(state.thread.issue_proposals||[]).find(item=>item.id===id);if(p)p.saved=true;}}catch(error){button.disabled=false;showFailure(error);}}
-    async function init(){ $('returnLink').href=safeReturnUrl(); try{const payload=await api(API.modules);state.modules=arrayPayload(payload,'modules');const requested=moduleIdFromQuery();state.activeModule=state.modules.some(m=>m.id===requested)?requested:(state.modules[0]?.id||'');renderModules();if(state.activeModule)await selectModule(state.activeModule);$('providerStatus').textContent='教练服务已连接';}catch(error){if(error.message!=='auth_required')showFailure(error);}}
+    async function init(){ $('returnLink').href=safeReturnUrl(); try{const payload=await api(API.modules);state.modules=arrayPayload(payload,'modules');state.providerConfigured=payload?.provider?.configured===true;const requested=moduleIdFromQuery();state.activeModule=state.modules.some(m=>m.id===requested)?requested:(state.modules[0]?.id||'');renderModules();if(state.activeModule)await selectModule(state.activeModule);$('providerStatus').textContent=state.providerConfigured?'AI 教练可用':'AI 待配置 · 可查看历史';}catch(error){if(error.message!=='auth_required')showFailure(error);}}
     $('newThreadBtn').addEventListener('click',newThread);$('askBtn').addEventListener('click',sendMessage);$('retryBtn').addEventListener('click',retry);$('questionInput').addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage();}});init();
   </script>
 </body>
