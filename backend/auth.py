@@ -7,15 +7,70 @@ import json
 import os
 import secrets
 import time
+from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.security import HTTPBearer
 from pydantic import BaseModel
 
 # ── Config ─────────────────────────────────────────────────────
-JWT_SECRET = b"gontu-unified-secret-key-change-in-production"  # bytes
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRE_SECONDS = 7 * 24 * 3600  # 7 days
+_MIN_JWT_SECRET_BYTES = 32
+_RETIRED_PUBLIC_SECRET = b"gontu-unified-secret-key-change-in-production"
+
+
+def _validate_jwt_secret(raw: str | bytes, *, source: str) -> bytes:
+    secret = raw.encode("utf-8") if isinstance(raw, str) else raw
+    secret = secret.strip()
+    if len(secret) < _MIN_JWT_SECRET_BYTES:
+        raise RuntimeError(f"JWT secret from {source} must contain at least 32 bytes")
+    if secrets.compare_digest(secret, _RETIRED_PUBLIC_SECRET):
+        raise RuntimeError(f"JWT secret from {source} uses a retired public value")
+    return secret
+
+
+def _default_jwt_secret_file() -> Path:
+    configured = os.environ.get("GONTU_JWT_SECRET_FILE", "").strip()
+    if configured:
+        return Path(configured).expanduser()
+    database_path = Path(
+        os.environ.get("GONTU_DB_PATH", str(Path(__file__).resolve().parent / "data.db"))
+    ).expanduser()
+    return database_path.parent / ".gontu-jwt-secret"
+
+
+def _load_jwt_secret() -> bytes:
+    configured = os.environ.get("GONTU_JWT_SECRET", "").strip()
+    if configured:
+        return _validate_jwt_secret(configured, source="GONTU_JWT_SECRET")
+
+    environment = os.environ.get("GONTU_ENV", "development").strip().lower()
+    if environment in {"prod", "production"}:
+        raise RuntimeError("GONTU_JWT_SECRET is required when GONTU_ENV=production")
+
+    secret_file = _default_jwt_secret_file()
+    secret_file.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        stored = secret_file.read_bytes()
+    except FileNotFoundError:
+        generated = secrets.token_urlsafe(48).encode("ascii")
+        try:
+            descriptor = os.open(secret_file, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        except FileExistsError:
+            stored = secret_file.read_bytes()
+        else:
+            with os.fdopen(descriptor, "wb") as handle:
+                handle.write(generated)
+            stored = generated
+    try:
+        secret_file.chmod(0o600)
+    except OSError:
+        pass
+    return _validate_jwt_secret(stored, source=str(secret_file))
+
+
+JWT_SECRET = _load_jwt_secret()
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 security = HTTPBearer(auto_error=False)
