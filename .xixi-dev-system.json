@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "projectName": "xixi_gongtu",
+  "repository": "https://github.com/xixinikl/gongtu-project.git",
+  "defaultBranch": "main",
+  "runtime": {
+    "manager": "uv",
+    "python": "3.11",
+    "startCommand": "XDS_PYTHON={python} node tools/realtime-preview.mjs",
+    "doctorCommand": "npm run doctor",
+    "portEnvironment": "PORT",
+    "additionalPortEnvironments": [
+      "API_PORT"
+    ],
+    "dataNamespaceEnvironment": "XDS_DATA_NAMESPACE",
+    "updateStrategy": "live-reload",
+    "workingDirectory": ".",
+    "requirements": [
+      "backend/requirements.txt"
+    ],
+    "dataEnvironment": {
+      "GONTU_DB_PATH": ".xds/data/{namespace}/gongtu.sqlite",
+      "GONTU_LOG_DIR": ".xds/data/{namespace}/logs"
+    }
+  },
+  "collaboration": {
+    "focusAuthors": [],
+    "riskPathPatterns": [
+      "auth",
+      "payment",
+      "migration",
+      "deploy",
+      "secret"
+    ]
+  },
+  "quality": {
+    "acceptanceCommand": "npm run doctor",
+    "autofixCommand": "",
+    "autofixPaths": []
+  },
+  "learning": {
+    "projectRetrospectiveDirectory": "doc/retrospectives",
+    "sharedProfileRepository": "https://github.com/xixinikl/xixi-agent-profile"
+  }
+}

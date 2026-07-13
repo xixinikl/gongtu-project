@@ -906,7 +906,7 @@ function _iconBrush() {
 }
 
 // ─── JWT 认证 helpers ────────────────────────────────────────────────
-const API_BASE = 'http://127.0.0.1:8888';
+const API_BASE = window.__GONTU_API_BASE__ || location.origin;
 function getToken() {
   return localStorage.getItem('gontu_token');
 }

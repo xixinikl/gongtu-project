@@ -814,7 +814,7 @@ setTimeout(normalizeStageWidths, 600);
 })();
 
 // ===== 错题集成 =====
-const API_BASE='http://127.0.0.1:8888';
+const API_BASE=window.__GONTU_API_BASE__ || location.origin;
 const GONTU_TOKEN_KEY='gontu_token';
 
 async function api(path,opts={}){
