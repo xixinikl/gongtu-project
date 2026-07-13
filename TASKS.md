@@ -17,7 +17,8 @@
 - [x] ● GT-P6-1E 可移植预览与Python环境：补齐无缓存静态服务的 open/serve、独立端口和安全路径；补齐跨平台 Python 3.10+ venv 助手；旧 Demo 预览改到正式数量页与真实AI教练页。
   - 结果：不同worktree不会静默复用他人8089；可用 `GONTU_STATIC_PORT` 独立启动；`GONTU_NO_OPEN=1` 支持CI验证；`python:venv`不再指向缺失文件。
   - 验证：8096端口两条正式预览均HTTP200、no-cache；status识别正确PID、stop成功；Python3.12探测通过；两个脚本语法与diff检查通过。
-- [ ] ◐ GT-P6-1F 数量数据门禁可移植：让 `npm run quantity:ci` 在干净工作树直接验证已提交600题portable seed、60套/71媒体/答案事实与42题解析视觉边界，不依赖未跟踪output。
+- [x] ● GT-P6-1F 数量数据门禁可移植：批准导出识别 `full_visual_set_audit`，portable导出归一化审计字段；CI在干净工作树验证600题、60套、71媒体、第28套、第8套q7和42题解析视觉边界，并已证明会拒绝当前1800个陈旧字段。
+- [ ] ◐ GT-P6-1G 数量portable seed迁移：用修正后的导出器重建已提交seed/manifest，确保600题不再标为OCR未知来源或待重查，干净工作树 `npm run quantity:ci` 通过且仍明确42题解析视觉未完成。
 - [x] ● GT-P6-4A JWT 签名安全：删除仓库公开固定密钥；本地使用0600持久随机密钥，生产环境强制显式配置；证明旧公开密钥不能伪造用户身份且重启后登录态稳定。
   - 结果：旧公开 HMAC 值已退役；本地按数据库目录生成并复用0600随机密钥；生产只接受至少32字节且非旧公开值的 `GONTU_JWT_SECRET`。
   - 验证：安全专项 3/3（旧密钥伪造拒绝、跨重启稳定、生产 fail closed）；既有 API 分进程 61/61；`py_compile` 与 `git diff --check` 通过。

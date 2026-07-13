@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
 const root = resolve(new URL('..', import.meta.url).pathname);
@@ -23,6 +23,121 @@ function hasUsableQuestionMedia(media) {
       && item.crop_box.length === 4
       && item.crop_box.every(value => Number.isFinite(Number(value)))
       && !/解析/.test(item.source_pdf || ''));
+}
+
+function validatePortableApprovedSeed() {
+  const approved = readJson('data', 'quantity_bank', 'approved_seed.json');
+  const manifest = readJson('data', 'quantity_bank', 'approved_seed_manifest.json');
+  const expectedTier = 'manual_or_original_page_verified';
+  const expectedStage = 'approved_seed_from_full_visual_audit';
+  const seenIds = new Set();
+  const seenPositions = new Set();
+  const seenAssets = new Set();
+  const setCounts = new Map();
+  let mediaCount = 0;
+
+  if (!Array.isArray(approved) || approved.length !== 600) {
+    fail(`portable approved count is ${approved?.length}, expected 600`);
+  }
+
+  for (const item of approved) {
+    const position = `${item.set_no}:${item.question_no}`;
+    if (!item.id || seenIds.has(item.id)) fail(`portable duplicate/missing id: ${item.id || position}`);
+    if (seenPositions.has(position)) fail(`portable duplicate set/question position: ${position}`);
+    seenIds.add(item.id);
+    seenPositions.add(position);
+    setCounts.set(item.set_no, (setCounts.get(item.set_no) || 0) + 1);
+
+    if (!item.stem?.trim()) fail(`portable item missing stem: ${item.id}`);
+    if (!item.analysis?.trim()) fail(`portable item missing analysis: ${item.id}`);
+    if (!item.tags?.primary_topic?.trim()) fail(`portable item missing primary_topic: ${item.id}`);
+    const optionKeys = Array.isArray(item.options) ? item.options.map(option => option?.key) : [];
+    if (optionKeys.length < 2 || optionKeys.some((key, index) => key !== String.fromCharCode(65 + index))) {
+      fail(`portable item has non-continuous options: ${item.id}`);
+    }
+    if (new Set(optionKeys).size !== optionKeys.length || !optionKeys.includes(item.answer)) {
+      fail(`portable item answer/options mismatch: ${item.id}`);
+    }
+    if (item.options?.some(option => !option?.text?.trim())) fail(`portable item has empty option: ${item.id}`);
+    if (item.tags?.answer_source !== 'full_visual_set_audit') fail(`portable item has unapproved answer source: ${item.id}`);
+    if (item.tags?.answer_audit_tier !== expectedTier) fail(`portable item has stale answer audit tier: ${item.id}`);
+    if (item.tags?.answer_requires_original_recheck !== false) fail(`portable item incorrectly requires answer recheck: ${item.id}`);
+    if (item.source?.verified_repair?.type !== 'full_visual_set_audit') fail(`portable item lacks visual repair evidence: ${item.id}`);
+    if (item.source?.processing_stage !== expectedStage) fail(`portable item has stale processing stage: ${item.id}`);
+
+    for (const media of item.media || []) {
+      mediaCount += 1;
+      if (media?.type !== 'question_figure_crop') fail(`portable item has unsupported media type: ${item.id}`);
+      const asset = media?.asset || '';
+      if (!asset.startsWith('data/quantity_bank/approved_media/')) fail(`portable media escapes approved directory: ${item.id}`);
+      if (seenAssets.has(asset)) fail(`portable media asset reused: ${asset}`);
+      seenAssets.add(asset);
+      if (!existsSync(join(root, asset))) fail(`portable media file missing: ${asset}`);
+    }
+  }
+
+  for (let setNo = 1; setNo <= 60; setNo += 1) {
+    if (setCounts.get(setNo) !== 10) fail(`portable set ${setNo} has ${setCounts.get(setNo) || 0} questions, expected 10`);
+  }
+  if (setCounts.size !== 60) fail(`portable set count is ${setCounts.size}, expected 60`);
+  const set28 = approved.filter(item => item.set_no === 28).sort((a, b) => a.question_no - b.question_no);
+  if (set28.map(item => item.answer).join('') !== 'DABDCCBCCB') fail('portable set28 answer gate failed');
+  const set08q07 = approved.find(item => item.set_no === 8 && item.question_no === 7);
+  if (set08q07?.options?.map(item => item.key).join('') !== 'ABCDEFGH' || set08q07?.answer !== 'E') {
+    fail('portable set08 q07 A-H/E gate failed');
+  }
+
+  const mediaDirectory = join(root, 'data', 'quantity_bank', 'approved_media');
+  const mediaFiles = existsSync(mediaDirectory)
+    ? readdirSync(mediaDirectory, { withFileTypes: true }).filter(entry => entry.isFile()).length
+    : 0;
+  if (mediaCount !== 71 || seenAssets.size !== 71 || mediaFiles !== 71) {
+    fail(`portable media counts are references=${mediaCount}, unique=${seenAssets.size}, files=${mediaFiles}; expected 71`);
+  }
+  if (manifest.question_count !== 600 || manifest.set_count !== 60 || manifest.media_count !== 71) {
+    fail('portable manifest count gate failed');
+  }
+  if (manifest.answer_source !== 'full_visual_set_audit') fail('portable manifest answer source gate failed');
+  if (manifest.set28_answers !== 'DABDCCBCCB') fail('portable manifest set28 gate failed');
+  if (manifest.set08_q07?.option_keys !== 'ABCDEFGH' || manifest.set08_q07?.answer !== 'E') {
+    fail('portable manifest set08 q07 gate failed');
+  }
+  if (manifest.analysis_visual_audit?.status !== 'incomplete'
+      || manifest.analysis_visual_audit?.known_reference_questions !== 42) {
+    fail('portable manifest must preserve the incomplete 42-question analysis visual boundary');
+  }
+
+  const productionPracticePath = join(root, 'quantity-practice.html');
+  const productionPractice = readFileSync(productionPracticePath, 'utf8');
+  if (!productionPractice.includes('/api/quantity/')) {
+    fail('production quantity practice does not read the authenticated quantity API');
+  }
+
+  if (failures.length) {
+    console.error(`Quantity portable CI failed: ${failures.length}`);
+    console.error(failures.slice(0, 80).join('\n'));
+    process.exit(1);
+  }
+
+  console.log(JSON.stringify({
+    status: 'quantity_portable_ci_passed',
+    approved: approved.length,
+    sets: setCounts.size,
+    media: mediaCount,
+    answer_source: manifest.answer_source,
+    answer_audit_tier: expectedTier,
+    answer_recheck_recommended: 0,
+    set28_answers: manifest.set28_answers,
+    set08_q07: manifest.set08_q07,
+    analysis_visual_audit: manifest.analysis_visual_audit,
+    public_demo_source: 'authenticated_quantity_api'
+  }, null, 2));
+}
+
+const generatedCleanPath = join(root, 'output', 'quantity-bank', 'clean_candidates', 'all_questions.json');
+if (!existsSync(generatedCleanPath)) {
+  validatePortableApprovedSeed();
+  process.exit(0);
 }
 
 const clean = readJson('output', 'quantity-bank', 'clean_candidates', 'all_questions.json');
