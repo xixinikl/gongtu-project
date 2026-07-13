@@ -28,7 +28,8 @@
 - GT-P6-1D 已完成：Ruff、mypy 26文件、Bandit中高危、依赖、Python64/64、Node620/620、跨平台16/16、Goal lint全部通过。
 - GT-P6-1E 已完成：无缓存静态服务支持独立端口/open/serve，正式数量与AI页HTTP200；Python venv助手可移植且命令不再悬空。
 - GT-P6-1F 已完成：批准导出正确识别600题全量视觉核验，portable导出会归一化审计字段；数量CI在没有未跟踪output时直接执行60套/600题/71媒体/答案与42题解析视觉边界门禁，并能拒绝当前1800个陈旧字段。
-- 当前 GT-P6-1G：重新导出已提交portable seed与manifest，消除旧OCR阶段标记后使干净工作树 `npm run quantity:ci` 通过。
+- GT-P6-1G 已完成：600题portable seed只迁移 `answer_audit_tier`、`answer_requires_original_recheck`、`processing_stage` 三个审计字段；答案、题文与71媒体零变化。干净工作树数量CI通过，42题解析视觉边界仍为 `incomplete`。
+- 当前 GT-P6-2A：修复平面图推、申论与AI教练写死8888导致的跨后端串库，统一独立端口/正式部署同源API合同。
 
 ## Phase 5 已完成
 
@@ -60,6 +61,6 @@
 
 ## 下一步
 
-1. 完成 GT-P6-1G portable seed元数据迁移并通过干净工作树数量门禁。
+1. 完成 GT-P6-2A 三个正式页面同源API修复，并用独立端口/临时数据库回归。
 2. 依次执行六模块真实主路径、身份持久化、A/B 隔离、失败路径和响应式门禁。
 3. 建立 Phase 6 PR 后执行六阶段干净总装与剩余改动三分类。
