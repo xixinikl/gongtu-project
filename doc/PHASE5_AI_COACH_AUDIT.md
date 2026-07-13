@@ -42,4 +42,5 @@
 
 - 当前工作树没有 `backend/.env`，因此未进行真实 DeepSeek 成功响应验收；不能把 mock provider 的成功测试写成真实线上调用。
 - 用户曾在聊天中粘贴过一枚 API Key。该密钥已经暴露在聊天记录中，不应自动写入仓库或工具日志；应先在 DeepSeek 控制台轮换，再由用户在本机 `backend/.env` 设置 `DEEPSEEK_API_KEY`。
+- 安全配置入口：在 Phase 5 工作树运行 `npm run ai:configure`；终端隐藏输入，脚本原子写入 Git 忽略的 `backend/.env` 并设置 `0600` 权限。
 - 完成一次不泄密的真实调用、刷新恢复和 usage/run 审计前，Phase 5 保持“实施中”，Phase 6 不启动。

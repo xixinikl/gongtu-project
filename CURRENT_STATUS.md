@@ -49,7 +49,7 @@
 
 ## 下一步
 
-1. 用户轮换聊天中暴露的 DeepSeek Key，并只在本机 `backend/.env` 配置。
+1. 用户轮换聊天中暴露的 DeepSeek Key，并在 Phase 5 工作树运行 `npm run ai:configure`（隐藏输入，仅写本机 `backend/.env`）。
 2. 运行真实 DeepSeek 独立提问、带上下文提问、刷新恢复和 run/usage 审计。
 3. 门禁通过后更新 Goal，提交/推送并创建 Phase 5 Draft PR。
 4. 然后进入 Phase 6 全链路、安全、响应式与干净总装。
