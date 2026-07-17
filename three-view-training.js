@@ -527,8 +527,13 @@ function completeGroup() {
         last_position: `${record.groupId}:${state.questionIndex + 1}`,
         detail: { answers: record.answers },
       }),
-    }).then((response) => {
-      if (!response.ok) elements.historyLabel.textContent = "账号记录保存失败，请稍后重试";
+    }).then(async (response) => {
+      if (!response.ok) {
+        elements.historyLabel.textContent = "账号记录保存失败，请稍后重试";
+        return;
+      }
+      const saved = await response.json();
+      window.GontuSpatialCoach?.publish(saved, "带本组三视图复盘问西西");
     }).catch(() => { elements.historyLabel.textContent = "账号记录保存失败，请稍后重试"; });
   }
 }

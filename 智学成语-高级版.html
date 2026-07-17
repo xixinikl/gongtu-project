@@ -76,7 +76,11 @@
             updateNavAuth();
             var pleaseEl = document.getElementById('pleaseLoginModal');
             if (pleaseEl && pleaseEl.classList.contains('show')) { pleaseEl.classList.remove('show'); startLearning(); }
-            syncDeckFromBackend().then(function() { autoLoadHighFreqIfNeeded().then(renderAll); });
+            syncDeckFromBackend().then(function() {
+                autoLoadHighFreqIfNeeded().then(function() {
+                    if (typeof window.renderAll === 'function') window.renderAll();
+                });
+            });
             syncUserMetaFromBackend().then(function() { renderHeatmap(); renderStats(); });
             document.getElementById('loginPass').value = '';
         } catch(e) { showErr('loginError', '网络错误：' + (e.message || '无法连接到服务器，请确认后端已启动')); }
@@ -101,7 +105,11 @@
             updateNavAuth();
             var pleaseEl = document.getElementById('pleaseLoginModal');
             if (pleaseEl && pleaseEl.classList.contains('show')) { pleaseEl.classList.remove('show'); startLearning(); }
-            syncDeckFromBackend().then(function() { autoLoadHighFreqIfNeeded().then(renderAll); });
+            syncDeckFromBackend().then(function() {
+                autoLoadHighFreqIfNeeded().then(function() {
+                    if (typeof window.renderAll === 'function') window.renderAll();
+                });
+            });
             syncUserMetaFromBackend().then(function() { renderHeatmap(); renderStats(); });
             document.getElementById('registerPass').value = '';
         } catch(e) { showErr('registerError', '网络错误：' + (e.message || '无法连接到服务器，请确认后端已启动')); }
@@ -2325,13 +2333,15 @@
             position: fixed;
             z-index: 3200;
             width: min(340px, calc(100vw - 28px));
-            max-height: 360px;
+            max-height: min(300px, calc(100vh - 28px));
             overflow: auto;
             padding: 16px;
-            background: var(--card-white);
-            border: 1px solid var(--border);
+            background: #fffdf8;
+            border: 1px solid #d8cdb9;
             border-radius: var(--radius-md);
-            box-shadow: 0 18px 45px rgba(26,21,16,0.16);
+            box-shadow: 0 22px 56px rgba(26,21,16,0.24);
+            opacity: 1;
+            isolation: isolate;
             color: var(--ink-mid);
             font-size: 0.86rem;
             line-height: 1.7;
@@ -3654,7 +3664,9 @@ function startLearning() {
     // 从后端同步牌组数据后再渲染（保证数据最新）
     syncDeckFromBackend().then(function() {
         // 如果成语数据为空，自动加载对应词库
-        autoLoadHighFreqIfNeeded().then(renderAll);
+        autoLoadHighFreqIfNeeded().then(function() {
+            if (typeof window.renderAll === 'function') window.renderAll();
+        });
     });
     // 同步标签active状态
     document.querySelectorAll('.deck-tab[data-deck]').forEach(tab => {
@@ -3769,27 +3781,33 @@ function ensureDeckInitialized() {
     const dt = getCurrentDeckType();
     if (dt === 'math') {
         const flagKey = 'math_initialized_v1';
-        if (!localStorage.getItem(flagKey)) {
-            const existing = localStorage.getItem(DECK_CONFIGS.math.storagePrefix + 'data');
-            if (!existing || existing === '[]') { importBuiltinMathDeck(); }
-            localStorage.setItem(flagKey, '1');
-        }
+        // 后端旧卡组可能不含后来加入的 blank_steps。初始化标记只能说明
+        // “曾导入过”，不能证明当前同步下来的卡片仍然完整，因此每次进入
+        // 数量牌组都做一次幂等补全。
+        importBuiltinMathDeck();
+        localStorage.setItem(flagKey, '1');
     }
 }
-function importBuiltinMathDeck() {
-    let data = loadIdiomsRaw();
-    let existing = new Set(data.map(d => d.id));
+function hydrateBuiltinMathDeck(source) {
+    let data = Array.isArray(source) ? source.slice() : [];
+    let byId = new Map(data.map(card => [card.id, card]));
     BUILTIN_MATH_DECK.forEach(card => {
-        if (!existing.has(card.id)) {
-            data.push({ id: card.id, type: 'math', title: card.title, stars: card.stars, difficulty: card.difficulty, question: card.example, solution: card.solution, answer: card.answer, variants: card.variants, blank_steps: MATH_BLANK_STEPS[card.id] || null, mastered: false, studyCount: 0, forgetCount: 0, lastStudyTime: '', nextReviewTime: today(), intervalIdx: 0 });
+        let saved = byId.get(card.id);
+        if (!saved) {
+            saved = { id: card.id, type: 'math', title: card.title, stars: card.stars, difficulty: card.difficulty, question: card.example, solution: card.solution, answer: card.answer, variants: card.variants, mastered: false, studyCount: 0, forgetCount: 0, lastStudyTime: '', nextReviewTime: today(), intervalIdx: 0 };
+            data.push(saved);
+            byId.set(card.id, saved);
+        }
+        if (MATH_BLANK_STEPS[card.id] && (!saved.blank_steps || !Array.isArray(saved.blank_steps.steps) || saved.blank_steps.steps.length === 0)) {
+            saved.blank_steps = MATH_BLANK_STEPS[card.id];
         }
     });
-    data.forEach(card => {
-        if (card.type === 'math' && MATH_BLANK_STEPS[card.id] && (!card.blank_steps || !card.blank_steps.steps)) {
-            card.blank_steps = MATH_BLANK_STEPS[card.id];
-        }
-    });
-    saveIdioms(data);
+    return data;
+}
+function importBuiltinMathDeck() {
+    // 这里只补全当前浏览器缓存，不在“先拉后端”之前反向覆盖账号数据。
+    // 用户实际作答时仍会走 saveIdioms()，把完整卡组和学习状态正常同步。
+    localStorage.setItem(deckKey('data'), JSON.stringify(hydrateBuiltinMathDeck(loadIdiomsRaw())));
 }
 function loadIdiomsRaw() { try { return JSON.parse(localStorage.getItem(deckKey('data'))) || []; } catch(e) { return []; } }
 function saveIdioms(data) { localStorage.setItem(deckKey('data'), JSON.stringify(data)); pushCurrentDeckToBackend(); }
@@ -3809,7 +3827,8 @@ async function syncDeckFromBackend() {
             const data = await resp.json();
             const cfg = DECK_CONFIGS[type];
             if (data.cards && data.cards.length > 0) {
-                localStorage.setItem(cfg.storagePrefix+'data', JSON.stringify(data.cards));
+                const cards = type === 'math' ? hydrateBuiltinMathDeck(data.cards) : data.cards;
+                localStorage.setItem(cfg.storagePrefix+'data', JSON.stringify(cards));
             }
             if (data.queue) localStorage.setItem(cfg.storagePrefix+'queue', JSON.stringify(data.queue));
             if (data.settings) localStorage.setItem(cfg.storagePrefix+'settings', JSON.stringify(data.settings));
@@ -4465,7 +4484,8 @@ async function syncDailyGoalFromBackend() {
 (function initDailyPlan() {
     updateDailyPlanDisplay();
     if (gontu_isLoggedIn()) {
-        syncDailyGoalFromBackend();
+        // syncUserMetaFromBackend already restores dailyGoal together with the
+        // heatmap and streak; avoid requesting /api/user/meta twice on startup.
         syncUserMetaFromBackend().then(function() { renderHeatmap(); renderStats(); });
     }
 })();
@@ -4594,7 +4614,7 @@ function renderLearningCard() {
         if (isDifficult) {
             historyInfo = `<div style="font-size:0.8rem;color:#8b7355;margin-top:20px;"><i class="fas fa-exclamation-triangle" style="color:#c44b3a;"></i> 已错误 ${card.forgetCount || 0} 次 · 上次学习：${card.lastStudyTime || '首次'}</div>`;
         }
-        zone.innerHTML = bannerHtml + `<div class="${cardClass}" id="flippableCard"><div style="font-size:0.85rem;font-weight:600;color:${badgeColor};margin-bottom:16px;">${badgeText}</div><div class="idiom-word">${card.id}</div><div class="meaning-text" id="dynamicMeaning">${meaningShow}</div><div class="flip-hint"><i class="fas fa-hand-pointer"></i> 点击卡片翻转</div>${historyInfo}<button class="daily-plan-edit-btn" id="favoriteBtn" title="${card.favorite ? '取消收藏' : '收藏词条'}" style="margin-top:14px;"><i class="${card.favorite ? 'fas' : 'far'} fa-star"></i></button></div><div class="action-buttons"><button class="btn-forget" id="forgotBtn"><i class="fas fa-times-circle"></i> 没记住</button><button class="btn-remember" id="rememberBtn"><i class="fas fa-check-circle"></i> 记住了</button></div>`;
+        zone.innerHTML = bannerHtml + `<div class="${cardClass}" id="flippableCard"><div style="font-size:0.85rem;font-weight:600;color:${badgeColor};margin-bottom:16px;">${badgeText}</div><div class="idiom-word">${card.id}</div><div class="meaning-text" id="dynamicMeaning">${meaningShow}</div><div class="vocab-card-tools"><div class="flip-hint"><i class="fas fa-hand-pointer"></i> 点击卡片翻转</div>${historyInfo}<button class="daily-plan-edit-btn" id="favoriteBtn" title="${card.favorite ? '取消收藏' : '收藏词条'}"><i class="${card.favorite ? 'fas' : 'far'} fa-star"></i></button></div></div><div class="action-buttons"><button class="btn-forget" id="forgotBtn"><i class="fas fa-times-circle"></i> 没记住</button><button class="btn-remember" id="rememberBtn"><i class="fas fa-check-circle"></i> 记住了</button></div>`;
     }
     document.getElementById('flippableCard').onclick = () => flipMeaning();
     document.getElementById('forgotBtn').onclick = () => handleResult(false);
@@ -5114,7 +5134,9 @@ function switchDeck(deckType) {
         document.querySelectorAll('#modeSwitchGroup .mode-btn').forEach(b => { b.style.display = 'none'; b.classList.remove('active'); });
         document.querySelectorAll('#modeSwitchGroup .mode-btn.math-only').forEach(b => { b.style.display = 'none'; });
         renderAll();
-        fetchHighFreq('idiom').then(renderAll);
+        fetchHighFreq('idiom').then(function() {
+            if (typeof window.renderAll === 'function') window.renderAll();
+        });
         return;
     }
     ensureDeckInitialized();
@@ -5393,22 +5415,22 @@ document.getElementById('excelUploadBtn').onclick = () => document.getElementByI
 document.getElementById('fileInput').onchange = (e) => { if (e.target.files[0]) handleFileUpload(e.target.files[0]); e.target.value = ''; };
 document.getElementById('fetchOnlineBtn').onclick = fetchHighFreq;
 
-document.getElementById('modeSwitchGroup').addEventListener('click', function(e) {
-    var btn = e.target.closest('.mode-btn');
-    if (!btn) return;
+window.setLegacyLearningMode = function(mode, keepEmptyMode) {
+    var btn = document.querySelector('#modeSwitchGroup .mode-btn[data-mode="' + mode + '"]');
+    if (!btn) return currentMode;
     document.querySelectorAll('#modeSwitchGroup .mode-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active'); currentMode = btn.dataset.mode;
+    btn.classList.add('active'); currentMode = mode;
     let data = loadIdioms();
     if (currentMode === 'recite') {
         activeModeItems = data.map(d => d.id);
     } else if (currentMode === 'difficult') {
         // 修复：forgetCount >= 1 即可进入错题攻克（之前 >= 2 太高了）
         let difficult = data.filter(d => !d.mastered && (d.forgetCount || 0) >= 1).map(d => d.id);
-        if (difficult.length === 0) { gontuToast('🎉 暂无错题需要攻克！继续加油~', 'success'); currentMode = 'review'; document.querySelectorAll('#modeSwitchGroup .mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === 'review')); renderAll(); return; }
+        if (difficult.length === 0 && !keepEmptyMode) { gontuToast('🎉 暂无错题需要攻克！继续加油~', 'success'); currentMode = 'review'; document.querySelectorAll('#modeSwitchGroup .mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === 'review')); renderAll(); return currentMode; }
         activeModeItems = difficult;
     } else if (currentMode === 'steps') {
         let stepCards = data.filter(d => d.type === 'math' && d.blank_steps && d.blank_steps.steps && d.blank_steps.steps.length > 0).map(d => d.id);
-        if (stepCards.length === 0) { gontuToast('当前无可用步骤填空卡片', 'info'); currentMode = 'review'; document.querySelectorAll('#modeSwitchGroup .mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === 'review')); renderAll(); return; }
+        if (stepCards.length === 0 && !keepEmptyMode) { gontuToast('当前无可用步骤填空卡片', 'info'); currentMode = 'review'; document.querySelectorAll('#modeSwitchGroup .mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === 'review')); renderAll(); return currentMode; }
         activeModeItems = stepCards;
     } else if (currentMode === 'quiz') {
         quizState = { idx: 0, score: 0, answered: false };
@@ -5418,6 +5440,13 @@ document.getElementById('modeSwitchGroup').addEventListener('click', function(e)
         getTodayQueue();
     }
     isFlipped = false; renderAll();
+    return currentMode;
+};
+
+document.getElementById('modeSwitchGroup').addEventListener('click', function(e) {
+    var btn = e.target.closest('.mode-btn');
+    if (!btn) return;
+    window.setLegacyLearningMode(btn.dataset.mode, false);
 });
 
 // 正式外壳：移动端模块导航与键盘收起。
@@ -5485,7 +5514,7 @@ var verbalAiDemoMode = new URLSearchParams(location.search).get('demo');
 var verbalAiUnifiedShell = !verbalAiDemoMode || verbalAiDemoMode === 'verbal-ai-v3';
 if (verbalAiDemoMode === 'verbal-ai' || verbalAiDemoMode === 'verbal-ai-v2' || verbalAiUnifiedShell) {
     var verbalAiDemoScript = document.createElement('script');
-    verbalAiDemoScript.src = 'doc/prototypes/verbal-ai-native-demo.js?v=20260712e';
+    verbalAiDemoScript.src = 'doc/prototypes/verbal-ai-native-demo.js?v=20260715a';
     if (verbalAiDemoMode === 'verbal-ai-v2' || verbalAiUnifiedShell) {
         verbalAiDemoScript.onload = function () {
             var verbalAiDemoV2Script = document.createElement('script');
@@ -5494,6 +5523,18 @@ if (verbalAiDemoMode === 'verbal-ai' || verbalAiDemoMode === 'verbal-ai-v2' || v
                 verbalAiDemoV2Script.onload = function () {
                     var verbalAiDemoV3Script = document.createElement('script');
                     verbalAiDemoV3Script.src = 'doc/prototypes/verbal-ai-native-demo-v3.js?v=20260713a';
+                    verbalAiDemoV3Script.onload = function () {
+                        if (new URLSearchParams(location.search).get('review') !== 'inline-tabs-demo') {
+                            var unifiedInlineV4Script = document.createElement('script');
+                            unifiedInlineV4Script.src = 'doc/prototypes/unified-inline-learning-v4.js?v=20260716f';
+                            document.body.appendChild(unifiedInlineV4Script);
+                        }
+                        if (new URLSearchParams(location.search).get('review') === 'inline-tabs-demo') {
+                            var inlineTabsDemoScript = document.createElement('script');
+                            inlineTabsDemoScript.src = 'doc/prototypes/inline-tabs-demo.js?v=20260714a';
+                            document.body.appendChild(inlineTabsDemoScript);
+                        }
+                    };
                     document.body.appendChild(verbalAiDemoV3Script);
                 };
             }

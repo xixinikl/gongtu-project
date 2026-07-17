@@ -100,6 +100,17 @@ def _write_activity(conn, *, activity_id: str, user_id: int, activity_type: str,
     )
 
 
+def _question_payload(conn: sqlite3.Connection, row: sqlite3.Row, user_id: int) -> dict:
+    payload = dict(row)
+    activity_id = f"mindmap:question:{row['id']}"
+    activity = conn.execute(
+        "SELECT id FROM learning_activities_v2 WHERE id=? AND user_id=? AND module_id='reasoning.planar'",
+        (activity_id, user_id),
+    ).fetchone()
+    payload["activity_id"] = activity["id"] if activity else None
+    return payload
+
+
 def _question_image_file(row: sqlite3.Row, uid: str) -> Path | None:
     image_path = row["image_path"] or ""
     if not image_path:
@@ -166,8 +177,9 @@ def list_questions(user: dict = Depends(require_user)):
         "SELECT * FROM questions WHERE user_id=? ORDER BY id DESC",
         (uid,)
     ).fetchall()
+    payload = [_question_payload(conn, row, user["user_id"]) for row in rows]
     conn.close()
-    return {"questions": [dict(r) for r in rows]}
+    return {"questions": payload}
 
 
 @router.get("/questions/{qid}")
@@ -178,10 +190,12 @@ def get_question(qid: int, user: dict = Depends(require_user)):
     row = conn.execute(
         "SELECT * FROM questions WHERE id=? AND user_id=?", (qid, uid)
     ).fetchone()
-    conn.close()
     if not row:
+        conn.close()
         raise HTTPException(404, "题目不存在")
-    return dict(row)
+    payload = _question_payload(conn, row, user["user_id"])
+    conn.close()
+    return payload
 
 
 @router.post("/questions")
@@ -237,7 +251,12 @@ async def create_question_form(
         raise HTTPException(status_code=500, detail=f"数据库写入失败: {db_err}")
 
     conn.close()
-    return {"id": qid, "message": "创建成功", "image_path": image_path}
+    return {
+        "id": qid,
+        "activity_id": f"mindmap:question:{qid}",
+        "message": "创建成功",
+        "image_path": image_path,
+    }
 
 
 @router.put("/questions/{qid}")
@@ -363,7 +382,9 @@ def _session_payload(conn: sqlite3.Connection, row: sqlite3.Row | None) -> dict:
             f"SELECT * FROM questions WHERE user_id=? AND id IN ({placeholders})",  # nosec B608
             (str(row["user_id"]), *set(remaining_ids)),
         ).fetchall()
-        question_map = {item["id"]: dict(item) for item in rows}
+        question_map = {
+            item["id"]: _question_payload(conn, item, row["user_id"]) for item in rows
+        }
     questions = [question_map[qid] for qid in remaining_ids if qid in question_map]
     initial_total = max(0, row["initial_total"])
     percent = min(100, round(row["mastered"] / initial_total * 100)) if initial_total else 0

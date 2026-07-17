@@ -27,7 +27,9 @@
 
     body {
       margin: 0;
-      min-height: 100vh;
+      height: 100vh;
+      min-height: 0;
+      overflow: hidden;
       color: var(--ink);
       background:
         linear-gradient(90deg, rgba(174,136,55,0.06) 1px, transparent 1px),
@@ -48,13 +50,17 @@
     .shell {
       display: grid;
       grid-template-columns: 252px minmax(460px, 1fr) 360px;
-      min-height: 100vh;
+      height: 100vh;
+      min-height: 0;
+      overflow: hidden;
     }
 
     .sidebar {
       border-right: 1px solid var(--line);
       background: rgba(255,255,255,0.72);
       padding: 24px 18px;
+      min-height: 0;
+      overflow-y: auto;
     }
 
     .brand {
@@ -156,10 +162,11 @@
     }
 
     .main {
-      padding: 26px;
+      min-height: 0;
+      padding: 16px 18px;
       display: grid;
       grid-template-rows: auto auto minmax(0, 1fr) auto;
-      gap: 18px;
+      gap: 10px;
     }
 
     .topbar {
@@ -197,7 +204,7 @@
       border: 1px solid var(--line);
       background: rgba(255,255,255,0.86);
       border-radius: 8px;
-      padding: 18px;
+      padding: 12px 14px;
       box-shadow: var(--shadow);
       display: grid;
       grid-template-columns: 1fr auto;
@@ -207,17 +214,17 @@
 
     h1 {
       margin: 0;
-      font-size: 28px;
+      font-size: 24px;
       line-height: 1.15;
       letter-spacing: 0;
     }
 
     .teacher-head p {
-      margin: 8px 0 0;
+      margin: 4px 0 0;
       max-width: 680px;
       color: var(--ink-mid);
       font-size: 14px;
-      line-height: 1.8;
+      line-height: 1.55;
     }
 
     .context-box {
@@ -243,13 +250,14 @@
     }
 
     .chat {
-      min-height: 430px;
-      border: 1px solid var(--line);
+      min-height: 0;
+      border: 0;
       background: rgba(255,255,255,0.76);
-      border-radius: 8px;
+      border-radius: 10px;
+      box-shadow: inset 0 0 0 1px rgba(174,136,55,.16), 0 10px 30px rgba(52,42,27,.05);
       overflow: hidden;
       display: grid;
-      grid-template-rows: auto 1fr;
+      grid-template-rows: auto minmax(0, 1fr) auto;
     }
 
     .chat-toolbar {
@@ -292,7 +300,8 @@
     }
 
     .messages {
-      padding: 18px;
+      min-height: 0;
+      padding: 14px;
       overflow: auto;
     }
 
@@ -359,7 +368,7 @@
       border: 1px solid var(--line);
       background: #fff;
       border-radius: 8px;
-      padding: 12px;
+      padding: 8px 10px;
       display: grid;
       grid-template-columns: 1fr auto auto;
       gap: 10px;
@@ -368,8 +377,8 @@
 
     textarea {
       width: 100%;
-      min-height: 54px;
-      max-height: 120px;
+      min-height: 42px;
+      max-height: 84px;
       resize: vertical;
       border: 0;
       outline: none;
@@ -674,9 +683,20 @@
     .thread-btn strong,.thread-btn small { display:block; }
     .thread-btn small { opacity:.66; margin-top:4px; }
     .empty-state { border:1px dashed var(--line); border-radius:14px; padding:28px 20px; color:var(--ink-light); text-align:center; line-height:1.8; }
-    .message-text { white-space:pre-wrap; overflow-wrap:anywhere; }
+    .message-text { display:grid; gap:8px; white-space:normal; overflow-wrap:anywhere; }
+    .message-text.user-plain { display:block; white-space:pre-wrap; }
+    .message-text p { margin:0; line-height:1.8; }
+    .message-text p + p { padding-top:8px; border-top:1px solid rgba(174,136,55,.1); }
+    .message-heading { margin:0; color:var(--ink); font-weight:700; line-height:1.6; }
+    .message-formula { display:inline-block; margin:0 2px; padding:1px 5px; border-radius:5px; background:#f8f1df; color:#76571f; font-family:"SFMono-Regular",Consolas,monospace; font-size:.92em; white-space:nowrap; }
+    .message-step { display:grid; grid-template-columns:24px minmax(0,1fr); gap:8px; align-items:start; line-height:1.75; }
+    .message-step b { width:24px; height:24px; display:grid; place-items:center; border-radius:50%; background:#f5ecd8; color:var(--gold-deep); font-size:11px; }
+    .thinking-bubble { display:flex; align-items:center; gap:10px; color:var(--ink-light); }
+    .thinking-dot { width:7px; height:7px; border-radius:50%; background:var(--gold); box-shadow:11px 0 0 rgba(174,136,55,.55),22px 0 0 rgba(174,136,55,.25); margin-right:22px; animation:thinkingPulse 1s ease-in-out infinite alternate; }
+    @keyframes thinkingPulse { to { opacity:.35; transform:translateY(-1px); } }
     .message-meta { margin-top:6px; color:var(--ink-faint); font-size:11px; }
-    .error-panel { border:1px solid #e4b9b0; background:#fff7f5; color:var(--red); border-radius:12px; padding:12px 14px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .error-panel { border:0; border-left:3px solid #b45c50; background:#fbf2ee; color:#8d443b; border-radius:4px 10px 10px 4px; margin:0 14px 12px; padding:9px 11px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .error-panel[hidden], .error-panel .ghost-btn[hidden] { display:none !important; }
     .error-panel .ghost-btn { white-space:nowrap; flex:none; }
     .status-note { color:var(--ink-light); font-size:12px; }
     .problem-card button { margin-top:12px; }
@@ -707,7 +727,7 @@
 
     <main class="main">
       <div class="topbar">
-        <a class="back" id="returnLink" href="/app">← 返回公途</a>
+        <a class="back" id="returnLink" href="/app">← 返回原训练</a>
         <div class="status-strip"><span class="pill" id="providerStatus">正在连接服务</span><span class="pill" id="saveStatus">消息按账号保存</span></div>
       </div>
       <section class="teacher-head">
@@ -763,15 +783,48 @@
       return payload;
     }
     function el(tag,className,text) { const node=document.createElement(tag); if(className)node.className=className; if(text!==undefined)node.textContent=String(text); return node; }
+    function appendRichInline(parent,text) {
+      const source=String(text||'');
+      const token=/\*\*([^*]+)\*\*|(\d+(?:\.\d+)?(?:\s*[×÷+\-=:]\s*\d+(?:\.\d+)?)+|\d+\/\d+)/g;
+      let cursor=0,match;
+      while((match=token.exec(source))){
+        if(match.index>cursor)parent.append(document.createTextNode(source.slice(cursor,match.index)));
+        parent.append(el(match[1]?'strong':'span',match[1]?'':'message-formula',match[1]||match[2]));
+        cursor=token.lastIndex;
+      }
+      if(cursor<source.length)parent.append(document.createTextNode(source.slice(cursor)));
+    }
+    function paragraphChunks(line) {
+      if(line.length<=105)return[line];
+      const sentences=line.match(/[^。！？!?]+[。！？!?]?/g)||[line];
+      const chunks=[];let current='';
+      sentences.forEach(sentence=>{if(current&&current.length+sentence.length>105){chunks.push(current);current='';}current+=sentence;});
+      if(current)chunks.push(current);
+      return chunks;
+    }
+    function appendMessageText(bubble,content) {
+      const box=el('div','message-text');
+      const normalized=String(content||'')
+        .replace(/([。；;!?！？])\s*(?=\d+(?:\.\s+|、))/g,'$1\n')
+        .replace(/\s+(?=\d+(?:\.\s+|、))/g,'\n');
+      normalized.split(/\n+/).filter(Boolean).forEach(line=>{
+        const step=line.match(/^(\d+)(?:\.\s+|、\s*)(.+)$/);
+        if(step){const row=el('div','message-step'),copy=el('span');appendRichInline(copy,step[2]);row.append(el('b','',step[1]),copy);box.append(row);return;}
+        paragraphChunks(line).forEach(chunk=>{const node=el(chunk.length<=32&&/[：:]$/.test(chunk)?'h4':'p',chunk.length<=32&&/[：:]$/.test(chunk)?'message-heading':'');appendRichInline(node,chunk);box.append(node);});
+      });
+      bubble.append(box);
+    }
     function arrayPayload(payload,key) { return Array.isArray(payload) ? payload : (Array.isArray(payload?.[key]) ? payload[key] : []); }
     function moduleIdFromQuery() { const raw=new URLSearchParams(location.search).get('module')||''; return MODULE_ALIASES[raw]||raw; }
     function contextRefFromQuery() { const p=new URLSearchParams(location.search),kind=p.get('context_kind'),id=p.get('context_id'); return kind&&id ? {kind,id} : null; }
+    function activeSkillText() { const module=state.modules.find(item=>item.id===state.activeModule); return module?.skill_id ? `Skill ${module.skill_id} · v${module.skill_version}` : 'Skill 由后端按模块选择'; }
+    function renderIncomingContext() { const ref=contextRefFromQuery(); if(!ref||state.thread)return; $('contextText').textContent='已携带本次训练引用；新建对话后由服务端核验题目、作答与用时。'; $('skillText').textContent=`${activeSkillText()} · 网址不传答案，训练事实按当前账号核验`; }
 
     function renderModules() {
       $('moduleList').replaceChildren();
       if (!state.modules.length) { $('moduleList').append(el('div','empty-state','暂无可用模块')); return; }
       state.modules.forEach(module => {
-        const button=el('button','module-btn'); button.type='button'; button.dataset.module=module.id; button.classList.toggle('active',module.id===state.activeModule);
+        const button=el('button','module-btn'); button.type='button'; button.dataset.module=module.id; button.classList.toggle('active',module.id===state.activeModule);button.setAttribute('aria-pressed',String(module.id===state.activeModule));
         button.append(el('span','module-icon','卷'));
         const copy=el('span'); copy.append(el('strong','',module.label||module.id),el('span','',module.description||'由后端提供方法与上下文'));
         button.append(copy);
@@ -787,9 +840,10 @@
     function renderMessages() {
       $('messages').replaceChildren();
       const items=state.thread?.messages||[];
-      if(!items.length){$('messages').append(el('div','empty-state','还没有消息。发送后会调用真实 AI 服务。'));return;}
+      if(!items.length&&!state.sending){$('messages').append(el('div','empty-state','还没有消息。发送后会调用真实 AI 服务。'));return;}
       const statusText={sending:'正在发送',failed:'发送失败，问题已保存',timed_out:'AI 响应超时'};
-      items.forEach(message=>{const row=el('div',`bubble-row ${message.role==='user'?'user':''}`);const bubble=el('div','bubble');bubble.append(el('div','message-text',message.content||''));if(message.status&&message.status!=='completed')bubble.append(el('div','message-meta',statusText[message.status]||'暂未完成'));row.append(bubble);$('messages').append(row);});
+      items.forEach(message=>{const row=el('div',`bubble-row ${message.role==='user'?'user':''}`);const bubble=el('div','bubble');if(message.role==='user')bubble.append(el('div','message-text user-plain',message.content||''));else appendMessageText(bubble,message.content||'');if(message.status&&message.status!=='completed')bubble.append(el('div','message-meta',statusText[message.status]||'暂未完成'));row.append(bubble);$('messages').append(row);});
+      if(state.sending){const row=el('div','bubble-row thinking');const bubble=el('div','bubble thinking-bubble');bubble.append(el('span','thinking-dot'),el('span','','思考中'));row.append(bubble);$('messages').append(row);}
       $('messages').scrollTop=$('messages').scrollHeight;
     }
     function renderProposals() {
@@ -799,22 +853,27 @@
     }
     function applyThread(payload) {
       state.thread=payload.thread||payload; $('threadTitle').textContent=state.thread.title||'当前对话';
-      $('contextText').textContent=state.thread.context_label||'无板块题目上下文'; $('skillText').textContent=state.thread.skill_label||'Skill 由后端记录版本';
+      const verifiedContext=state.thread.context||{};
+      const evidenceCount=Array.isArray(verifiedContext.evidence)?verifiedContext.evidence.length:0;
+      $('contextText').textContent=state.thread.activity_id
+        ? `已核验本次训练 · ${evidenceCount} 条题目/作答证据`
+        : (state.thread.context_label||'自由方法咨询');
+      $('skillText').textContent=`${activeSkillText()} · 训练事实由服务端按当前账号核验`;
       const run=state.thread.latest_run; $('runMeta').textContent=run ? [run.provider,run.model,run.skill_version,run.status].filter(Boolean).join(' · ') : '';
-      if(run&&['failed','timed_out','invalid_output'].includes(run.status))showFailure(new Error('上次 AI 回答未完成，可以重试。'),run.id);else clearFailure();
+      clearFailure();
       renderThreads();renderMessages();renderProposals();
     }
-    function showFailure(error,runId=null) {$('errorText').textContent=error.message||'AI 服务暂时不可用';$('errorPanel').hidden=false;state.lastFailedRun=runId||error.payload?.run_id||null;$('providerStatus').textContent='AI 暂不可用';}
-    function clearFailure() {$('errorPanel').hidden=true;state.lastFailedRun=null;$('providerStatus').textContent=state.providerConfigured?'AI 教练可用':'AI 待配置 · 可查看历史';}
+    function showFailure(error,runId=null) {state.lastFailedRun=runId||error.payload?.run_id||null;$('errorText').textContent=error.message||'AI 服务暂时不可用';$('retryBtn').hidden=!state.lastFailedRun;$('errorPanel').hidden=false;$('providerStatus').textContent='AI 暂不可用';}
+    function clearFailure() {$('errorPanel').hidden=true;$('retryBtn').hidden=true;state.lastFailedRun=null;$('providerStatus').textContent=state.providerConfigured?'AI 教练可用':'AI 待配置 · 可查看历史';}
 
     async function loadThreads(){const payload=await api(`${API.threads}?module_id=${encodeURIComponent(state.activeModule)}`);state.threads=arrayPayload(payload,'threads');renderThreads();}
-    async function selectModule(moduleId){state.activeModule=moduleId;state.thread=null;const module=state.modules.find(m=>m.id===moduleId);$('teacherTitle').textContent=(module?.label||moduleId)+'老师';$('teacherIntro').textContent=module?.description||'围绕当前模块解决问题。';renderModules();renderMessages();renderProposals();await loadThreads();}
+    async function selectModule(moduleId){state.activeModule=moduleId;state.thread=null;const module=state.modules.find(m=>m.id===moduleId);$('teacherTitle').textContent=(module?.label||moduleId)+'老师';$('teacherIntro').textContent=module?.description||'围绕当前模块解决问题。';$('contextText').textContent='尚未建立对话';$('skillText').textContent=activeSkillText();renderModules();renderMessages();renderProposals();renderIncomingContext();await loadThreads();}
     async function openThread(id){try{clearFailure();applyThread(await api(API.thread(id)));}catch(error){showFailure(error);}}
     async function newThread(){try{clearFailure();const body={module_id:state.activeModule,return_url:safeReturnUrl()};const ref=contextRefFromQuery();if(ref)body.context_ref=ref;const created=await api(API.threads,{method:'POST',body:JSON.stringify(body)});state.threads.unshift(created.thread||created);applyThread(created.thread||created);}catch(error){showFailure(error);}}
-    async function sendMessage(){const content=$('questionInput').value.trim();if(!content||state.sending)return;if(!state.thread)await newThread();if(!state.thread)return;state.sending=true;$('askBtn').disabled=true;$('providerStatus').textContent='AI 正在思考';clearFailure();const pending={role:'user',content,status:'sending'};state.thread.messages=[...(state.thread.messages||[]),pending];renderMessages();try{const payload=await api(API.messages(state.thread.id),{method:'POST',body:JSON.stringify({content,client_message_id:crypto.randomUUID()})});$('questionInput').value='';applyThread(payload);}catch(error){pending.status='failed';renderMessages();showFailure(error);}finally{state.sending=false;$('askBtn').disabled=false;}}
+    async function sendMessage(){const content=$('questionInput').value.trim();if(!content||state.sending)return;if(!state.thread)await newThread();if(!state.thread)return;state.sending=true;$('askBtn').disabled=true;$('providerStatus').textContent='AI 正在思考';clearFailure();const pending={role:'user',content,status:'sending'};state.thread.messages=[...(state.thread.messages||[]),pending];renderMessages();try{const payload=await api(API.messages(state.thread.id),{method:'POST',body:JSON.stringify({content,client_message_id:crypto.randomUUID()})});$('questionInput').value='';state.sending=false;applyThread(payload);}catch(error){state.sending=false;pending.status='failed';renderMessages();showFailure(error);}finally{state.sending=false;$('askBtn').disabled=false;}}
     async function retry(){if(!state.thread||!state.lastFailedRun)return;const runId=state.lastFailedRun;try{clearFailure();applyThread(await api(API.retry(state.thread.id,runId),{method:'POST'}));}catch(error){showFailure(error,runId);}}
     async function saveProposal(id,button){try{button.disabled=true;await api(API.saveProposal(id),{method:'POST'});button.textContent='已保存';if(state.thread){const p=(state.thread.issue_proposals||[]).find(item=>item.id===id);if(p)p.saved=true;}}catch(error){button.disabled=false;showFailure(error);}}
-    async function init(){ $('returnLink').href=safeReturnUrl(); try{const payload=await api(API.modules);state.modules=arrayPayload(payload,'modules');state.providerConfigured=payload?.provider?.configured===true;const requested=moduleIdFromQuery();state.activeModule=state.modules.some(m=>m.id===requested)?requested:(state.modules[0]?.id||'');renderModules();if(state.activeModule)await selectModule(state.activeModule);$('providerStatus').textContent=state.providerConfigured?'AI 教练可用':'AI 待配置 · 可查看历史';}catch(error){if(error.message!=='auth_required')showFailure(error);}}
+    async function init(){ $('returnLink').href=safeReturnUrl(); try{const payload=await api(API.modules);state.modules=arrayPayload(payload,'modules');state.providerConfigured=payload?.provider?.configured===true;const requested=moduleIdFromQuery();state.activeModule=state.modules.some(m=>m.id===requested)?requested:(state.modules[0]?.id||'');renderModules();if(state.activeModule)await selectModule(state.activeModule);renderIncomingContext();$('providerStatus').textContent=state.providerConfigured?'AI 教练可用':'AI 待配置 · 可查看历史';}catch(error){if(error.message!=='auth_required')showFailure(error);}}
     $('newThreadBtn').addEventListener('click',newThread);$('askBtn').addEventListener('click',sendMessage);$('retryBtn').addEventListener('click',retry);$('questionInput').addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage();}});init();
   </script>
 </body>

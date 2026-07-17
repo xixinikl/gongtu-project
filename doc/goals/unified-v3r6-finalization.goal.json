@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "id": "unified-v3r6-finalization",
+  "title": "公途 V3R-6 申论与视觉收尾",
+  "objective": "完成公途 V3R-6 收尾：修复申论自带题目与普通问答的错题追踪、完整题目显示及 Word/PDF 统一导出，完成前后端回归与桌面/手机真实预览，交付用户可直接确认的关键页面。",
+  "status": "active",
+  "tasks": [
+    {
+      "id": "V3R6-F1",
+      "title": "审计当前改动与申论缺口",
+      "acceptance": "明确当前未提交改动、申论追踪与导出缺口，并确认实现不覆盖既有 V3R-1 至 V3R-5 成果。",
+      "dependsOn": [],
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "V3R6-F2",
+      "title": "完成申论追踪与统一导出",
+      "acceptance": "自带题目和普通问答都能按当前 JWT 用户加入追踪；追踪页显示完整题目；Word/PDF 导出使用同一事实合同；专项接口与页面测试通过。",
+      "dependsOn": ["V3R6-F1"],
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "V3R6-F3",
+      "title": "完成六模块回归",
+      "acceptance": "申论聚焦测试与六模块前后端回归通过，没有本任务引入的安全、记录、Skill 或页面回归。",
+      "dependsOn": ["V3R6-F2"],
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "V3R6-F4",
+      "title": "完成桌面与手机真实预览",
+      "acceptance": "关键页面在桌面和 390px 可直接查看，无横向溢出、遮挡或控制台错误，并向用户交付最终确认入口。",
+      "dependsOn": ["V3R6-F3"],
+      "status": "pending",
+      "evidence": []
+    }
+  ],
+  "runs": [],
+  "blockers": [],
+  "progress": {"verified": 0, "total": 4, "percent": 0},
+  "currentTaskId": null,
+  "nextTaskId": "V3R6-F1"
+}

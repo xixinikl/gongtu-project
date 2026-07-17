@@ -32,20 +32,34 @@ test('contains no canned answer, fake evidence totals, or static problem cards',
   assert.doesNotMatch(html, /data-module-card=/);
 });
 
-test('persists threads, renders loading and failure, and supports explicit retry', () => {
+test('persists threads, hides stale failure chrome, and supports explicit retry for a current failed run', () => {
   assert.match(html, /async function loadThreads/);
   assert.match(html, /async function openThread/);
   assert.match(html, /status:'sending'/);
   assert.match(html, /pending\.status='failed'/);
   assert.match(html, /id="errorPanel" hidden/);
+  assert.match(html, /\.error-panel\[hidden\]/);
   assert.match(html, /id="retryBtn"/);
   assert.match(html, /async function retry/);
   assert.match(html, /const runId=state\.lastFailedRun/);
   assert.match(html, /API\.retry\(state\.thread\.id,runId\)/);
   assert.match(html, /发送失败，问题已保存/);
   assert.match(html, /AI 待配置 · 可查看历史/);
-  assert.match(html, /\['failed','timed_out','invalid_output'\]\.includes\(run\.status\)/);
-  assert.match(html, /上次 AI 回答未完成，可以重试/);
+  assert.match(html, /\$\('retryBtn'\)\.hidden=!state\.lastFailedRun/);
+  assert.match(html, /function applyThread[\s\S]*clearFailure\(\)/);
+  assert.match(html, /已核验本次训练/);
+  assert.match(html, /训练事实由服务端按当前账号核验/);
+});
+
+test('shows thinking feedback and formats numbered answers into readable steps', () => {
+  assert.match(html, /思考中/);
+  assert.match(html, /className.*message-step|message-step/);
+  assert.match(html, /function appendMessageText/);
+  assert.match(html, /function paragraphChunks/);
+  assert.match(html, /function appendRichInline/);
+  assert.match(html, /message-formula/);
+  assert.match(html, /\(\?:\\\.\\s\+\|、\)/);
+  assert.doesNotMatch(html, /\^\(\\d\+\)\[\.、\]\\s\*/);
 });
 
 test('problem proposals require an explicit save action', () => {
@@ -65,6 +79,13 @@ test('return_url is restricted to the current origin', () => {
   assert.match(html, /parsed\.origin === location\.origin/);
   assert.match(html, /parsed\.pathname\.startsWith\('\/'\)/);
   assert.match(html, /return_url:safeReturnUrl\(\)/);
+});
+
+test('shows the exact backend-selected Skill id and version', () => {
+  assert.match(html, /function activeSkillText\(\)/);
+  assert.match(html, /module\?\.skill_id/);
+  assert.match(html, /`Skill \$\{module\.skill_id\} · v\$\{module\.skill_version\}`/);
+  assert.match(html, /网址不传答案，训练事实按当前账号核验/);
 });
 
 test('keeps the three-column shell and explicit 390px layout guard', () => {

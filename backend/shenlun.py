@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import hashlib
 import os
@@ -485,6 +486,10 @@ class ChatRequest(BaseModel):
     questionId: str | None = None
 
 
+class TrackHistoryRequest(BaseModel):
+    historyId: str
+
+
 # ── API Endpoints ──────────────────────────────────────────────────────────────
 
 
@@ -578,7 +583,9 @@ async def grade_answer(req: GradingRequest, request: Request):
         return replay
 
     try:
-        result = validate_grading_result(llm_grade(question_obj, req.studentAnswer))
+        result = validate_grading_result(
+            await asyncio.to_thread(llm_grade, question_obj, req.studentAnswer)
+        )
         grading_result = result.model_dump()
         grading_result["runMetadata"] = _run_metadata()
         grading_result["recordType"] = "grading"
@@ -601,6 +608,7 @@ async def grade_answer(req: GradingRequest, request: Request):
 
     response_payload = {
         "id": record_id,
+        "activityId": f"shenlun-grade:{record_id}",
         "questionId": req.questionId,
         "questionTitle": q["title"],
         "questionType": q["type"],
@@ -638,14 +646,19 @@ async def grade_answer(req: GradingRequest, request: Request):
             )
             conn.execute(
                 """INSERT INTO shenlun_mistakes
-                   (user_id, question_id, question_title, question_type,
-                    student_answer, ai_reply, created_at)
-                   VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                   (user_id, question_id, source_history_id, record_type,
+                    question_title, question_type, question_text,
+                    question_requirement, material, student_answer, ai_reply, created_at)
+                   VALUES (?, ?, ?, 'grading', ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
                     user_id,
                     req.questionId,
+                    record_id,
                     q["title"],
                     q["type"],
+                    q.get("questionText", ""),
+                    q.get("questionRequirement", ""),
+                    q.get("material", ""),
                     req.studentAnswer,
                     json.dumps(grading_result, ensure_ascii=False),
                     now,
@@ -812,32 +825,130 @@ async def clear_all_history(request: Request):
 
 @router.get("/mistakes")
 async def list_mistakes(request: Request):
-    """获取错题记录"""
+    """获取问题追踪记录，包含导出和重做所需的完整题目快照。"""
     user = await _require_user(request)
     user_id = user["user_id"]
 
     with get_db() as conn:
         rows = conn.execute(
-            """SELECT id, question_id, question_title, question_type,
-                      student_answer, ai_reply, created_at
+            """SELECT id, question_id, source_history_id, record_type,
+                      question_title, question_type, question_text,
+                      question_requirement, material, student_answer,
+                      ai_reply, created_at
                FROM shenlun_mistakes
                WHERE user_id = ?
                ORDER BY created_at DESC""",
             (user_id,),
         ).fetchall()
 
-    return [
-        {
+    items = []
+    for r in rows:
+        question_text = r["question_text"] or ""
+        question_requirement = r["question_requirement"] or ""
+        material = r["material"] or ""
+        # 兼容旧数据库中的追踪记录：题源可用时补齐展示，但题源故障不应
+        # 让用户已经保存的问题本整体不可访问。
+        if not question_text and r["question_id"] != "chat":
+            try:
+                question = _get_question(r["question_id"])
+            except HTTPException:
+                question = None
+            if question:
+                question_text = question.get("questionText", "")
+                question_requirement = question.get("questionRequirement", "")
+                material = question.get("material", "")
+        items.append({
             "id": r["id"],
             "questionId": r["question_id"],
+            "sourceHistoryId": r["source_history_id"],
+            "recordType": r["record_type"] or "grading",
             "questionTitle": r["question_title"],
             "questionType": r["question_type"],
+            "questionText": question_text,
+            "questionRequirement": question_requirement,
+            "material": material,
             "studentAnswer": r["student_answer"],
             "aiReply": r["ai_reply"],
             "createdAt": r["created_at"],
-        }
-        for r in rows
-    ]
+        })
+    return items
+
+
+@router.post("/mistakes")
+async def track_history_record(req: TrackHistoryRequest, request: Request):
+    """把本人一条普通问答或批改历史手动加入问题追踪。"""
+    user = await _require_user(request)
+    user_id = user["user_id"]
+    history_id = req.historyId.strip()
+    if not history_id:
+        raise HTTPException(status_code=400, detail="历史记录标识不能为空")
+
+    with get_db() as conn:
+        row = conn.execute(
+            """SELECT id,question_id,question_title,question_type,
+                      student_answer,grading_result,created_at
+               FROM shenlun_history WHERE id=? AND user_id=?""",
+            (history_id, user_id),
+        ).fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="历史记录不存在")
+
+    try:
+        result = json.loads(row["grading_result"] or "{}")
+    except (json.JSONDecodeError, TypeError):
+        result = {}
+    record_type = result.get("recordType")
+    if record_type not in {"chat", "grading"}:
+        raise HTTPException(status_code=422, detail="这条记录不能加入问题追踪")
+
+    question = None
+    if row["question_id"] != "chat":
+        question = _get_question(row["question_id"])
+    question_title = question.get("title", "") if question else row["question_title"]
+    question_type = question.get("type", "") if question else row["question_type"]
+    question_text = (
+        question.get("questionText", "") if question else row["student_answer"]
+    )
+    question_requirement = (
+        question.get("questionRequirement", "") if question else "普通问答"
+    )
+    material = question.get("material", "") if question else ""
+    ai_reply = (
+        json.dumps(result, ensure_ascii=False)
+        if record_type == "grading"
+        else str(result.get("reply") or "")
+    )
+    now = datetime.now(timezone(timedelta(hours=8))).isoformat()
+
+    with get_db() as conn:
+        conn.execute(
+            "DELETE FROM shenlun_mistakes WHERE user_id=? AND source_history_id=?",
+            (user_id, history_id),
+        )
+        cursor = conn.execute(
+            """INSERT INTO shenlun_mistakes
+               (user_id,question_id,source_history_id,record_type,
+                question_title,question_type,question_text,question_requirement,
+                material,student_answer,ai_reply,created_at)
+               VALUES(?,?,?,?,?,?,?,?,?,?,?,?)""",
+            (
+                user_id,
+                row["question_id"],
+                history_id,
+                record_type,
+                question_title,
+                question_type,
+                question_text,
+                question_requirement,
+                material,
+                row["student_answer"],
+                ai_reply,
+                now,
+            ),
+        )
+        mistake_id = cursor.lastrowid
+        conn.commit()
+    return {"ok": True, "id": mistake_id, "sourceHistoryId": history_id}
 
 
 @router.delete("/mistakes/{mistake_id}")
@@ -948,7 +1059,9 @@ async def analyze_weakness(request: Request):
 请用JSON格式返回（确保是合法JSON）：
 {{"weakDimensions":["维度1","维度2"],"summary":"综合评价（2-3句话）","recommendations":["建议1","建议2","建议3"]}}"""
 
-        raw_response = call_llm_api(prompt, system_prompt=system_prompt)
+        raw_response = await asyncio.to_thread(
+            call_llm_api, prompt, system_prompt=system_prompt
+        )
         import re
 
         json_match = re.search(r"\{.*\}", raw_response, re.DOTALL)
@@ -1000,7 +1113,7 @@ async def chat_with_teacher(req: ChatRequest, request: Request):
 
     # 调用真实 LLM 对话
     try:
-        reply = llm_chat(q_obj, req.message)
+        reply = await asyncio.to_thread(llm_chat, q_obj, req.message)
         if not isinstance(reply, str) or not reply.strip():
             raise ProviderFailure("provider_invalid_output")
         reply = reply.strip()
@@ -1011,6 +1124,7 @@ async def chat_with_teacher(req: ChatRequest, request: Request):
     run_metadata = _run_metadata()
 
     # ── 保存到历史记录（所有对话都存，包括纯聊天） ──
+    history_id = str(uuid.uuid4())[:8]
     try:
         q_title = q_obj.title if q_obj else (None)
         q_type = q_obj.type if q_obj else ("对话")
@@ -1021,7 +1135,7 @@ async def chat_with_teacher(req: ChatRequest, request: Request):
                     student_answer, word_count, grading_result, created_at)
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
-                    str(uuid.uuid4())[:8],
+                    history_id,
                     user["user_id"],
                     req.questionId or "chat",
                     q_title or "自由对话",
@@ -1043,5 +1157,11 @@ async def chat_with_teacher(req: ChatRequest, request: Request):
             conn.commit()
     except Exception as exc:
         logger.warning("chat_history_save_failed error_type=%s", type(exc).__name__)
+        history_id = None
 
-    return {"reply": reply, "mode": mode, "runMetadata": run_metadata}
+    return {
+        "reply": reply,
+        "mode": mode,
+        "historyId": history_id,
+        "runMetadata": run_metadata,
+    }

@@ -26,6 +26,15 @@ MODULE_TASKS = {
     "planning.global": "planning",
 }
 
+HUASHENG13_ADAPTERS = {
+    "verbal.reading": "verbal-reading-skill/references/huasheng13-segment-reading-adapter.md",
+    "verbal.logic_fill": "skills/logic-fill/huasheng13-logic-fill-adapter.md",
+    "quantity.practice": "skills/quantity/huasheng13-quantity-router.md",
+    "reasoning.planar": "skills/planar/huasheng13-planar-router.md",
+    "reasoning.spatial": "skills/spatial/huasheng13-spatial-router.md",
+    "shenlun.review": "feiyang-skill/references/huasheng13-申论补充路由.md",
+}
+
 
 class SkillRegistryTests(unittest.TestCase):
     def test_all_professional_modules_resolve_real_versioned_bundles(self):
@@ -51,6 +60,28 @@ class SkillRegistryTests(unittest.TestCase):
         self.assertNotEqual(reading.bundle_hash, reading_chat.bundle_hash)
         self.assertEqual(shenlun.package_hash, shenlun_chat.package_hash)
         self.assertNotEqual(shenlun.bundle_hash, shenlun_chat.bundle_hash)
+
+    def test_huasheng13_is_task_scoped_instead_of_loading_the_full_corpus(self):
+        resolved = {
+            module_id: resolve_skill(module_id, MODULE_TASKS[module_id])
+            for module_id in HUASHENG13_ADAPTERS
+        }
+        all_adapters = set(HUASHENG13_ADAPTERS.values())
+        for module_id, expected_adapter in HUASHENG13_ADAPTERS.items():
+            bundle = resolved[module_id]
+            self.assertIn(expected_adapter, bundle.files)
+            self.assertEqual(
+                {path for path in bundle.files if "huasheng13" in path},
+                {expected_adapter},
+            )
+            self.assertNotIn("references/zhenti-shili.md", bundle.files)
+            self.assertNotIn("references/shenlun-sucai.md", bundle.files)
+            for foreign_adapter in all_adapters - {expected_adapter}:
+                self.assertNotIn(foreign_adapter, bundle.files)
+
+        shenlun = resolved["shenlun.review"]
+        self.assertIn("飞扬 · 申论应试思维框架", shenlun.content)
+        self.assertIn("只是题型操作补充", shenlun.content)
 
     def test_module_and_task_are_allowlisted_not_selected_by_user_text(self):
         with self.assertRaisesRegex(SkillRegistryError, "skill_module_unsupported"):

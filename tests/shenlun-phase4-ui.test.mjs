@@ -13,11 +13,31 @@ test('all inline scripts parse as JavaScript', () => {
   });
 });
 
+test('loads Vue locally and exposes a visible thinking state', () => {
+  assert.match(page, /\/node_modules\/vue\/dist\/vue\.global\.prod\.js/);
+  assert.doesNotMatch(page, /unpkg\.com\/vue/);
+  assert.match(page, /老师思考中/);
+});
+
+test('shenlun provider accepts the shared DeepSeek key name', () => {
+  const route = fs.readFileSync('backend/shenlun.py', 'utf8');
+  const grader = fs.readFileSync('backend/src/grader.py', 'utf8');
+  const tracker = fs.readFileSync('backend/src/mistake_tracker.py', 'utf8');
+  assert.match(grader, /os\.getenv\("LLM_API_KEY"\) or os\.getenv\("DEEPSEEK_API_KEY"/);
+  assert.match(tracker, /os\.getenv\("LLM_API_KEY"\) or os\.getenv\("DEEPSEEK_API_KEY"/);
+  assert.match(route, /await asyncio\.to_thread\(llm_grade/);
+  assert.match(route, /await asyncio\.to_thread\(llm_chat/);
+  assert.match(route, /await asyncio\.to_thread\([\s\S]*call_llm_api/);
+});
+
 test('formal grading and ordinary questions are separate actions', () => {
   assert.match(page, /@click="gradeAnswer"/);
   assert.match(page, /\/api\/shenlun\/grade/);
   assert.match(page, /\/api\/shenlun\/chat/);
-  assert.match(page, /向老师提问，不进入错题本/);
+  assert.match(page, /向老师提问，回复后可手动加入问题追踪/);
+  assert.match(page, /加入问题追踪/);
+  assert.match(page, /historyId:d\.historyId/);
+  assert.match(page, /JSON\.stringify\(\{historyId:message\.historyId\}\)/);
 });
 
 test('formal grading reuses one idempotency key across network and pending retries', async () => {
@@ -95,6 +115,18 @@ test('mistake cards expose redo and single-delete actions', () => {
   assert.match(page, /@click="redoMistake\(m\)"/);
   assert.match(page, /@click="deleteMistake\(m\)"/);
   assert.match(page, /\/api\/shenlun\/mistakes\/'/);
+  assert.match(page, /m\.questionText\|\|m\.questionTitle/);
+  assert.match(page, /m\.questionRequirement/);
+  assert.match(page, /m\.material/);
+});
+
+test('Word and PDF exports share one escaped complete tracking document', () => {
+  assert.match(page, /function buildTrackingDocument\(\)/);
+  assert.match(page, /const content=buildTrackingDocument\(\)/);
+  assert.match(page, /win\.document\.write\(buildTrackingDocument\(\)\)/);
+  assert.match(page, /_esc\(m\.questionText\|\|m\.questionTitle\|\|''\)/);
+  assert.match(page, /飞扬申论 · 问题追踪/);
+  assert.doesNotMatch(page, /document\.querySelector\('\.tracking-panel'\)/);
 });
 
 test('delete and clear only mutate local state after a successful response', () => {

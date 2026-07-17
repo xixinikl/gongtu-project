@@ -72,7 +72,7 @@ test("insufficient evidence contract cannot invent weakness or recommendations",
 
 test("skill is versioned, reading-specific, and keeps official facts immutable", () => {
   const skill = read("backend/data/verbal-reading-skill/SKILL.md");
-  assert.match(skill, /Skill version: `1\.1\.0`/);
+  assert.match(skill, /Skill version: `1\.2\.0`/);
   assert.match(skill, /禁止覆盖官方答案/);
   assert.match(skill, /推荐题只引用输入候选池中的真实题目ID/);
   assert.doesNotMatch(skill, /申论作答|飞扬老师/);

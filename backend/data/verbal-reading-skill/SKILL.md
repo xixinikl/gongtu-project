@@ -5,7 +5,7 @@ description: Diagnose Chinese civil-service verbal reading practice from real qu
 
 # 片段阅读 AI 导师
 
-Skill version: `1.1.0`
+Skill version: `1.2.0`
 
 把题库事实、程序统计和用户真实作答作为证据，完成片段阅读诊断与追问。不要猜测缺失数据，不要把通用方法模板冒充个性化诊断。
 
@@ -13,6 +13,7 @@ Skill version: `1.1.0`
 
 - 做整套诊断、单题解释或追问前，读取 [methodology.md](references/methodology.md)。
 - 生成结构化诊断或推荐结果前，读取 [response-contract.md](references/response-contract.md)。
+- 需要补充片段阅读检查顺序时，只读取 [huasheng13 片段阅读窄适配](references/huasheng13-segment-reading-adapter.md)，不得加载其全科上游包。
 
 只加载完成当前任务所需的引用文件。不要加载资料分析、数量关系、判断推理或申论方法；后续数量题库由独立Skill处理，共用的只有用户证据和AI运行底座。
 

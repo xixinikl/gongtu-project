@@ -20,7 +20,7 @@ EXPORT_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "exports")
 _lock = Lock()
 
 # ── LLM 配置 ──
-API_KEY = os.getenv("LLM_API_KEY", "")
+API_KEY = os.getenv("LLM_API_KEY") or os.getenv("DEEPSEEK_API_KEY", "")
 BASE_URL = os.getenv("LLM_BASE_URL", "https://api.deepseek.com")
 MODEL = os.getenv("LLM_MODEL", "deepseek-chat")
 TIMEOUT = int(os.getenv("LLM_TIMEOUT", "30"))

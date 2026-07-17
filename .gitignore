@@ -27,6 +27,7 @@ backend/.gontu-jwt-secret
 backend/logs/
 .codex-runtime/
 .playwright-cli/
+.xds/
 
 # Electron
 desktop/node_modules/

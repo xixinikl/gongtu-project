@@ -1,5 +1,16 @@
 # 公途空间几何实验室任务看板
 
+## 当前 V3 统一体验修复 Goal（最高优先级）
+
+- [x] ● V3R-1 冻结确认 Demo、正式路径与视觉/用户路径断层；证据见 `doc/acceptance/V3R-1-visual-and-path-baseline.md`。
+- [x] ● V3R-2 十个正式页面接入统一 V3 外壳；空间导航不再藏在横向滚动侧栏；桌面/手机实测与 Node 634/634 通过。证据见 `doc/acceptance/V3R-2-unified-shell-and-navigation.md`。
+- [x] ● V3R-3 言语与数量 AI 上下文闭环：真实作答进入服务端可信上下文，未交卷答案不暴露，返回恢复同一 session；证据见 `doc/acceptance/V3R-3-verbal-quantity-ai-handoff.md`。
+- [x] ● V3R-4 图推与申论 AI 上下文闭环：三条正式入口、正确 Skill、huasheng13 窄适配、本人服务端上下文与安全返回已验收。
+- [x] ● V3R-5 记录、Skill、用户隔离、失败提示与 `return_url` 合同已通过 Python 77/77、Node 643/643并归档证据。
+- [ ] ◐ V3R-6（88%）正式功能与代理验收保持完成，当前唯一执行子项为 `homepage-content-led-guofeng-redesign` 首页中段视觉 Goal。按用户最新指令已撤回“四张能力图 + 中心西西”方案，恢复此前三栏卖点、学习证据旋转圆环、五章滚动切换和中间 Three/Spark 粒子聚散；五章直接使用第二张五联水彩图 `gontu-module-ink-atlas-v1.png`。1280×720 与 390×844 实页复核均通过：Spark 状态 `ready`、章节切换正常、刷新回顶、无横向溢出。当前只等待用户看页确认，不再继续改设计方向，也不提前勾选 V3R-6。
+
+权威进度：`.xds/goals/unified-v3-experience-repair.json`。本节完成前，下方 Phase 6 与空间几何记录仅作为历史证据，不是当前执行入口。
+
 ## 当前统一平台 Goal（优先于下方历史空间看板）
 
 - [x] ● GT-P6-1A 跨平台运行基线：恢复 Windows/macOS 打包配置、跨平台 Python 解析和 Windows 启动入口；跨平台脚本不得再依赖单台 Mac 绝对路径。

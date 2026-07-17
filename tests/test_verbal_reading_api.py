@@ -285,7 +285,7 @@ class VerbalReadingAPITests(unittest.TestCase):
         self.assertEqual(response.status_code, 200, response.text)
         self.assertEqual(response.json()["ai_status"], "completed")
         self.assertEqual(response.json()["ai_run"]["provider"], "deepseek")
-        self.assertEqual(response.json()["ai_run"]["skill_version"], "1.1.0")
+        self.assertEqual(response.json()["ai_run"]["skill_version"], "1.2.0")
         self.assertEqual(response.json()["ai_run"]["latency_ms"], 321)
         self.assertEqual(response.json()["ai_run"]["usage"]["total_tokens"], 300)
         self.assertEqual(response.json()["ai_run"]["diagnosis"], output)

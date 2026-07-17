@@ -15,6 +15,9 @@ from pydantic import BaseModel, Field, field_validator
 from auth import require_user
 from ai_skill_registry import SkillRegistryError, registry_status, resolve_skill
 from database import get_db
+from quantity import _bank_or_unavailable as _quantity_bank_or_unavailable
+from verbal_catalog import _logic_by_id
+from verbal_reading import _bank_or_unavailable as _verbal_reading_bank_or_unavailable
 from verbal_reading_ai_config import load_verbal_ai_settings
 from verbal_reading_provider import ProviderError, call_deepseek_json
 
@@ -270,6 +273,206 @@ def _resolve_context(
             "insufficient_evidence": True,
         }
 
+    if requested_module == "verbal.logic_fill" and activity_id.startswith(
+        "logic-question:"
+    ):
+        question_id = activity_id.removeprefix("logic-question:")
+        question = _logic_by_id().get(question_id)
+        if not question:
+            raise HTTPException(status_code=404, detail="Logic question not found")
+        attempt = conn.execute(
+            """SELECT * FROM verbal_logic_attempts_v2
+                 WHERE user_id=? AND question_id=?
+                 ORDER BY created_at DESC,id DESC LIMIT 1""",
+            (uid, question_id),
+        ).fetchone()
+        evidence = {
+            "item_id": question_id,
+            "question_stem": question["stem"],
+            "options": question["options"],
+            "related_terms": question.get("related_terms", []),
+        }
+        provenance = [
+            {
+                "table": "data/verbal_catalog/logic_fill_231.json",
+                "row_id": question_id,
+                "owner_verified": True,
+            }
+        ]
+        if attempt:
+            evidence.update(
+                {
+                    "user_answer": attempt["selected_answer"],
+                    "correct_answer": attempt["correct_answer"],
+                    "is_correct": bool(attempt["is_correct"]),
+                    "elapsed_ms": attempt["elapsed_ms"],
+                }
+            )
+            provenance.append(
+                {
+                    "table": "verbal_logic_attempts_v2",
+                    "row_id": attempt["id"],
+                    "owner_verified": True,
+                }
+            )
+        return {
+            "schema_version": 1,
+            "activity_id": activity_id,
+            "module_id": requested_module,
+            "scope": "server_resolved_question",
+            "activity": {"type": "question_view", "status": "in_progress"},
+            "evidence": [evidence],
+            "answers_revealed": bool(attempt),
+            "provenance": provenance,
+        }
+
+    if requested_module == "verbal.reading" and activity_id.startswith(
+        "reading-question:"
+    ):
+        ref = activity_id.removeprefix("reading-question:")
+        session_id, separator, question_id = ref.partition(":")
+        if not separator or not session_id or not question_id:
+            raise HTTPException(status_code=422, detail="Invalid reading question context")
+        session = conn.execute(
+            "SELECT * FROM verbal_practice_sessions WHERE id=? AND user_id=?",
+            (session_id, uid),
+        ).fetchone()
+        if not session:
+            raise HTTPException(status_code=404, detail="Reading session not found")
+        set_data = _verbal_reading_bank_or_unavailable().get(session["set_id"])
+        question = set_data and set_data["by_id"].get(question_id)
+        if not question:
+            raise HTTPException(status_code=404, detail="Reading question not found")
+        attempt = conn.execute(
+            "SELECT * FROM verbal_attempt_items WHERE session_id=? AND question_id=?",
+            (session_id, question_id),
+        ).fetchone()
+        submitted = session["status"] == "submitted"
+        content = question.get("content") or {}
+        evidence = {
+            "item_id": question_id,
+            "question_stem": content.get("stem", ""),
+            "question_prompt": content.get("prompt", ""),
+            "options": content.get("options", []),
+            "question_type": question.get("learning_tags", {}).get("question_type"),
+            "method_tags": question.get("learning_tags", {}).get("method_tags", []),
+            "peanut_notes": question.get("peanut_notes", []),
+        }
+        provenance = [
+            {
+                "table": "data/verbal_reading",
+                "row_id": question_id,
+                "owner_verified": True,
+            }
+        ]
+        if attempt:
+            evidence.update(
+                {
+                    "user_answer": attempt["final_answer"],
+                    "elapsed_ms": attempt["elapsed_ms"],
+                    "change_count": attempt["change_count"],
+                }
+            )
+            provenance.append(
+                {
+                    "table": "verbal_attempt_items",
+                    "row_id": f"{session_id}:{question_id}",
+                    "owner_verified": True,
+                }
+            )
+        if submitted:
+            evidence.update(
+                {
+                    "correct_answer": question["answer"],
+                    "is_correct": bool(attempt and attempt["is_correct"]),
+                    "official_analysis": question.get("official_analysis", ""),
+                }
+            )
+        return {
+            "schema_version": 1,
+            "activity_id": activity_id,
+            "module_id": requested_module,
+            "scope": "server_resolved_question",
+            "activity": {"type": "question_view", "status": session["status"]},
+            "evidence": [evidence],
+            "answers_revealed": submitted,
+            "provenance": provenance,
+        }
+
+    if requested_module == "quantity.exam" and activity_id.startswith(
+        "quantity-question:"
+    ):
+        ref = activity_id.removeprefix("quantity-question:")
+        session_id, separator, question_id = ref.partition(":")
+        if not separator or not session_id or not question_id:
+            raise HTTPException(status_code=422, detail="Invalid quantity question context")
+        session = conn.execute(
+            "SELECT * FROM quantity_practice_sessions WHERE id=? AND user_id=?",
+            (session_id, uid),
+        ).fetchone()
+        if not session:
+            raise HTTPException(status_code=404, detail="Quantity session not found")
+        question = _quantity_bank_or_unavailable()["by_id"].get(question_id)
+        if not question or question["set_no"] != session["set_no"]:
+            raise HTTPException(status_code=404, detail="Quantity question not found")
+        attempt = conn.execute(
+            "SELECT * FROM quantity_attempt_items WHERE session_id=? AND question_id=?",
+            (session_id, question_id),
+        ).fetchone()
+        submitted = session["status"] == "submitted"
+        tags = question.get("tags", {})
+        evidence = {
+            "item_id": question_id,
+            "question_stem": question["stem"],
+            "options": question["options"],
+            "topic": tags.get("primary_topic"),
+            "methods": tags.get("methods", []),
+            "decision_label": tags.get("exam_decision"),
+            "weak_steps": tags.get("weak_steps", []),
+        }
+        provenance = [
+            {
+                "table": "data/quantity_bank/approved_seed.json",
+                "row_id": question_id,
+                "owner_verified": True,
+            }
+        ]
+        if attempt:
+            evidence.update(
+                {
+                    "user_answer": attempt["final_answer"],
+                    "elapsed_ms": attempt["elapsed_ms"],
+                    "skipped": bool(attempt["is_skipped"]),
+                    "change_count": attempt["change_count"],
+                    "stuck_step": attempt["stuck_step"],
+                }
+            )
+            provenance.append(
+                {
+                    "table": "quantity_attempt_items",
+                    "row_id": f"{session_id}:{question_id}",
+                    "owner_verified": True,
+                }
+            )
+        if submitted:
+            evidence.update(
+                {
+                    "correct_answer": question["answer"],
+                    "is_correct": bool(attempt and attempt["is_correct"]),
+                    "official_analysis": question.get("analysis", ""),
+                }
+            )
+        return {
+            "schema_version": 1,
+            "activity_id": activity_id,
+            "module_id": requested_module,
+            "scope": "server_resolved_question",
+            "activity": {"type": "question_view", "status": session["status"]},
+            "evidence": [evidence],
+            "answers_revealed": submitted,
+            "provenance": provenance,
+        }
+
     activity = _activity(conn, activity_id, uid)
     # Reading sessions predate unified activity writes; their server-owned session id is canonical.
     if not activity and requested_module == "verbal.reading":
@@ -298,6 +501,53 @@ def _resolve_context(
         },
     }
     if module in {"quantity.practice", "quantity.exam"}:
+        if activity["activity_type"] == "single_diagnosis":
+            single = conn.execute(
+                "SELECT * FROM quantity_single_sessions WHERE id=? AND user_id=?",
+                (source, uid),
+            ).fetchone()
+            if not single:
+                raise HTTPException(409, detail="Stale quantity single reference")
+            question = _quantity_bank_or_unavailable()["by_id"].get(
+                single["question_id"]
+            )
+            if not question:
+                raise HTTPException(409, detail="Stale quantity question reference")
+            submitted = single["status"] == "submitted"
+            item = {
+                "item_id": single["question_id"],
+                "question_stem": question["stem"],
+                "options": question["options"],
+                "topic": single["topic"],
+                "methods": question.get("tags", {}).get("methods", []),
+                "user_answer": single["final_answer"],
+                "elapsed_ms": single["elapsed_ms"],
+                "stuck_step": single["stuck_step"],
+                "work_note": single["work_note"],
+            }
+            if submitted:
+                item.update(
+                    {
+                        "correct_answer": question["answer"],
+                        "is_correct": bool(single["is_correct"]),
+                        "official_analysis": question.get("analysis", ""),
+                    }
+                )
+            base.update(
+                {
+                    "scope": "server_resolved_question",
+                    "evidence": [item],
+                    "provenance": [
+                        {
+                            "table": "quantity_single_sessions",
+                            "row_id": source,
+                            "owner_verified": True,
+                        }
+                    ],
+                    "answers_revealed": submitted,
+                }
+            )
+            return base
         session = conn.execute(
             "SELECT * FROM quantity_practice_sessions WHERE id=? AND user_id=?",
             (source, uid),
@@ -572,6 +822,10 @@ def _valid_schema_value(value: Any, schema: dict[str, Any]) -> bool:
             return False
     if "enum" in schema and value not in schema["enum"]:
         return False
+    if isinstance(value, str):
+        minimum = schema.get("minLength")
+        if isinstance(minimum, int) and len(value.strip()) < minimum:
+            return False
     if isinstance(value, dict):
         required = schema.get("required", [])
         if any(key not in value for key in required):
@@ -628,16 +882,41 @@ def _call_provider(
     )
     if context.get("scope") == "standalone_method_question":
         system += (
-            "\n\n当前是自由方法咨询。可以依据本 Skill 讲通用判断步骤和方法，"
-            "但不得据此诊断用户个人弱项，不得声称引用了用户作答证据；"
-            "evidence_refs 必须为空。"
+            "\n\n当前是自由方法咨询。即使没有用户作答证据，也必须依据本 Skill "
+            "直接回答用户询问的通用判断步骤和方法，并将 status 设为 completed；"
+            "不得据此诊断用户个人弱项，不得声称引用了用户作答证据；"
+            "evidence_refs 必须为空，answer 必须是具体且可执行的非空回答。"
         )
-    result = call_deepseek_json(
-        settings,
-        system_prompt=system,
-        user_prompt=_json({"context": context, "messages": messages[-12:]}),
-    )
-    if not _valid_schema_value(result.output, bundle.response_schema):
+    elif context.get("scope") == "server_resolved_question":
+        system += (
+            "\n\n当前上下文包含服务端核验过的真实题干与选项。用户可以在作答前询问"
+            "题干结构、语境关系和解题步骤；这类方法问题不需要官方答案也能回答。"
+            "必须紧扣 context.evidence 中的当前题目，将 status 设为 completed，"
+            "answer 返回具体且非空的方法提示，evidence_refs 填入引用到的 item_id。"
+            "不得提前透露正确选项，也不得在没有作答记录时诊断用户个人弱项。"
+            "先阅读 messages 中用户最新一句，逐字回答他现在问的点，不能复用上一题的回答模板。"
+            "如果用户说没思路、没听懂或问第一步，只给当前题最关键的观察、一个下一步动作，"
+            "再用一个简短问题确认他是否跟上，不要一上来完整抄解法。"
+            "如果 evidence 已含 official_analysis，必须以该官方解析为事实主线，结合当前 Skill"
+            "解释为什么这样识别、为什么这样取舍或哪一步算错；不得与解析冲突，也不要只是照抄解析。"
+            "如果 evidence 已含 user_answer 和 correct_answer，要明确比较用户所选与正确项，"
+            "指出差异发生在识别、建模、计算或选项排除的哪一步。"
+            "每次回答必须只引用当前 evidence[0].item_id 对应的题目；题目 ID 改变时视为全新问题。"
+        )
+    result = None
+    for schema_attempt in range(2):
+        result = call_deepseek_json(
+            settings,
+            system_prompt=system + (
+                "\n\n上一次输出未通过结构校验。请重新生成：只保留 Schema 中定义的字段，"
+                "补齐全部 required 字段，并严格使用规定的数据类型与枚举值。"
+                if schema_attempt else ""
+            ),
+            user_prompt=_json({"context": context, "messages": messages[-12:]}),
+        )
+        if _valid_schema_value(result.output, bundle.response_schema):
+            break
+    if result is None or not _valid_schema_value(result.output, bundle.response_schema):
         raise ProviderError("provider_invalid_schema", status="invalid_output")
     return (
         _display_output(result.output),
@@ -890,7 +1169,19 @@ def _execute_run(thread_id, user_mid, user_text, uid):
         thread = _owned(conn, "ai_coach_threads", thread_id, uid)
         bundle = _bundle(thread["module_id"])
         settings = load_verbal_ai_settings()
-        context_hash = hashlib.sha256(thread["context_json"].encode()).hexdigest()
+        context = _resolve_context(
+            conn,
+            uid=uid,
+            activity_id=thread["activity_id"],
+            requested_module=thread["module_id"],
+        )
+        context_json = _json(context)
+        if context_json != thread["context_json"]:
+            conn.execute(
+                "UPDATE ai_coach_threads SET context_json=?,updated_at=? WHERE id=? AND user_id=?",
+                (context_json, now, thread_id, uid),
+            )
+        context_hash = hashlib.sha256(context_json.encode()).hexdigest()
         conn.execute(
             """INSERT INTO ai_coach_runs(id,thread_id,user_id,provider,model,skill_version,skill_hash,status,skill_id,package_hash,bundle_hash,context_hash,registry_version,user_message_id,created_at)
                         VALUES(?,?,?,'deepseek',?,?,?,'running',?,?,?,?, '1',?,?)""",
@@ -918,9 +1209,7 @@ def _execute_run(thread_id, user_mid, user_text, uid):
             ).fetchall()
         ]
     try:
-        provider_result = _call_provider(
-            bundle, _parsed(thread["context_json"]), history
-        )
+        provider_result = _call_provider(bundle, context, history)
         if len(provider_result) == 4:  # compatibility for deterministic test providers
             content, usage, latency, model = provider_result
             output = {
