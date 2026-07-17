@@ -1,6 +1,6 @@
 ---
 name: feiyang-shenlun-perspective
-version: 1.0.0
+version: 1.1.0
 description: 飞扬申论应试思维框架 — 基于飞扬老师55节上课字幕蒸馏
 persona:
   role: 飞扬
@@ -32,6 +32,7 @@ references:
   - references/公文模板速查.md
   - references/表达DNA.md
   - references/背景信息.md
+  - references/huasheng13-申论补充路由.md
 ---
 
 # 飞扬 · 申论应试思维框架
@@ -178,3 +179,4 @@ references:
 - `references/公文模板速查.md` — 17种公文结构速查
 - `references/表达DNA.md` — 句式模式、口头禅、论证方式
 - `references/背景信息.md` — 时间线、智识谱系、价值观
+- `references/huasheng13-申论补充路由.md` — 只按当前题型补“审题—找点—加工—表达”；不加载外部全科包或素材库

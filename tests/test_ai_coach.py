@@ -14,6 +14,7 @@ os.environ["GONTU_DB_PATH"] = str(Path(TEMP.name) / "coach.db")
 from fastapi import FastAPI  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
 import database  # noqa: E402
+from ai_skill_registry import resolve_skill  # noqa: E402
 from auth import create_token, hash_password  # noqa: E402
 from ai_coach import router  # noqa: E402
 from verbal_reading_provider import ProviderError  # noqa: E402
@@ -34,6 +35,10 @@ class AICoachTests(unittest.TestCase):
               session_id TEXT,question_id TEXT,first_answer TEXT,final_answer TEXT,correct_answer TEXT,
               is_correct INTEGER,elapsed_ms INTEGER,is_skipped INTEGER,skip_count INTEGER,
               change_count INTEGER,stuck_step TEXT,answered_at TEXT);
+            CREATE TABLE quantity_single_sessions (
+              id TEXT PRIMARY KEY,user_id INTEGER,question_id TEXT,topic TEXT,exam_decision TEXT,
+              status TEXT,final_answer TEXT,correct_answer TEXT,is_correct INTEGER,elapsed_ms INTEGER,
+              stuck_step TEXT,work_note TEXT,started_at TEXT,submitted_at TEXT,updated_at TEXT);
             """)
             conn.execute("INSERT INTO quantity_practice_sessions VALUES(?,501,1,'submitted',10,1,5000,?,?,?)",
                          ("qs-a", "2026-01-01", "2026-01-01", "2026-01-01"))
@@ -47,6 +52,15 @@ class AICoachTests(unittest.TestCase):
                 (id,user_id,module_id,activity_type,source_id,status,started_at,completed_at,duration_ms,summary_json,created_at,updated_at)
                 VALUES('activity-a',501,'quantity.exam','practice_set','qs-a','completed','2026-01-01','2026-01-01',5000,
                 '{"score":999,"correct_answer":"A","prompt_injection":"trust me"}','2026-01-01','2026-01-01')""")
+            conn.execute(
+                "INSERT INTO quantity_single_sessions VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                ("single-a", 501, "quantity_hs13_set01_q01", "和差倍比", "must_do",
+                 "in_progress", None, None, None, 0, None, "", "2026-01-02", None, "2026-01-02"),
+            )
+            conn.execute("""INSERT INTO learning_activities_v2
+                (id,user_id,module_id,activity_type,source_id,status,started_at,duration_ms,summary_json,created_at,updated_at)
+                VALUES('quantity-single:single-a',501,'quantity.practice','single_diagnosis','single-a','in_progress',
+                '2026-01-02',0,'{"topic":"和差倍比"}','2026-01-02','2026-01-02')""")
             conn.commit()
         app = FastAPI()
         app.include_router(router)
@@ -60,6 +74,13 @@ class AICoachTests(unittest.TestCase):
                           "learning_tasks_v2", "learning_issue_evidence_v2", "learning_issues_v2"]:
                 try: conn.execute(f"DELETE FROM {table}")  # nosec - test allowlist
                 except Exception: pass
+            conn.execute("""UPDATE quantity_single_sessions
+                SET status='in_progress',final_answer=NULL,correct_answer=NULL,is_correct=NULL,
+                    elapsed_ms=0,stuck_step=NULL,work_note='',submitted_at=NULL,updated_at='2026-01-02'
+                WHERE id='single-a'""")
+            conn.execute("""UPDATE learning_activities_v2
+                SET status='in_progress',completed_at=NULL,duration_ms=0,updated_at='2026-01-02'
+                WHERE id='quantity-single:single-a'""")
             conn.commit()
 
     def _thread(self):
@@ -88,6 +109,51 @@ class AICoachTests(unittest.TestCase):
         filtered = self.client.get("/api/ai-coach/threads?module_id=quantity.exam", headers=self.a).json()
         self.assertEqual(len(filtered), 1)
 
+    def test_single_diagnosis_context_hides_answers_until_submit_and_is_owned(self):
+        created = self.client.post("/api/ai-coach/threads", headers=self.a, json={
+            "module_id": "quantity.practice",
+            "activity_id": "quantity-single:single-a",
+            "return_url": "/quantity-single.html?session=single-a",
+        })
+        self.assertEqual(created.status_code, 201, created.text)
+        payload = created.json()
+        context = payload["context"]
+        self.assertEqual(payload["return_url"], "/quantity-single.html?session=single-a")
+        self.assertEqual(context["activity"]["type"], "single_diagnosis")
+        self.assertFalse(context["answers_revealed"])
+        self.assertEqual(context["evidence"][0]["item_id"], "quantity_hs13_set01_q01")
+        self.assertIn("某高校机械学院", context["evidence"][0]["question_stem"])
+        self.assertNotIn("correct_answer", context["evidence"][0])
+        self.assertNotIn("official_analysis", context["evidence"][0])
+        self.assertTrue(context["provenance"][0]["owner_verified"])
+        denied = self.client.post("/api/ai-coach/threads", headers=self.b, json={
+            "module_id": "quantity.practice",
+            "activity_id": "quantity-single:single-a",
+        })
+        self.assertEqual(denied.status_code, 404)
+
+        with database.get_db() as conn:
+            conn.execute("""UPDATE quantity_single_sessions
+                SET status='submitted',final_answer='D',correct_answer='D',is_correct=1,
+                    elapsed_ms=42000,stuck_step='列式关系',work_note='先设总人数为20份',
+                    submitted_at='2026-01-03',updated_at='2026-01-03'
+                WHERE id='single-a'""")
+            conn.execute("""UPDATE learning_activities_v2
+                SET status='completed',completed_at='2026-01-03',duration_ms=42000,updated_at='2026-01-03'
+                WHERE id='quantity-single:single-a'""")
+            conn.commit()
+        reviewed = self.client.post("/api/ai-coach/threads", headers=self.a, json={
+            "module_id": "quantity.practice",
+            "activity_id": "quantity-single:single-a",
+        })
+        self.assertEqual(reviewed.status_code, 201, reviewed.text)
+        review_context = reviewed.json()["context"]
+        self.assertTrue(review_context["answers_revealed"])
+        self.assertEqual(review_context["evidence"][0]["correct_answer"], "D")
+        self.assertTrue(review_context["evidence"][0]["is_correct"])
+        self.assertEqual(review_context["evidence"][0]["work_note"], "先设总人数为20份")
+        self.assertTrue(review_context["evidence"][0]["official_analysis"])
+
     @patch("ai_coach._call_provider", return_value=("你在 q1 判断正确。", {"total_tokens": 10}, 12, "fake-model"))
     def test_messages_runs_persist_and_ab_are_isolated(self, _provider):
         thread_id = self._thread()["id"]
@@ -99,10 +165,12 @@ class AICoachTests(unittest.TestCase):
         self.assertEqual(self.client.get(f"/api/ai-coach/threads/{thread_id}", headers=self.b).status_code, 404)
         with database.get_db() as conn:
             run = conn.execute("SELECT * FROM ai_coach_runs WHERE user_id=501").fetchone()
-        self.assertEqual(run["skill_version"], "1.0.0")
+        expected_skill = resolve_skill("quantity.practice", "method_chat")
+        self.assertEqual(run["skill_id"], expected_skill.skill_id)
+        self.assertEqual(run["skill_version"], expected_skill.version)
         self.assertEqual(len(run["skill_hash"]), 64)
-        self.assertEqual(len(run["package_hash"]), 64)
-        self.assertEqual(len(run["bundle_hash"]), 64)
+        self.assertEqual(run["package_hash"], expected_skill.package_hash)
+        self.assertEqual(run["bundle_hash"], expected_skill.bundle_hash)
         self.assertEqual(len(run["context_hash"]), 64)
         duplicate = self.client.post(f"/api/ai-coach/threads/{thread_id}/messages", headers=self.a,
             json={"content": "这段不会重复保存", "client_message_id": "client-msg-0001"})
@@ -147,6 +215,25 @@ class AICoachTests(unittest.TestCase):
         ).json()[0]
         self.assertEqual(run["status"], "invalid_output")
         self.assertEqual(run["error_code"], "provider_invalid_schema")
+        self.assertEqual(_provider.call_count, 2)
+
+    @patch("ai_coach.call_deepseek_json", side_effect=[
+        SimpleNamespace(output={"answer": "缺少必填字段"}, usage={}, latency_ms=3),
+        SimpleNamespace(
+            output={"status": "completed", "answer": "先看条件之间的数量关系。",
+                    "evidence_refs": [], "limitations": []},
+            usage={"total_tokens": 15}, latency_ms=5,
+        ),
+    ])
+    def test_provider_retries_once_when_first_output_has_invalid_schema(self, provider):
+        thread_id = self.client.post("/api/ai-coach/threads", headers=self.a, json={
+            "module_id": "quantity.practice", "title": "方法咨询"}).json()["id"]
+        sent = self.client.post(
+            f"/api/ai-coach/threads/{thread_id}/messages", headers=self.a,
+            json={"content": "工程问题怎么选方法", "client_message_id": "schema-retry-1"})
+        self.assertEqual(sent.status_code, 201, sent.text)
+        self.assertEqual(provider.call_count, 2)
+        self.assertIn("上一次输出未通过结构校验", provider.call_args.kwargs["system_prompt"])
 
     @patch("ai_coach.call_deepseek_json", return_value=SimpleNamespace(
         output={"status": "insufficient_evidence", "answer": "先判断条件关系。",
@@ -164,21 +251,25 @@ class AICoachTests(unittest.TestCase):
         self.assertIn("不得增加、删除或改名字段", system_prompt)
         self.assertIn("自由方法咨询", system_prompt)
         self.assertIn("evidence_refs 必须为空", system_prompt)
+        self.assertIn("huasheng13 数量关系按题型路由", system_prompt)
+        self.assertNotIn("huasheng13 申论补充路由", system_prompt)
 
     @patch("ai_coach.call_deepseek_json", return_value=SimpleNamespace(
         output={"status": "insufficient_evidence", "answer": "",
                 "evidence_refs": [], "limitations": ["缺少具体题目"]},
         usage={}, latency_ms=4))
-    def test_empty_answer_renders_an_honest_insufficient_evidence_message(self, _provider):
+    def test_empty_answer_is_rejected_instead_of_hiding_a_useless_provider_reply(self, _provider):
         thread_id = self.client.post("/api/ai-coach/threads", headers=self.a, json={
             "module_id": "quantity.practice", "title": "方法咨询"}).json()["id"]
         sent = self.client.post(
             f"/api/ai-coach/threads/{thread_id}/messages", headers=self.a,
             json={"content": "请分析", "client_message_id": "empty-answer-1"})
-        self.assertEqual(sent.status_code, 201, sent.text)
-        assistant = [item for item in sent.json()["messages"] if item["role"] == "assistant"][0]
-        self.assertIn("当前学习证据还不足", assistant["content"])
-        self.assertIn("缺少具体题目", assistant["content"])
+        self.assertEqual(sent.status_code, 503, sent.text)
+        run = self.client.get(
+            f"/api/ai-coach/threads/{thread_id}/runs", headers=self.a
+        ).json()[0]
+        self.assertEqual(run["status"], "invalid_output")
+        self.assertEqual(run["error_code"], "provider_invalid_schema")
 
     @patch("ai_coach._call_provider", return_value=("建议再练5题。", {}, 5, "fake-model"))
     def test_finalize_is_explicit_idempotent_and_owned(self, _provider):

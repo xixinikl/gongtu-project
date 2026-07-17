@@ -200,6 +200,7 @@ def grade_logic_attempt(body: LogicAttemptIn, user: dict = Depends(require_user)
         raise HTTPException(status_code=422, detail="Answer must be A, B, C, or D")
     correct = question["correct_answer"]
     now = _utc_now()
+    activity_id = str(uuid.uuid4())
     with get_db() as conn:
         cursor = conn.execute(
             """INSERT INTO verbal_logic_attempts_v2
@@ -213,7 +214,7 @@ def grade_logic_attempt(body: LogicAttemptIn, user: dict = Depends(require_user)
                     completed_at,duration_ms,summary_json,created_at,updated_at)
                VALUES(?,?,?,?,?,'completed',?,?,?,?,?,?)""",
             (
-                str(uuid.uuid4()),
+                activity_id,
                 user["user_id"],
                 "verbal.logic_fill",
                 "question_attempt",
@@ -255,6 +256,7 @@ def grade_logic_attempt(body: LogicAttemptIn, user: dict = Depends(require_user)
             "content": None,
         },
         "ai_context": {
+            "activity_id": activity_id,
             "question_id": question["id"],
             "stem": question["stem"],
             "options": question["options"],

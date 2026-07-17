@@ -272,11 +272,11 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 </div>
 <a href="/智学成语-高级版.html?demo=verbal-ai-v3" class="back-btn"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 2L3 7l5 5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><line x1="3" y1="7" x2="11" y2="7" stroke="currentColor" stroke-width="0.8" opacity="0.5"/></svg> 返回</a>
 <button class="add-btn" onclick="openAddModal()">+ 添加错题</button>
-<div class="tabs">
-<button class="tab-btn active" data-tab="t1">万象图绎 · 全览</button>
-<button class="tab-btn" data-tab="t2">图推「3+3」</button>
-<button class="tab-btn" data-tab="t3">黑白块</button>
-<button class="tab-btn" data-tab="t4">错题复习</button>
+<div class="tabs" role="tablist" aria-label="平面图推功能">
+<button id="tab-t1" class="tab-btn active" data-tab="t1" role="tab" aria-controls="t1" aria-selected="true" tabindex="0">万象图绎 · 全览</button>
+<button id="tab-t2" class="tab-btn" data-tab="t2" role="tab" aria-controls="t2" aria-selected="false" tabindex="-1">图推「3+3」</button>
+<button id="tab-t3" class="tab-btn" data-tab="t3" role="tab" aria-controls="t3" aria-selected="false" tabindex="-1">黑白块</button>
+<button id="tab-t4" class="tab-btn" data-tab="t4" role="tab" aria-controls="t4" aria-selected="false" tabindex="-1">错题复习</button>
 </div>
 </div>
 <div class="main">
@@ -287,10 +287,10 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 </div>
 <div class="scroll-wrap" id="scrollWrap">
 <div class="scroll-inner" id="scrollInner">
-<div class="tab-panel active" id="t1"></div>
-<div class="tab-panel" id="t2"></div>
-<div class="tab-panel" id="t3"></div>
-<div class="tab-panel" id="t4">
+<div class="tab-panel active" id="t1" role="tabpanel" aria-labelledby="tab-t1"></div>
+<div class="tab-panel" id="t2" role="tabpanel" aria-labelledby="tab-t2" hidden></div>
+<div class="tab-panel" id="t3" role="tabpanel" aria-labelledby="tab-t3" hidden></div>
+<div class="tab-panel" id="t4" role="tabpanel" aria-labelledby="tab-t4" hidden>
   <div class="review-wrap">
     <!-- 空状态 -->
     <div class="review-empty" id="reviewEmpty" style="display:none">
@@ -525,12 +525,19 @@ function renderPanel(panelId,rootData){
 
 document.querySelectorAll('.tab-btn').forEach(b=>{
  b.addEventListener('click',function(){
-  document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active'));
-  document.querySelectorAll('.tab-panel').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(x=>{x.classList.remove('active');x.setAttribute('aria-selected','false');x.tabIndex=-1});
+  document.querySelectorAll('.tab-panel').forEach(x=>{x.classList.remove('active');x.hidden=true});
   this.classList.add('active');
-  document.getElementById(this.dataset.tab).classList.add('active');
+  this.setAttribute('aria-selected','true');this.tabIndex=0;
+  const panel=document.getElementById(this.dataset.tab);panel.hidden=false;panel.classList.add('active');
   setTimeout(()=>{if(window._sbUpdate)window._sbUpdate();},100);
   if(this.dataset.tab==='t4') setTimeout(initReview,200);
+ });
+ b.addEventListener('keydown',function(event){
+  if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;
+  event.preventDefault();const tabs=[...document.querySelectorAll('.tab-btn')];let index=tabs.indexOf(this);
+  if(event.key==='Home')index=0;else if(event.key==='End')index=tabs.length-1;else index=(index+(event.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length;
+  tabs[index].focus();tabs[index].click();
  });
 });
 
@@ -829,6 +836,24 @@ setTimeout(normalizeStageWidths, 600);
 const API_BASE=window.__GONTU_API_BASE__||(location.port==='8089'?'http://127.0.0.1:8888':location.origin);
 const GONTU_TOKEN_KEY='gontu_token';
 
+function planarCoachContext(q){
+ if(!q||!q.activity_id)return null;
+ const returnUrl=new URL(location.href);
+ returnUrl.searchParams.set('question',q.id);
+ return {moduleId:'reasoning.planar',contextKind:'activity',contextId:q.activity_id,returnUrl:returnUrl.pathname+returnUrl.search+returnUrl.hash,label:'带这道错题问西西'};
+}
+function planarCoachHref(detail){
+ const params=new URLSearchParams({module:detail.moduleId,context_kind:detail.contextKind,context_id:detail.contextId,return_url:detail.returnUrl});
+ return '/ai-coach?'+params.toString();
+}
+function publishPlanarCoach(q){
+ const detail=planarCoachContext(q);if(!detail)return null;
+ window.__gontuCoachContext=detail;
+ window.GontuV3Shell?.setCoachContext(detail);
+ window.dispatchEvent(new CustomEvent('gontu:v3-coach-context',{detail}));
+ return detail;
+}
+
 async function api(path,opts={}){
  const url=API_BASE+path;
  const fetchOpts={headers:{},...opts};
@@ -965,6 +990,8 @@ async function showDetail(qid){
  closePopover();
  try{
   const q=await api('/api/mindmap/questions/'+qid);
+  const coachDetail=publishPlanarCoach(q);
+  const returnUrl=new URL(location.href);returnUrl.searchParams.set('question',q.id);history.replaceState(null,'',returnUrl);
   let overlay=document.createElement('div');
   overlay.className='modal-overlay';
   overlay.onclick=function(e){if(e.target===overlay)overlay.remove()};
@@ -1050,6 +1077,14 @@ async function showDetail(qid){
   btnDelete.textContent='删除';
   btnDelete.onclick=function(){deleteQuestion(qid,btnDelete)};
   actions.appendChild(btnClose);
+  if(coachDetail){
+   let coachLink=document.createElement('a');
+   coachLink.className='btn-sm';
+   coachLink.href=planarCoachHref(coachDetail);
+   coachLink.textContent='带这道错题问西西';
+   coachLink.style.cssText='background:#201a11;color:#f4e4bd;border:1px solid #9e7a31;padding:6px 14px;border-radius:4px;text-decoration:none;font-size:12px';
+   actions.appendChild(coachLink);
+  }
   actions.appendChild(btnEdit);
   actions.appendChild(btnDelete);
   box.appendChild(actions);
@@ -1321,6 +1356,10 @@ setTimeout(loadBadges,500);
 setTimeout(loadBadges,1500);
 setTimeout(loadBadges,3000);
 document.addEventListener('DOMContentLoaded',()=>setTimeout(loadBadges,200));
+document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{
+ const qid=new URLSearchParams(location.search).get('question');
+ if(/^\d+$/.test(qid||''))showDetail(qid);
+},700));
 // 将 loadBadges 挂到全局供 rebuild 后调用
 const _origRender=renderPanel;
 renderPanel=function(id,data){

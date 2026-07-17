@@ -74,12 +74,17 @@ class MindmapApiTests(unittest.TestCase):
         created = self.create_question(image=True)
         self.assertEqual(created.status_code, 200, created.text)
         qid = created.json()["id"]
+        self.assertEqual(created.json()["activity_id"], f"mindmap:question:{qid}")
         self.assertEqual(self.client.get(f"/api/mindmap/questions/{qid}/image").status_code, 401)
         self.assertEqual(self.client.get(f"/api/mindmap/questions/{qid}/image", headers=self.headers_b).status_code, 404)
         media = self.client.get(f"/api/mindmap/questions/{qid}/image", headers=self.headers_a)
         self.assertEqual(media.status_code, 200)
         self.assertEqual(media.content, PNG)
         self.assertEqual(self.client.get("/api/mindmap/questions", headers=self.headers_b).json(), {"questions": []})
+        detail = self.client.get(f"/api/mindmap/questions/{qid}", headers=self.headers_a).json()
+        self.assertEqual(detail["activity_id"], f"mindmap:question:{qid}")
+        listed = self.client.get("/api/mindmap/questions", headers=self.headers_a).json()["questions"]
+        self.assertEqual(listed[0]["activity_id"], f"mindmap:question:{qid}")
         with database.get_db() as conn:
             activity = conn.execute(
                 "SELECT user_id,activity_type,source_id FROM learning_activities_v2 WHERE id=?",
@@ -112,6 +117,7 @@ class MindmapApiTests(unittest.TestCase):
         state = started.json()
         sid = state["session"]["id"]
         first_id = state["questions"][0]["id"]
+        self.assertEqual(state["questions"][0]["activity_id"], f"mindmap:question:{first_id}")
         forgotten = self.client.post(
             f"/api/mindmap/review-session/{sid}/attempt",
             headers=self.headers_a,

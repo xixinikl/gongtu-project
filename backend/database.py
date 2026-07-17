@@ -119,8 +119,13 @@ def init_db():
                 id              INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id         INTEGER NOT NULL,
                 question_id     TEXT NOT NULL,
+                source_history_id TEXT,
+                record_type     TEXT NOT NULL DEFAULT 'grading',
                 question_title  TEXT NOT NULL,
                 question_type   TEXT NOT NULL,
+                question_text   TEXT NOT NULL DEFAULT '',
+                question_requirement TEXT NOT NULL DEFAULT '',
+                material        TEXT NOT NULL DEFAULT '',
                 student_answer  TEXT NOT NULL,
                 ai_reply        TEXT,
                 created_at      TEXT NOT NULL DEFAULT (datetime('now'))
@@ -157,6 +162,26 @@ def init_db():
             logger.info("Migration: added user_id column to questions")
         except sqlite3.OperationalError:
             pass  # column already exists
+
+        # ── v10 migration: 申论问题追踪保留完整题目与来源历史 ──
+        for column_sql in (
+            "ALTER TABLE shenlun_mistakes ADD COLUMN source_history_id TEXT",
+            "ALTER TABLE shenlun_mistakes ADD COLUMN record_type TEXT NOT NULL DEFAULT 'grading'",
+            "ALTER TABLE shenlun_mistakes ADD COLUMN question_text TEXT NOT NULL DEFAULT ''",
+            "ALTER TABLE shenlun_mistakes ADD COLUMN question_requirement TEXT NOT NULL DEFAULT ''",
+            "ALTER TABLE shenlun_mistakes ADD COLUMN material TEXT NOT NULL DEFAULT ''",
+        ):
+            try:
+                conn.execute(column_sql)
+                conn.commit()
+            except sqlite3.OperationalError:
+                pass  # column already exists
+        conn.execute(
+            """CREATE UNIQUE INDEX IF NOT EXISTS idx_shenlun_mistakes_owner_history
+               ON shenlun_mistakes(user_id, source_history_id)
+               WHERE source_history_id IS NOT NULL"""
+        )
+        conn.commit()
 
         # ── v9 migration: 跨模块学习活动、问题与任务索引层 ──
         # 现有词库、片段阅读、图推和申论垂直表继续作为事实层；

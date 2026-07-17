@@ -62,6 +62,59 @@ class QuantityApiTests(unittest.TestCase):
         self.assertNotIn("analysis", q7)
         self.assertNotIn("answer_source", q7)
         self.assertEqual(q7["decision_scope"], "question_baseline")
+        topics = self.client.get("/api/quantity/topics", headers=self.headers_a)
+        self.assertEqual(topics.status_code, 200)
+        self.assertGreater(len(topics.json()), 1)
+        self.assertEqual(sum(item["question_count"] for item in topics.json()), 600)
+        self.assertTrue(all(1 <= item["first_set"] <= 60 for item in topics.json()))
+        self.assertTrue(all(item["decision_label"] in {"必做", "可做", "先跳"} for item in topics.json()))
+        self.assertEqual(
+            topics.json(),
+            sorted(
+                topics.json(),
+                key=lambda item: (-item["priority_score"], -item["question_count"], item["topic"]),
+            ),
+        )
+
+    def test_single_diagnosis_is_one_real_question_and_review_recommends_next_step(self):
+        topic = self.client.get("/api/quantity/topics", headers=self.headers_a).json()[0]["topic"]
+        created = self.client.post(
+            "/api/quantity/single-sessions",
+            headers=self.headers_a,
+            json={"topic": topic},
+        )
+        self.assertEqual(created.status_code, 201, created.text)
+        single = created.json()
+        self.assertEqual(single["topic"], topic)
+        self.assertNotIn("answer", single["question"])
+        answer = _load_bank()["by_id"][single["question_id"]]["answer"]
+        submitted = self.client.post(
+            f"/api/quantity/single-sessions/{single['id']}/submit",
+            headers=self.headers_a,
+            json={
+                "answer": answer,
+                "elapsed_ms": 64000,
+                "stuck_step": "列式关系",
+                "work_note": "设总量，列出关键关系式。",
+            },
+        )
+        self.assertEqual(submitted.status_code, 200, submitted.text)
+        self.assertTrue(submitted.json()["is_correct"])
+        self.assertEqual(submitted.json()["question"]["answer"], answer)
+        self.assertIn("analysis", submitted.json()["question"])
+        summary = self.client.get("/api/quantity/review-summary", headers=self.headers_a)
+        self.assertEqual(summary.status_code, 200, summary.text)
+        self.assertEqual(summary.json()["single_count"], 1)
+        self.assertEqual(summary.json()["recommendation"]["topic"], topic)
+        self.assertIn("列式关系", summary.json()["recommendation"]["reason"])
+
+        # Another account cannot read this single-question evidence.
+        self.assertEqual(
+            self.client.get(
+                f"/api/quantity/single-sessions/{single['id']}", headers=self.headers_b
+            ).status_code,
+            404,
+        )
 
     def test_all_routes_require_auth_and_media_is_safe(self):
         self.assertEqual(self.client.get("/api/quantity/sets").status_code, 401)

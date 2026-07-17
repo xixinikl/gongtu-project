@@ -264,8 +264,12 @@ class ShenlunAPITests(unittest.TestCase):
                     payload={"questionId": "q3-1", "studentAnswer": answer},
                 )
                 self.assertEqual(response.status_code, 200, response.text)
+                self.assertEqual(
+                    response.json()["activityId"],
+                    f"shenlun-grade:{response.json()['id']}",
+                )
                 meta = response.json()["runMetadata"]
-                self.assertEqual(meta["skillVersion"], "1.0.0")
+                self.assertEqual(meta["skillVersion"], "1.1.0")
                 self.assertEqual(len(meta["skillHash"]), 64)
                 self.assertTrue(meta["model"])
                 self.assertTrue(meta["provider"])
@@ -275,6 +279,11 @@ class ShenlunAPITests(unittest.TestCase):
         ).json()
         self.assertEqual(len(mistakes), 1)
         self.assertEqual(mistakes[0]["studentAnswer"], "第二次正式作答")
+        self.assertEqual(mistakes[0]["recordType"], "grading")
+        self.assertTrue(mistakes[0]["sourceHistoryId"])
+        self.assertTrue(mistakes[0]["questionText"])
+        self.assertTrue(mistakes[0]["questionRequirement"])
+        self.assertTrue(mistakes[0]["material"])
         history = self.client.get("/api/shenlun/history", headers=self.headers_a).json()
         self.assertEqual(len(history), 3)  # one chat + two preserved grading attempts
         self.assertEqual(
@@ -313,6 +322,61 @@ class ShenlunAPITests(unittest.TestCase):
         )  # redo adds evidence, not a duplicate active task
         self.assertEqual(tasks[0]["task_type"], "dimension_practice")
         self.assertEqual(tasks[0]["status"], "pending")
+
+    def test_ordinary_chat_can_be_manually_tracked_with_complete_context(self):
+        with patch.object(shenlun, "llm_chat", return_value="先界定问题，再列出证据。"):
+            free_chat = self.client.post(
+                "/api/shenlun/chat",
+                headers=self.headers_a,
+                json={"message": "普通问答怎样加入问题追踪？"},
+            )
+            question_chat = self.client.post(
+                "/api/shenlun/chat",
+                headers=self.headers_a,
+                json={"questionId": "q3-1", "message": "这道题怎样拆分要点？"},
+            )
+        self.assertEqual(free_chat.status_code, 200, free_chat.text)
+        self.assertTrue(free_chat.json()["historyId"])
+        self.assertTrue(question_chat.json()["historyId"])
+        self.assertEqual(
+            self.client.get("/api/shenlun/mistakes", headers=self.headers_a).json(), []
+        )
+
+        foreign = self.client.post(
+            "/api/shenlun/mistakes",
+            headers=self.headers_b,
+            json={"historyId": free_chat.json()["historyId"]},
+        )
+        self.assertEqual(foreign.status_code, 404)
+
+        for history_id in (
+            free_chat.json()["historyId"],
+            question_chat.json()["historyId"],
+        ):
+            tracked = self.client.post(
+                "/api/shenlun/mistakes",
+                headers=self.headers_a,
+                json={"historyId": history_id},
+            )
+            self.assertEqual(tracked.status_code, 200, tracked.text)
+
+        mistakes = self.client.get(
+            "/api/shenlun/mistakes", headers=self.headers_a
+        ).json()
+        self.assertEqual(len(mistakes), 2)
+        free_item = next(item for item in mistakes if item["questionId"] == "chat")
+        question_item = next(item for item in mistakes if item["questionId"] == "q3-1")
+        self.assertEqual(free_item["recordType"], "chat")
+        self.assertEqual(free_item["questionText"], "普通问答怎样加入问题追踪？")
+        self.assertEqual(free_item["questionRequirement"], "普通问答")
+        self.assertEqual(free_item["aiReply"], "先界定问题，再列出证据。")
+        self.assertEqual(question_item["recordType"], "chat")
+        self.assertTrue(question_item["questionText"])
+        self.assertTrue(question_item["questionRequirement"])
+        self.assertTrue(question_item["material"])
+        self.assertEqual(
+            self.client.get("/api/shenlun/mistakes", headers=self.headers_b).json(), []
+        )
 
     def test_delete_and_clear_are_scoped_to_jwt_owner(self):
         result = valid_grade(
@@ -395,7 +459,7 @@ class ShenlunAPITests(unittest.TestCase):
         self.assertEqual(response.status_code, 200, response.text)
         self.assertEqual(response.json()["status"], "completed")
         self.assertEqual(response.json()["recordsReviewed"], 1)
-        self.assertEqual(response.json()["runMetadata"]["skillVersion"], "1.0.0")
+        self.assertEqual(response.json()["runMetadata"]["skillVersion"], "1.1.0")
         self.assertIn("飞扬", mocked.call_args.kwargs["system_prompt"])
 
     def test_grader_rejects_invalid_schema_and_never_returns_raw_provider_text(self):

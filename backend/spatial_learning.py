@@ -107,6 +107,7 @@ def create_record(body: SpatialRecordIn, user: dict = Depends(require_user)):
     if body.activity_kind == "three_view_group":
         _grade_three_view(body)
     record_id, now = str(uuid.uuid4()), _now()
+    source_id = body.source_id or record_id
     summary: dict[str, Any] = {
         "stage_id": body.stage_id,
         "activity_kind": body.activity_kind,
@@ -121,7 +122,7 @@ def create_record(body: SpatialRecordIn, user: dict = Depends(require_user)):
                 duration_ms,last_position,detail_json,created_at,updated_at)
                VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (record_id, user["user_id"], body.stage_id, body.activity_kind,
-             body.source_id, body.status, body.score, body.total, body.duration_ms,
+             source_id, body.status, body.score, body.total, body.duration_ms,
              body.last_position, json.dumps(body.detail, ensure_ascii=False), now, now),
         )
         activity_id = str(uuid.uuid4())
@@ -131,7 +132,7 @@ def create_record(body: SpatialRecordIn, user: dict = Depends(require_user)):
                 completed_at,duration_ms,summary_json,created_at,updated_at)
                VALUES(?,?,'reasoning.spatial',?,?,?,?,?,?,?,?,?)""",
             (activity_id, user["user_id"], body.activity_kind,
-             body.source_id or record_id, body.status, now,
+             source_id, body.status, now,
              now if body.status == "completed" else None, body.duration_ms,
              json.dumps(summary, ensure_ascii=False), now, now),
         )
@@ -140,7 +141,9 @@ def create_record(body: SpatialRecordIn, user: dict = Depends(require_user)):
             "SELECT * FROM spatial_learning_records WHERE id=? AND user_id=?",
             (record_id, user["user_id"]),
         ).fetchone()
-    return _record(row)
+    result = _record(row)
+    result["activity_id"] = activity_id
+    return result
 
 
 @router.get("/records")

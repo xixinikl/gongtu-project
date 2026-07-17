@@ -4,6 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>片段阅读极简答题｜练习题 01 套</title>
+  <link rel="stylesheet" href="/gontu-v3-shell.css?v=20260713">
+  <script defer src="/gontu-v3-shell.js?v=20260713"></script>
   <style>
     :root {
       color-scheme: light;
@@ -33,20 +35,24 @@
 
     .page {
       width: min(1120px, calc(100% - 32px));
-      margin: 28px auto 56px;
+      margin: 10px auto 28px;
     }
 
     .hero {
       display: flex;
       justify-content: space-between;
       gap: 24px;
-      align-items: flex-end;
-      margin-bottom: 18px;
+      align-items: center;
+      margin-bottom: 8px;
+      padding: 9px 14px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255, 253, 249, 0.78);
     }
 
     h1 {
-      margin: 0 0 8px;
-      font-size: clamp(28px, 5vw, 46px);
+      margin: 0 0 4px;
+      font-size: clamp(20px, 2.2vw, 28px);
       letter-spacing: -0.04em;
       line-height: 1.08;
     }
@@ -54,7 +60,8 @@
     .subtitle {
       margin: 0;
       color: var(--muted);
-      max-width: 760px;
+      max-width: 720px;
+      font-size: 14px;
     }
 
     .pill {
@@ -74,7 +81,7 @@
       align-items: center;
       justify-content: flex-end;
       gap: 10px;
-      margin-bottom: 12px;
+      margin-bottom: 8px;
       color: var(--muted);
       font-size: 14px;
     }
@@ -119,7 +126,7 @@
     .set-picker {
       display: flex;
       justify-content: flex-end;
-      margin: 0 0 14px;
+      margin: 0 0 8px;
       grid-column: 1 / -1;
     }
 
@@ -129,27 +136,27 @@
       border-radius: 999px;
       background: #fffaf3;
       color: var(--ink);
-      padding: 10px 14px;
+      padding: 7px 12px;
       font: inherit;
     }
 
     .layout {
       display: grid;
       grid-template-columns: 1fr 280px;
-      gap: 18px;
+      gap: 12px;
       align-items: start;
     }
 
     .card {
       background: rgba(255, 253, 249, 0.92);
       border: 1px solid rgba(230, 222, 210, 0.9);
-      border-radius: 24px;
+      border-radius: 16px;
       box-shadow: var(--shadow);
     }
 
     .question-card {
-      padding: 28px;
-      min-height: 600px;
+      padding: 16px 18px;
+      min-height: 0;
     }
 
     .meta {
@@ -157,19 +164,20 @@
       justify-content: space-between;
       gap: 12px;
       align-items: center;
-      margin-bottom: 18px;
+      margin-bottom: 10px;
       color: var(--muted);
       font-size: 14px;
     }
 
     .stem {
       white-space: pre-line;
-      font-size: 18px;
-      margin: 0 0 18px;
+      font-size: 16px;
+      line-height: 1.58;
+      margin: 0 0 10px;
     }
 
     .prompt {
-      margin: 18px 0 12px;
+      margin: 10px 0 8px;
       font-weight: 700;
     }
 
@@ -185,7 +193,17 @@
 
     .options {
       display: grid;
-      gap: 10px;
+      gap: 7px;
+    }
+
+    @media (min-width: 861px) {
+      .options {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .option {
+        height: 100%;
+      }
     }
 
     .option {
@@ -193,9 +211,9 @@
       grid-template-columns: 34px 1fr;
       gap: 10px;
       align-items: start;
-      padding: 14px;
+      padding: 9px 11px;
       border: 1px solid var(--line);
-      border-radius: 16px;
+      border-radius: 10px;
       background: #fffaf3;
       cursor: pointer;
       transition: 0.16s ease;
@@ -233,7 +251,7 @@
       justify-content: space-between;
       gap: 10px;
       align-items: center;
-      margin-top: 22px;
+      margin-top: 12px;
       flex-wrap: wrap;
     }
 
@@ -264,7 +282,7 @@
     }
 
     .side {
-      padding: 18px;
+      padding: 14px;
       position: sticky;
       top: 18px;
     }
@@ -272,13 +290,13 @@
     .progress-grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
-      gap: 8px;
-      margin-top: 12px;
+      gap: 6px;
+      margin-top: 8px;
     }
 
     .qdot {
-      height: 40px;
-      border-radius: 12px;
+      height: 32px;
+      border-radius: 8px;
       border: 1px solid var(--line);
       background: #fffaf3;
       cursor: pointer;
@@ -436,8 +454,8 @@
     <div class="account-bar" id="accountBar" hidden></div>
     <section class="hero">
       <div>
-        <h1>片段阅读极简答题</h1>
-        <p class="subtitle" id="pageSubtitle">读取题库清单中：作答前不暴露答案；交卷后展示官方解析，并由真实 AI 导师结合本次作答生成诊断。</p>
+        <h1>片段阅读 · 限时套题</h1>
+        <p class="subtitle" id="pageSubtitle">20 题连续作答；选择实时保存，交卷前不显示答案，交卷后再看解析与 AI 复盘。</p>
       </div>
       <span class="pill" id="dataStatus">读取题目中…</span>
     </section>
@@ -481,6 +499,22 @@
     const dataStatus = document.getElementById("dataStatus");
     const pageSubtitle = document.getElementById("pageSubtitle");
     const accountBar = document.getElementById("accountBar");
+
+    function publishCoachContext() {
+      if (!state.sessionId) return;
+      const returnUrl = new URL(location.href);
+      returnUrl.searchParams.set("session", state.sessionId);
+      const detail = {
+        moduleId: "verbal.reading",
+        contextKind: "session",
+        contextId: state.sessionId,
+        returnUrl: returnUrl.pathname + returnUrl.search + returnUrl.hash,
+        label: state.submitted ? "带本套复盘问西西" : "带当前进度问西西"
+      };
+      window.__gontuCoachContext = detail;
+      window.GontuV3Shell?.setCoachContext(detail);
+      window.dispatchEvent(new CustomEvent("gontu:v3-coach-context", { detail }));
+    }
 
     function authHeaders(extra = {}) {
       return {
@@ -1156,6 +1190,7 @@
       const url = new URL(location.href);
       url.searchParams.set("session", session.id);
       history.replaceState(null, "", url);
+      publishCoachContext();
     }
 
     async function loadQuestions(setId = null, { forceNew = false } = {}) {

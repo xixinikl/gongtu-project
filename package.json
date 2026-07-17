@@ -42,6 +42,7 @@
     "manifold-3d": "^3.5.1",
     "three": "0.185.0",
     "three-bvh-csg": "0.0.18",
-    "three-mesh-bvh": "0.9.10"
+    "three-mesh-bvh": "0.9.10",
+    "vue": "3.5.21"
   }
 }

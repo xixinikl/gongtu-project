@@ -43,9 +43,17 @@ class SpatialLearningTests(unittest.TestCase):
     def test_auth_and_ab_isolation(self):
         self.assertEqual(self.client.get("/api/spatial-learning/records").status_code, 401)
         made = self.client.post("/api/spatial-learning/records", headers=self.a, json={
-            "stage_id": "foundation", "activity_kind": "task", "source_id": "task-1"
+            "stage_id": "foundation", "activity_kind": "task"
         })
         self.assertEqual(made.status_code, 201, made.text)
+        self.assertTrue(made.json()["activity_id"])
+        self.assertEqual(made.json()["source_id"], made.json()["id"])
+        with database.get_db() as conn:
+            activity = conn.execute(
+                "SELECT source_id FROM learning_activities_v2 WHERE id=?",
+                (made.json()["activity_id"],),
+            ).fetchone()
+        self.assertEqual(activity["source_id"], made.json()["id"])
         self.assertEqual(len(self.client.get("/api/spatial-learning/records", headers=self.a).json()), 1)
         self.assertEqual(self.client.get("/api/spatial-learning/records", headers=self.b).json(), [])
 
@@ -63,6 +71,7 @@ class SpatialLearningTests(unittest.TestCase):
         })
         self.assertEqual(result.status_code, 201, result.text)
         self.assertEqual(result.json()["score"], 5)
+        self.assertTrue(result.json()["activity_id"])
         with database.get_db() as conn:
             activity = conn.execute("SELECT * FROM learning_activities_v2 WHERE user_id=301").fetchone()
         self.assertEqual(activity["module_id"], "reasoning.spatial")
