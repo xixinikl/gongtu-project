@@ -11,7 +11,9 @@ from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.security import HTTPBearer
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
+from auth_rate_limit import auth_rate_limiter, enforce_auth_rate_limit
 
 # ── Config ─────────────────────────────────────────────────────
 JWT_ALGORITHM = "HS256"
@@ -78,13 +80,13 @@ security = HTTPBearer(auto_error=False)
 
 # ── Models ─────────────────────────────────────────────────────
 class RegisterIn(BaseModel):
-    username: str
-    password: str
+    username: str = Field(min_length=3, max_length=64)
+    password: str = Field(min_length=8, max_length=256)
 
 
 class LoginIn(BaseModel):
-    username: str
-    password: str
+    username: str = Field(min_length=3, max_length=64)
+    password: str = Field(min_length=8, max_length=256)
 
 
 class AuthOut(BaseModel):
@@ -159,6 +161,11 @@ def verify_password(password: str, hashed: str) -> bool:
         return secrets.compare_digest(key, stored_key)
     except Exception:
         return False
+
+
+# Keep missing-user logins on the same expensive verification path so response
+# timing does not become a practical username-existence oracle.
+_DUMMY_PASSWORD_HASH = hash_password("gontu-dummy-password-not-for-login")
 
 
 def bootstrap_initial_admin(username: str, password: str) -> tuple[int, bool]:
@@ -258,7 +265,8 @@ async def require_admin(request: Request) -> dict:
 
 # ── Routes ─────────────────────────────────────────────────────
 @router.post("/register", response_model=AuthOut)
-def register(body: RegisterIn):
+def register(body: RegisterIn, request: Request):
+    enforce_auth_rate_limit(request, action="register", account=body.username)
     from database import get_db
     pw_hash = hash_password(body.password)
     with get_db() as conn:
@@ -287,7 +295,10 @@ def register(body: RegisterIn):
 
 
 @router.post("/login", response_model=AuthOut)
-def login(body: LoginIn):
+def login(body: LoginIn, request: Request):
+    rate_limit_keys = enforce_auth_rate_limit(
+        request, action="login", account=body.username
+    )
     from database import get_db
     with get_db() as conn:
         row = conn.execute(
@@ -295,9 +306,14 @@ def login(body: LoginIn):
                FROM users WHERE username = ?""",
             (body.username,),
         ).fetchone()
-        if not row or not verify_password(body.password, row["password_hash"]):
+        candidate_hash = row["password_hash"] if row else _DUMMY_PASSWORD_HASH
+        password_is_valid = verify_password(body.password, candidate_hash)
+        if not row or not password_is_valid:
             raise HTTPException(status_code=401, detail="Invalid credentials")
         is_admin = row["is_admin"] or 0
+    # A successful login clears only this account's failure bucket. Keeping the
+    # source bucket prevents an attacker from resetting it with their own account.
+    auth_rate_limiter.clear((rate_limit_keys[0],))
     token = create_token(row["id"], body.username, is_admin=is_admin)
     return AuthOut(
         token=token,
