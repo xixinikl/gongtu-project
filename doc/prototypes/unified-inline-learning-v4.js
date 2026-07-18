@@ -19,6 +19,15 @@
     set: { sets: [], questions: [], session: null, index: 0, started: 0 },
     coach: new Map(),
   };
+  var COACH_UI_KEY = 'gontu_inline_coach_ui_v1';
+  var coachUi = { mode: 'docked', locked: false, left: null, top: null, width: null, height: null };
+  try {
+    coachUi = Object.assign(coachUi, JSON.parse(localStorage.getItem(COACH_UI_KEY) || '{}'));
+  } catch (error) {}
+
+  function saveCoachUi() {
+    try { localStorage.setItem(COACH_UI_KEY, JSON.stringify(coachUi)); } catch (error) {}
+  }
 
   function esc(value) {
     var node = document.createElement('div');
@@ -87,19 +96,26 @@
       '.inline-v4-coach-card header h3{margin:0!important}.inline-v4-coach-card header small{display:block;color:var(--ink-light);font-size:.67rem;margin-top:2px}',
       '.inline-v4-coach-history{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:9px;padding:13px 2px;scrollbar-width:thin}',
       '.inline-v4-message{max-width:91%;padding:9px 11px;border-radius:10px;color:var(--ink-body);font-size:.76rem;line-height:1.58;white-space:pre-wrap}',
-      '.inline-v4-message.user{align-self:flex-end;background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#fffef9;border-bottom-right-radius:3px}',
+      '.inline-v4-message.user{display:grid!important;gap:5px;align-self:flex-end;position:relative!important;opacity:1!important;visibility:visible!important;background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#fffef9;border-bottom-right-radius:3px}.inline-v4-message.user.is-latest-user{position:sticky!important;top:0;z-index:3;box-shadow:0 5px 16px rgba(91,70,32,.18)}.inline-v4-message-user-label{font-size:11px;font-weight:700;letter-spacing:.12em;opacity:.78}',
       '.inline-v4-message.assistant{align-self:flex-start;background:#faf6ec;border:1px solid var(--border-light);border-bottom-left-radius:3px}',
       '.inline-v4-coach-empty{margin:auto;text-align:center;color:var(--ink-light);font-size:.74rem;line-height:1.6}',
       '.inline-v4-coach-compose{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;padding-top:11px;border-top:1px solid rgba(176,138,58,.15)}',
       '.inline-v4-coach-compose textarea{min-width:0;resize:none;min-height:60px;max-height:96px;padding:9px 10px;border:1px solid var(--border-light);border-radius:9px;background:#fffef9;color:var(--ink-body);font:inherit;font-size:.74rem;outline:0}',
       '.inline-v4-coach-compose button{align-self:end;padding:8px 12px;border:1px solid var(--gold-dark);border-radius:9px;background:var(--gold-dark);color:#fffef9;font:inherit;font-size:.72rem;cursor:pointer}',
+      '.inline-v4-coach-head{position:relative}.inline-v4-coach-controls{display:flex;align-items:center;gap:6px;margin-left:auto}.inline-v4-coach-control{min-width:44px;min-height:32px;padding:6px 9px;border:1px solid var(--border);border-radius:999px;background:#fffef9;color:var(--gold-dark);font:600 .65rem/1 "Noto Sans SC",sans-serif;cursor:pointer}.inline-v4-coach-control:hover{border-color:var(--gold);background:var(--gold-bg)}.inline-v4-coach-control:focus-visible{outline:3px solid var(--gold-light);outline-offset:2px}',
+      '.inline-v4-message-retry{display:inline-flex;align-items:center;justify-content:center;min-height:36px;margin-top:9px;padding:7px 12px;border:1px solid var(--gold-dark);border-radius:999px;background:#fffef9;color:var(--gold-dark);font:600 .7rem/1 "Noto Sans SC",sans-serif;cursor:pointer}.inline-v4-message-retry:disabled{opacity:.5;cursor:wait}',
+      '.inline-v4-coach-window.is-floating{--gold:#b08a3a;--gold-dark:#8c661d;--gold-bg:#f7f0de;--border:#d8c9a8;--border-light:#e8dec8;--ink-deep:#261f16;--ink-body:#4a4033;--ink-light:#7d7365;position:fixed!important;z-index:5000;width:min(560px,calc(100vw - 32px));height:min(720px,calc(100dvh - 32px))!important;right:16px;bottom:16px;padding:20px!important;resize:both;overflow:hidden;background:rgba(255,254,249,.985);border-color:rgba(176,138,58,.48);box-shadow:0 22px 70px rgba(41,32,18,.25),0 3px 15px rgba(91,70,32,.13)}',
+      '.inline-v4-coach-window.is-floating>.inline-v4-coach-head{cursor:move;user-select:none;touch-action:none}.inline-v4-coach-window.is-floating.is-position-locked>.inline-v4-coach-head{cursor:default}.inline-v4-coach-window.is-floating .inline-v4-message{max-width:86%;padding:12px 14px;font-size:.91rem;line-height:1.78}.inline-v4-coach-window.is-floating .inline-v4-coach-history{gap:12px;padding:17px 4px}.inline-v4-coach-window.is-floating .inline-v4-coach-compose textarea{min-height:82px;max-height:150px;padding:12px 13px;font-size:.88rem;line-height:1.65}.inline-v4-coach-window.is-floating .inline-v4-coach-compose button{min-width:64px;min-height:44px;font-size:.8rem}',
+      '.inline-v4-coach-window.is-floating.is-large{padding:24px!important}.inline-v4-coach-window.is-large .inline-v4-coach-history{gap:16px;padding:22px 8px}.inline-v4-coach-window.is-large .inline-v4-message.assistant{width:96%;max-width:96%;padding:18px 20px;font-size:16px;line-height:1.92}.inline-v4-coach-window.is-large .inline-v4-message.user{max-width:76%;padding:14px 17px;font-size:15px;line-height:1.75}.inline-v4-coach-window.is-large .inline-v4-message-content{gap:13px}.inline-v4-coach-window.is-large .inline-v4-message-content>p{line-height:1.92}.inline-v4-coach-window.is-large .inline-v4-message-step{grid-template-columns:28px minmax(0,1fr);gap:10px;line-height:1.85}.inline-v4-coach-window.is-large .inline-v4-message-step b{width:28px;height:28px;font-size:12px}.inline-v4-coach-window.is-large .inline-v4-coach-compose{position:relative!important;display:block!important;padding-top:16px}.inline-v4-coach-window.is-large .inline-v4-coach-compose textarea{box-sizing:border-box!important;width:100%!important;min-height:104px;padding:15px 104px 15px 16px;border:1px solid rgba(176,138,58,.62)!important;background:#fffef9!important;font-size:15px;line-height:1.75}.inline-v4-coach-window.is-large .inline-v4-coach-compose button{position:absolute!important;right:10px!important;bottom:10px!important;z-index:2;display:grid!important;width:78px!important;min-width:78px;min-height:48px;place-items:center;background:var(--gold-dark)!important;color:#fffef9!important}',
+      '.inline-v4-coach-corner-size{position:absolute;left:16px;bottom:16px;z-index:21;min-width:62px;min-height:38px;padding:7px 11px;border:1px solid var(--gold-dark);border-radius:999px;background:#fffef9;color:var(--gold-dark);font:700 12px/1 "Noto Sans SC",sans-serif;cursor:pointer;box-shadow:0 4px 15px rgba(91,70,32,.12)}.inline-v4-coach-window.is-large .inline-v4-coach-compose{box-sizing:border-box;padding-left:84px}',
       '.inline-v4-study-card{height:var(--inline-v4-workspace-h);display:flex;flex-direction:column;min-height:0;transition:height .18s ease,padding .18s ease}',
       '.inline-v4-study-card>header{display:flex;align-items:center;gap:9px;padding-bottom:10px;border-bottom:1px solid rgba(176,138,58,.15)}',
       '.inline-v4-study-card>header>div{min-width:0;flex:1}.inline-v4-study-card>header h3{margin:0!important}.inline-v4-study-card>header small{display:block;color:var(--ink-light);font-size:.65rem;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+      '.inline-v4-study-card>header>.inline-v4-coach-controls{flex:0 0 auto}',
       '.inline-v4-study-toggle{flex:none;width:30px;height:30px;border:1px solid var(--border);border-radius:50%;background:#fffef9;color:var(--gold-dark);font:700 .72rem/1 serif;cursor:pointer}',
       '.inline-v4-study-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin:11px 0 9px;padding:4px;border:1px solid var(--border-light);border-radius:11px;background:rgba(247,240,222,.78)}',
       '.inline-v4-study-tab{padding:7px 8px;border:0;border-radius:8px;background:transparent;color:var(--ink-light);font:inherit;font-size:.69rem;cursor:pointer}.inline-v4-study-tab.active{background:#fffef9;color:var(--gold-dark);box-shadow:0 2px 9px rgba(91,70,32,.10);font-weight:700}',
-      '.inline-v4-study-pane{flex:1;min-height:0;overflow:auto;scrollbar-width:thin}.inline-v4-study-pane[hidden]{display:none!important}',
+      '.inline-v4-study-pane{flex:1;min-height:0;overflow:auto;scrollbar-width:thin}.inline-v4-study-pane[data-study-pane="coach"]{display:flex;flex-direction:column}.inline-v4-study-pane[hidden]{display:none!important}',
       '.inline-v4-formula-band{margin:2px 0 9px;padding:12px 13px;border:1px solid rgba(176,138,58,.28);border-left:3px solid var(--gold);border-radius:9px;background:linear-gradient(145deg,#fffdf7,#f8f0dc);color:var(--ink-deep);font:600 .86rem/1.72 "Noto Serif SC","STKaiti",serif}',
       '.inline-v4-formula-band small{display:block;margin-bottom:3px;color:var(--gold-dark);font:600 .68rem/1.4 inherit;letter-spacing:.08em}',
       '.inline-v4-study-card.is-collapsed{height:58px!important;padding:9px!important;overflow:hidden}.inline-v4-study-card.is-collapsed>header{height:40px;padding:0;border:0}.inline-v4-study-card.is-collapsed .inline-v4-study-tabs,.inline-v4-study-card.is-collapsed .inline-v4-study-pane{display:none!important}.inline-v4-study-card.is-collapsed>header small{display:none}.inline-v4-study-card.is-collapsed .inline-v4-coach-seal{border-radius:50%}',
@@ -150,7 +166,8 @@
       'body.gontu-inline-v4 .quantity-legacy-subtab.active{background:#fffef9;color:var(--gold-dark);box-shadow:0 2px 8px rgba(91,70,32,.1)}',
       '.inline-v4-message-content{display:grid;gap:7px}.inline-v4-message-content>p{margin:0;line-height:1.75}.inline-v4-message-step{display:grid;grid-template-columns:22px minmax(0,1fr);gap:7px;align-items:start;line-height:1.7}.inline-v4-message-step b{width:22px;height:22px;display:grid;place-items:center;border-radius:50%;background:rgba(176,138,58,.1);color:var(--gold-dark);font-size:.65rem}.inline-v4-message.is-thinking{display:flex;align-items:center;gap:7px;color:var(--ink-light)}.inline-v4-thinking-dot{width:7px;height:7px;border-radius:50%;background:var(--gold);box-shadow:11px 0 0 rgba(176,138,58,.55),22px 0 0 rgba(176,138,58,.28);margin-right:22px;animation:inline-v4-think 1s ease-in-out infinite alternate}@keyframes inline-v4-think{to{opacity:.35;transform:translateY(-1px)}}',
       '@media(max-width:1100px){.inline-v4-topic-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}',
-      '@media(max-width:760px){body.gontu-inline-v4{--inline-v4-workspace-h:auto}body.gontu-inline-v4 .study-card-container{padding:14px!important}.inline-v4-card{height:auto!important;min-height:520px!important}.inline-v4-options,.inline-v4-grid,.inline-v4-topic-grid{grid-template-columns:1fr}.inline-v4-foot{align-items:flex-start;flex-direction:column}.inline-v4-actions{align-self:flex-end}.inline-v4-meta{white-space:normal;text-align:right}.inline-v4-coach-card,.inline-v4-study-card{height:440px}.inline-v4-topic-tools{align-items:stretch;flex-wrap:wrap}.inline-v4-topic-tools span{width:100%;margin:0;padding:2px 7px}body.gontu-inline-v4[data-inline-surface="quantityLegacy"] .study-card-container{grid-template-columns:1fr!important}body.gontu-inline-v4[data-inline-surface="quantityLegacy"] .study-card-container>.quantity-legacy-subtabs{position:static;grid-row:2;flex-direction:row;flex-wrap:wrap;align-self:stretch;height:auto}body.gontu-inline-v4 .quantity-legacy-subtab{flex:1;min-width:84px}}'
+      '@media(max-width:760px){body.gontu-inline-v4{--inline-v4-workspace-h:auto}body.gontu-inline-v4 .study-card-container{padding:14px!important}.inline-v4-card{height:auto!important;min-height:520px!important}.inline-v4-options,.inline-v4-grid,.inline-v4-topic-grid{grid-template-columns:1fr}.inline-v4-foot{align-items:flex-start;flex-direction:column}.inline-v4-actions{align-self:flex-end}.inline-v4-meta{white-space:normal;text-align:right}.inline-v4-coach-card,.inline-v4-study-card{height:440px}.inline-v4-topic-tools{align-items:stretch;flex-wrap:wrap}.inline-v4-topic-tools span{width:100%;margin:0;padding:2px 7px}body.gontu-inline-v4[data-inline-surface="quantityLegacy"] .study-card-container{grid-template-columns:1fr!important}body.gontu-inline-v4[data-inline-surface="quantityLegacy"] .study-card-container>.quantity-legacy-subtabs{position:static;grid-row:2;flex-direction:row;flex-wrap:wrap;align-self:stretch;height:auto}body.gontu-inline-v4 .quantity-legacy-subtab{flex:1;min-width:84px}.inline-v4-coach-window.is-floating{left:8px!important;right:8px!important;top:auto!important;bottom:8px!important;width:auto!important;height:min(72dvh,620px)!important;resize:none}.inline-v4-coach-window.is-floating .inline-v4-message{max-width:92%;font-size:.86rem}}',
+      '@media(prefers-reduced-motion:reduce){.inline-v4-coach-window,.inline-v4-coach-control{transition:none!important}.inline-v4-thinking-dot{animation:none!important}}'
     ].join('');
     document.head.appendChild(node);
     document.body.classList.add('gontu-inline-v4');
@@ -164,6 +181,7 @@
 
   function setRight(title, copy, rows) {
     if (!right) return;
+    document.querySelectorAll('[data-inline-coach-portal]').forEach(function (node) { node.remove(); });
     right.innerHTML = '<div class="inline-v4-side"><section class="inline-v4-side-card"><h3>' + esc(title) + '</h3><p>' + esc(copy) + '</p>' +
       '<div class="inline-v4-side-list">' + (rows || []).map(function (row) {
         return '<div><b>' + esc(row[0]) + '</b><span>' + esc(row[1]) + '</span></div>';
@@ -209,18 +227,162 @@
 
   function coachMessagesHtml(messages) {
     if (!messages || !messages.length) return '<div class="inline-v4-coach-empty">还没有对话。<br>这里会保留你围绕当前题目的提问和西西的回答。</div>';
-    return messages.map(function (message) {
+    var latestUserIndex = -1;
+    messages.forEach(function (message, index) { if (message.role === 'user') latestUserIndex = index; });
+    return messages.map(function (message, messageIndex) {
       if (message.thinking) return '<div class="inline-v4-message assistant is-thinking"><span class="inline-v4-thinking-dot"></span><span>思考中</span></div>';
-      if (message.role === 'user') return '<div class="inline-v4-message user">' + esc(message.content || '') + '</div>';
-      var content = esc(message.content || '')
+      if (message.role === 'user') return '<div class="inline-v4-message user' + (messageIndex === latestUserIndex ? ' is-latest-user' : '') + '" data-message-role="user"><span class="inline-v4-message-user-label">你问</span><span>' + esc(message.content || '') + '</span></div>';
+      var rawContent = String(message.content || '').trim();
+      var rawLines = rawContent.split(/\n+/).filter(Boolean);
+      if (rawLines.length === 1 && rawContent.length > 60) {
+        var sentences = rawContent.match(/[^。！？；]+[。！？；]?/g) || [rawContent];
+        rawLines = sentences.map(function (sentence) { return sentence.trim(); }).filter(Boolean);
+      }
+      var content = esc(rawLines.join('\n'))
         .replace(/([。；;!?！？])\s*(?=\d+(?:\.\s+|、))/g, '$1\n')
         .replace(/\s+(?=\d+(?:\.\s+|、))/g, '\n');
       var formatted = content.split(/\n+/).filter(Boolean).map(function (line) {
         var step = line.match(/^(\d+)(?:\.\s+|、\s*)(.+)$/);
         return step ? '<div class="inline-v4-message-step"><b>' + step[1] + '</b><span>' + step[2] + '</span></div>' : '<p>' + line + '</p>';
       }).join('');
-      return '<div class="inline-v4-message assistant"><div class="inline-v4-message-content">' + formatted + '</div></div>';
+      var retry = message.retryRunId ? '<button type="button" class="inline-v4-message-retry" data-retry-run="' + esc(message.retryRunId) + '">重新请求</button>' : '';
+      return '<div class="inline-v4-message assistant"><div class="inline-v4-message-content">' + formatted + '</div>' + retry + '</div>';
     }).join('');
+  }
+
+  function applyCoachWindow(card) {
+    if (!card) return;
+    if (!card.__coachDockHost) card.__coachDockHost = card.parentElement;
+    var header = card.querySelector('.inline-v4-coach-head');
+    var pop = card.querySelector('[data-coach-pop]');
+    var lock = card.querySelector('[data-coach-lock]');
+    var size = card.querySelector('[data-coach-size]');
+    var sizeFooter = card.querySelector('[data-coach-size-footer]');
+    var dock = card.querySelector('[data-coach-dock]');
+    var floating = coachUi.mode === 'floating';
+    var large = floating && (Number(coachUi.width || card.offsetWidth) >= 700 || Number(coachUi.height || card.offsetHeight) >= 760);
+    if (floating && card.parentElement !== document.body) {
+      card.dataset.inlineCoachPortal = 'true';
+      document.body.appendChild(card);
+    } else if (!floating && card.__coachDockHost && card.parentElement !== card.__coachDockHost) {
+      card.removeAttribute('data-inline-coach-portal');
+      card.__coachDockHost.appendChild(card);
+    }
+    card.classList.toggle('is-floating', floating);
+    card.classList.toggle('is-large', large);
+    card.classList.toggle('is-position-locked', floating && coachUi.locked);
+    document.body.classList.toggle('gontu-coach-float-open', floating);
+    if (pop) pop.hidden = floating;
+    if (lock) {
+      lock.hidden = !floating;
+      lock.textContent = coachUi.locked ? '移动' : '锁定';
+      lock.setAttribute('aria-pressed', String(coachUi.locked));
+      lock.title = coachUi.locked ? '允许拖动悬浮窗' : '锁定悬浮窗位置';
+    }
+    if (size) {
+      size.hidden = !floating;
+      size.textContent = large ? '缩小' : '放大';
+      size.title = '也可以拖动窗口右下角自由改变大小';
+    }
+    if (sizeFooter) {
+      sizeFooter.hidden = !large;
+      sizeFooter.textContent = '缩小';
+      sizeFooter.title = '缩小问西西悬浮窗';
+    }
+    if (dock) dock.hidden = !floating;
+    if (!floating) {
+      ['left', 'top', 'right', 'bottom', 'width', 'height'].forEach(function (name) { card.style[name] = ''; });
+      if (header) { header.tabIndex = -1; header.removeAttribute('aria-label'); }
+    } else if (window.innerWidth > 760) {
+      if (coachUi.width) card.style.width = coachUi.width + 'px';
+      if (coachUi.height) card.style.height = coachUi.height + 'px';
+      var currentRect = card.getBoundingClientRect();
+      var visibleLeft = coachUi.left == null ? currentRect.left : coachUi.left;
+      var visibleTop = coachUi.top == null ? currentRect.top : coachUi.top;
+      coachUi.left = Math.round(Math.max(8, Math.min(Math.max(8, window.innerWidth - card.offsetWidth - 8), visibleLeft)));
+      coachUi.top = Math.round(Math.max(8, Math.min(Math.max(8, window.innerHeight - card.offsetHeight - 8), visibleTop)));
+      card.style.left = coachUi.left + 'px';
+      card.style.top = coachUi.top + 'px';
+      card.style.right = 'auto';
+      card.style.bottom = 'auto';
+      if (header) {
+        header.tabIndex = coachUi.locked ? -1 : 0;
+        header.setAttribute('aria-label', coachUi.locked ? '问西西悬浮窗已锁定' : '拖动问西西悬浮窗，方向键也可移动');
+      }
+    }
+    [pop, lock, size, sizeFooter, dock].forEach(function (control) {
+      if (!control || control.__coachControlBound) return;
+      control.__coachControlBound = true;
+      control.addEventListener('click', function (event) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        if (control === pop) {
+          coachUi.mode = 'floating';
+          coachUi.locked = false;
+          card.classList.remove('is-collapsed');
+        } else if (control === lock) {
+          coachUi.locked = !coachUi.locked;
+        } else if (control === size || control === sizeFooter) {
+          var isLarge = Number(coachUi.width || card.offsetWidth) >= 700 || Number(coachUi.height || card.offsetHeight) >= 760;
+          coachUi.width = isLarge ? 560 : Math.min(760, window.innerWidth - 32);
+          coachUi.height = isLarge ? 688 : Math.min(800, window.innerHeight - 32);
+        } else {
+          coachUi.mode = 'docked';
+        }
+        saveCoachUi();
+        applyCoachWindow(card);
+      });
+    });
+    if (header) {
+      header.onpointerdown = function (event) {
+        if (!floating || coachUi.locked || event.button !== 0 || event.target.closest('button,textarea,a,input')) return;
+        var rect = card.getBoundingClientRect();
+        var startX = event.clientX;
+        var startY = event.clientY;
+        card.style.left = rect.left + 'px';
+        card.style.top = rect.top + 'px';
+        card.style.right = 'auto';
+        card.style.bottom = 'auto';
+        header.setPointerCapture(event.pointerId);
+        header.onpointermove = function (moveEvent) {
+          var left = Math.max(8, Math.min(window.innerWidth - card.offsetWidth - 8, rect.left + moveEvent.clientX - startX));
+          var top = Math.max(8, Math.min(window.innerHeight - card.offsetHeight - 8, rect.top + moveEvent.clientY - startY));
+          card.style.left = left + 'px';
+          card.style.top = top + 'px';
+        };
+        header.onpointerup = function (upEvent) {
+          header.releasePointerCapture(upEvent.pointerId);
+          header.onpointermove = null;
+          header.onpointerup = null;
+          coachUi.left = Math.round(card.getBoundingClientRect().left);
+          coachUi.top = Math.round(card.getBoundingClientRect().top);
+          saveCoachUi();
+        };
+      };
+      header.onkeydown = function (event) {
+        if (!floating || coachUi.locked || !/^Arrow/.test(event.key)) return;
+        event.preventDefault();
+        var rect = card.getBoundingClientRect();
+        var step = event.shiftKey ? 48 : 16;
+        var left = rect.left + (event.key === 'ArrowLeft' ? -step : event.key === 'ArrowRight' ? step : 0);
+        var top = rect.top + (event.key === 'ArrowUp' ? -step : event.key === 'ArrowDown' ? step : 0);
+        coachUi.left = Math.round(Math.max(8, Math.min(window.innerWidth - card.offsetWidth - 8, left)));
+        coachUi.top = Math.round(Math.max(8, Math.min(window.innerHeight - card.offsetHeight - 8, top)));
+        saveCoachUi();
+        applyCoachWindow(card);
+      };
+    }
+    if (floating && window.ResizeObserver && !card.__coachResizeObserver) {
+      card.__coachResizeObserver = new ResizeObserver(function () {
+        if (coachUi.mode !== 'floating' || window.innerWidth <= 760) return;
+        var rect = card.getBoundingClientRect();
+        coachUi.width = Math.round(rect.width);
+        coachUi.height = Math.round(rect.height);
+        card.classList.toggle('is-large', coachUi.width >= 700 || coachUi.height >= 760);
+        saveCoachUi();
+      });
+      card.__coachResizeObserver.observe(card);
+    }
   }
 
   function quantityGuide(source) {
@@ -250,6 +412,7 @@
 
   async function renderCoachRight(moduleId, contextId, title, copy, guide, hasAnalysis) {
     if (!right) return;
+    document.querySelectorAll('[data-inline-coach-portal]').forEach(function (node) { node.remove(); });
     var key = coachKey(moduleId, contextId);
     right.dataset.coachKey = key;
     var methodHtml = guide ? '<div class="inline-v4-study-pane" data-study-pane="method"><div class="inline-v4-formula-band"><small>本题随手公式</small>' + esc(guide.formula) + '</div><div class="inline-v4-method-steps">' +
@@ -257,17 +420,28 @@
       '<div class="inline-v4-method-step"><div><b>第二步 · 建立模型</b><span>' + esc(guide.model) + '</span></div></div>' +
       '<div class="inline-v4-method-step"><div><b>第三步 · 写关键式</b><span>' + esc(guide.relation) + '</span></div></div>' +
       '<div class="inline-v4-method-step"><div><b>第四步 · 核对答案</b><span>' + esc(guide.verify) + '</span></div></div></div></div>' : '';
-    var aiHtml = '<div class="inline-v4-study-pane" data-study-pane="coach"' + (guide ? ' hidden' : '') + '><div class="inline-v4-coach-history"><div class="inline-v4-coach-empty">打开后会读取这道题的历史对话…</div></div><div class="inline-v4-coach-compose"><textarea aria-label="带当前题目问西西" placeholder="问解题步骤、公式为什么这样用，或刚才错在哪里…"></textarea><button type="button">发送</button></div></div>';
-    right.innerHTML = '<section class="inline-v4-side-card ' + (guide ? 'inline-v4-study-card' : 'inline-v4-coach-card') + '"><header><span class="inline-v4-coach-seal">西</span><div><h3>' + esc(title || '问西西 · 当前题目') + '</h3><small>' + esc(guide ? (hasAnalysis ? '已携带题干、作答与官方解析' : '已携带题干与当前作答') : (copy || '真实上下文 · 对话记录会保留')) + '</small></div>' + (guide ? '<button type="button" class="inline-v4-study-toggle" aria-label="收起学习助手" title="收起为西西图标">－</button>' : '') + '</header>' + (guide ? '<div class="inline-v4-study-tabs" role="tablist"><button type="button" class="inline-v4-study-tab active" data-study-tab="method">公式方法</button><button type="button" class="inline-v4-study-tab" data-study-tab="coach">问西西</button></div>' + methodHtml : '') + aiHtml + '</section>';
+    var aiHtml = '<div class="inline-v4-study-pane" data-study-pane="coach"' + (guide ? ' hidden' : '') + '><div class="inline-v4-coach-history"><div class="inline-v4-coach-empty">打开后会读取这道题的历史对话…</div></div><div class="inline-v4-coach-compose"><textarea aria-label="带当前题目问西西" placeholder="问解题步骤、公式为什么这样用，或刚才错在哪里…"></textarea><button type="button" style="display:grid!important;place-items:center!important;width:78px!important;height:48px!important;background:#8c661d!important;color:#fffef9!important;opacity:1!important;visibility:visible!important;z-index:20!important">发送</button></div></div>';
+    right.innerHTML = '<section class="inline-v4-side-card inline-v4-coach-window ' + (guide ? 'inline-v4-study-card' : 'inline-v4-coach-card') + '"><header class="inline-v4-coach-head"><span class="inline-v4-coach-seal">西</span><div><h3>' + esc(title || '问西西 · 当前题目') + '</h3><small>' + esc(guide ? (hasAnalysis ? '已携带题干、作答与官方解析' : '已携带题干与当前作答') : (copy || '真实上下文 · 对话记录会保留')) + '</small></div><div class="inline-v4-coach-controls"><button type="button" class="inline-v4-coach-control" data-coach-pop>弹出</button><button type="button" class="inline-v4-coach-control" data-coach-lock hidden>锁定</button><button type="button" class="inline-v4-coach-control" data-coach-size hidden>放大</button><button type="button" class="inline-v4-coach-control" data-coach-dock hidden>还原</button>' + (guide ? '<button type="button" class="inline-v4-study-toggle" aria-label="收起学习助手" title="收起为西西图标">－</button>' : '') + '</div></header>' + (guide ? '<div class="inline-v4-study-tabs" role="tablist"><button type="button" class="inline-v4-study-tab active" data-study-tab="method">公式方法</button><button type="button" class="inline-v4-study-tab" data-study-tab="coach">问西西</button></div>' + methodHtml : '') + aiHtml + '<button type="button" class="inline-v4-coach-corner-size" data-coach-size-footer hidden>缩小</button></section>';
     var history = right.querySelector('.inline-v4-coach-history');
     var input = right.querySelector('textarea');
     var button = right.querySelector('.inline-v4-coach-compose button');
     var item = states.coach.get(key) || { messages: [] };
+    var coachCard = right.querySelector('.inline-v4-coach-window');
+    applyCoachWindow(coachCard);
     var loaded = false;
     function paint() {
       if (!right || right.dataset.coachKey !== key) return;
       history.innerHTML = coachMessagesHtml(item.messages || []);
-      history.scrollTop = history.scrollHeight;
+      var userMessages = history.querySelectorAll('[data-message-role="user"]');
+      var lastUser = userMessages[userMessages.length - 1];
+      if (lastUser) {
+        requestAnimationFrame(function () {
+          lastUser.scrollIntoView({ block: 'start', inline: 'nearest' });
+          history.scrollTop = Math.max(0, history.scrollTop - 12);
+        });
+      } else {
+        history.scrollTop = history.scrollHeight;
+      }
     }
     async function loadHistory() {
       if (loaded) return;
@@ -282,6 +456,10 @@
       if (item.threadId) {
         var full = await api('/api/ai-coach/threads/' + encodeURIComponent(item.threadId));
         item.messages = full.messages || [];
+        if (full.latest_run && ['failed', 'timed_out', 'invalid_output'].includes(full.latest_run.status)) {
+          item.failedRunId = full.latest_run.id;
+          item.messages.push({ role: 'assistant', content: '上一次回答没有按要求完成，题目和你的提问都已保留。', retryRunId: item.failedRunId });
+        }
       }
       states.coach.set(key, item);
       paint();
@@ -289,17 +467,38 @@
         if (right.dataset.coachKey === key) history.innerHTML = '<div class="inline-v4-coach-empty">历史记录暂时没有读到：' + esc(error.message) + '</div>';
       }
     }
+    history.onclick = async function (event) {
+      var retry = event.target.closest('[data-retry-run]');
+      if (!retry || retry.disabled || !item.threadId) return;
+      var runId = retry.dataset.retryRun;
+      retry.disabled = true;
+      item.messages = item.messages.filter(function (message) { return message.retryRunId !== runId; });
+      item.messages.push({ role: 'assistant', thinking: true });
+      paint();
+      try {
+        var payload = await api('/api/ai-coach/threads/' + encodeURIComponent(item.threadId) + '/runs/' + encodeURIComponent(runId) + '/retry', { method: 'POST' });
+        item.messages = payload.messages || [];
+        item.failedRunId = null;
+      } catch (error) {
+        item.messages = item.messages.filter(function (message) { return !message.thinking; });
+        var nextRunId = error.payload && error.payload.run_id || runId;
+        item.failedRunId = nextRunId;
+        item.messages.push({ role: 'assistant', content: '这次回答仍未完成，可以稍后再试。题目与提问没有丢失。', retryRunId: nextRunId });
+      }
+      states.coach.set(key, item);
+      paint();
+    };
     if (!guide) loadHistory();
     if (guide) {
-      right.querySelectorAll('[data-study-tab]').forEach(function (tab) {
+      coachCard.querySelectorAll('[data-study-tab]').forEach(function (tab) {
         tab.onclick = function () {
-          right.querySelectorAll('[data-study-tab]').forEach(function (node) { node.classList.toggle('active', node === tab); });
-          right.querySelectorAll('[data-study-pane]').forEach(function (pane) { pane.hidden = pane.dataset.studyPane !== tab.dataset.studyTab; });
+          coachCard.querySelectorAll('[data-study-tab]').forEach(function (node) { node.classList.toggle('active', node === tab); });
+          coachCard.querySelectorAll('[data-study-pane]').forEach(function (pane) { pane.hidden = pane.dataset.studyPane !== tab.dataset.studyTab; });
           if (tab.dataset.studyTab === 'coach') loadHistory();
         };
       });
-      var card = right.querySelector('.inline-v4-study-card');
-      var toggle = right.querySelector('.inline-v4-study-toggle');
+      var card = coachCard;
+      var toggle = coachCard.querySelector('.inline-v4-study-toggle');
       toggle.onclick = function () {
         var collapsed = card.classList.toggle('is-collapsed');
         toggle.textContent = collapsed ? '西' : '－';
@@ -336,7 +535,9 @@
         paint();
       } catch (error) {
         item.messages = item.messages.filter(function (message) { return !message.thinking; });
-        item.messages.push({ role: 'assistant', content: error.message + '。问题已保留，当前题目事实没有被客户端改写。' });
+        var failedRunId = error.payload && error.payload.run_id;
+        item.failedRunId = failedRunId || null;
+        item.messages.push({ role: 'assistant', content: failedRunId ? '这次回答没有按要求完成，题目和你的提问都已保留。' : error.message + '。问题已保留，当前题目事实没有被客户端改写。', retryRunId: failedRunId });
         paint();
       } finally {
         button.disabled = false;
@@ -872,7 +1073,11 @@
         event.preventDefault();
         event.stopImmediatePropagation();
         if (typeof window.setCurrentDeckType === 'function') window.setCurrentDeckType(requestedDeck);
-        deckTabs.querySelectorAll('[data-deck]').forEach(function (item) { item.classList.toggle('active', item === deckButton); });
+        deckTabs.querySelectorAll('.deck-tab').forEach(function (item) { item.classList.toggle('active', item === deckButton); });
+        var reasoningNav = document.querySelector('.reasoning-subnav-v3');
+        if (reasoningNav) reasoningNav.style.display = 'none';
+        subnav.style.display = '';
+        document.querySelector('.study-card-container > .card-header')?.style.removeProperty('display');
         installDeckNav(requestedDeck);
         var requestedKey = requestedDeck === 'math' ? 'quantityToday' : 'vocab';
         var requestedTarget = requestedDeck === 'math' ? subnav.querySelector('[data-quantity-demo="quantityToday"]') : subnav.querySelector('[data-verbal-demo="vocab"]');
@@ -921,7 +1126,7 @@
     installDeckNav(savedDeck);
     var initialKey = savedDeck === 'math' ? 'quantityToday' : 'vocab';
     var initial = savedDeck === 'math' ? subnav.querySelector('[data-quantity-demo="quantityToday"]') : subnav.querySelector('[data-verbal-demo="vocab"]');
-    deckTabs.querySelectorAll('[data-deck]').forEach(function (item) { item.classList.toggle('active', item.dataset.deck === savedDeck); });
+    deckTabs.querySelectorAll('.deck-tab').forEach(function (item) { item.classList.toggle('active', item.dataset.deck === savedDeck); });
     if (initial) activate(initial, initialKey);
   }
 

@@ -903,6 +903,15 @@ def _call_provider(
             "指出差异发生在识别、建模、计算或选项排除的哪一步。"
             "每次回答必须只引用当前 evidence[0].item_id 对应的题目；题目 ID 改变时视为全新问题。"
         )
+        if bundle.module_id == "verbal.logic_fill":
+            system += (
+                "\n\n当前是逻辑填空作答前的题内方法辅导。服务端为防止泄题而有意隐藏"
+                "correct_answer，这不属于证据不足：只要当前 evidence 已包含非空题干和真实选项，"
+                "就必须将 status 设为 completed，并在 answer 中给出非空的语境关系、辨词维度或"
+                "一个可执行的下一步提示；不得返回空 answer，也不得仅因没有标准答案而返回"
+                "insufficient_evidence。回答不得猜测或透露正确选项，evidence_refs 只引用当前"
+                "item_id。只有题干或选项本身缺失时，才允许返回 insufficient_evidence。"
+            )
     result = None
     for schema_attempt in range(2):
         result = call_deepseek_json(
