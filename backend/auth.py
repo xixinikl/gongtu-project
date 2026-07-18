@@ -92,6 +92,12 @@ class AuthOut(BaseModel):
     user_id: int
     username: str
     is_admin: int = 0  # 新增：返回是否为管理员
+    is_vip: int = 0
+    ai_credits: int = 0
+
+
+class BootstrapStatusOut(BaseModel):
+    has_admin: bool
 
 
 # ── JWT helpers (manual, no pyjwt) ─────────────────────────────
@@ -208,21 +214,33 @@ async def require_admin(request: Request) -> dict:
 def register(body: RegisterIn):
     from database import get_db
     with get_db() as conn:
+        # Serialize bootstrap registration so two simultaneous requests cannot
+        # both become the initial administrator.
+        conn.execute("BEGIN IMMEDIATE")
         existing = conn.execute(
             "SELECT id FROM users WHERE username = ?", (body.username,)
         ).fetchone()
         if existing:
             raise HTTPException(status_code=400, detail="Username already exists")
+        admin_count = conn.execute(
+            "SELECT COUNT(*) FROM users WHERE is_admin = 1"
+        ).fetchone()[0]
+        is_admin = 1 if admin_count == 0 else 0
         pw_hash = hash_password(body.password)
         cur = conn.execute(
-            "INSERT INTO users (username, password_hash) VALUES (?, ?)",
-            (body.username, pw_hash),
+            "INSERT INTO users (username, password_hash, is_admin) VALUES (?, ?, ?)",
+            (body.username, pw_hash, is_admin),
         )
         conn.commit()
         user_id = cur.lastrowid
     assert user_id is not None, "INSERT should return a valid rowid"
-    token = create_token(user_id, body.username, is_admin=0)
-    return AuthOut(token=token, user_id=user_id, username=body.username, is_admin=0)
+    token = create_token(user_id, body.username, is_admin=is_admin)
+    return AuthOut(
+        token=token,
+        user_id=user_id,
+        username=body.username,
+        is_admin=is_admin,
+    )
 
 
 @router.post("/login", response_model=AuthOut)
@@ -230,15 +248,48 @@ def login(body: LoginIn):
     from database import get_db
     with get_db() as conn:
         row = conn.execute(
-            "SELECT id, password_hash, is_admin FROM users WHERE username = ?", (body.username,)
+            """SELECT id, password_hash, is_admin, is_vip, ai_credits
+               FROM users WHERE username = ?""",
+            (body.username,),
         ).fetchone()
         if not row or not verify_password(body.password, row["password_hash"]):
             raise HTTPException(status_code=401, detail="Invalid credentials")
         is_admin = row["is_admin"] or 0
     token = create_token(row["id"], body.username, is_admin=is_admin)
-    return AuthOut(token=token, user_id=row["id"], username=body.username, is_admin=is_admin)
+    return AuthOut(
+        token=token,
+        user_id=row["id"],
+        username=body.username,
+        is_admin=is_admin,
+        is_vip=row["is_vip"] or 0,
+        ai_credits=row["ai_credits"] or 0,
+    )
 
 
 @router.get("/me")
 def get_me(user: dict = Depends(require_user)):
-    return user
+    from database import get_db
+    with get_db() as conn:
+        row = conn.execute(
+            "SELECT is_vip, ai_credits, vip_expires_at FROM users WHERE id=?",
+            (user["user_id"],),
+        ).fetchone()
+    result = dict(user)
+    if row:
+        result.update({
+            "is_vip": row["is_vip"] or 0,
+            "ai_credits": row["ai_credits"] or 0,
+            "vip_expires_at": row["vip_expires_at"] or "",
+        })
+    return result
+
+
+@router.get("/bootstrap-status", response_model=BootstrapStatusOut)
+def bootstrap_status():
+    """Tell the unified login page whether the first account will be admin."""
+    from database import get_db
+    with get_db() as conn:
+        count = conn.execute(
+            "SELECT COUNT(*) FROM users WHERE is_admin = 1"
+        ).fetchone()[0]
+    return BootstrapStatusOut(has_admin=count > 0)

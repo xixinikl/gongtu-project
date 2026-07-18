@@ -234,6 +234,7 @@
             margin-right: 6px;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
+        .bootstrap-hint { margin:0 0 16px; padding:11px 12px; border:1px solid rgba(179,139,74,.28); border-radius:3px; color:#6f6048; background:rgba(179,139,74,.08); font-size:12px; line-height:1.65; }
     </style>
 </head>
 <body>
@@ -245,12 +246,13 @@
 
     <div class="login-container">
         <div class="logo-area">
-            <div class="logo-icon">🏛️</div>
+            <div class="logo-icon" aria-hidden="true">公</div>
             <div class="logo-title">公途</div>
             <div class="logo-subtitle">考公备考智学平台 · 统一入口</div>
         </div>
 
         <div class="card">
+            <div class="bootstrap-hint" id="bootstrap-hint" role="status">正在检查管理员初始化状态…</div>
             <div class="tabs">
                 <button class="tab-btn active" id="tab-login" onclick="switchTab('login')">登录</button>
                 <button class="tab-btn" id="tab-register" onclick="switchTab('register')">注册</button>
@@ -308,12 +310,20 @@
                 }
             }
 
+            function destinationFor(data) {
+                if (data.is_admin === 1) return '/admin';
+                const next = safeNextPath() || '/app';
+                return next.startsWith('/admin') ? '/app' : next;
+            }
+
             function storeIdentity(data) {
                 localStorage.setItem('gontu_token', data.token);
                 localStorage.setItem('gontu_user', JSON.stringify({
                     id: data.user_id,
                     username: data.username,
-                    is_admin: data.is_admin || 0
+                    is_admin: data.is_admin || 0,
+                    is_vip: data.is_vip || 0,
+                    ai_credits: data.ai_credits || 0
                 }));
                 localStorage.setItem('is_admin', data.is_admin || 0);
             }
@@ -360,7 +370,7 @@
                 if (res.ok) {
                         storeIdentity(data);
                     // 管理员跳转到管理后台，普通用户跳功能页
-                        var redirectTo = (data.is_admin === 1) ? '/admin' : (safeNextPath() || '/app');
+                        var redirectTo = destinationFor(data);
                     showMsg('login-msg', '登录成功，正在跳转...', 'success');
                     setTimeout(() => { window.location.href = redirectTo; }, 800);
                 } else {
@@ -403,7 +413,7 @@
                 const data = await res.json();
                 if (res.ok) {
                         storeIdentity(data);
-                        var redirectTo = (data.is_admin === 1) ? '/admin' : (safeNextPath() || '/app');
+                        var redirectTo = destinationFor(data);
                     showMsg('reg-msg', '注册成功，正在跳转...', 'success');
                     setTimeout(() => { window.location.href = redirectTo; }, 800);
                 } else {
@@ -434,10 +444,22 @@
                     if (!r.ok) return;
                     const me = await r.json();
                     localStorage.setItem('is_admin', me.is_admin || 0);
-                        window.location.href = (me.is_admin === 1) ? '/admin' : (safeNextPath() || '/app');
+                        window.location.href = destinationFor(me);
                 })
                 .catch(() => null);
         }
+
+        fetch(`${API}/api/auth/bootstrap-status`)
+            .then(response => response.ok ? response.json() : Promise.reject())
+            .then(status => {
+                const hint = document.getElementById('bootstrap-hint');
+                hint.textContent = status.has_admin
+                    ? '已有管理员账号。普通账号注册后可由管理员在后台授权。'
+                    : '系统尚无管理员：现在注册的第一个账号会成为初始管理员。';
+            })
+            .catch(() => {
+                document.getElementById('bootstrap-hint').textContent = '管理员状态暂时无法读取；仍可正常登录或注册。';
+            });
     </script>
 </body>
 </html>

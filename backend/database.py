@@ -447,6 +447,41 @@ def init_db():
         except sqlite3.OperationalError:
             pass  # column already exists
 
+        # ── v11 migration: VIP / AI credits and global access policy ──
+        for column_sql, label in (
+            (
+                "ALTER TABLE users ADD COLUMN is_vip INTEGER NOT NULL DEFAULT 0",
+                "users.is_vip",
+            ),
+            (
+                "ALTER TABLE users ADD COLUMN vip_expires_at TEXT NOT NULL DEFAULT ''",
+                "users.vip_expires_at",
+            ),
+            (
+                "ALTER TABLE users ADD COLUMN ai_credits INTEGER NOT NULL DEFAULT 0",
+                "users.ai_credits",
+            ),
+        ):
+            try:
+                conn.execute(column_sql)
+                conn.commit()
+                logger.info("Migration: added %s column", label)
+            except sqlite3.OperationalError:
+                pass  # column already exists
+
+        conn.executescript("""
+            CREATE TABLE IF NOT EXISTS app_settings (
+                key        TEXT PRIMARY KEY,
+                value      TEXT NOT NULL,
+                updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+            );
+        """)
+        conn.execute(
+            """INSERT OR IGNORE INTO app_settings(key, value)
+               VALUES('ai_access_mode', 'free')"""
+        )
+        conn.commit()
+
 
 def cleanup_old_events(retention_days: int = 365):
     """Remove learning events older than retention_days (must be positive)."""

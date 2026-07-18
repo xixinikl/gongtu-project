@@ -460,10 +460,24 @@ async def serve_admin():
 
 @app.get("/api/admin/users")
 async def admin_list_users(admin: dict = Depends(require_admin)):
-    """列出所有用户（含统计信息）"""
+    """列出所有用户与跨模块学习统计。"""
     with get_db() as conn:
+        def table_exists(name: str) -> bool:
+            return bool(conn.execute(
+                "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?",
+                (name,),
+            ).fetchone())
+
+        def scalar(sql: str, params: tuple = ()) -> int:
+            try:
+                row = conn.execute(sql, params).fetchone()
+                return int(row[0] or 0) if row else 0
+            except (sqlite3.DatabaseError, TypeError, ValueError):
+                return 0
+
         rows = conn.execute("""
             SELECT u.id, u.username, u.created_at, u.is_admin,
+                   u.is_vip, u.vip_expires_at, u.ai_credits,
                    COUNT(DISTINCT cv.id) as vocab_count,
                    COUNT(DISTINCT sh.id) as shenlun_count
             FROM users u
@@ -474,10 +488,10 @@ async def admin_list_users(admin: dict = Depends(require_admin)):
         """).fetchall()
         users = []
         for r in rows:
-            # 统计牌组数量
+            user_id = r["id"]
             decks = conn.execute(
                 "SELECT deck_type, cards_json FROM user_decks WHERE user_id=?",
-                (r["id"],)
+                (user_id,)
             ).fetchall()
             deck_info = {}
             for d in decks:
@@ -486,16 +500,123 @@ async def admin_list_users(admin: dict = Depends(require_admin)):
                     deck_info[d["deck_type"]] = len(cards)
                 except Exception:
                     deck_info[d["deck_type"]] = 0
+
+            meta = conn.execute(
+                """SELECT streak, last_study_date, daily_goal, updated_at
+                   FROM user_meta WHERE user_id=?""",
+                (user_id,),
+            ).fetchone()
+            last_activity = meta["updated_at"] if meta else ""
+            for sql, params in (
+                ("SELECT MAX(created_at) FROM learning_events WHERE user_id=?", (str(user_id),)),
+                ("SELECT MAX(created_at) FROM shenlun_history WHERE user_id=?", (user_id,)),
+            ):
+                value = conn.execute(sql, params).fetchone()[0]
+                if value:
+                    last_activity = max(last_activity, value)
+            if table_exists("verbal_practice_sessions"):
+                value = conn.execute(
+                    "SELECT MAX(updated_at) FROM verbal_practice_sessions WHERE user_id=?",
+                    (user_id,),
+                ).fetchone()[0]
+                if value:
+                    last_activity = max(last_activity, value)
+
             users.append({
                 "id": r["id"],
                 "username": r["username"],
                 "created_at": r["created_at"],
                 "is_admin": r["is_admin"] or 0,
+                "is_vip": r["is_vip"] or 0,
+                "vip_expires_at": r["vip_expires_at"] or "",
+                "ai_credits": r["ai_credits"] or 0,
                 "vocab_count": r["vocab_count"],
                 "shenlun_count": r["shenlun_count"],
+                "shenlun_mistake_count": scalar(
+                    "SELECT COUNT(*) FROM shenlun_mistakes WHERE user_id=?",
+                    (user_id,),
+                ),
                 "decks": deck_info,
+                "learning_events": scalar(
+                    "SELECT COUNT(*) FROM learning_events WHERE user_id=?",
+                    (str(user_id),),
+                ),
+                "question_count": scalar(
+                    "SELECT COUNT(*) FROM questions WHERE user_id=?",
+                    (str(user_id),),
+                ),
+                "review_count": scalar(
+                    "SELECT COUNT(*) FROM reviews WHERE user_id=?",
+                    (str(user_id),),
+                ),
+                "streak": meta["streak"] if meta else 0,
+                "last_study_date": meta["last_study_date"] if meta else "",
+                "daily_goal": meta["daily_goal"] if meta else 20,
+                "last_activity": last_activity,
+                "verbal": {
+                    "sessions": scalar(
+                        "SELECT COUNT(*) FROM verbal_practice_sessions WHERE user_id=?",
+                        (user_id,),
+                    ) if table_exists("verbal_practice_sessions") else 0,
+                    "submitted": scalar(
+                        """SELECT COUNT(*) FROM verbal_practice_sessions
+                           WHERE user_id=? AND status='submitted'""",
+                        (user_id,),
+                    ) if table_exists("verbal_practice_sessions") else 0,
+                    "questions": scalar(
+                        """SELECT COUNT(*) FROM verbal_attempt_items vai
+                           JOIN verbal_practice_sessions vps ON vps.id = vai.session_id
+                           WHERE vps.user_id=?""",
+                        (user_id,),
+                    ) if table_exists("verbal_attempt_items") and table_exists("verbal_practice_sessions") else 0,
+                    "ai_messages": scalar(
+                        "SELECT COUNT(*) FROM verbal_ai_messages WHERE user_id=?",
+                        (user_id,),
+                    ) if table_exists("verbal_ai_messages") else 0,
+                    "ai_runs": scalar(
+                        "SELECT COUNT(*) FROM verbal_ai_runs WHERE user_id=?",
+                        (user_id,),
+                    ) if table_exists("verbal_ai_runs") else 0,
+                },
             })
         return users
+
+
+@app.get("/api/admin/settings/vip")
+async def admin_get_vip_settings(admin: dict = Depends(require_admin)):
+    """Return the saved AI access policy. Free remains the safe default."""
+    with get_db() as conn:
+        row = conn.execute(
+            """SELECT value, updated_at FROM app_settings
+               WHERE key='ai_access_mode'"""
+        ).fetchone()
+    return {
+        "ai_access_mode": row["value"] if row else "free",
+        "updated_at": row["updated_at"] if row else "",
+    }
+
+
+@app.put("/api/admin/settings/vip")
+async def admin_update_vip_settings(
+    request: Request,
+    admin: dict = Depends(require_admin),
+):
+    body = await request.json()
+    mode = body.get("ai_access_mode")
+    if mode not in {"free", "vip"}:
+        raise HTTPException(400, "ai_access_mode 只能是 free 或 vip")
+    with get_db() as conn:
+        conn.execute(
+            """INSERT INTO app_settings(key, value, updated_at)
+               VALUES('ai_access_mode', ?, datetime('now'))
+               ON CONFLICT(key) DO UPDATE SET
+                   value=excluded.value,
+                   updated_at=datetime('now')""",
+            (mode,),
+        )
+        conn.commit()
+    label = "全站免费" if mode == "free" else "VIP / 积分"
+    return {"msg": f"AI 访问策略已设为：{label}", "ai_access_mode": mode}
 
 
 @app.get("/api/admin/users/{user_id}/vocab")
@@ -577,6 +698,83 @@ async def admin_delete_user_shenlun(user_id: int, admin: dict = Depends(require_
         conn.execute("DELETE FROM shenlun_history WHERE user_id=?", (user_id,))
         conn.commit()
         return {"msg": f"已清空用户 {user_id} 的申论批改历史"}
+
+
+@app.put("/api/admin/users/{user_id}/admin")
+async def admin_set_user_admin(
+    user_id: int,
+    request: Request,
+    admin: dict = Depends(require_admin),
+):
+    """Grant or revoke administrator access without allowing self lockout."""
+    body = await request.json()
+    requested = body.get("is_admin")
+    if requested not in (True, False, 0, 1):
+        raise HTTPException(400, "is_admin 必须是布尔值")
+    is_admin = 1 if requested else 0
+    if user_id == admin["user_id"] and not is_admin:
+        raise HTTPException(400, "不能取消自己的管理员权限")
+    with get_db() as conn:
+        row = conn.execute(
+            "SELECT id, username FROM users WHERE id=?", (user_id,)
+        ).fetchone()
+        if not row:
+            raise HTTPException(404, "用户不存在")
+        conn.execute(
+            "UPDATE users SET is_admin=? WHERE id=?", (is_admin, user_id)
+        )
+        conn.commit()
+    action = "设为管理员" if is_admin else "取消管理员"
+    return {
+        "msg": f"已将用户「{row['username']}」{action}",
+        "user_id": user_id,
+        "is_admin": is_admin,
+    }
+
+
+@app.put("/api/admin/users/{user_id}/vip")
+async def admin_set_user_vip(
+    user_id: int,
+    request: Request,
+    admin: dict = Depends(require_admin),
+):
+    """Set VIP status, expiry and a non-negative absolute credit balance."""
+    body = await request.json()
+    requested_vip = body.get("is_vip")
+    if requested_vip not in (True, False, 0, 1):
+        raise HTTPException(400, "is_vip 必须是布尔值")
+    try:
+        ai_credits = int(body.get("ai_credits", 0))
+    except (TypeError, ValueError):
+        raise HTTPException(400, "AI 积分必须是非负整数")
+    if ai_credits < 0:
+        raise HTTPException(400, "AI 积分必须是非负整数")
+    vip_expires_at = str(body.get("vip_expires_at") or "").strip()
+    if vip_expires_at:
+        try:
+            datetime.strptime(vip_expires_at, "%Y-%m-%d")
+        except ValueError:
+            raise HTTPException(400, "VIP 到期时间格式应为 YYYY-MM-DD")
+    with get_db() as conn:
+        row = conn.execute(
+            "SELECT id, username FROM users WHERE id=?", (user_id,)
+        ).fetchone()
+        if not row:
+            raise HTTPException(404, "用户不存在")
+        conn.execute(
+            """UPDATE users
+               SET is_vip=?, vip_expires_at=?, ai_credits=?
+               WHERE id=?""",
+            (1 if requested_vip else 0, vip_expires_at, ai_credits, user_id),
+        )
+        conn.commit()
+    return {
+        "msg": f"已更新用户「{row['username']}」的 VIP 与积分",
+        "user_id": user_id,
+        "is_vip": 1 if requested_vip else 0,
+        "vip_expires_at": vip_expires_at,
+        "ai_credits": ai_credits,
+    }
 
 
 @app.delete("/api/admin/users/{user_id}")
