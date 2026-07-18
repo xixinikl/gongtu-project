@@ -9,6 +9,7 @@ import logging
 import time
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
+from urllib.parse import urlsplit
 
 from fastapi import FastAPI, HTTPException, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
@@ -36,6 +37,43 @@ from ai_coach import ensure_ai_coach_schema, router as ai_coach_router
 # ── Logging ──
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("gontu.api")
+
+
+def _load_cors_origins() -> list[str]:
+    environment = os.environ.get("GONTU_ENV", "development").strip().lower()
+    configured = os.environ.get("GONTU_CORS_ORIGINS", "").strip()
+    if not configured:
+        if environment in {"prod", "production"}:
+            raise RuntimeError(
+                "GONTU_CORS_ORIGINS is required when GONTU_ENV=production"
+            )
+        return ["*"]
+
+    origins = []
+    for item in configured.split(","):
+        origin = item.strip().rstrip("/")
+        if not origin:
+            continue
+        if origin == "*":
+            if environment in {"prod", "production"}:
+                raise RuntimeError("Wildcard CORS is forbidden in production")
+            return ["*"]
+        parsed = urlsplit(origin)
+        if (
+            parsed.scheme not in {"http", "https"}
+            or not parsed.netloc
+            or parsed.path
+            or parsed.query
+            or parsed.fragment
+        ):
+            raise RuntimeError(f"Invalid CORS origin: {origin}")
+        origins.append(origin)
+    if not origins:
+        raise RuntimeError("GONTU_CORS_ORIGINS did not contain a valid origin")
+    return origins
+
+
+CORS_ORIGINS = _load_cors_origins()
 
 
 # ── Lifespan ──
@@ -71,7 +109,7 @@ app.include_router(ai_coach_router)
 # ── CORS ──
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=CORS_ORIGINS,
     allow_methods=["*"],
     allow_headers=["*"],
 )
