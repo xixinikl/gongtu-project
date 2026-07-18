@@ -11,8 +11,8 @@
 - 已完成本地收口基线：项目专用 Python 3.11.15 环境已建立；`npm run doctor` 为 0 fail；Node 全量 672/672；Python 16 个测试文件成功，其中 unittest 共 85 项，另有 1 个脚本型跨平台检查。
 - REL-1A 已完成：PR 工作流不再只监听 `main` 基线；新增独立后端测试作业；临时旧库迁移/恢复 2/2 通过；Ruff 发现并修复数量模块漏导入 `Any`，未改运行逻辑。
 - REL-1B 已完成：排除本地 `backend/venv` 后 mypy 26 文件无问题，Ruff 通过，Bandit 中高危 0；AI 教练 15/15、申论 15/15、Python 全量 87 项通过。只补证据列表变量与申论历史 id 类型，不改接口行为。
-- 首轮远端门禁已实际触发；lint 与 security 通过，frontend-check 因 `actions/checkout` 默认浅克隆不包含 `HEAD^` 而失败。REL-1C 将补丁格式命令改为浅克隆可用的 `git show --check --format= HEAD`，不改变产品代码。
-- 当前缺口：提交发布候选清单与浅克隆兼容修正、推送候选标签，并等待 PR #24 的五项远端检查形成最终证据。
+- 两轮远端门禁已实际触发：第二轮 `backend-tests`、lint、type-check、security 均通过；frontend-check 的产品测试也已通过，失败只来自 PR 临时合并提交把 196 个历史提交中的旧尾随空格全部归入 `git show --check HEAD`。该远端步骤不具备本轮归因能力，已移除；本轮改动继续以本地 `git diff --check` 为补丁格式证据。
+- 当前缺口：推送 CI 归因修正，等待 PR #24 的五项远端检查全绿，再完成候选标签。
 - 本任务边界：只修改 CI、迁移/恢复测试、发布候选清单和两份审计文件；不直接把相对 `main` 的 196 个历史提交批量合并，不改用户真实数据库。
 
 ## 2026-07-18 管理员 / VIP 纵向闭环

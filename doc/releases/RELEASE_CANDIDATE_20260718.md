@@ -46,6 +46,8 @@ done
 
 本轮本地基线：doctor 0 fail；Node 672/672；Python unittest 87 项及脚本型检查通过；mypy 26 个后端文件、Ruff 和 Bandit 中高危门禁通过。GitHub Actions 必须出现并完成 `frontend-check`、`backend-tests`、`lint`、`type-check` 和 `security`。
 
+补丁格式使用本地 `git diff --check` 验证本轮未提交或暂存差异。PR #24 的 GitHub 检出点是临时合并提交，不能用 `git show HEAD` 归因本轮空格，否则会把历史分支链的旧空格一并计入；正式历史清理应另开独立任务，不能夹进候选收口。
+
 ## SQLite 升级与恢复
 
 VIP 相关字段属于启动时幂等迁移。第一次以候选版启动真实数据库前，必须停掉后端并做整库备份；不要只导出部分表。

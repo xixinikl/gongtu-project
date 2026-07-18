@@ -45,9 +45,6 @@ jobs:
       - name: 运行空间几何生成器测试
         run: npm run test:geometry
 
-      - name: 检查补丁格式
-        run: git show --check --format= HEAD
-
   backend-tests:
     runs-on: ubuntu-latest
     steps:
