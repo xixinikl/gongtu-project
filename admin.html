@@ -273,8 +273,10 @@ body { color:var(--admin-ink); background:radial-gradient(circle at 82% 2%,rgba(
 .admin-header h1::before { display:none; }
 .admin-header .admin-user { color:var(--admin-muted); }
 .admin-header .admin-user strong { color:var(--admin-jade); }
+.btn-study { display:inline-flex; align-items:center; min-height:36px; padding:8px 12px; border:1px solid rgba(49,95,90,.28); border-radius:3px; color:var(--admin-jade); background:rgba(49,95,90,.06); font-weight:600; }
+.btn-study:hover,.btn-study:focus-visible { color:#fff; background:var(--admin-jade); outline:2px solid rgba(49,95,90,.18); outline-offset:2px; }
 .btn-logout { border:1px solid rgba(159,61,54,.28); border-radius:3px; color:var(--admin-danger); background:rgba(255,255,255,.52); }
-.admin-overview { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:24px; }
+.admin-overview { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:24px; }
 .overview-card { position:relative; overflow:hidden; min-height:110px; padding:22px 24px; border:1px solid var(--admin-line); background:rgba(251,250,246,.78); }
 .overview-card::after { content:attr(data-glyph); position:absolute; right:13px; bottom:-.18em; color:rgba(24,35,44,.035); font:900 76px/1 "Noto Serif SC",serif; }
 .overview-card small { display:block; color:var(--admin-muted); font:600 9px/1 Inter,sans-serif; letter-spacing:.18em; }
@@ -300,28 +302,43 @@ body { color:var(--admin-ink); background:radial-gradient(circle at 82% 2%,rgba(
 .modal-close { border-radius:3px; background:#ebe7dc; }
 .confirm-box { border:1px solid rgba(159,61,54,.38); border-radius:4px; background:var(--admin-card); }
 .btn-cancel,.btn-ok { border-radius:3px; }.btn-ok { background:var(--admin-danger); }
+.policy-bar { display:grid; grid-template-columns:1fr auto; gap:18px; align-items:center; margin-bottom:16px; padding:18px 20px; border:1px solid var(--admin-line); background:linear-gradient(100deg,rgba(49,95,90,.08),rgba(251,250,246,.84)); }
+.policy-copy small { display:block; margin-bottom:7px; color:var(--admin-gold); font:600 9px/1 Inter,sans-serif; letter-spacing:.18em; }
+.policy-copy strong { display:block; color:var(--admin-ink); font:700 17px/1.35 "Noto Serif SC",serif; }
+.policy-copy p { margin-top:5px; color:var(--admin-muted); font-size:12px; }
+.policy-action { min-width:156px; min-height:44px; padding:10px 16px; border:1px solid rgba(49,95,90,.35); border-radius:3px; color:var(--admin-jade); background:#fffef9; cursor:pointer; font-weight:600; }
+.policy-action:hover,.policy-action:focus-visible { color:#fff; background:var(--admin-jade); outline:2px solid rgba(49,95,90,.22); outline-offset:2px; }
+.badge-vip,.badge-user { display:inline-block; margin-left:5px; padding:2px 7px; border-radius:2px; font-size:10px; font-weight:700; }
+.badge-vip { color:#fff8e8; background:var(--admin-gold); }.badge-user { color:var(--admin-muted); background:#ebe7dc; }
+.user-summary { display:grid; gap:4px; min-width:150px; color:var(--admin-muted); font-size:12px; }.user-summary strong { color:var(--admin-ink); font-weight:600; }
+.action-row { display:flex; gap:7px; flex-wrap:wrap; }.btn-action,.btn-danger { min-height:36px; }
+.account-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:10px 0 18px; }
+.account-chip { padding:12px; border:1px solid var(--admin-line); background:#f5f1e7; }.account-chip span { display:block; color:var(--admin-muted); font-size:10px; letter-spacing:.08em; }.account-chip strong { display:block; margin-top:6px; color:var(--admin-ink); font-size:15px; }
+.vip-editor { display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:16px; border:1px solid var(--admin-line); background:#f8f5ed; }
+.vip-editor label { display:grid; gap:6px; color:var(--admin-muted); font-size:12px; }.vip-editor input,.vip-editor select { min-height:44px; padding:9px 10px; border:1px solid var(--admin-line); border-radius:2px; color:var(--admin-ink); background:#fffef9; font:inherit; }
+.vip-editor .editor-actions { grid-column:1/-1; display:flex; justify-content:flex-end; gap:8px; }.vip-editor .editor-actions button { min-height:44px; }
+.access-link { display:inline-flex; align-items:center; justify-content:center; width:100%; min-height:46px; border-radius:3px; color:#fff; background:var(--admin-ink); font-weight:600; letter-spacing:.12em; }
+.access-link:hover { color:#fff; background:var(--admin-jade); }
+.loading-row td { padding:34px 16px; color:var(--admin-muted); text-align:center; }
+button:disabled { opacity:.55; cursor:not-allowed; transform:none!important; }
 @media(max-width:768px){
   .login-overlay::after{left:20px;top:22px}.login-box{padding:38px 28px 32px}
   .admin-panel{padding:22px 16px 54px}.admin-header{align-items:stretch}.admin-user{justify-content:space-between}
   .admin-overview{grid-template-columns:1fr}.overview-card{min-height:92px}.toolbar{align-items:stretch}
-  .table-wrapper{overflow-x:auto}.user-table{min-width:900px}
+  .table-wrapper{overflow-x:auto}.user-table{min-width:940px}
+  .policy-bar{grid-template-columns:1fr}.policy-action{width:100%}.account-grid{grid-template-columns:1fr 1fr}.vip-editor{grid-template-columns:1fr}.vip-editor .editor-actions{grid-column:auto}
 }
 </style>
 </head>
 <body>
 
-<!-- ── Login Overlay ── -->
+<!-- ── Unified access check ── -->
 <div class="login-overlay" id="loginOverlay">
 <div class="login-box">
   <div class="login-icon">公</div>
-  <h1>公途管理台</h1>
-  <p>用户与学习数据管理 · 仅限管理员进入</p>
-  <form id="loginForm" onsubmit="doAdminLogin(event)">
-    <input type="text" id="adminUser" placeholder="管理员用户名" autocomplete="username" required>
-    <input type="password" id="adminPass" placeholder="密码" autocomplete="current-password" required>
-    <button type="submit">登 录</button>
-  </form>
-  <div class="login-msg" id="loginMsg"></div>
+  <h1 id="accessTitle">正在核验管理员身份</h1>
+  <p id="accessMessage">管理员端与公途主站共用同一个账号，不需要重复登录。</p>
+  <a class="access-link" id="accessLink" href="/login.html?next=/admin">前往统一登录</a>
 </div>
 </div>
 
@@ -331,14 +348,21 @@ body { color:var(--admin-ink); background:radial-gradient(circle at 82% 2%,rgba(
     <div class="admin-heading"><span class="admin-seal">公</span><div class="admin-heading-text"><small>GONTU · ADMINISTRATION</small><h1>用户与学习数据</h1></div></div>
     <div class="admin-user">
       管理员：<strong id="adminName">—</strong>
+      <a class="btn-study" href="/app">进入学习端</a>
       <button class="btn-logout" onclick="adminLogout()">退出登录</button>
     </div>
   </div>
 
   <section class="admin-overview" aria-label="管理数据概览">
     <article class="overview-card" data-glyph="人"><small>REGISTERED USERS</small><strong id="overviewUsers">0</strong></article>
-    <article class="overview-card" data-glyph="词"><small>CUSTOM VOCABULARY</small><strong id="overviewVocab">0</strong></article>
-    <article class="overview-card" data-glyph="文"><small>SHENLUN REVIEWS</small><strong id="overviewShenlun">0</strong></article>
+    <article class="overview-card" data-glyph="贵"><small>VIP MEMBERS</small><strong id="overviewVip">0</strong></article>
+    <article class="overview-card" data-glyph="点"><small>AI CREDITS</small><strong id="overviewCredits">0</strong></article>
+    <article class="overview-card" data-glyph="学"><small>LEARNING EVENTS</small><strong id="overviewLearning">0</strong></article>
+  </section>
+
+  <section class="policy-bar" aria-label="AI访问策略">
+    <div class="policy-copy"><small>AI ACCESS POLICY</small><strong id="aiAccessTitle">正在读取访问策略</strong><p id="aiAccessDesc">默认保持全站免费，不会影响当前学习功能。</p></div>
+    <button class="policy-action" id="aiAccessToggle" onclick="toggleAiAccessMode()" disabled>读取中</button>
   </section>
 
   <div class="toolbar">
@@ -349,9 +373,9 @@ body { color:var(--admin-ink); background:radial-gradient(circle at 82% 2%,rgba(
   <div class="table-wrapper">
   <table class="user-table" id="userTable">
     <thead><tr>
-      <th>ID</th><th>用户名</th><th>注册时间</th><th>词库数</th><th>牌组状态</th><th>申论次数</th><th>操作</th>
+      <th>ID</th><th>账号</th><th>身份与额度</th><th>学习概览</th><th>最近活动</th><th>操作</th>
     </tr></thead>
-    <tbody id="userTableBody"></tbody>
+    <tbody id="userTableBody"><tr class="loading-row"><td colspan="6">正在读取用户数据…</td></tr></tbody>
   </table>
   </div>
 </div>
@@ -359,7 +383,7 @@ body { color:var(--admin-ink); background:radial-gradient(circle at 82% 2%,rgba(
 <!-- ── User Detail Modal ── -->
 <div class="modal-overlay" id="userModal">
 <div class="modal">
-  <button class="modal-close" onclick="closeModal()">✕</button>
+  <button class="modal-close" onclick="closeModal()" aria-label="关闭用户管理">✕</button>
   <h2 id="modalTitle">用户详情</h2>
   <div id="modalContent"></div>
 </div>
@@ -371,7 +395,7 @@ body { color:var(--admin-ink); background:radial-gradient(circle at 82% 2%,rgba(
   <p id="confirmText">确认执行此操作？</p>
   <div class="btns">
     <button class="btn-cancel" onclick="closeConfirm()">取消</button>
-    <button class="btn-ok" id="confirmOk">确认删除</button>
+    <button class="btn-ok" id="confirmOk">确认操作</button>
   </div>
 </div>
 </div>
@@ -382,17 +406,16 @@ body { color:var(--admin-ink); background:radial-gradient(circle at 82% 2%,rgba(
 <script>
 // ── Config ──
 const API = location.origin + '/api';
-let adminToken = localStorage.getItem('admin_token') || '';
+const TOKEN_KEY = 'gontu_token';
+let adminToken = localStorage.getItem(TOKEN_KEY) || '';
+let currentAdmin = null;
+let aiAccessMode = 'free';
 
 // ── Init ──
 (async function() {
-  if (adminToken) {
-    let ok = await verifyToken();
-    if (ok) showPanel();
-    else showLogin();
-  } else {
-    showLogin();
-  }
+  if (!adminToken) return redirectToLogin('请先使用公途统一账号登录。');
+  let ok = await verifyToken();
+  if (ok) showPanel();
 })();
 
 // ── Auth ──
@@ -402,69 +425,64 @@ async function verifyToken() {
     if (resp.ok) {
       let data = await resp.json();
       if (data.is_admin) {
+        currentAdmin = data;
         document.getElementById('adminName').textContent = data.username;
         return true;
       }
+      return denyAccess('当前账号不是管理员，不能进入管理台。');
     }
-  } catch(e) {}
-  adminToken = '';
-  localStorage.removeItem('admin_token');
-  return false;
-}
-
-async function doAdminLogin(e) {
-  e.preventDefault();
-  let msg = document.getElementById('loginMsg');
-  msg.className = 'login-msg';
-  msg.style.display = 'none';
-  let user = document.getElementById('adminUser').value.trim();
-  let pass = document.getElementById('adminPass').value;
-  if (!user || !pass) { msg.textContent = '请填写用户名和密码'; msg.className = 'login-msg error'; msg.style.display = 'block'; return; }
-  try {
-    let resp = await fetch(API + '/auth/login', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: user, password: pass })
-    });
-    let data = await resp.json();
-    if (resp.ok && data.token) {
-      if (!data.is_admin) { msg.textContent = '该账号不是管理员'; msg.className = 'login-msg error'; msg.style.display = 'block'; return; }
-      adminToken = data.token;
-      localStorage.setItem('admin_token', adminToken);
-      document.getElementById('adminName').textContent = data.username;
-      showPanel();
-    } else {
-      msg.textContent = data.detail || '登录失败';
-      msg.className = 'login-msg error';
-      msg.style.display = 'block';
-    }
-  } catch(err) {
-    msg.textContent = '连接后端失败，请确认后端已启动';
-    msg.className = 'login-msg error';
-    msg.style.display = 'block';
+  } catch(e) {
+    return denyAccess('暂时无法核验管理员身份，请确认后端已经启动。', false);
   }
+  adminToken = '';
+  localStorage.removeItem(TOKEN_KEY);
+  return redirectToLogin('登录状态已失效，请重新登录。');
 }
 
 function adminLogout() {
   adminToken = '';
-  localStorage.removeItem('admin_token');
-  showLogin();
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem('gontu_user');
+  localStorage.removeItem('is_admin');
+  location.replace('/login.html?next=/admin');
 }
 
-function showLogin() {
+function redirectToLogin(message) {
   document.getElementById('loginOverlay').style.display = 'flex';
   document.getElementById('adminPanel').style.display = 'none';
+  document.getElementById('accessTitle').textContent = '需要统一登录';
+  document.getElementById('accessMessage').textContent = message;
+  document.getElementById('accessLink').textContent = '前往统一登录';
+  document.getElementById('accessLink').href = '/login.html?next=/admin';
+  setTimeout(() => location.replace('/login.html?next=/admin'), 700);
+  return false;
+}
+function denyAccess(message, clearToken = true) {
+  if (clearToken) {
+    adminToken = '';
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem('is_admin');
+  }
+  document.getElementById('loginOverlay').style.display = 'flex';
+  document.getElementById('adminPanel').style.display = 'none';
+  document.getElementById('accessTitle').textContent = '无法进入管理台';
+  document.getElementById('accessMessage').textContent = message;
+  document.getElementById('accessLink').textContent = clearToken ? '换一个账号登录' : '重新检查';
+  document.getElementById('accessLink').href = clearToken ? '/login.html?next=/admin' : '/admin';
+  return false;
 }
 function showPanel() {
   document.getElementById('loginOverlay').style.display = 'none';
   document.getElementById('adminPanel').style.display = 'block';
-  loadUsers();
+  Promise.all([loadUsers(), loadVipSettings()]);
 }
 
 // ── API helper ──
 async function apiFetch(url, options = {}) {
   let opts = Object.assign({}, options, { headers: Object.assign({}, (options && options.headers) || {}, { 'Authorization': 'Bearer ' + adminToken }) });
   let resp = await fetch(url, opts);
-  if (resp.status === 401 || resp.status === 403) { adminLogout(); throw new Error('认证失败'); }
+  if (resp.status === 401) { redirectToLogin('登录状态已失效，请重新登录。'); throw new Error('认证失败'); }
+  if (resp.status === 403) { denyAccess('管理员权限已变更，请换用管理员账号。'); throw new Error('权限不足'); }
   return resp;
 }
 
@@ -473,38 +491,89 @@ let allUsers = [];
 async function loadUsers() {
   try {
     let resp = await apiFetch(API + '/admin/users');
-    if (resp.ok) {
-      allUsers = await resp.json();
-      renderUsers();
-    }
+    if (!resp.ok) throw new Error(await readApiError(resp));
+    allUsers = await resp.json();
+    renderUsers();
   } catch(e) { console.error(e); toast('加载用户列表失败', 'error'); }
+}
+
+async function loadVipSettings() {
+  try {
+    let resp = await apiFetch(API + '/admin/settings/vip');
+    if (!resp.ok) throw new Error(await readApiError(resp));
+    let data = await resp.json();
+    aiAccessMode = data.ai_access_mode || 'free';
+    renderVipSettings();
+  } catch (e) {
+    document.getElementById('aiAccessTitle').textContent = '访问策略读取失败';
+    document.getElementById('aiAccessDesc').textContent = '没有修改现有策略，请稍后重试。';
+    document.getElementById('aiAccessToggle').textContent = '重新读取';
+    document.getElementById('aiAccessToggle').disabled = false;
+  }
+}
+
+function renderVipSettings() {
+  let isFree = aiAccessMode === 'free';
+  document.getElementById('aiAccessTitle').textContent = isFree ? '全站 AI 免费开放' : 'VIP / 积分策略已预设';
+  document.getElementById('aiAccessDesc').textContent = isFree
+    ? '当前不会因 VIP 或积分拦截学习功能。'
+    : '策略已保存；正式启用扣点前仍需完成各 AI 接口的统一计费接线。';
+  let button = document.getElementById('aiAccessToggle');
+  button.textContent = isFree ? '预设 VIP / 积分模式' : '恢复全站免费';
+  button.disabled = false;
+}
+
+async function toggleAiAccessMode() {
+  let nextMode = aiAccessMode === 'free' ? 'vip' : 'free';
+  let label = nextMode === 'free' ? '恢复全站免费' : '保存 VIP / 积分预设策略';
+  openConfirm(`确认${label}？切换策略不会在本阶段自动扣除积分。`, async () => {
+    try {
+      let button = document.getElementById('aiAccessToggle');
+      button.disabled = true;
+      let resp = await apiFetch(API + '/admin/settings/vip', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ai_access_mode: nextMode })
+      });
+      if (!resp.ok) throw new Error(await readApiError(resp));
+      let data = await resp.json();
+      aiAccessMode = data.ai_access_mode;
+      renderVipSettings();
+      toast(data.msg || '访问策略已更新');
+    } catch (e) {
+      renderVipSettings();
+      toast(e.message || '访问策略更新失败', 'error');
+    }
+  });
 }
 
 function renderUsers() {
   let keyword = (document.getElementById('searchInput').value || '').toLowerCase();
   let filtered = keyword ? allUsers.filter(u => u.username.toLowerCase().includes(keyword)) : allUsers;
   document.getElementById('overviewUsers').textContent = allUsers.length;
-  document.getElementById('overviewVocab').textContent = allUsers.reduce((sum, user) => sum + (Number(user.vocab_count) || 0), 0);
-  document.getElementById('overviewShenlun').textContent = allUsers.reduce((sum, user) => sum + (Number(user.shenlun_count) || 0), 0);
+  document.getElementById('overviewVip').textContent = allUsers.filter(user => user.is_vip).length;
+  document.getElementById('overviewCredits').textContent = allUsers.reduce((sum, user) => sum + (Number(user.ai_credits) || 0), 0);
+  document.getElementById('overviewLearning').textContent = allUsers.reduce((sum, user) => sum + (Number(user.learning_events) || 0) + (Number(user.verbal?.questions) || 0) + (Number(user.shenlun_count) || 0), 0);
   let tbody = document.getElementById('userTableBody');
   tbody.innerHTML = '';
   filtered.forEach(u => {
-    let deckStr = Object.entries(u.decks || {}).map(([k,v]) => k + ':' + v).join(' / ') || '—';
+    let deckTotal = Object.values(u.decks || {}).reduce((sum, value) => sum + (Number(value) || 0), 0);
+    let verbal = u.verbal || {};
     let tr = document.createElement('tr');
     tr.innerHTML = `
       <td style="color:#9aa0b5;font-size:0.82rem;">${u.id}</td>
-      <td><span class="username">${escHtml(u.username)}</span>${u.is_admin ? ' <span class="badge-admin">管理员</span>' : ''}</td>
-      <td style="color:#6b7590;font-size:0.83rem;">${(u.created_at||'').slice(0,10)}</td>
-      <td class="stat-num">${u.vocab_count || 0}</td>
-      <td style="color:#6b7590;font-size:0.82rem;">${deckStr}</td>
-      <td class="stat-num">${u.shenlun_count || 0}</td>
+      <td><span class="username">${escHtml(u.username)}</span>${u.is_admin ? ' <span class="badge-admin">管理员</span>' : ''}<div class="stat-dim">注册于 ${(u.created_at||'').slice(0,10) || '—'}</div></td>
+      <td><span class="${u.is_vip ? 'badge-vip' : 'badge-user'}">${u.is_vip ? 'VIP' : '普通用户'}</span><div class="stat-dim" style="margin-top:6px">AI 积分 ${u.ai_credits || 0}${u.vip_expires_at ? ' · 至 ' + escHtml(u.vip_expires_at) : ''}</div></td>
+      <td><div class="user-summary"><span><strong>${verbal.questions || 0}</strong> 言语作答 · <strong>${u.shenlun_count || 0}</strong> 申论</span><span><strong>${u.vocab_count || 0}</strong> 词条 · <strong>${deckTotal}</strong> 学习卡</span><span><strong>${verbal.ai_messages || 0}</strong> 次 AI 消息</span></div></td>
+      <td><span class="stat-dim">${escHtml(formatActivity(u.last_activity))}</span><div class="stat-dim">连续 ${u.streak || 0} 天</div></td>
       <td>
-        <button class="btn-action" onclick="viewUser(${u.id})">管理</button>
-        ${!u.is_admin ? `<button class="btn-danger" onclick="confirmDeleteUser(${u.id},'${escHtml(u.username)}')">删除</button>` : '<span style="color:#cdd3e3;font-size:0.78rem;">—</span>'}
+        <div class="action-row"><button class="btn-action" onclick="viewUser(${u.id})">查看与管理</button>
+        ${u.id !== currentAdmin?.user_id ? `<button class="btn-action" onclick="confirmSetAdmin(${u.id},${u.is_admin ? 'false' : 'true'})">${u.is_admin ? '取消管理员' : '设为管理员'}</button>` : ''}
+        ${!u.is_admin ? `<button class="btn-danger" onclick="confirmDeleteUser(${u.id})">删除</button>` : ''}</div>
       </td>`;
     tbody.appendChild(tr);
   });
-  document.getElementById('statsText').textContent = '共 <b>' + filtered.length + '</b> 个用户' + (keyword ? '（筛选自 ' + allUsers.length + ' 个）' : '');
+  document.getElementById('statsText').textContent = '共 ' + filtered.length + ' 个用户' + (keyword ? '（筛选自 ' + allUsers.length + ' 个）' : '');
 }
 
 // ── View User Detail ──
@@ -513,11 +582,27 @@ async function viewUser(userId) {
   currentUserId = userId;
   let user = allUsers.find(u => u.id === userId);
   if (!user) return;
-  document.getElementById('modalTitle').textContent = '👤 ' + user.username + '（ID: ' + userId + '）';
-  let html = '';
+  document.getElementById('modalTitle').textContent = user.username + ' · 账号管理';
+  let verbal = user.verbal || {};
+  let html = `<div class="account-grid">
+    <div class="account-chip"><span>账号身份</span><strong>${user.is_admin ? '管理员' : '普通用户'}</strong></div>
+    <div class="account-chip"><span>言语练习</span><strong>${verbal.questions || 0} 题</strong></div>
+    <div class="account-chip"><span>申论记录</span><strong>${user.shenlun_count || 0} 次</strong></div>
+    <div class="account-chip"><span>AI 消息</span><strong>${verbal.ai_messages || 0} 条</strong></div>
+    <div class="account-chip"><span>学习事件</span><strong>${user.learning_events || 0} 条</strong></div>
+    <div class="account-chip"><span>最近活动</span><strong>${escHtml(formatActivity(user.last_activity))}</strong></div>
+  </div>`;
+
+  html += `<h3>VIP 与 AI 积分</h3>
+    <div class="vip-editor">
+      <label>用户身份<select id="vipStatus-${userId}"><option value="0" ${user.is_vip ? '' : 'selected'}>普通用户</option><option value="1" ${user.is_vip ? 'selected' : ''}>VIP 用户</option></select></label>
+      <label>AI 积分<input id="vipCredits-${userId}" type="number" min="0" step="1" value="${Number(user.ai_credits) || 0}"></label>
+      <label>VIP 到期日<input id="vipExpires-${userId}" type="date" value="${escHtml(user.vip_expires_at || '')}"></label>
+      <div class="editor-actions"><button class="btn-action" onclick="saveVip(${userId})">保存 VIP 与积分</button></div>
+    </div>`;
 
   // Vocab section
-  html += '<h3>📚 自定义词库</h3>';
+  html += '<h3>自定义词库</h3>';
   try {
     let resp = await apiFetch(API + '/admin/users/' + userId + '/vocab');
     let vocab = await resp.json();
@@ -534,7 +619,7 @@ async function viewUser(userId) {
   } catch(e) { html += '<div class="empty" style="color:#dc2626;">加载失败</div>'; }
 
   // Decks section
-  html += '<h3>🃏 牌组状态</h3>';
+  html += '<h3>牌组状态</h3>';
   try {
     let resp = await apiFetch(API + '/admin/users/' + userId + '/decks');
     let decks = await resp.json();
@@ -553,7 +638,7 @@ async function viewUser(userId) {
   } catch(e) { html += '<div class="empty" style="color:#dc2626;">加载失败</div>'; }
 
   // Shenlun section
-  html += '<h3>✍️ 申论批改历史</h3>';
+  html += '<h3>申论批改历史</h3>';
   try {
     let resp = await apiFetch(API + '/admin/users/' + userId + '/shenlun');
     let list = await resp.json();
@@ -576,8 +661,8 @@ async function viewUser(userId) {
 
   // Danger zone
   if (!user.is_admin) {
-    html += '<h3 style="color:#dc2626;">⚠️ 危险操作</h3>';
-    html += `<button class="btn-danger" onclick="confirmDeleteUser(${userId},'${escJs(user.username)}')">删除该用户（含全部数据）</button>`;
+    html += '<h3 style="color:var(--admin-danger);">危险操作</h3>';
+    html += `<button class="btn-danger" onclick="confirmDeleteUser(${userId})">删除该用户（含全部数据）</button>`;
   }
 
   document.getElementById('modalContent').innerHTML = html;
@@ -585,6 +670,48 @@ async function viewUser(userId) {
 }
 
 function closeModal() { document.getElementById('userModal').classList.remove('show'); }
+
+function confirmSetAdmin(userId, shouldGrant) {
+  let user = allUsers.find(item => item.id === userId);
+  if (!user) return toast('用户数据已变化，请刷新后重试', 'error');
+  let action = shouldGrant ? '设为管理员' : '取消管理员权限';
+  openConfirm(`确认将「${user.username}」${action}？权限变更会在下一次请求立即生效。`, async () => {
+    try {
+      let resp = await apiFetch(API + '/admin/users/' + userId + '/admin', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_admin: shouldGrant })
+      });
+      if (!resp.ok) throw new Error(await readApiError(resp));
+      let data = await resp.json();
+      toast(data.msg || '管理员权限已更新');
+      closeModal();
+      await loadUsers();
+    } catch (e) {
+      toast(e.message || '管理员权限更新失败', 'error');
+    }
+  });
+}
+
+async function saveVip(userId) {
+  let isVip = document.getElementById('vipStatus-' + userId).value === '1';
+  let credits = document.getElementById('vipCredits-' + userId).value;
+  let expires = document.getElementById('vipExpires-' + userId).value;
+  try {
+    let resp = await apiFetch(API + '/admin/users/' + userId + '/vip', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_vip: isVip, ai_credits: credits, vip_expires_at: expires })
+    });
+    if (!resp.ok) throw new Error(await readApiError(resp));
+    let data = await resp.json();
+    toast(data.msg || 'VIP 与积分已更新');
+    await loadUsers();
+    await viewUser(userId);
+  } catch (e) {
+    toast(e.message || 'VIP 与积分更新失败', 'error');
+  }
+}
 
 // ── Delete actions ──
 function confirmDeleteVocab(userId, sourceName) {
@@ -613,8 +740,10 @@ function confirmDeleteShenlun(userId) {
   });
 }
 
-function confirmDeleteUser(userId, username) {
-  openConfirm(`⚠️ 彻底删除用户「${username}」（ID=${userId}）及其全部数据？此操作不可恢复！`, () => {
+function confirmDeleteUser(userId) {
+  let user = allUsers.find(item => item.id === userId);
+  if (!user) return toast('用户数据已变化，请刷新后重试', 'error');
+  openConfirm(`彻底删除用户「${user.username}」（ID=${userId}）及其全部数据？此操作不可恢复。`, () => {
     apiFetch(API + '/admin/users/' + userId, { method: 'DELETE' })
       .then(r => r.json()).then(d => { toast(d.msg||'删除成功'); closeModal(); loadUsers(); })
       .catch(e => toast('删除失败','error'));
@@ -644,8 +773,20 @@ function toast(msg, type) {
 }
 
 // ── Utils ──
+async function readApiError(resp) {
+  try {
+    let data = await resp.json();
+    return data.detail || data.msg || '请求失败（' + resp.status + '）';
+  } catch (_) {
+    return '请求失败（' + resp.status + '）';
+  }
+}
+function formatActivity(value) {
+  if (!value) return '暂无记录';
+  return String(value).replace('T', ' ').slice(0, 16);
+}
 function escHtml(s) { let d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
-function escJs(s) { return (s||'').replace(/'/g,'\\\''); }
+function escJs(s) { return String(s||'').replace(/\\/g,'\\\\').replace(/&/g,'\\x26').replace(/'/g,'\\x27').replace(/"/g,'\\x22').replace(/</g,'\\x3c').replace(/>/g,'\\x3e').replace(/[\r\n]/g,' '); }
 </script>
 </body>
 </html>

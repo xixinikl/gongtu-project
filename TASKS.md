@@ -1,5 +1,88 @@
 # 公途空间几何实验室任务看板
 
+## 2026-07-18 生产安全底座
+
+- [x] ● SEC-1A 关闭公开注册提权，并提供仅服务器本机可执行的一次性管理员初始化工具。
+  - 交付文件：`backend/auth.py`、`tools/bootstrap-admin.py`、`tests/test_admin_vip.py`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：空库任意公开注册均为普通用户；本机工具可创建或提升唯一初始管理员；已有管理员后再次初始化必须失败；原管理员/VIP权限回归保持通过。
+  - 结果：公开注册固定 `is_admin=0`；本机工具使用无命令行明文密码的双次交互输入，可新建管理员或提升既有普通账号并重置密码；管理员已存在时 fail closed。管理员/VIP与JWT专项 7/7、Ruff、mypy 26文件、Bandit中高危0、工具真实空库初始化/二次拒绝均通过。
+- [x] ● SEC-1B 修正统一登录页的管理员初始化说明并建立前端合同回归。
+  - 交付文件：`login.html`、`tests/unified-auth-client.test.mjs`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：无管理员时页面明确公开注册仍是普通账号，给出服务器本机初始化命令；旧“第一个注册成为管理员”文案不得回归。
+  - 结果：登录页已改为本机终端初始化说明；统一认证专项新增正向命令与负向旧文案断言，8/8通过。
+- [x] ● SEC-2 登录与注册防爆破：按来源和账号限流、输入长度上限、可信代理显式配置。
+  - 交付文件：`backend/auth.py`、`backend/auth_rate_limit.py`、`tests/test_auth_rate_limit.py`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：账号与来源双层滑动窗口触发429和`Retry-After`；成功登录不能清除来源总限额；代理头默认不可信，只有直连代理命中显式白名单才解析；超长输入422；用户名不存在仍执行等成本密码校验。
+  - 结果：登录账号5次/5分钟、来源20次/5分钟，注册账号3次/小时、来源5次/小时；最多保留10000个内存桶。专项3/3、管理员/VIP 4/4、JWT 3/3、Ruff、mypy 27文件、Bandit中高危0通过。当前实现面向单进程封闭内测；多worker部署必须在SEC-5阻止或换共享限流存储。
+- [x] ● SEC-3 管理员高风险操作审计：授权、VIP、策略与删除操作可追踪且不记录敏感明文。
+  - 交付文件：`backend/database.py`、`backend/main.py`、`tests/test_admin_vip.py`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：授权、VIP/积分、AI访问策略、词库/牌组/申论/整用户删除均在同一事务写审计；审计写失败则业务回滚；管理员可查询最近1—200条；普通用户不可读；删除用户后流水保留；不含密码、Token或AI Key。
+  - 结果：新增v12追加式审计表与双索引、管理员查询接口和7类受控动作；专项5/5、旧库迁移/恢复2/2、Ruff、mypy 27文件通过，注入审计写失败后VIP积分仍保持原值。
+- [x] ● SEC-4 SQLite 自动备份、完整性验证、保留策略与恢复演练工具。
+  - 交付文件：`tools/gontu_db.py`、`tests/test_database_backup.py`、`doc/operations/DATABASE_BACKUP.md`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：运行中WAL数据库通过SQLite在线备份复制；每份副本`integrity_check=ok`且0600；只清理由本工具命名的过期副本；损坏副本拒绝；恢复只写不存在的新目标并再次验证，绝不覆盖。
+  - 结果：备份/验证/恢复三命令和恢复演练说明完成；专项3/3、Ruff、语法与diff检查通过，在线连接保持打开时4行事实完整进入副本，保留2份和覆盖拒绝均有直接断言。
+- [x] ● SEC-5A 生产运行时关闭通配CORS，并要求显式来源白名单。
+  - 交付文件：`backend/main.py`、`backend/.env.example`、`tests/test_production_readiness.py`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：生产环境缺少`GONTU_CORS_ORIGINS`、使用`*`、填写带路径/查询/片段的伪origin均拒绝启动；合法HTTP(S)来源列表可启动；开发环境保持本地兼容。
+  - 结果：正式入口改为运行时来源白名单；生产配置专项3/3、Ruff、mypy 27文件与语法检查通过；环境示例补齐生产密钥、数据库、CORS和可信代理变量。
+- [x] ● SEC-5B 生产就绪检查：密钥、数据库权限、备份新鲜度、运行模式和部署前停止条件。
+  - 交付文件：`tools/production_readiness.py`、`tests/test_production_readiness.py`、`doc/operations/PRODUCTION_READINESS.md`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：生产模式、非示例JWT/AI密钥、HTTPS CORS、合法代理IP、单worker、正式库0600/完整/有管理员和审计表、24小时内0600完整备份、独立恢复库全部通过才返回0；否则逐项失败并返回非零。
+  - 结果：可执行fail-closed门禁与操作说明完成；生产配置/门禁专项5/5、Ruff与语法检查通过。当前未部署环境不会被误报为可收费上线。
+
+生产安全底座 SEC-1A—SEC-5B 已实现、独立审查并合入候选分支；不代表已部署、已收费可用或已合并主分支。
+
+- [x] ● SEC-6 全量回归、远端CI与Draft PR证据收口。
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 结果：20个Python测试文件逐进程通过；Node 673/673；依赖树、Ruff、mypy 27文件、Bandit中高危0、doctor 0 fail；Draft PR #25 OPEN、MERGEABLE，正确以`agent/admin-vip-console`为基线；GitHub Actions run `29641376392` 五项全部成功。保持Draft，不合并`main`。
+- [x] ● SEC-7 独立审查 PR #25，纠正与当前安全实现冲突的旧版本记录，并重新验收后合并到候选分支。
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/releases/RELEASE_CANDIDATE_20260718.md`
+  - 验收：公开注册与初始管理员说明全库一致；PR 无未处理评审意见；本地门禁与 GitHub Actions 全绿；只合并到 `agent/admin-vip-console`，不合并 `main`。
+  - 结果：审查未发现代码阻断项，修正三处旧版自动提权记录；20个Python测试文件、Node 673/673、依赖树、Ruff、mypy 27文件、Bandit中高危0、doctor 0 fail；GitHub Actions run `29647861867` 五项全绿。PR #25 已以 merge commit `a1a836e` 合入 `agent/admin-vip-console`；该合并提交对应 run `29647898525` 五项全绿，`main` 未变。
+
+## 2026-07-18 版本收口
+
+- [x] ● REL-2A 冻结合并后候选并完成真实浏览器冒烟验收。
+  - 交付文件：`doc/acceptance/RC2_FINAL_SMOKE_20260718.md`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：使用隔离数据库启动正式后端；桌面与390px实测首页、统一登录/注册、学习页和管理员入口；公开注册只能得到普通用户且不能进入后台；服务器本机初始化管理员后可正常登录后台；关键页面无横向溢出、破图和控制台错误；PR #24 五项检查全绿；推送 `gongtu-rc-20260718.2`，保持 `main` 不变。
+  - 结果：隔离数据库完成普通用户注册、后台拒绝、服务器本机管理员初始化、管理员登录、后台与学习端往返及首页“开始备考”进入学习端；1280px 与390px页面均无横向溢出、破图和本机控制台错误。验收记录随候选提交进入 `gongtu-rc-20260718.2`；远端标签和 PR #24 检查在提交后复核，`main` 保持不变。
+
+- [x] ● REL-1A 建立跨分支 CI 与数据库恢复门禁。
+  - 交付文件：`.github/workflows/check.yml`、`tests/test_database_migration.py`、`backend/quantity.py`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：任意 PR 基线均会触发工作流；CI 安装锁定依赖并逐文件运行 Python 测试；临时旧库 2/2 证明数据保留、迁移幂等与停服整库恢复；Ruff 通过；数量模块只补 `Any` 类型导入；Node 672/672、doctor 0 fail。
+  - 结果：门禁已能暴露后续 mypy 旧债，转入 REL-1B 窄修复；远端实际运行证据统一在 REL-1C 推送后取得。
+- [x] ● REL-1B 清零候选版既有 mypy 阻塞。
+  - 交付文件：`backend/ai_coach.py`、`backend/shenlun.py`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：只补容器与可空值类型标注，不改运行逻辑；排除本地 `backend/venv` 后 mypy 全库通过，AI/申论专项和 Python 全量回归通过。
+  - 结果：mypy 26 个后端文件无问题；Ruff 通过；Bandit 中高危 0；AI 教练 15/15、申论 15/15、Python 全量 87 项通过。修复仅收窄数量练习证据列表变量与申论历史 id 的可空类型。
+- [x] ● REL-1C 冻结发布候选、推送标签并取得远端检查证据。
+  - 交付文件：`doc/releases/RELEASE_CANDIDATE_20260718.md`、`.github/workflows/check.yml`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：候选清单写清包含项、排除项、启动/测试、SQLite 备份恢复和停止条件；提交与 `gongtu-rc-20260718.1` 标签推送；PR #24 五项检查有明确结果。
+  - 结果：发布候选清单已提交；GitHub Actions run `29640065363` 的 frontend-check、backend-tests、lint、type-check、security 全部通过；候选标签指向最终审计提交，不合并 `main`、不触碰真实数据库。
+
+## 管理员 / VIP 当前收口
+
+- [x] ● ADM-1 统一管理员入口：`/admin` 只认主站 `gontu_token`，未登录回统一登录页，普通用户不能进入后台且不会循环跳转。
+- [x] ● ADM-2 初始管理员与权限分配：公开注册始终创建普通用户；初始管理员仅可由服务器本机工具显式创建或提升；管理员可授权/取消其他账号，不能取消自己的权限。
+- [x] ● ADM-3 VIP 与积分资料：幂等数据库迁移、VIP状态、到期日、AI积分编辑、列表汇总和账号详情均完成。
+- [x] ● ADM-4 管理工作台：公途宣纸/深墨视觉、跨模块学习概览、搜索、详情、危险操作层级以及桌面/390px响应式已由真实浏览器验收。
+- [x] ● ADM-5 AI访问策略预设：默认全站免费，可保存 `free` / `vip` 运营策略；页面明确说明当前不会自动扣点，避免误导。
+- [ ] ○ ADM-6 正式额度执行层：统一AI访问校验、原子扣点、失败退款、积分流水与管理员审计尚未开发；正式收费或限制AI前必须完成。
+
+当前管理员证据：旧版隔离浏览器曾完成首个账号自动提权、授权、VIP=88、策略切换/恢复免费，390px 无页面横向溢出、console error/warn 0；其中“首个账号自动提权”已被 SEC-1A 的服务器本机显式初始化方案取代，不再是当前行为。
+
 ## 当前 V3 统一体验修复 Goal（最高优先级）
 
 - [x] ● V3R-1 冻结确认 Demo、正式路径与视觉/用户路径断层；证据见 `doc/acceptance/V3R-1-visual-and-path-baseline.md`。
@@ -7,7 +90,7 @@
 - [x] ● V3R-3 言语与数量 AI 上下文闭环：真实作答进入服务端可信上下文，未交卷答案不暴露，返回恢复同一 session；证据见 `doc/acceptance/V3R-3-verbal-quantity-ai-handoff.md`。
 - [x] ● V3R-4 图推与申论 AI 上下文闭环：三条正式入口、正确 Skill、huasheng13 窄适配、本人服务端上下文与安全返回已验收。
 - [x] ● V3R-5 记录、Skill、用户隔离、失败提示与 `return_url` 合同已通过 Python 77/77、Node 643/643并归档证据。
-- [ ] ◐ V3R-6（97%）用户已确认跨电脑找回的水墨首页与最终功能页；正式首页接线已实现并等待用户本轮视觉确认。后端 `/` 已指向 `doc/prototypes/homepage-middle-ink-morph.html`，首页内部首屏/CTA 固定读取 `/index.html` 以避免递归，真实 iframe 内“开始备考”进入顶层 `/app`，功能页“返回首页”回到 `/`。根路由接入后曾使三处 `./assets/` 解析到错误的 `/assets/`，现已改为稳定的 `/doc/prototypes/assets/`：五模块水墨底图、Spark 粒子与标题字体恢复，浏览器实测言语→数量切换、morphing→settled、画布停止态均正常。内嵌“问西西”完成双模式收口：保留原右栏小面板，同时支持独立悬浮、拖动、锁定、自由缩放、一键放大/缩小和还原；模式、位置、尺寸跨换题保留，失败 run 可原地重新请求。隔离测试账号已在数量与言语真实提问成功。已通过真实浏览器双向点击、`/`/`/app`/`/index.html` HTTP 200、注册/登录/关键功能与真实 AI 请求、桌面 1280px 无横向溢出、Python AI/Skill 30/30、专项 4/4 与 Node 全量 670/670（尺寸断言后待最终重跑）；本轮不在用户确认前提交或覆盖已推送救援快照。
+- [x] ● V3R-6 用户已确认跨电脑找回的水墨首页与最终功能页，并明确进入版本收口。后端 `/` 已指向 `doc/prototypes/homepage-middle-ink-morph.html`，首页内部首屏/CTA 固定读取 `/index.html` 以避免递归，真实 iframe 内“开始备考”进入顶层 `/app`，功能页“返回首页”回到 `/`。根路由接入后的资源路径、标签串色、问西西双模式、提问可见性与双缩小入口均已修复并由真实浏览器验收；最终 Node 全量为 672/672。
 
 - 最终回归补记：悬浮框尺寸按钮与大窗阅读排版断言已纳入同一专项；长回答会按语义分段、使用更宽回答卡和 16px 正文，输入区固定到底部且发送按钮可见。Node/几何全量重跑仍为 670/670；上条“待最终重跑”已完成。
 - [x] 悬浮问西西提问可见性与双缩小入口：确认数据库消息未丢失；给脱离原容器的悬浮窗补齐独立公途色彩变量，最新用户消息固定显示为金色“你问”气泡；左下角增加缩小按钮。浏览器完成刷新历史、缩小、放大和视觉验收，专项 10/10、全量 670/670。
@@ -57,7 +140,7 @@
   - 总装回归：`cx/phase6-clean-integration` 新建 Python 3.12 venv 后服务端 62/62、Node 46/46、portable 数量门禁 600/60/71 通过；B 作答刷新 1/20、C 同套题 0/20；六页在 390px/1280px 无溢出、破图 0、console error/warn 0。临时环境已清理。
   - 补救：默认数量流水线在无 OCR 中间产物的干净树自动转为已提交 approved seed 的 portable CI；不再要求未提交 `output/quantity-bank/raw_sets`。
 
-- [ ] ◐ PRC-1—4 Phase 1—6 外部审阅与合并收口：记录 PR #15—#21 的检查、评论与审阅，处理实际可执行反馈，并保留 Ready/批准/合并的外部决策。
+- [ ] ○ PRC-1—4 Phase 1—6 外部审阅与合并收口：记录 PR #15—#21 的检查、评论与审阅，处理实际可执行反馈，并保留 Ready/批准/合并的外部决策。
   - 当前结果（2026-07-13）：#15—#21 均 open、`CLEAN`、无 GitHub checks、无 reviews；#15/#16 非 Draft，#17—#19/#21 为 Draft。无待处理反馈，因此不修改阶段分支。
   - 外部边界：未经用户明确授权，不标记 Ready、不批准、不合并；具体路由、证据与停止条件见 `doc/PHASE_REVIEW_CLOSURE.md`。
   - 独立后续：#20 实时预览工具不属于阶段链，已记录 OAuth 写入权限跟进，待本 Goal 停止或完成后另建 Goal。

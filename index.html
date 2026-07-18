@@ -20,6 +20,17 @@
     function gontu_isLoggedIn() { return !!localStorage.getItem(GONTU_TOKEN_KEY); }
     function gontu_getUser() { try { var u = localStorage.getItem(GONTU_USER_KEY); return u ? JSON.parse(u) : null; } catch(e) { return null; } }
     function escapeHTML(str) { var d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
+    function navigateTop(path) {
+        try {
+            if (window.top && window.top !== window) {
+                window.top.location.assign(path);
+                return;
+            }
+        } catch (_) {
+            // 独立打开或跨窗口受限时，回退到当前页面跳转。
+        }
+        window.location.assign(path);
+    }
 
     async function apiFetch(url, options) {
         var token = localStorage.getItem(GONTU_TOKEN_KEY);
@@ -34,7 +45,9 @@
         var authArea = document.getElementById('navAuthArea');
         if (!authArea) return;
         if (user) {
-            authArea.innerHTML = '<span style="color:rgba(232,213,163,0.85);font-size:0.85rem;margin-right:8px;letter-spacing:1px;">' + escapeHTML(user.username || '用户') + '</span><button class="btn-nav btn-logout" onclick="logout()" style="background:rgba(196,75,58,0.2);color:#c44b3a;border:1px solid rgba(196,75,58,0.4);"><span>退出</span></button>';
+            var isAdmin = Number(user.is_admin || localStorage.getItem('is_admin')) === 1;
+            var adminAction = isAdmin ? '<button class="btn-nav" onclick="navigateTop(\'/admin\')"><span>管理后台</span></button>' : '';
+            authArea.innerHTML = '<span style="color:rgba(232,213,163,0.85);font-size:0.85rem;margin-right:8px;letter-spacing:1px;">' + escapeHTML(user.username || '用户') + '</span>' + adminAction + '<button class="btn-nav btn-logout" onclick="logout()" style="background:rgba(196,75,58,0.2);color:#c44b3a;border:1px solid rgba(196,75,58,0.4);"><span>退出</span></button>';
         } else {
             authArea.innerHTML = '<button class="btn-nav" onclick="openLoginModal()" style="margin-right:8px;"><span>登录</span></button><button class="btn-nav" onclick="openRegisterModal()"><span>注册</span></button>';
         }
@@ -72,10 +85,10 @@
             var data = await resp.json();
             if (!resp.ok) { showErr('loginError', extractErrorMsg(data)); return; }
             localStorage.setItem(GONTU_TOKEN_KEY, data.token);
-            localStorage.setItem(GONTU_USER_KEY, JSON.stringify({ id: data.user_id, username: data.username }));
+            localStorage.setItem(GONTU_USER_KEY, JSON.stringify({ id: data.user_id, username: data.username, is_admin: data.is_admin || 0 }));
             localStorage.setItem('is_admin', data.is_admin || 0);
             // 管理员登录后直接跳转到管理后台
-            if (data.is_admin === 1) { window.location.href = '/admin'; return; }
+            if (data.is_admin === 1) { navigateTop('/admin'); return; }
             closeLoginModal();
             updateNavAuth();
             var pleaseEl = document.getElementById('pleaseLoginModal');
@@ -99,7 +112,8 @@
             var data = await resp.json();
             if (!resp.ok) { showErr('registerError', extractErrorMsg(data)); return; }
             localStorage.setItem(GONTU_TOKEN_KEY, data.token);
-            localStorage.setItem(GONTU_USER_KEY, JSON.stringify({ id: data.user_id, username: data.username }));
+            localStorage.setItem(GONTU_USER_KEY, JSON.stringify({ id: data.user_id, username: data.username, is_admin: data.is_admin || 0 }));
+            localStorage.setItem('is_admin', data.is_admin || 0);
             closeRegisterModal();
             updateNavAuth();
             var pleaseEl = document.getElementById('pleaseLoginModal');
@@ -4268,7 +4282,7 @@ function startLearning() {
         return;
     }
     // 管理员跳转到管理后台
-    if (parseInt(localStorage.getItem('is_admin')) === 1) { window.location.href = '/admin'; return; }
+    if (parseInt(localStorage.getItem('is_admin')) === 1) { navigateTop('/admin'); return; }
     window.location.href = '/app';
 }
 

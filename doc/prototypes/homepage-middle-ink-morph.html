@@ -790,11 +790,22 @@
         doc.body.style.overflow = 'hidden';
         doc.querySelectorAll('a,button').forEach(node => {
           const inlineAction = node.getAttribute('onclick') || '';
+          const isLoginEntry = inlineAction.includes('openLoginModal');
+          const isRegisterEntry = inlineAction.includes('openRegisterModal');
           const isAppEntry = inlineAction.includes('startLearning')
             || inlineAction.includes("location.href='/app'")
             || inlineAction.includes('location.href="/app"')
             || (node.tagName === 'A' && node.getAttribute('href') === '/app');
           if (node.tagName === 'A') node.target = '_top';
+          if (isLoginEntry || isRegisterEntry) {
+            node.removeAttribute('onclick');
+            node.addEventListener('click', event => {
+              event.preventDefault();
+              const destination = isRegisterEntry ? '/login.html?mode=register' : '/login.html';
+              doc.defaultView.top.location.assign(destination);
+            });
+            return;
+          }
           if (!isAppEntry) return;
           node.removeAttribute('onclick');
           if (node.tagName === 'A') {

@@ -559,7 +559,7 @@ def _resolve_context(
             (source,),
         ).fetchall()
         submitted = session["status"] == "submitted"
-        evidence = []
+        practice_evidence: list[dict[str, Any]] = []
         for row in attempts:
             item = {
                 "item_id": row["question_id"],
@@ -576,10 +576,10 @@ def _resolve_context(
                         "is_correct": bool(row["is_correct"]),
                     }
                 )
-            evidence.append(item)
+            practice_evidence.append(item)
         base.update(
             {
-                "evidence": evidence,
+                "evidence": practice_evidence,
                 "provenance": [
                     {
                         "table": "quantity_practice_sessions",

@@ -11,7 +11,9 @@ from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.security import HTTPBearer
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
+from auth_rate_limit import auth_rate_limiter, enforce_auth_rate_limit
 
 # ── Config ─────────────────────────────────────────────────────
 JWT_ALGORITHM = "HS256"
@@ -78,13 +80,13 @@ security = HTTPBearer(auto_error=False)
 
 # ── Models ─────────────────────────────────────────────────────
 class RegisterIn(BaseModel):
-    username: str
-    password: str
+    username: str = Field(min_length=3, max_length=64)
+    password: str = Field(min_length=8, max_length=256)
 
 
 class LoginIn(BaseModel):
-    username: str
-    password: str
+    username: str = Field(min_length=3, max_length=64)
+    password: str = Field(min_length=8, max_length=256)
 
 
 class AuthOut(BaseModel):
@@ -92,6 +94,12 @@ class AuthOut(BaseModel):
     user_id: int
     username: str
     is_admin: int = 0  # 新增：返回是否为管理员
+    is_vip: int = 0
+    ai_credits: int = 0
+
+
+class BootstrapStatusOut(BaseModel):
+    has_admin: bool
 
 
 # ── JWT helpers (manual, no pyjwt) ─────────────────────────────
@@ -155,6 +163,58 @@ def verify_password(password: str, hashed: str) -> bool:
         return False
 
 
+# Keep missing-user logins on the same expensive verification path so response
+# timing does not become a practical username-existence oracle.
+_DUMMY_PASSWORD_HASH = hash_password("gontu-dummy-password-not-for-login")
+
+
+def bootstrap_initial_admin(username: str, password: str) -> tuple[int, bool]:
+    """Create or elevate the sole initial administrator from a local command.
+
+    This function is intentionally not exposed as an HTTP route.  Possession of
+    the public registration endpoint must never be enough to gain administrator
+    privileges.
+    """
+    normalized_username = username.strip()
+    if not 3 <= len(normalized_username) <= 64:
+        raise ValueError("Administrator username must contain 3 to 64 characters")
+    if len(password) < 12:
+        raise ValueError("Administrator password must contain at least 12 characters")
+
+    from database import get_db
+
+    pw_hash = hash_password(password)
+    with get_db() as conn:
+        conn.execute("BEGIN IMMEDIATE")
+        admin_count = conn.execute(
+            "SELECT COUNT(*) FROM users WHERE is_admin = 1"
+        ).fetchone()[0]
+        if admin_count:
+            raise RuntimeError("An administrator already exists; bootstrap refused")
+
+        existing = conn.execute(
+            "SELECT id FROM users WHERE username = ?", (normalized_username,)
+        ).fetchone()
+        if existing:
+            user_id = int(existing["id"])
+            conn.execute(
+                "UPDATE users SET password_hash = ?, is_admin = 1 WHERE id = ?",
+                (pw_hash, user_id),
+            )
+            created = False
+        else:
+            cursor = conn.execute(
+                "INSERT INTO users (username, password_hash, is_admin) VALUES (?, ?, 1)",
+                (normalized_username, pw_hash),
+            )
+            inserted_user_id = cursor.lastrowid
+            assert inserted_user_id is not None, "INSERT should return a valid rowid"
+            user_id = int(inserted_user_id)
+            created = True
+        conn.commit()
+    return user_id, created
+
+
 # ── Auth dependency ─────────────────────────────────────────────
 async def get_current_user(request: Request) -> dict | None:
     auth_header = request.headers.get("Authorization", "")
@@ -205,40 +265,90 @@ async def require_admin(request: Request) -> dict:
 
 # ── Routes ─────────────────────────────────────────────────────
 @router.post("/register", response_model=AuthOut)
-def register(body: RegisterIn):
+def register(body: RegisterIn, request: Request):
+    enforce_auth_rate_limit(request, action="register", account=body.username)
     from database import get_db
+    pw_hash = hash_password(body.password)
     with get_db() as conn:
+        # Serialize username creation. Public registration never grants admin.
+        conn.execute("BEGIN IMMEDIATE")
         existing = conn.execute(
             "SELECT id FROM users WHERE username = ?", (body.username,)
         ).fetchone()
         if existing:
             raise HTTPException(status_code=400, detail="Username already exists")
-        pw_hash = hash_password(body.password)
+        is_admin = 0
         cur = conn.execute(
-            "INSERT INTO users (username, password_hash) VALUES (?, ?)",
-            (body.username, pw_hash),
+            "INSERT INTO users (username, password_hash, is_admin) VALUES (?, ?, ?)",
+            (body.username, pw_hash, is_admin),
         )
         conn.commit()
         user_id = cur.lastrowid
     assert user_id is not None, "INSERT should return a valid rowid"
-    token = create_token(user_id, body.username, is_admin=0)
-    return AuthOut(token=token, user_id=user_id, username=body.username, is_admin=0)
+    token = create_token(user_id, body.username, is_admin=is_admin)
+    return AuthOut(
+        token=token,
+        user_id=user_id,
+        username=body.username,
+        is_admin=is_admin,
+    )
 
 
 @router.post("/login", response_model=AuthOut)
-def login(body: LoginIn):
+def login(body: LoginIn, request: Request):
+    rate_limit_keys = enforce_auth_rate_limit(
+        request, action="login", account=body.username
+    )
     from database import get_db
     with get_db() as conn:
         row = conn.execute(
-            "SELECT id, password_hash, is_admin FROM users WHERE username = ?", (body.username,)
+            """SELECT id, password_hash, is_admin, is_vip, ai_credits
+               FROM users WHERE username = ?""",
+            (body.username,),
         ).fetchone()
-        if not row or not verify_password(body.password, row["password_hash"]):
+        candidate_hash = row["password_hash"] if row else _DUMMY_PASSWORD_HASH
+        password_is_valid = verify_password(body.password, candidate_hash)
+        if not row or not password_is_valid:
             raise HTTPException(status_code=401, detail="Invalid credentials")
         is_admin = row["is_admin"] or 0
+    # A successful login clears only this account's failure bucket. Keeping the
+    # source bucket prevents an attacker from resetting it with their own account.
+    auth_rate_limiter.clear((rate_limit_keys[0],))
     token = create_token(row["id"], body.username, is_admin=is_admin)
-    return AuthOut(token=token, user_id=row["id"], username=body.username, is_admin=is_admin)
+    return AuthOut(
+        token=token,
+        user_id=row["id"],
+        username=body.username,
+        is_admin=is_admin,
+        is_vip=row["is_vip"] or 0,
+        ai_credits=row["ai_credits"] or 0,
+    )
 
 
 @router.get("/me")
 def get_me(user: dict = Depends(require_user)):
-    return user
+    from database import get_db
+    with get_db() as conn:
+        row = conn.execute(
+            "SELECT is_vip, ai_credits, vip_expires_at FROM users WHERE id=?",
+            (user["user_id"],),
+        ).fetchone()
+    result = dict(user)
+    if row:
+        result.update({
+            "is_vip": row["is_vip"] or 0,
+            "ai_credits": row["ai_credits"] or 0,
+            "vip_expires_at": row["vip_expires_at"] or "",
+        })
+    return result
+
+
+@router.get("/bootstrap-status", response_model=BootstrapStatusOut)
+def bootstrap_status():
+    """Tell operators whether an administrator has been initialized."""
+    from database import get_db
+    with get_db() as conn:
+        count = conn.execute(
+            "SELECT COUNT(*) FROM users WHERE is_admin = 1"
+        ).fetchone()[0]
+    return BootstrapStatusOut(has_admin=count > 0)
