@@ -16,7 +16,8 @@
 - SEC-4 已完成：`tools/gontu_db.py` 提供在线备份、完整性验证和只写新目标的恢复命令；副本0600、按工具命名模式保留，损坏副本和既有恢复目标均拒绝。专项3/3、Ruff与语法检查通过；操作说明写明异盘/加密远端副本、24小时新鲜度和恢复演练停止条件。
 - SEC-5A 已完成：正式入口在生产模式必须提供显式HTTP(S)来源白名单，缺失、通配符、带路径/查询/片段的伪origin均拒绝启动；开发模式仍可本地使用。专项3/3、Ruff、mypy 27文件通过，环境示例已补齐。
 - SEC-5B 已完成：`tools/production_readiness.py` 只有在生产模式、非示例JWT/AI密钥、HTTPS来源、合法代理、单worker、正式库0600且完整并有管理员/审计表、24小时内0600完整备份、独立恢复库全部通过时才返回0。专项5/5、Ruff与语法检查通过。
-- SEC-1A—SEC-5B 实现完成；当前唯一进行中任务为SEC-6全量回归、远端CI与Draft PR证据收口。事实边界：这是待审安全分支，不代表已部署、已开通收费或已合并`main`；生产门禁在当前未部署配置下应当诚实失败。
+- SEC-1A—SEC-5B与SEC-6验收均完成：20个Python测试文件逐进程通过；Node 673/673；依赖树、Ruff、mypy 27文件、Bandit中高危0、doctor 0 fail。Draft PR #25为OPEN、MERGEABLE，基线是`agent/admin-vip-console`；GitHub Actions run `29641376392`的frontend-check、backend-tests、lint、type-check、security全部成功。
+- 当前无进行中任务。事实边界：PR #25保持Draft，未部署、未开通收费、未合并`main`；当前电脑没有真实生产数据库、异盘备份和独立恢复副本，因此生产门禁应诚实返回不可上线。
 - 后续顺序：登录/注册限流 → 管理操作审计 → SQLite 自动备份与恢复演练 → 生产就绪检查。
 
 ## 2026-07-18 版本收口完成（REL-1A—1C）

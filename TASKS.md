@@ -40,7 +40,9 @@
 
 生产安全底座 SEC-1A—SEC-5B 已实现完毕；仍需全量回归、远端CI和Draft PR审阅，不代表已部署、已收费可用或已合并主分支。
 
-- [ ] ◐ SEC-6 全量回归、远端CI与Draft PR证据收口。
+- [x] ● SEC-6 全量回归、远端CI与Draft PR证据收口。
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 结果：20个Python测试文件逐进程通过；Node 673/673；依赖树、Ruff、mypy 27文件、Bandit中高危0、doctor 0 fail；Draft PR #25 OPEN、MERGEABLE，正确以`agent/admin-vip-console`为基线；GitHub Actions run `29641376392` 五项全部成功。保持Draft，不合并`main`。
 
 ## 2026-07-18 版本收口
 
