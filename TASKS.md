@@ -1,5 +1,21 @@
 # 公途空间几何实验室任务看板
 
+## 2026-07-18 版本收口
+
+- [x] ● REL-1A 建立跨分支 CI 与数据库恢复门禁。
+  - 交付文件：`.github/workflows/check.yml`、`tests/test_database_migration.py`、`backend/quantity.py`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：任意 PR 基线均会触发工作流；CI 安装锁定依赖并逐文件运行 Python 测试；临时旧库 2/2 证明数据保留、迁移幂等与停服整库恢复；Ruff 通过；数量模块只补 `Any` 类型导入；Node 672/672、doctor 0 fail。
+  - 结果：门禁已能暴露后续 mypy 旧债，转入 REL-1B 窄修复；远端实际运行证据统一在 REL-1C 推送后取得。
+- [ ] ◐ REL-1B 清零候选版既有 mypy 阻塞。
+  - 交付文件：`backend/ai_coach.py`、`backend/shenlun.py`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：只补容器与可空值类型标注，不改运行逻辑；排除本地 `backend/venv` 后 mypy 全库通过，AI/申论专项和 Python 全量回归通过。
+- [ ] ○ REL-1C 冻结发布候选、推送标签并取得远端检查证据。
+  - 交付文件：`doc/releases/RELEASE_CANDIDATE_20260718.md`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：候选清单写清包含项、排除项、启动/测试、SQLite 备份恢复和停止条件；提交与 `gongtu-rc-20260718.1` 标签推送；PR #24 五项检查有明确结果。
+
 ## 管理员 / VIP 当前收口
 
 - [x] ● ADM-1 统一管理员入口：`/admin` 只认主站 `gontu_token`，未登录回统一登录页，普通用户不能进入后台且不会循环跳转。
@@ -18,7 +34,7 @@
 - [x] ● V3R-3 言语与数量 AI 上下文闭环：真实作答进入服务端可信上下文，未交卷答案不暴露，返回恢复同一 session；证据见 `doc/acceptance/V3R-3-verbal-quantity-ai-handoff.md`。
 - [x] ● V3R-4 图推与申论 AI 上下文闭环：三条正式入口、正确 Skill、huasheng13 窄适配、本人服务端上下文与安全返回已验收。
 - [x] ● V3R-5 记录、Skill、用户隔离、失败提示与 `return_url` 合同已通过 Python 77/77、Node 643/643并归档证据。
-- [ ] ◐ V3R-6（97%）用户已确认跨电脑找回的水墨首页与最终功能页；正式首页接线已实现并等待用户本轮视觉确认。后端 `/` 已指向 `doc/prototypes/homepage-middle-ink-morph.html`，首页内部首屏/CTA 固定读取 `/index.html` 以避免递归，真实 iframe 内“开始备考”进入顶层 `/app`，功能页“返回首页”回到 `/`。根路由接入后曾使三处 `./assets/` 解析到错误的 `/assets/`，现已改为稳定的 `/doc/prototypes/assets/`：五模块水墨底图、Spark 粒子与标题字体恢复，浏览器实测言语→数量切换、morphing→settled、画布停止态均正常。内嵌“问西西”完成双模式收口：保留原右栏小面板，同时支持独立悬浮、拖动、锁定、自由缩放、一键放大/缩小和还原；模式、位置、尺寸跨换题保留，失败 run 可原地重新请求。隔离测试账号已在数量与言语真实提问成功。已通过真实浏览器双向点击、`/`/`/app`/`/index.html` HTTP 200、注册/登录/关键功能与真实 AI 请求、桌面 1280px 无横向溢出、Python AI/Skill 30/30、专项 4/4 与 Node 全量 670/670（尺寸断言后待最终重跑）；本轮不在用户确认前提交或覆盖已推送救援快照。
+- [x] ● V3R-6 用户已确认跨电脑找回的水墨首页与最终功能页，并明确进入版本收口。后端 `/` 已指向 `doc/prototypes/homepage-middle-ink-morph.html`，首页内部首屏/CTA 固定读取 `/index.html` 以避免递归，真实 iframe 内“开始备考”进入顶层 `/app`，功能页“返回首页”回到 `/`。根路由接入后的资源路径、标签串色、问西西双模式、提问可见性与双缩小入口均已修复并由真实浏览器验收；最终 Node 全量为 672/672。
 
 - 最终回归补记：悬浮框尺寸按钮与大窗阅读排版断言已纳入同一专项；长回答会按语义分段、使用更宽回答卡和 16px 正文，输入区固定到底部且发送按钮可见。Node/几何全量重跑仍为 670/670；上条“待最终重跑”已完成。
 - [x] 悬浮问西西提问可见性与双缩小入口：确认数据库消息未丢失；给脱离原容器的悬浮窗补齐独立公途色彩变量，最新用户消息固定显示为金色“你问”气泡；左下角增加缩小按钮。浏览器完成刷新历史、缩小、放大和视觉验收，专项 10/10、全量 670/670。
@@ -68,7 +84,7 @@
   - 总装回归：`cx/phase6-clean-integration` 新建 Python 3.12 venv 后服务端 62/62、Node 46/46、portable 数量门禁 600/60/71 通过；B 作答刷新 1/20、C 同套题 0/20；六页在 390px/1280px 无溢出、破图 0、console error/warn 0。临时环境已清理。
   - 补救：默认数量流水线在无 OCR 中间产物的干净树自动转为已提交 approved seed 的 portable CI；不再要求未提交 `output/quantity-bank/raw_sets`。
 
-- [ ] ◐ PRC-1—4 Phase 1—6 外部审阅与合并收口：记录 PR #15—#21 的检查、评论与审阅，处理实际可执行反馈，并保留 Ready/批准/合并的外部决策。
+- [ ] ○ PRC-1—4 Phase 1—6 外部审阅与合并收口：记录 PR #15—#21 的检查、评论与审阅，处理实际可执行反馈，并保留 Ready/批准/合并的外部决策。
   - 当前结果（2026-07-13）：#15—#21 均 open、`CLEAN`、无 GitHub checks、无 reviews；#15/#16 非 Draft，#17—#19/#21 为 Draft。无待处理反馈，因此不修改阶段分支。
   - 外部边界：未经用户明确授权，不标记 Ready、不批准、不合并；具体路由、证据与停止条件见 `doc/PHASE_REVIEW_CLOSURE.md`。
   - 独立后续：#20 实时预览工具不属于阶段链，已记录 OAuth 写入权限跟进，待本 Goal 停止或完成后另建 Goal。
