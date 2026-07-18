@@ -378,8 +378,10 @@ PARENT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 @app.get("/", response_class=HTMLResponse)
 async def serve_index():
-    """首页"""
-    path = os.path.join(PARENT_DIR, "index.html")
+    """正式水墨首页；旧 index.html 继续作为首页片段素材。"""
+    path = os.path.join(
+        PARENT_DIR, "doc", "prototypes", "homepage-middle-ink-morph.html"
+    )
     if not os.path.exists(path):
         raise HTTPException(404, "首页文件不存在")
     with open(path, "r", encoding="utf-8") as f:

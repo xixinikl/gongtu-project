@@ -81,6 +81,28 @@ test('quantity navigation ignores stale async renders during fast tab switching'
   assert.match(page, /renderSingle\('quantitySingle', null, true, version\)/);
 });
 
+test('inline coach supports docked and persistent floating modes with retry', () => {
+  const page = read('doc/prototypes/unified-inline-learning-v4.js');
+  assert.match(page, /COACH_UI_KEY = 'gontu_inline_coach_ui_v1'/);
+  assert.match(page, /data-coach-pop/);
+  assert.match(page, /data-coach-lock/);
+  assert.match(page, /data-coach-size/);
+  assert.match(page, /data-coach-size-footer/);
+  assert.match(page, /lastUser\.scrollIntoView/);
+  assert.match(page, /inline-v4-message-user-label/);
+  assert.match(page, /is-latest-user/);
+  assert.match(page, /--gold-dark:#8c661d/);
+  assert.match(page, /classList\.toggle\('is-large'/);
+  assert.match(page, /rawContent\.length > 60/);
+  assert.match(page, /data-coach-dock/);
+  assert.match(page, /classList\.toggle\('is-floating', floating\)/);
+  assert.match(page, /header\.onpointerdown/);
+  assert.match(page, /header\.onkeydown/);
+  assert.match(page, /ResizeObserver/);
+  assert.match(page, /data-retry-run/);
+  assert.match(page, /\/runs\/.*\/retry/);
+});
+
 test('quantity legacy surface restores four vertical modes beside the narrowed card', () => {
   const page = read('doc/prototypes/unified-inline-learning-v4.js');
   for (const [mode, label] of [['recite', '全部题型'], ['difficult', '易忘攻克'], ['steps', '步骤填空'], ['quiz', '题型识别']]) {

@@ -19,7 +19,7 @@
   <style>
     @font-face {
       font-family: "Gontu Display";
-      src: url("./assets/homepage-middle/SmileySans-Oblique.woff2") format("woff2");
+      src: url("/doc/prototypes/assets/homepage-middle/SmileySans-Oblique.woff2") format("woff2");
       font-display: swap;
       font-style: oblique;
       font-weight: 400;
@@ -414,7 +414,7 @@
     .ink-window::before { content:""; position:absolute; inset:-20px -16px; z-index:-1; opacity:.42; background:radial-gradient(ellipse at 50% 48%,rgba(44,82,77,.13),transparent 67%); filter:blur(20px); }
     .ink-window::after { content:""; position:absolute; inset:16px; pointer-events:none; background:linear-gradient(90deg,rgba(250,247,242,.66),transparent 12% 88%,rgba(250,247,242,.56)),linear-gradient(rgba(250,247,242,.5),transparent 15% 85%,rgba(250,247,242,.52)); border-radius:inherit; }
     .scroll-painting { position:absolute; inset:16px; overflow:hidden; border-radius:34% 4% 31% 5%/3% 29% 4% 26%; background:#eee6d5; transition:opacity .6s ease; }
-    .painting-layer { position:absolute; inset:0; background-image:url('./assets/gontu-module-ink-atlas-v1.png'); background-repeat:no-repeat; background-size:500% 100%; background-position:var(--painting-position,0%) 50%; transition:background-position .28s cubic-bezier(.2,.8,.2,1),filter .35s ease,opacity .25s ease; will-change:background-position; }
+    .painting-layer { position:absolute; inset:0; background-image:url('/doc/prototypes/assets/gontu-module-ink-atlas-v1.png'); background-repeat:no-repeat; background-size:500% 100%; background-position:var(--painting-position,0%) 50%; transition:background-position .28s cubic-bezier(.2,.8,.2,1),filter .35s ease,opacity .25s ease; will-change:background-position; }
     .painting-line { filter:grayscale(1) contrast(1.18) brightness(1.62) sepia(.22); opacity:.58; mix-blend-mode:multiply; }
     .painting-color { clip-path:inset(0 var(--chapter-conceal,82%) 0 0); filter:saturate(.62) contrast(.88) brightness(1.34) sepia(.06); }
     .painting-river { position:absolute; z-index:3; left:8%; right:8%; bottom:9%; height:1px; background:linear-gradient(90deg,transparent,rgba(42,92,88,.36),rgba(201,169,110,.48),transparent); transform:scaleX(var(--chapter-local,.18)); transform-origin:left; transition:transform .15s linear; }
@@ -661,7 +661,7 @@
   </script>
   <main id="top">
     <section class="official-fragment official-fragment--hero" id="hero" aria-label="公途正式首页首屏">
-      <iframe id="officialHeroFrame" src="/" title="公途正式首页首屏" scrolling="no"></iframe>
+      <iframe id="officialHeroFrame" src="/index.html" title="公途正式首页首屏" scrolling="no"></iframe>
     </section>
 
     <section class="value-stage" id="productIntro" aria-label="公途真正的产品差异">
@@ -768,7 +768,7 @@
     </section>
 
     <section class="official-fragment official-fragment--cta" id="cta" aria-label="公途正式首页收束页">
-      <iframe id="officialCtaFrame" src="/" title="公途正式首页收束页" scrolling="no"></iframe>
+      <iframe id="officialCtaFrame" src="/index.html" title="公途正式首页收束页" scrolling="no"></iframe>
     </section>
   </main>
 
@@ -789,7 +789,22 @@
         doc.documentElement.style.scrollBehavior = 'auto';
         doc.body.style.overflow = 'hidden';
         doc.querySelectorAll('a,button').forEach(node => {
+          const inlineAction = node.getAttribute('onclick') || '';
+          const isAppEntry = inlineAction.includes('startLearning')
+            || inlineAction.includes("location.href='/app'")
+            || inlineAction.includes('location.href="/app"')
+            || (node.tagName === 'A' && node.getAttribute('href') === '/app');
           if (node.tagName === 'A') node.target = '_top';
+          if (!isAppEntry) return;
+          node.removeAttribute('onclick');
+          if (node.tagName === 'A') {
+            node.href = '/app';
+            node.target = '_top';
+          }
+          node.addEventListener('click', event => {
+            event.preventDefault();
+            doc.defaultView.top.location.assign('/app');
+          });
         });
         if (mode === 'hero') {
           const line2 = doc.querySelector('.hero-title .line-2');
@@ -1130,7 +1145,7 @@
     }
 
     if (THREE && SparkRenderer && dyno && imageSplats) {
-    const atlasURL = './assets/gontu-module-ink-atlas-v1.png';
+    const atlasURL = '/doc/prototypes/assets/gontu-module-ink-atlas-v1.png';
     const scene = new THREE.Scene();
     const camera = new THREE.OrthographicCamera(-3.8, 3.8, 3.8, -3.8, .01, 100);
     camera.position.set(0, 0, 10);
