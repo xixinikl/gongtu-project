@@ -458,6 +458,58 @@ async def serve_admin():
 #  Admin API — 全部需要 require_admin 鉴权
 # ═══════════════════════════════════════════════════
 
+def _write_admin_audit(
+    conn: sqlite3.Connection,
+    *,
+    admin: dict,
+    action: str,
+    target_user_id: int | None = None,
+    target_username: str = "",
+    details: dict | None = None,
+) -> None:
+    """Append a controlled, secret-free audit record in the caller transaction."""
+    conn.execute(
+        """INSERT INTO admin_audit_log(
+               actor_user_id, actor_username, action,
+               target_user_id, target_username, details_json
+           ) VALUES (?, ?, ?, ?, ?, ?)""",
+        (
+            admin["user_id"],
+            admin["username"],
+            action,
+            target_user_id,
+            target_username,
+            json.dumps(details or {}, ensure_ascii=False, sort_keys=True),
+        ),
+    )
+
+
+@app.get("/api/admin/audit-log")
+async def admin_get_audit_log(
+    limit: int = 100,
+    admin: dict = Depends(require_admin),
+):
+    """Return newest administrator mutations; ordinary users are rejected."""
+    if not 1 <= limit <= 200:
+        raise HTTPException(400, "limit 必须在 1 到 200 之间")
+    with get_db() as conn:
+        rows = conn.execute(
+            """SELECT id, actor_user_id, actor_username, action,
+                      target_user_id, target_username, details_json, created_at
+               FROM admin_audit_log ORDER BY id DESC LIMIT ?""",
+            (limit,),
+        ).fetchall()
+    result = []
+    for row in rows:
+        item = dict(row)
+        try:
+            item["details"] = json.loads(item.pop("details_json"))
+        except (json.JSONDecodeError, TypeError):
+            item["details"] = {}
+            item.pop("details_json", None)
+        result.append(item)
+    return result
+
 @app.get("/api/admin/users")
 async def admin_list_users(admin: dict = Depends(require_admin)):
     """列出所有用户与跨模块学习统计。"""
@@ -606,6 +658,9 @@ async def admin_update_vip_settings(
     if mode not in {"free", "vip"}:
         raise HTTPException(400, "ai_access_mode 只能是 free 或 vip")
     with get_db() as conn:
+        previous = conn.execute(
+            "SELECT value FROM app_settings WHERE key='ai_access_mode'"
+        ).fetchone()
         conn.execute(
             """INSERT INTO app_settings(key, value, updated_at)
                VALUES('ai_access_mode', ?, datetime('now'))
@@ -613,6 +668,15 @@ async def admin_update_vip_settings(
                    value=excluded.value,
                    updated_at=datetime('now')""",
             (mode,),
+        )
+        _write_admin_audit(
+            conn,
+            admin=admin,
+            action="set_ai_access_mode",
+            details={
+                "previous": previous["value"] if previous else "free",
+                "current": mode,
+            },
         )
         conn.commit()
     label = "全站免费" if mode == "free" else "VIP / 积分"
@@ -635,11 +699,18 @@ async def admin_delete_user_vocab(user_id: int, source: str = "", admin: dict = 
     """删除某用户的指定词库（source 为空则删除全部）"""
     with get_db() as conn:
         if source:
-            conn.execute("DELETE FROM custom_vocab WHERE user_id=? AND source_name=?", (user_id, source))
+            cursor = conn.execute("DELETE FROM custom_vocab WHERE user_id=? AND source_name=?", (user_id, source))
             msg = f"已删除用户 {user_id} 的词库「{source}」"
         else:
-            conn.execute("DELETE FROM custom_vocab WHERE user_id=?", (user_id,))
+            cursor = conn.execute("DELETE FROM custom_vocab WHERE user_id=?", (user_id,))
             msg = f"已删除用户 {user_id} 的全部自定义词库"
+        _write_admin_audit(
+            conn,
+            admin=admin,
+            action="delete_user_vocab",
+            target_user_id=user_id,
+            details={"scope": source[:120] if source else "all", "deleted": cursor.rowcount},
+        )
         conn.commit()
         return {"msg": msg}
 
@@ -671,11 +742,18 @@ async def admin_delete_user_decks(user_id: int, deck: str = "", admin: dict = De
     """清空某用户的牌组（deck 为空则清空全部）"""
     with get_db() as conn:
         if deck:
-            conn.execute("DELETE FROM user_decks WHERE user_id=? AND deck_type=?", (user_id, deck))
+            cursor = conn.execute("DELETE FROM user_decks WHERE user_id=? AND deck_type=?", (user_id, deck))
             msg = f"已清空用户 {user_id} 的 {deck} 牌组"
         else:
-            conn.execute("DELETE FROM user_decks WHERE user_id=?", (user_id,))
+            cursor = conn.execute("DELETE FROM user_decks WHERE user_id=?", (user_id,))
             msg = f"已清空用户 {user_id} 的全部牌组"
+        _write_admin_audit(
+            conn,
+            admin=admin,
+            action="delete_user_decks",
+            target_user_id=user_id,
+            details={"scope": deck[:120] if deck else "all", "deleted": cursor.rowcount},
+        )
         conn.commit()
         return {"msg": msg}
 
@@ -695,7 +773,14 @@ async def admin_get_user_shenlun(user_id: int, admin: dict = Depends(require_adm
 async def admin_delete_user_shenlun(user_id: int, admin: dict = Depends(require_admin)):
     """清空某用户的申论批改历史"""
     with get_db() as conn:
-        conn.execute("DELETE FROM shenlun_history WHERE user_id=?", (user_id,))
+        cursor = conn.execute("DELETE FROM shenlun_history WHERE user_id=?", (user_id,))
+        _write_admin_audit(
+            conn,
+            admin=admin,
+            action="delete_user_shenlun",
+            target_user_id=user_id,
+            details={"deleted": cursor.rowcount},
+        )
         conn.commit()
         return {"msg": f"已清空用户 {user_id} 的申论批改历史"}
 
@@ -720,8 +805,19 @@ async def admin_set_user_admin(
         ).fetchone()
         if not row:
             raise HTTPException(404, "用户不存在")
+        previous = conn.execute(
+            "SELECT is_admin FROM users WHERE id=?", (user_id,)
+        ).fetchone()["is_admin"]
         conn.execute(
             "UPDATE users SET is_admin=? WHERE id=?", (is_admin, user_id)
+        )
+        _write_admin_audit(
+            conn,
+            admin=admin,
+            action="set_user_admin",
+            target_user_id=user_id,
+            target_username=row["username"],
+            details={"previous": int(previous or 0), "current": is_admin},
         )
         conn.commit()
     action = "设为管理员" if is_admin else "取消管理员"
@@ -757,7 +853,9 @@ async def admin_set_user_vip(
             raise HTTPException(400, "VIP 到期时间格式应为 YYYY-MM-DD")
     with get_db() as conn:
         row = conn.execute(
-            "SELECT id, username FROM users WHERE id=?", (user_id,)
+            """SELECT id, username, is_vip, vip_expires_at, ai_credits
+               FROM users WHERE id=?""",
+            (user_id,),
         ).fetchone()
         if not row:
             raise HTTPException(404, "用户不存在")
@@ -766,6 +864,25 @@ async def admin_set_user_vip(
                SET is_vip=?, vip_expires_at=?, ai_credits=?
                WHERE id=?""",
             (1 if requested_vip else 0, vip_expires_at, ai_credits, user_id),
+        )
+        _write_admin_audit(
+            conn,
+            admin=admin,
+            action="set_user_vip",
+            target_user_id=user_id,
+            target_username=row["username"],
+            details={
+                "previous": {
+                    "is_vip": int(row["is_vip"] or 0),
+                    "vip_expires_at": row["vip_expires_at"] or "",
+                    "ai_credits": int(row["ai_credits"] or 0),
+                },
+                "current": {
+                    "is_vip": 1 if requested_vip else 0,
+                    "vip_expires_at": vip_expires_at,
+                    "ai_credits": ai_credits,
+                },
+            },
         )
         conn.commit()
     return {
@@ -784,6 +901,11 @@ async def admin_delete_user(user_id: int, admin: dict = Depends(require_admin)):
         raise HTTPException(400, "不能删除自己的账号")
     owned_question_ids: list[int] = []
     with get_db() as conn:
+        target = conn.execute(
+            "SELECT username FROM users WHERE id=?", (user_id,)
+        ).fetchone()
+        if not target:
+            raise HTTPException(404, "用户不存在")
         owned_question_ids = [row["id"] for row in conn.execute(
             "SELECT id FROM questions WHERE user_id=?", (str(user_id),)
         ).fetchall()]
@@ -803,6 +925,14 @@ async def admin_delete_user(user_id: int, admin: dict = Depends(require_admin)):
             conn.execute("DELETE FROM spatial_learning_records WHERE user_id=?", (user_id,))
         conn.execute("DELETE FROM learning_events WHERE user_id=?", (user_id,))
         conn.execute("DELETE FROM users WHERE id=?", (user_id,))
+        _write_admin_audit(
+            conn,
+            admin=admin,
+            action="delete_user",
+            target_user_id=user_id,
+            target_username=target["username"],
+            details={"owned_question_count": len(owned_question_ids)},
+        )
         conn.commit()
     import shutil
     shutil.rmtree(os.path.join(PARENT_DIR, "backend", "data", "mindmap-images", str(user_id)), ignore_errors=True)

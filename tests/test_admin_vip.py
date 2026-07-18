@@ -1,8 +1,10 @@
 import os
 from pathlib import Path
+import sqlite3
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -181,6 +183,60 @@ class AdminVipTests(unittest.TestCase):
             "verbal",
         ):
             self.assertIn(key, learner)
+
+    def test_05_admin_mutations_are_queryable_without_secrets(self):
+        headers = self.auth(self.admin["token"])
+        with patch("main._write_admin_audit", side_effect=sqlite3.OperationalError):
+            with self.assertRaises(sqlite3.OperationalError):
+                self.client.put(
+                    f"/api/admin/users/{self.learner['user_id']}/vip",
+                    headers=headers,
+                    json={
+                        "is_vip": True,
+                        "ai_credits": 999,
+                        "vip_expires_at": "2028-01-01",
+                    },
+                )
+        unchanged = self.client.get(
+            "/api/auth/me", headers=self.auth(self.learner["token"])
+        )
+        self.assertEqual(unchanged.json()["ai_credits"], 120)
+
+        self.assertEqual(
+            self.client.delete(
+                f"/api/admin/users/{self.learner['user_id']}/shenlun",
+                headers=headers,
+            ).status_code,
+            200,
+        )
+        deleted = self.client.delete(
+            f"/api/admin/users/{self.learner['user_id']}", headers=headers
+        )
+        self.assertEqual(deleted.status_code, 200)
+
+        response = self.client.get("/api/admin/audit-log?limit=50", headers=headers)
+        self.assertEqual(response.status_code, 200)
+        rows = response.json()
+        actions = {row["action"] for row in rows}
+        self.assertTrue(
+            {
+                "set_user_admin",
+                "set_user_vip",
+                "set_ai_access_mode",
+                "delete_user_shenlun",
+                "delete_user",
+            }.issubset(actions)
+        )
+        deleted_user = next(row for row in rows if row["action"] == "delete_user")
+        self.assertEqual(deleted_user["target_username"], "learner")
+        serialized = str(rows).casefold()
+        for forbidden in ("secret123", "password", "gontu_token", "api_key"):
+            self.assertNotIn(forbidden, serialized)
+        self.assertEqual(
+            self.client.get("/api/admin/audit-log?limit=0", headers=headers).status_code,
+            400,
+        )
+        self.assertEqual(self.client.get("/api/admin/audit-log").status_code, 401)
 
 
 if __name__ == "__main__":

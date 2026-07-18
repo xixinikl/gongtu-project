@@ -482,6 +482,25 @@ def init_db():
         )
         conn.commit()
 
+        # ── v12 migration: append-only administrator audit trail ──
+        conn.executescript("""
+            CREATE TABLE IF NOT EXISTS admin_audit_log (
+                id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                actor_user_id   INTEGER NOT NULL,
+                actor_username  TEXT NOT NULL,
+                action          TEXT NOT NULL,
+                target_user_id  INTEGER,
+                target_username TEXT NOT NULL DEFAULT '',
+                details_json    TEXT NOT NULL DEFAULT '{}',
+                created_at      TEXT NOT NULL DEFAULT (datetime('now'))
+            );
+            CREATE INDEX IF NOT EXISTS idx_admin_audit_created
+                ON admin_audit_log(created_at DESC, id DESC);
+            CREATE INDEX IF NOT EXISTS idx_admin_audit_actor
+                ON admin_audit_log(actor_user_id, id DESC);
+        """)
+        conn.commit()
+
 
 def cleanup_old_events(retention_days: int = 365):
     """Remove learning events older than retention_days (must be positive)."""
