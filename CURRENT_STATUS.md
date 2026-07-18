@@ -4,6 +4,16 @@
 
 当前分支：`agent/admin-vip-console`
 
+当前任务：`REL-2A` 已完成合并后 RC2 的桌面/390px 真实浏览器验收；候选提交将由 `gongtu-rc-20260718.2` 冻结，保持 Draft PR #24，不合并 `main`。
+
+## 2026-07-18 RC2 最终冒烟验收
+
+- 使用 `.xds/data/rc2-smoke/data.db` 隔离数据库和 `xixi-dev-system` 独立预览启动正式后端，不触碰真实数据库。
+- 公开注册账号 `rc2_user_0718` 成功进入 `/app`，访问 `/admin` 被明确拒绝；`tools/bootstrap-admin.py` 在服务器本机成功创建 `rc2_admin_0718`，管理员由统一登录页进入 `/admin`。
+- 首页“开始备考”进入 `/app`，学习页“返回首页”回到 `/`，后台“进入学习端”进入 `/app`；三条关键往返均由真实浏览器点击验证。
+- 1280px 与390px下 `/`、`/login.html`、`/app`、`/admin` 均无横向溢出、破图和本机控制台 error/warning；首页全新标签页与刷新均从顶部打开。
+- 完整证据：`doc/acceptance/RC2_FINAL_SMOKE_20260718.md`。
+
 ## 2026-07-18 生产安全底座已合入唯一候选分支
 
 - 基线固定为发布候选标签 `gongtu-rc-20260718.1`，在独立分支与独立工作树开发，不改用户真实数据库，不直接合并 `main`。
