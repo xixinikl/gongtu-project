@@ -161,6 +161,53 @@ def verify_password(password: str, hashed: str) -> bool:
         return False
 
 
+def bootstrap_initial_admin(username: str, password: str) -> tuple[int, bool]:
+    """Create or elevate the sole initial administrator from a local command.
+
+    This function is intentionally not exposed as an HTTP route.  Possession of
+    the public registration endpoint must never be enough to gain administrator
+    privileges.
+    """
+    normalized_username = username.strip()
+    if not 3 <= len(normalized_username) <= 64:
+        raise ValueError("Administrator username must contain 3 to 64 characters")
+    if len(password) < 12:
+        raise ValueError("Administrator password must contain at least 12 characters")
+
+    from database import get_db
+
+    pw_hash = hash_password(password)
+    with get_db() as conn:
+        conn.execute("BEGIN IMMEDIATE")
+        admin_count = conn.execute(
+            "SELECT COUNT(*) FROM users WHERE is_admin = 1"
+        ).fetchone()[0]
+        if admin_count:
+            raise RuntimeError("An administrator already exists; bootstrap refused")
+
+        existing = conn.execute(
+            "SELECT id FROM users WHERE username = ?", (normalized_username,)
+        ).fetchone()
+        if existing:
+            user_id = int(existing["id"])
+            conn.execute(
+                "UPDATE users SET password_hash = ?, is_admin = 1 WHERE id = ?",
+                (pw_hash, user_id),
+            )
+            created = False
+        else:
+            cursor = conn.execute(
+                "INSERT INTO users (username, password_hash, is_admin) VALUES (?, ?, 1)",
+                (normalized_username, pw_hash),
+            )
+            inserted_user_id = cursor.lastrowid
+            assert inserted_user_id is not None, "INSERT should return a valid rowid"
+            user_id = int(inserted_user_id)
+            created = True
+        conn.commit()
+    return user_id, created
+
+
 # ── Auth dependency ─────────────────────────────────────────────
 async def get_current_user(request: Request) -> dict | None:
     auth_header = request.headers.get("Authorization", "")
@@ -213,20 +260,16 @@ async def require_admin(request: Request) -> dict:
 @router.post("/register", response_model=AuthOut)
 def register(body: RegisterIn):
     from database import get_db
+    pw_hash = hash_password(body.password)
     with get_db() as conn:
-        # Serialize bootstrap registration so two simultaneous requests cannot
-        # both become the initial administrator.
+        # Serialize username creation. Public registration never grants admin.
         conn.execute("BEGIN IMMEDIATE")
         existing = conn.execute(
             "SELECT id FROM users WHERE username = ?", (body.username,)
         ).fetchone()
         if existing:
             raise HTTPException(status_code=400, detail="Username already exists")
-        admin_count = conn.execute(
-            "SELECT COUNT(*) FROM users WHERE is_admin = 1"
-        ).fetchone()[0]
-        is_admin = 1 if admin_count == 0 else 0
-        pw_hash = hash_password(body.password)
+        is_admin = 0
         cur = conn.execute(
             "INSERT INTO users (username, password_hash, is_admin) VALUES (?, ?, ?)",
             (body.username, pw_hash, is_admin),
@@ -286,7 +329,7 @@ def get_me(user: dict = Depends(require_user)):
 
 @router.get("/bootstrap-status", response_model=BootstrapStatusOut)
 def bootstrap_status():
-    """Tell the unified login page whether the first account will be admin."""
+    """Tell operators whether an administrator has been initialized."""
     from database import get_db
     with get_db() as conn:
         count = conn.execute(

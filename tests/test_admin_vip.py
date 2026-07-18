@@ -14,6 +14,7 @@ os.environ["GONTU_DB_PATH"] = str(Path(TEMP.name) / "admin-vip.db")
 os.environ["GONTU_JWT_SECRET_FILE"] = str(Path(TEMP.name) / "jwt-secret")
 
 from fastapi.testclient import TestClient  # noqa: E402
+from auth import bootstrap_initial_admin  # noqa: E402
 from main import app  # noqa: E402
 
 
@@ -32,7 +33,7 @@ class AdminVipTests(unittest.TestCase):
     def auth(token: str) -> dict[str, str]:
         return {"Authorization": f"Bearer {token}"}
 
-    def test_01_first_account_bootstraps_admin_once(self):
+    def test_01_public_registration_never_bootstraps_admin(self):
         status = self.client.get("/api/auth/bootstrap-status")
         self.assertEqual(status.status_code, 200)
         self.assertFalse(status.json()["has_admin"])
@@ -47,13 +48,46 @@ class AdminVipTests(unittest.TestCase):
         )
         self.assertEqual(first.status_code, 200)
         self.assertEqual(second.status_code, 200)
-        self.assertEqual(first.json()["is_admin"], 1)
+        self.assertEqual(first.json()["is_admin"], 0)
         self.assertEqual(second.json()["is_admin"], 0)
-        self.__class__.admin = first.json()
+        self.assertEqual(
+            self.client.get(
+                "/api/admin/users", headers=self.auth(first.json()["token"])
+            ).status_code,
+            403,
+        )
+        self.assertFalse(
+            self.client.get("/api/auth/bootstrap-status").json()["has_admin"]
+        )
+
+        user_id, created = bootstrap_initial_admin(
+            "initial_admin", "local-admin-password-2026"
+        )
+        self.assertEqual(user_id, first.json()["user_id"])
+        self.assertFalse(created)
+        self.assertEqual(
+            self.client.post(
+                "/api/auth/login",
+                json={"username": "initial_admin", "password": "secret123"},
+            ).status_code,
+            401,
+        )
+        admin_login = self.client.post(
+            "/api/auth/login",
+            json={
+                "username": "initial_admin",
+                "password": "local-admin-password-2026",
+            },
+        )
+        self.assertEqual(admin_login.status_code, 200)
+        self.assertEqual(admin_login.json()["is_admin"], 1)
+        self.__class__.admin = admin_login.json()
         self.__class__.learner = second.json()
         self.assertTrue(
             self.client.get("/api/auth/bootstrap-status").json()["has_admin"]
         )
+        with self.assertRaisesRegex(RuntimeError, "already exists"):
+            bootstrap_initial_admin("another_admin", "another-password-2026")
 
     def test_02_admin_authorization_uses_current_database_role(self):
         learner_headers = self.auth(self.learner["token"])
