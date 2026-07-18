@@ -20,6 +20,17 @@
     function gontu_isLoggedIn() { return !!localStorage.getItem(GONTU_TOKEN_KEY); }
     function gontu_getUser() { try { var u = localStorage.getItem(GONTU_USER_KEY); return u ? JSON.parse(u) : null; } catch(e) { return null; } }
     function escapeHTML(str) { var d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
+    function navigateTop(path) {
+        try {
+            if (window.top && window.top !== window) {
+                window.top.location.assign(path);
+                return;
+            }
+        } catch (_) {
+            // 独立打开或跨窗口受限时，回退到当前页面跳转。
+        }
+        window.location.assign(path);
+    }
 
     async function apiFetch(url, options) {
         var token = localStorage.getItem(GONTU_TOKEN_KEY);
@@ -75,7 +86,7 @@
             localStorage.setItem(GONTU_USER_KEY, JSON.stringify({ id: data.user_id, username: data.username }));
             localStorage.setItem('is_admin', data.is_admin || 0);
             // 管理员登录后直接跳转到管理后台
-            if (data.is_admin === 1) { window.location.href = '/admin'; return; }
+            if (data.is_admin === 1) { navigateTop('/admin'); return; }
             closeLoginModal();
             updateNavAuth();
             var pleaseEl = document.getElementById('pleaseLoginModal');
@@ -4268,7 +4279,7 @@ function startLearning() {
         return;
     }
     // 管理员跳转到管理后台
-    if (parseInt(localStorage.getItem('is_admin')) === 1) { window.location.href = '/admin'; return; }
+    if (parseInt(localStorage.getItem('is_admin')) === 1) { navigateTop('/admin'); return; }
     window.location.href = '/app';
 }
 

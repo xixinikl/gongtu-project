@@ -5,6 +5,7 @@ import { readFileSync } from 'node:fs';
 const backend = readFileSync('backend/main.py', 'utf8');
 const homepage = readFileSync('doc/prototypes/homepage-middle-ink-morph.html', 'utf8');
 const legacyHomepage = readFileSync('index.html', 'utf8');
+const loginPage = readFileSync('login.html', 'utf8');
 const appPage = readFileSync('智学成语-高级版.html', 'utf8');
 
 test('formal root serves the confirmed ink homepage while /app stays stable', () => {
@@ -39,4 +40,14 @@ test('homepage enters /app at top level and the function page returns to root', 
   assert.match(homepage, /doc\.defaultView\.top\.location\.assign\('\/app'\)/);
   assert.match(legacyHomepage, /onclick="window\.location\.href='\/app'"/);
   assert.match(appPage, /window\.location\.href='\/'/);
+});
+
+test('homepage authentication enters the unified top-level login page', () => {
+  assert.match(homepage, /inlineAction\.includes\('openLoginModal'\)/);
+  assert.match(homepage, /inlineAction\.includes\('openRegisterModal'\)/);
+  assert.match(homepage, /'\/login\.html\?mode=register'/);
+  assert.match(homepage, /'\/login\.html'/);
+  assert.match(legacyHomepage, /function navigateTop\(path\)/);
+  assert.match(legacyHomepage, /navigateTop\('\/admin'\)/);
+  assert.match(loginPage, /get\('mode'\) === 'register'/);
 });

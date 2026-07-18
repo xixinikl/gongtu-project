@@ -435,6 +435,10 @@
             }
         });
 
+        if (new URLSearchParams(location.search).get('mode') === 'register') {
+            switchTab('register');
+        }
+
         // 如果已登录，直接跳转（管理员→/admin，普通用户→/app）
         const token = localStorage.getItem('gontu_token');
         const cachedAdmin = parseInt(localStorage.getItem('is_admin')) || 0;
