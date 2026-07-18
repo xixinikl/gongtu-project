@@ -459,7 +459,7 @@
                 const hint = document.getElementById('bootstrap-hint');
                 hint.textContent = status.has_admin
                     ? '已有管理员账号。普通账号注册后可由管理员在后台授权。'
-                    : '系统尚无管理员：现在注册的第一个账号会成为初始管理员。';
+                    : '系统尚无管理员。公开注册只会创建普通账号；请由部署人员在服务器终端运行 python tools/bootstrap-admin.py --username 管理员用户名。';
             })
             .catch(() => {
                 document.getElementById('bootstrap-hint').textContent = '管理员状态暂时无法读取；仍可正常登录或注册。';
