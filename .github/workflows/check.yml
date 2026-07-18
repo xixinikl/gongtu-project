@@ -46,7 +46,7 @@ jobs:
         run: npm run test:geometry
 
       - name: 检查补丁格式
-        run: git diff --check HEAD^
+        run: git show --check --format= HEAD
 
   backend-tests:
     runs-on: ubuntu-latest
