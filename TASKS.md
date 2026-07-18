@@ -7,11 +7,12 @@
   - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
   - 验收：任意 PR 基线均会触发工作流；CI 安装锁定依赖并逐文件运行 Python 测试；临时旧库 2/2 证明数据保留、迁移幂等与停服整库恢复；Ruff 通过；数量模块只补 `Any` 类型导入；Node 672/672、doctor 0 fail。
   - 结果：门禁已能暴露后续 mypy 旧债，转入 REL-1B 窄修复；远端实际运行证据统一在 REL-1C 推送后取得。
-- [ ] ◐ REL-1B 清零候选版既有 mypy 阻塞。
+- [x] ● REL-1B 清零候选版既有 mypy 阻塞。
   - 交付文件：`backend/ai_coach.py`、`backend/shenlun.py`
   - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
   - 验收：只补容器与可空值类型标注，不改运行逻辑；排除本地 `backend/venv` 后 mypy 全库通过，AI/申论专项和 Python 全量回归通过。
-- [ ] ○ REL-1C 冻结发布候选、推送标签并取得远端检查证据。
+  - 结果：mypy 26 个后端文件无问题；Ruff 通过；Bandit 中高危 0；AI 教练 15/15、申论 15/15、Python 全量 87 项通过。修复仅收窄数量练习证据列表变量与申论历史 id 的可空类型。
+- [ ] ◐ REL-1C 冻结发布候选、推送标签并取得远端检查证据。
   - 交付文件：`doc/releases/RELEASE_CANDIDATE_20260718.md`
   - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
   - 验收：候选清单写清包含项、排除项、启动/测试、SQLite 备份恢复和停止条件；提交与 `gongtu-rc-20260718.1` 标签推送；PR #24 五项检查有明确结果。

@@ -1124,7 +1124,7 @@ async def chat_with_teacher(req: ChatRequest, request: Request):
     run_metadata = _run_metadata()
 
     # ── 保存到历史记录（所有对话都存，包括纯聊天） ──
-    history_id = str(uuid.uuid4())[:8]
+    history_id: str | None = str(uuid.uuid4())[:8]
     try:
         q_title = q_obj.title if q_obj else (None)
         q_type = q_obj.type if q_obj else ("对话")
