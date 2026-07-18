@@ -32,7 +32,15 @@
   - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
   - 验收：生产环境缺少`GONTU_CORS_ORIGINS`、使用`*`、填写带路径/查询/片段的伪origin均拒绝启动；合法HTTP(S)来源列表可启动；开发环境保持本地兼容。
   - 结果：正式入口改为运行时来源白名单；生产配置专项3/3、Ruff、mypy 27文件与语法检查通过；环境示例补齐生产密钥、数据库、CORS和可信代理变量。
-- [ ] ◐ SEC-5B 生产就绪检查：密钥、数据库权限、备份新鲜度、运行模式和部署前停止条件。
+- [x] ● SEC-5B 生产就绪检查：密钥、数据库权限、备份新鲜度、运行模式和部署前停止条件。
+  - 交付文件：`tools/production_readiness.py`、`tests/test_production_readiness.py`、`doc/operations/PRODUCTION_READINESS.md`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：生产模式、非示例JWT/AI密钥、HTTPS CORS、合法代理IP、单worker、正式库0600/完整/有管理员和审计表、24小时内0600完整备份、独立恢复库全部通过才返回0；否则逐项失败并返回非零。
+  - 结果：可执行fail-closed门禁与操作说明完成；生产配置/门禁专项5/5、Ruff与语法检查通过。当前未部署环境不会被误报为可收费上线。
+
+生产安全底座 SEC-1A—SEC-5B 已实现完毕；仍需全量回归、远端CI和Draft PR审阅，不代表已部署、已收费可用或已合并主分支。
+
+- [ ] ◐ SEC-6 全量回归、远端CI与Draft PR证据收口。
 
 ## 2026-07-18 版本收口
 
