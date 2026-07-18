@@ -273,6 +273,8 @@ body { color:var(--admin-ink); background:radial-gradient(circle at 82% 2%,rgba(
 .admin-header h1::before { display:none; }
 .admin-header .admin-user { color:var(--admin-muted); }
 .admin-header .admin-user strong { color:var(--admin-jade); }
+.btn-study { display:inline-flex; align-items:center; min-height:36px; padding:8px 12px; border:1px solid rgba(49,95,90,.28); border-radius:3px; color:var(--admin-jade); background:rgba(49,95,90,.06); font-weight:600; }
+.btn-study:hover,.btn-study:focus-visible { color:#fff; background:var(--admin-jade); outline:2px solid rgba(49,95,90,.18); outline-offset:2px; }
 .btn-logout { border:1px solid rgba(159,61,54,.28); border-radius:3px; color:var(--admin-danger); background:rgba(255,255,255,.52); }
 .admin-overview { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:24px; }
 .overview-card { position:relative; overflow:hidden; min-height:110px; padding:22px 24px; border:1px solid var(--admin-line); background:rgba(251,250,246,.78); }
@@ -346,6 +348,7 @@ button:disabled { opacity:.55; cursor:not-allowed; transform:none!important; }
     <div class="admin-heading"><span class="admin-seal">公</span><div class="admin-heading-text"><small>GONTU · ADMINISTRATION</small><h1>用户与学习数据</h1></div></div>
     <div class="admin-user">
       管理员：<strong id="adminName">—</strong>
+      <a class="btn-study" href="/app">进入学习端</a>
       <button class="btn-logout" onclick="adminLogout()">退出登录</button>
     </div>
   </div>
