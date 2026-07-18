@@ -2,9 +2,9 @@
 
 更新时间：2026-07-18
 
-当前分支：`agent/production-security-foundation`
+当前分支：`agent/admin-vip-console`
 
-## 2026-07-18 生产安全底座进行中
+## 2026-07-18 生产安全底座已合入唯一候选分支
 
 - 基线固定为发布候选标签 `gongtu-rc-20260718.1`，在独立分支与独立工作树开发，不改用户真实数据库，不直接合并 `main`。
 - SEC-1A 已完成：网页注册固定创建普通用户；`tools/bootstrap-admin.py` 仅在服务器本机通过双次隐藏密码输入创建或提升初始管理员，已有管理员时拒绝执行。管理员/VIP与JWT专项 7/7、Ruff、mypy 26文件、Bandit中高危0、真实命令行空库初始化与二次拒绝均通过。
@@ -16,9 +16,10 @@
 - SEC-4 已完成：`tools/gontu_db.py` 提供在线备份、完整性验证和只写新目标的恢复命令；副本0600、按工具命名模式保留，损坏副本和既有恢复目标均拒绝。专项3/3、Ruff与语法检查通过；操作说明写明异盘/加密远端副本、24小时新鲜度和恢复演练停止条件。
 - SEC-5A 已完成：正式入口在生产模式必须提供显式HTTP(S)来源白名单，缺失、通配符、带路径/查询/片段的伪origin均拒绝启动；开发模式仍可本地使用。专项3/3、Ruff、mypy 27文件通过，环境示例已补齐。
 - SEC-5B 已完成：`tools/production_readiness.py` 只有在生产模式、非示例JWT/AI密钥、HTTPS来源、合法代理、单worker、正式库0600且完整并有管理员/审计表、24小时内0600完整备份、独立恢复库全部通过时才返回0。专项5/5、Ruff与语法检查通过。
-- SEC-1A—SEC-5B与SEC-6验收均完成：20个Python测试文件逐进程通过；Node 673/673；依赖树、Ruff、mypy 27文件、Bandit中高危0、doctor 0 fail。Draft PR #25为OPEN、MERGEABLE，基线是`agent/admin-vip-console`；GitHub Actions run `29641376392`的frontend-check、backend-tests、lint、type-check、security全部成功。
-- 当前无进行中任务。事实边界：PR #25保持Draft，未部署、未开通收费、未合并`main`；当前电脑没有真实生产数据库、异盘备份和独立恢复副本，因此生产门禁应诚实返回不可上线。
-- 后续顺序：登录/注册限流 → 管理操作审计 → SQLite 自动备份与恢复演练 → 生产就绪检查。
+- SEC-1A—SEC-7 已完成：独立审查无代码阻断项，并修正三处与当前安全实现冲突的旧版自动提权记录。20个Python测试文件逐进程通过；Node 673/673；依赖树、Ruff、mypy 27文件、Bandit中高危0、doctor 0 fail。最终安全分支 GitHub Actions run `29647861867` 五项全部成功。
+- PR #25 已在 2026-07-18 合并到唯一候选分支 `agent/admin-vip-console`，merge commit 为 `a1a836e`；该合并提交对应 GitHub Actions run `29647898525` 五项全部成功。PR #24 仍保持 Draft、OPEN、MERGEABLE，`main` 未合并也未改动。
+- 当前无进行中任务。事实边界：未部署、未开通收费；当前电脑没有真实生产数据库、异盘备份和独立恢复副本，因此生产门禁应诚实返回不可上线。
+- 后续建议：为合并后的候选创建新的 RC 标签并做最终浏览器冒烟验收；确认后再决定是否让 PR #24 进入 `main`，本轮不执行。
 
 ## 2026-07-18 版本收口完成（REL-1A—1C）
 

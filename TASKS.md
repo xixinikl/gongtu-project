@@ -38,14 +38,15 @@
   - 验收：生产模式、非示例JWT/AI密钥、HTTPS CORS、合法代理IP、单worker、正式库0600/完整/有管理员和审计表、24小时内0600完整备份、独立恢复库全部通过才返回0；否则逐项失败并返回非零。
   - 结果：可执行fail-closed门禁与操作说明完成；生产配置/门禁专项5/5、Ruff与语法检查通过。当前未部署环境不会被误报为可收费上线。
 
-生产安全底座 SEC-1A—SEC-5B 已实现完毕；仍需全量回归、远端CI和Draft PR审阅，不代表已部署、已收费可用或已合并主分支。
+生产安全底座 SEC-1A—SEC-5B 已实现、独立审查并合入候选分支；不代表已部署、已收费可用或已合并主分支。
 
 - [x] ● SEC-6 全量回归、远端CI与Draft PR证据收口。
   - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
   - 结果：20个Python测试文件逐进程通过；Node 673/673；依赖树、Ruff、mypy 27文件、Bandit中高危0、doctor 0 fail；Draft PR #25 OPEN、MERGEABLE，正确以`agent/admin-vip-console`为基线；GitHub Actions run `29641376392` 五项全部成功。保持Draft，不合并`main`。
-- [ ] ● SEC-7 独立审查 PR #25，纠正与当前安全实现冲突的旧版本记录，并重新验收后合并到候选分支。
+- [x] ● SEC-7 独立审查 PR #25，纠正与当前安全实现冲突的旧版本记录，并重新验收后合并到候选分支。
   - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/releases/RELEASE_CANDIDATE_20260718.md`
   - 验收：公开注册与初始管理员说明全库一致；PR 无未处理评审意见；本地门禁与 GitHub Actions 全绿；只合并到 `agent/admin-vip-console`，不合并 `main`。
+  - 结果：审查未发现代码阻断项，修正三处旧版自动提权记录；20个Python测试文件、Node 673/673、依赖树、Ruff、mypy 27文件、Bandit中高危0、doctor 0 fail；GitHub Actions run `29647861867` 五项全绿。PR #25 已以 merge commit `a1a836e` 合入 `agent/admin-vip-console`；该合并提交对应 run `29647898525` 五项全绿，`main` 未变。
 
 ## 2026-07-18 版本收口
 
