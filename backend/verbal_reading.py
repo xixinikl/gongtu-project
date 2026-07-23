@@ -14,11 +14,12 @@ from pathlib import Path
 import time
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from jsonschema import ValidationError
 from pydantic import BaseModel, Field
 
 from auth import require_user
+from demo_limits import enforce_ai_limit
 from database import get_db
 from verbal_reading_ai_config import load_verbal_ai_settings
 from verbal_reading_diagnosis import normalize_diagnosis_shape, validate_diagnosis
@@ -476,7 +477,8 @@ def _diagnosis_context(conn, session, set_data: dict) -> tuple[dict, dict[str, d
 
 
 @router.post("/sessions/{session_id}/diagnosis")
-def generate_diagnosis(session_id: str, user: dict = Depends(require_user)):
+def generate_diagnosis(session_id: str, request: Request, user: dict = Depends(require_user)):
+    enforce_ai_limit(request, user["user_id"])
     settings = load_verbal_ai_settings()
     if not settings.configured:
         raise HTTPException(status_code=503, detail="provider_not_configured")
@@ -595,11 +597,13 @@ def generate_diagnosis(session_id: str, user: dict = Depends(require_user)):
 def create_message(
     session_id: str,
     body: MessageCreateIn,
+    request: Request,
     user: dict = Depends(require_user),
 ):
     content = body.content.strip()
     if not content:
         raise HTTPException(status_code=422, detail="Message cannot be empty")
+    enforce_ai_limit(request, user["user_id"])
     settings = load_verbal_ai_settings()
     if not settings.configured:
         raise HTTPException(status_code=503, detail="provider_not_configured")

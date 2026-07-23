@@ -2,6 +2,12 @@
 
 ## 2026-07-18 生产安全底座
 
+## 公网面试演示保护（2026-07-23）
+
+- [x] DEMO-AI-1 仅在 `GONTU_DEMO_MODE=1` 时启用 AI 额度保护；本机默认关闭。
+  - 默认额度：账号 20 次/24 小时、访问来源 80 次/24 小时。
+  - 验收：额度专项 3/3；AI 教练、申论、言语接口回归通过。
+
 - [x] ● SEC-1A 关闭公开注册提权，并提供仅服务器本机可执行的一次性管理员初始化工具。
   - 交付文件：`backend/auth.py`、`tools/bootstrap-admin.py`、`tests/test_admin_vip.py`
   - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
@@ -1062,3 +1068,15 @@ Phase 5 门禁已通过；下一步 Phase 6。
 - [ ] ○ REL-007 ci: 将空间几何测试接入完整 CI
 - [ ] ○ REL-008 docs: 更新 README 使用和部署说明
 - [ ] ○ REL-009 release: 完成发布前验收清单
+## 2026-07-22 macOS 演示启动
+
+- [x] ● DEMO-MAC-1 提供可双击、自检、隔离数据并可安全停止的 Mac 演示启动器。
+  - 交付文件：`公途启动.command`、`tests/test_cross_platform.py`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：不得使用旧电脑绝对路径，不得覆盖真实数据库；缺少项目环境时自动准备 Python 3.11 和申论页本地 Vue；等待健康接口后打开浏览器；关闭终端或按 `Control+C` 停止后端。
+  - 结果：真实启动成功，重复双击只复用既有服务；`/`、`/app`、`/shenlun`、`/admin` 和 `/api/health` 均可访问；桌面与 390px 下无横向溢出和破图，登录后的申论页无脚本错误；专项 17/17、脚本语法和 diff 检查通过。本轮未提交、未推送。
+- [x] ● DEMO-MAC-2 让 AI 密钥跨工作树持久复用，并在打开网页前主动显示真实可用状态。
+  - 交付文件：`公途启动.command`、`tests/test_cross_platform.py`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：本机私密文件权限正确；启动器不得打印密钥；启动前检查 DeepSeek 真实连通性；申论与主 AI 教练各完成一次真实回复。
+  - 结果：`~/.config/gongtu` 为0700、`ai.env`为0600；新启动端口在打开网页前显示 DeepSeek 已连接；申论 AI 返回200/72字，主 AI 教练返回201/41字，均收到真实回答且日志未输出密钥。

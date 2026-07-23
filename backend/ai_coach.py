@@ -8,11 +8,12 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Literal
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, field_validator
 
 from auth import require_user
+from demo_limits import enforce_ai_limit
 from ai_skill_registry import SkillRegistryError, registry_status, resolve_skill
 from database import get_db
 from quantity import _bank_or_unavailable as _quantity_bank_or_unavailable
@@ -1269,7 +1270,7 @@ def _execute_run(thread_id, user_mid, user_text, uid):
 
 
 @router.post("/threads/{thread_id}/messages", status_code=201)
-def send_message(thread_id: str, body: MessageIn, user: dict = Depends(require_user)):
+def send_message(thread_id: str, body: MessageIn, request: Request, user: dict = Depends(require_user)):
     ensure_ai_coach_schema()
     uid = user["user_id"]
     with get_db() as conn:
@@ -1282,6 +1283,7 @@ def send_message(thread_id: str, body: MessageIn, user: dict = Depends(require_u
             return _thread_payload(
                 conn, _owned(conn, "ai_coach_threads", thread_id, uid), uid
             )
+        enforce_ai_limit(request, uid)
         mid = str(uuid.uuid4())
         conn.execute(
             "INSERT INTO ai_coach_messages(id,thread_id,user_id,role,content,client_message_id,created_at) VALUES(?,?,?,'user',?,?,?)",
@@ -1292,7 +1294,7 @@ def send_message(thread_id: str, body: MessageIn, user: dict = Depends(require_u
 
 
 @router.post("/threads/{thread_id}/runs/{run_id}/retry")
-def retry_run(thread_id: str, run_id: str, user: dict = Depends(require_user)):
+def retry_run(thread_id: str, run_id: str, request: Request, user: dict = Depends(require_user)):
     ensure_ai_coach_schema()
     uid = user["user_id"]
     with get_db() as conn:
@@ -1305,6 +1307,7 @@ def retry_run(thread_id: str, run_id: str, user: dict = Depends(require_user)):
         }:
             raise HTTPException(409, "Run is not retryable")
         message = _owned(conn, "ai_coach_messages", run["user_message_id"], uid)
+    enforce_ai_limit(request, uid)
     return _execute_run(thread_id, message["id"], message["content"], uid)
 
 

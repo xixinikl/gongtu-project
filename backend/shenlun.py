@@ -15,6 +15,7 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from database import get_db
 from auth import require_user
+from demo_limits import enforce_ai_limit
 from dotenv import load_dotenv
 
 # 🔧 加载环境变量（LLM_API_KEY 等）
@@ -548,6 +549,7 @@ async def grade_answer(req: GradingRequest, request: Request):
     """提交作答进行 AI 批改（真实 LLM 5维度诊断）。"""
     user = await _require_user(request)
     user_id = user["user_id"]
+    enforce_ai_limit(request, user_id)
 
     idempotency_key = _require_idempotency_key(request)
     request_hash = _grade_request_hash(
@@ -730,6 +732,7 @@ async def list_history(request: Request, limit: int = 50, offset: int = 0):
     """获取批改历史"""
     user = await _require_user(request)
     user_id = user["user_id"]
+    enforce_ai_limit(request, user_id)
 
     with get_db() as conn:
         rows = conn.execute(
@@ -763,6 +766,7 @@ async def list_history(request: Request, limit: int = 50, offset: int = 0):
 async def get_history_record(record_id: str, request: Request):
     """获取单条批改记录详情"""
     user = await _require_user(request)
+    enforce_ai_limit(request, user["user_id"])
     user_id = user["user_id"]
 
     with get_db() as conn:
