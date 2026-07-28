@@ -84,6 +84,7 @@
                     if (typeof window.renderAll === 'function') window.renderAll();
                 });
             });
+            flushPendingSyncQueue();
             syncUserMetaFromBackend().then(function() { renderHeatmap(); renderStats(); });
             document.getElementById('loginPass').value = '';
         } catch(e) { showErr('loginError', '网络错误：' + (e.message || '无法连接到服务器，请确认后端已启动')); }
@@ -114,6 +115,7 @@
                     if (typeof window.renderAll === 'function') window.renderAll();
                 });
             });
+            flushPendingSyncQueue();
             syncUserMetaFromBackend().then(function() { renderHeatmap(); renderStats(); });
             document.getElementById('registerPass').value = '';
         } catch(e) { showErr('registerError', '网络错误：' + (e.message || '无法连接到服务器，请确认后端已启动')); }
@@ -3680,6 +3682,11 @@ function backToLanding() {
 // ========== 页面初始化 ==========
 document.addEventListener('DOMContentLoaded', function() {
     updateNavAuth();
+    flushPendingSyncQueue();
+    window.addEventListener('online', flushPendingSyncQueue);
+    document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'visible') flushPendingSyncQueue();
+    });
     // 弹窗背景点击关闭
     var loginModal = document.getElementById('loginModal');
     var registerModal = document.getElementById('registerModal');
@@ -3906,6 +3913,68 @@ async function syncUserMetaFromBackend() {
 //  DataAdapter — Phase 1 双写层（localStorage 主，后端备）
 // ════════════════════════════════════════════════════
 const API_BASE = window.__GONTU_API_BASE__ || GONTU_API_BASE;
+const PENDING_SYNC_QUEUE_KEY = '__gontu_pending_sync_v1';
+const MAX_PENDING_SYNC_JOBS = 200;
+
+function readPendingSyncQueue() {
+    try {
+        const value = JSON.parse(localStorage.getItem(PENDING_SYNC_QUEUE_KEY) || '[]');
+        return Array.isArray(value) ? value : [];
+    } catch (_) { return []; }
+}
+
+function writePendingSyncQueue(queue) {
+    localStorage.setItem(PENDING_SYNC_QUEUE_KEY, JSON.stringify(queue.slice(-MAX_PENDING_SYNC_JOBS)));
+}
+
+function enqueuePendingSync(kind, payload) {
+    const user = gontu_getUser();
+    if (!user || user.id == null) return;
+    const queue = readPendingSyncQueue();
+    queue.push({ id: generateUUID(), userId: user.id, kind, payload, queuedAt: new Date().toISOString() });
+    writePendingSyncQueue(queue);
+}
+
+async function sendPendingSyncJob(job) {
+    let url;
+    let options;
+    if (job.kind === 'event') {
+        url = API_BASE + '/api/sync';
+        options = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ events: [job.payload] }) };
+    } else if (job.kind === 'vocab-state') {
+        url = API_BASE + '/api/verbal-catalog/vocab/state';
+        options = { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(job.payload) };
+    } else {
+        return true;
+    }
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    try {
+        const resp = await apiFetch(url, Object.assign({}, options, { signal: controller.signal }));
+        return resp.ok;
+    } finally { clearTimeout(timeout); }
+}
+
+async function flushPendingSyncQueue() {
+    if (!gontu_isLoggedIn()) return;
+    const user = gontu_getUser();
+    if (!user || user.id == null) return;
+    const queue = readPendingSyncQueue();
+    const mine = queue.filter(job => String(job.userId) === String(user.id));
+    const others = queue.filter(job => String(job.userId) !== String(user.id));
+    if (!mine.length) return;
+    let remaining = [];
+    for (let i = 0; i < mine.length; i++) {
+        try {
+            if (!await sendPendingSyncJob(mine[i])) { remaining = mine.slice(i); break; }
+        } catch (e) {
+            console.warn('[Sync] 待同步记录保留到下次重试:', e.message);
+            remaining = mine.slice(i);
+            break;
+        }
+    }
+    writePendingSyncQueue(others.concat(remaining));
+}
 
 function generateUUID() {
     if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -3925,22 +3994,16 @@ function getOrCreateUserId() {
 }
 
 async function syncToBackend(cardId, action) {
+    if (!gontu_isLoggedIn()) return false;
+    const payload = { card_id: cardId, action, created_at: new Date().toISOString() };
     try {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 3000); // 3秒超时
-        const resp = await apiFetch(API_BASE + '/api/sync', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                events: [{ card_id: cardId, action, created_at: new Date().toISOString() }]
-            }),
-            signal: controller.signal
-        });
-        clearTimeout(timeout);
-        if (!resp.ok) console.warn('[Sync] 后端返回异常:', resp.status);
+        const ok = await sendPendingSyncJob({ kind: 'event', payload });
+        if (!ok) enqueuePendingSync('event', payload);
+        return ok;
     } catch(e) {
-        // Phase 1: 静默忽略，localStorage 已保存，用户不受影响
-        console.warn('[Sync] 同步失败，本地数据已安全保存:', e.message);
+        enqueuePendingSync('event', payload);
+        console.warn('[Sync] 同步失败，已加入待同步队列:', e.message);
+        return false;
     }
 }
 function loadIdioms() { return loadIdiomsRaw(); }
@@ -4937,25 +5000,28 @@ function flipMeaning() { if (!currentIdiomObj) return; isFlipped = !isFlipped; r
 
 async function syncVocabStateToBackend(item) {
     if (!gontu_isLoggedIn() || !item || item.type !== 'idiom') return;
+    const payload = {
+        word: item.id,
+        study_count: item.studyCount || 0,
+        forget_count: item.forgetCount || 0,
+        interval_idx: item.intervalIdx || 0,
+        mastered: item.mastered ? 1 : 0,
+        favorite: item.favorite ? 1 : 0,
+        last_study_date: item.lastStudyTime || '',
+        next_review_date: item.nextReviewTime || ''
+    };
     try {
-        await apiFetch(API_BASE + '/api/verbal-catalog/vocab/state', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                word: item.id,
-                study_count: item.studyCount || 0,
-                forget_count: item.forgetCount || 0,
-                interval_idx: item.intervalIdx || 0,
-                mastered: item.mastered ? 1 : 0,
-                favorite: item.favorite ? 1 : 0,
-                last_study_date: item.lastStudyTime || '',
-                next_review_date: item.nextReviewTime || ''
-            })
-        });
-    } catch(e) { console.warn('[VocabState] 同步失败：', e.message); }
+        const ok = await sendPendingSyncJob({ kind: 'vocab-state', payload });
+        if (!ok) enqueuePendingSync('vocab-state', payload);
+        return ok;
+    } catch(e) {
+        enqueuePendingSync('vocab-state', payload);
+        console.warn('[VocabState] 同步失败，已加入待同步队列：', e.message);
+        return false;
+    }
 }
 
-function handleResult(remembered) {
+async function handleResult(remembered) {
     if (!currentIdiomObj) return;
     let item = currentIdiomObj; let newIntervalIdx, mastered, nextReview; let forgetCount = item.forgetCount || 0;
     if (remembered) {
@@ -4964,9 +5030,11 @@ function handleResult(remembered) {
     } else { mastered = false; newIntervalIdx = 0; nextReview = addDays(today(), INTERVALS[0]); forgetCount++; }
     let updatedItem = updateIdiom(item.id, { mastered, intervalIdx: newIntervalIdx, studyCount: item.studyCount + 1, forgetCount, lastStudyTime: today(), nextReviewTime: nextReview });
     recordStudy();
-    // Phase 1 双写：异步同步到后端，失败不影响本地
-    syncToBackend(item.id, remembered ? (mastered ? 'mastered' : 'correct') : 'wrong');
-    syncVocabStateToBackend(updatedItem);
+    // 本地先落盘；两个后端写入都返回后再继续，失败记录到待同步队列。
+    await Promise.all([
+        syncToBackend(item.id, remembered ? (mastered ? 'mastered' : 'correct') : 'wrong'),
+        syncVocabStateToBackend(updatedItem)
+    ]);
     let q = getTodayQueue();
     if (currentMode === 'review') {
         q.items = q.items.filter(i => i !== item.id); q.doneToday = (q.doneToday || 0) + 1; saveQueue(q);
