@@ -1,10 +1,17 @@
-"""SQLite database connection & lifecycle."""
+"""SQLite-compatible database connection & lifecycle.
+
+Local development uses the existing SQLite file.  Production can opt into a
+durable Turso/libSQL database by setting ``TURSO_DATABASE_URL`` and
+``TURSO_AUTH_TOKEN``.  The adapter intentionally preserves the subset of the
+``sqlite3`` API used by the application so business queries do not need to
+know where the database lives.
+"""
 
 import os
 import sqlite3
 import logging
 from contextlib import contextmanager
-from typing import Generator
+from typing import Any, Generator
 
 DB_PATH = os.environ.get(
     "GONTU_DB_PATH", os.path.join(os.path.dirname(__file__), "data.db")
@@ -13,13 +20,156 @@ DB_PATH = os.environ.get(
 logger = logging.getLogger("gontu.db")
 
 
+class LibsqlRow:
+    """Tuple-like row with sqlite3.Row-compatible name lookup."""
+
+    __slots__ = ("_columns", "_values", "_by_name")
+
+    def __init__(self, columns: list[str], values: tuple[Any, ...]):
+        self._columns = tuple(columns)
+        self._values = tuple(values)
+        self._by_name = dict(zip(self._columns, self._values))
+
+    def __getitem__(self, key):
+        if isinstance(key, str):
+            return self._by_name[key]
+        return self._values[key]
+
+    def __iter__(self):
+        return iter(self._values)
+
+    def __len__(self):
+        return len(self._values)
+
+    def keys(self):
+        return self._columns
+
+
+def _translate_libsql_error(exc: Exception) -> sqlite3.Error:
+    """Map libSQL errors to sqlite3 errors already handled by the app."""
+    message = str(exc)
+    lowered = message.lower()
+    if any(
+        marker in lowered
+        for marker in ("constraint", "unique", "foreign key", "not null")
+    ):
+        return sqlite3.IntegrityError(message)
+    return sqlite3.OperationalError(message)
+
+
+class LibsqlCursorAdapter:
+    """Expose libSQL cursor results with sqlite3.Row-compatible rows."""
+
+    def __init__(self, cursor):
+        self._cursor = cursor
+
+    @property
+    def description(self):
+        return self._cursor.description
+
+    @property
+    def lastrowid(self):
+        return getattr(self._cursor, "lastrowid", None)
+
+    @property
+    def rowcount(self):
+        return getattr(self._cursor, "rowcount", -1)
+
+    def _row(self, row):
+        if row is None or not self.description:
+            return row
+        columns = [column[0] for column in self.description]
+        return LibsqlRow(columns, tuple(row))
+
+    def fetchone(self):
+        return self._row(self._cursor.fetchone())
+
+    def fetchall(self):
+        return [self._row(row) for row in self._cursor.fetchall()]
+
+    def fetchmany(self, size=None):
+        rows = (
+            self._cursor.fetchmany()
+            if size is None
+            else self._cursor.fetchmany(size)
+        )
+        return [self._row(row) for row in rows]
+
+    def __iter__(self):
+        # libsql's native Cursor is fetchable but is not itself iterable.
+        for row in self._cursor.fetchall():
+            yield self._row(row)
+
+
+class LibsqlConnectionAdapter:
+    """Small compatibility layer around the official libSQL connection."""
+
+    def __init__(self, connection):
+        self._connection = connection
+
+    def _call(self, method: str, *args):
+        try:
+            result = getattr(self._connection, method)(*args)
+        except Exception as exc:
+            # libsql 0.1.x currently surfaces some engine failures as built-in
+            # ValueError rather than package-specific exception classes.
+            raise _translate_libsql_error(exc) from exc
+        return LibsqlCursorAdapter(result)
+
+    def execute(self, sql, parameters=None):
+        if parameters is None:
+            return self._call("execute", sql)
+        return self._call("execute", sql, parameters)
+
+    def executemany(self, sql, parameters):
+        return self._call("executemany", sql, parameters)
+
+    def executescript(self, script):
+        return self._call("executescript", script)
+
+    def commit(self):
+        return self._connection.commit()
+
+    def rollback(self):
+        return self._connection.rollback()
+
+    def close(self):
+        return self._connection.close()
+
+
+def connect_db():
+    """Open the configured SQLite-compatible database connection."""
+    database_url = os.environ.get("TURSO_DATABASE_URL", "").strip()
+    auth_token = os.environ.get("TURSO_AUTH_TOKEN", "").strip()
+    if bool(database_url) != bool(auth_token):
+        raise RuntimeError(
+            "TURSO_DATABASE_URL and TURSO_AUTH_TOKEN must be configured together"
+        )
+
+    if database_url:
+        try:
+            import libsql
+        except ImportError as exc:  # pragma: no cover - deployment packaging guard
+            raise RuntimeError(
+                "Remote database configured but the libsql package is unavailable"
+            ) from exc
+        connection = LibsqlConnectionAdapter(
+            libsql.connect(database_url, auth_token=auth_token)
+        )
+        connection.execute("PRAGMA foreign_keys=ON")
+        return connection
+
+    connection = sqlite3.connect(DB_PATH)
+    connection.row_factory = sqlite3.Row
+    connection.execute("PRAGMA journal_mode=WAL")
+    connection.execute("PRAGMA foreign_keys=ON")
+    return connection
+
+
 @contextmanager
-def get_db() -> Generator[sqlite3.Connection, None, None]:
+def get_db() -> Generator[Any, None, None]:
     """Context manager — guarantees connection close even on exceptions."""
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA journal_mode=WAL")
-    conn.execute("PRAGMA foreign_keys=ON")
+    conn = connect_db()
     try:
         yield conn
     finally:

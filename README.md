@@ -21,7 +21,7 @@
 ```
 ┌──────────┐     ┌──────────────────┐     ┌─────────┐
 │  网页前端  │────▶│                  │────▶│ SQLite  │
-│  HTML/JS  │     │  FastAPI :8888   │     │ data.db │
+│  HTML/JS  │     │  FastAPI :8888   │     │ /libSQL │
 └──────────┘     │  backend/main.py │     └─────────┘
                  │                  │
 ┌──────────┐     │                  │     ┌──────────────┐
@@ -50,7 +50,7 @@
 | 后端框架 | FastAPI（Python） |
 | 前端 | 原生 HTML + CSS + JavaScript |
 | AI | DeepSeek（OpenAI 兼容接口） |
-| 数据库 | SQLite |
+| 数据库 | SQLite（本地）/ Turso libSQL（公网持久化） |
 | 桌面端 | Electron |
 | CI/CD | GitHub Actions（Ruff + mypy + Bandit） |
 

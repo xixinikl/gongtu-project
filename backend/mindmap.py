@@ -11,6 +11,7 @@ import secrets
 import uuid
 from zoneinfo import ZoneInfo
 from auth import require_user
+from database import connect_db
 
 router = APIRouter(prefix="/api/mindmap", tags=["mindmap"])
 
@@ -33,7 +34,6 @@ class ReviewAttempt(BaseModel):
 
 
 # ── Helpers ──
-DB_PATH = __import__('database').DB_PATH
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 LEGACY_IMAGES_DIR = PROJECT_DIR / "data" / "images"
 PRIVATE_IMAGES_DIR = Path(__file__).resolve().parent / "data" / "mindmap-images"
@@ -41,10 +41,7 @@ MAX_IMAGE_BYTES = 10 * 1024 * 1024
 
 
 def get_conn():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA journal_mode=WAL")
-    conn.execute("PRAGMA foreign_keys=ON")
+    conn = connect_db()
     conn.executescript("""
         CREATE TABLE IF NOT EXISTS mindmap_review_sessions (
             id TEXT PRIMARY KEY,

@@ -9,7 +9,7 @@
 | Node.js | 20+ |
 | npm | 使用 `package-lock.json` |
 | Python | 3.10+ |
-| 数据库 | SQLite，本地文件，不提交 |
+| 数据库 | 本地 SQLite；公网演示可选 Turso/libSQL |
 
 Python 3.9 可能无法运行部分现代语法。若本机默认 Python 是 3.9，应创建 Python 3.10+ 虚拟环境。
 
@@ -55,6 +55,9 @@ backend/venv/bin/python start_gontu.py --open
 
 - 默认数据库：`backend/data.db`
 - 也可通过 `GONTU_DB_PATH` 指定开发数据库位置。
+- Render 等没有持久磁盘的部署，通过同时设置 `TURSO_DATABASE_URL` 和
+  `TURSO_AUTH_TOKEN` 使用远程 SQLite；两项只设置一项时服务会拒绝启动。
+- 远程模式仍使用 SQLite 语法，不需要把业务 SQL 改写成 PostgreSQL。
 - `backend/data.db`、WAL/SHM 文件和 `.codex-runtime/` 均不提交。
 - 换分支不应随意删除数据库；除非任务明确要求重置开发数据。
 
