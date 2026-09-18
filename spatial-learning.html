@@ -6,7 +6,6 @@
 <title>立体图推学习中心 · 公途</title>
 <link rel="stylesheet" href="/spatial-learning-shell.css">
 <script src="/gontu-auth-client.js"></script>
-<script>window.GontuAuth && window.GontuAuth.guardVipPage();</script>
 <style>
 *{box-sizing:border-box}
 body{margin:0;min-height:100vh;color:var(--sp-ink);background:radial-gradient(circle at 12% 8%,rgba(216,183,119,.22),transparent 34%),radial-gradient(circle at 88% 92%,rgba(167,122,56,.1),transparent 40%),var(--sp-paper);font-family:"PingFang SC","Microsoft YaHei",sans-serif}
@@ -95,7 +94,9 @@ h1{font-family:"Noto Serif SC",serif;font-size:clamp(22px,3vw,30px);line-height:
 
   if (auth?.token()) {
     try {
-      const response = await auth.request('/api/spatial-learning/overview');
+      // 静默请求：这里只是想在有权限时把真实进度换上去，非 VIP 用户
+      // 依然能正常浏览这个模块目录页，不用弹"仅限 VIP"提示打断。
+      const response = await auth.request('/api/spatial-learning/overview', { silent: true });
       if (!response.ok) throw Object.assign(new Error('空间进度读取失败'), { status: response.status });
       const overview = await response.json();
       document.querySelector('#completed-count').textContent = `${overview.completed_count} / 4`;
