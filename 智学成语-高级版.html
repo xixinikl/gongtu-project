@@ -135,8 +135,10 @@
         ['idiom_data','idiom_queue','idiom_settings','math_data','math_queue','math_settings','global_study_records','global_streak_data'].forEach(k => localStorage.removeItem(k));
         Object.keys(localStorage).forEach(k => { if (k.startsWith('current_vocab_source_')) localStorage.removeItem(k); });
         updateNavAuth();
-        var app = document.getElementById('app');
-        if (app && app.classList.contains('active')) { app.classList.remove('active'); document.body.style.overflow = ''; }
+        // 用刷新页面代替手动摘掉 #app 的 active class：
+        // 之前的写法会把主内容区隐藏掉，但没有任何内容顶替，导致退出后整页变白屏。
+        // 刷新会重新走一遍未登录状态下的正常加载流程（和直接访问 /app 时未登录的效果一致）。
+        window.location.reload();
     }
     </script>
     <style>
