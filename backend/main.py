@@ -1010,8 +1010,10 @@ async def serve_static(filename: str):
     if mime_type is None:
         mime_type = "application/octet-stream"
     response = FileResponse(filepath, media_type=mime_type)
-    if filepath.endswith(".html"):
-        # 页面通过裸 URL 直接访问（不像 JS/CSS 带 ?v= 版本号做缓存失效），
-        # 若不强制重新校验，浏览器可能在刷新时仍展示改版前的旧页面。
-        response.headers["Cache-Control"] = "no-cache, must-revalidate"
+    # 不是所有静态文件都靠 ?v= 版本号做缓存失效（比如各页面共用的
+    # gontu-auth-client.js 就是裸路径引用）。默认无 Cache-Control 时
+    # 浏览器会启发式缓存，改完代码刷新页面也可能仍在用旧版本。这里
+    # 统一要求每次都带 ETag/Last-Modified 回源校验一次，内容没变时
+    # 服务器只回一个很轻的 304，没有实际开销。
+    response.headers["Cache-Control"] = "no-cache, must-revalidate"
     return response
