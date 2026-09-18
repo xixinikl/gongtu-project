@@ -4627,7 +4627,24 @@ function renderLearningCard() {
         return;
     }
     let card = data.find(d => d.id === currentId);
-    if (!card) { zone.innerHTML = '<div style="text-align:center;padding:40px;color:#94a3b8">数据错误</div>'; return; }
+    if (!card) {
+        // 今日队列引用的这张卡片本地还没有——通常是词库同步还没完全落地
+        // （比如刚从别的页面切回来，内置词库刷新和渲染之间有一个短暂的窗口）。
+        // 先自动补一次词库再重渲染一次，而不是直接判定“数据错误”；
+        // 用 renderRetried 防止补了还是没有时反复重试。
+        if (!renderLearningCard._retried) {
+            renderLearningCard._retried = true;
+            autoLoadHighFreqIfNeeded().then(function() {
+                renderLearningCard._retried = false;
+                renderLearningCard();
+            });
+            zone.innerHTML = '<div class="completion-card"><i class="fas fa-spinner"></i><h3>正在加载词库...</h3><p>首次进入会先同步内置高频词库。</p></div>';
+            return;
+        }
+        renderLearningCard._retried = false;
+        zone.innerHTML = '<div style="text-align:center;padding:40px;color:#94a3b8">数据错误</div>';
+        return;
+    }
     currentIdiomObj = card;
     let isMath = card.type === 'math';
     let isDifficult = currentMode === 'difficult';
