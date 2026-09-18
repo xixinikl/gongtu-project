@@ -28,7 +28,7 @@ def write_local_key(value: str, path: Path = ENV_PATH) -> None:
     if not any(line.startswith("LLM_BASE_URL=") for line in lines):
         lines.append("LLM_BASE_URL=https://api.deepseek.com")
     if not any(line.startswith("LLM_MODEL=") for line in lines):
-        lines.append("LLM_MODEL=deepseek-chat")
+        lines.append("LLM_MODEL=deepseek-flash")
     path.parent.mkdir(parents=True, exist_ok=True)
     descriptor, temporary = tempfile.mkstemp(prefix=".env.", dir=path.parent, text=True)
     try:

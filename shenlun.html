@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
 <script src="/node_modules/vue/dist/vue.global.prod.js"></script>
+<script src="/gontu-auth-client.js"></script>
 <style>
 /* ============================================
    飞扬申论 · 文人书斋 | 宣纸暖白底 · 点墨成金
@@ -1058,12 +1059,14 @@ createApp({
         const catalogResponse=await apiFetch('/api/shenlun/catalog')
         if(!catalogResponse.ok){
           const payload=await catalogResponse.json().catch(()=>({}))
+          if((catalogResponse.status===402||catalogResponse.status===403)&&window.GontuAuth)window.GontuAuth.showVipGate(responseMessage(payload,'该功能仅限 VIP 用户使用'))
           throw new Error(responseMessage(payload,'申论题源暂未提供，请稍后再试。'))
         }
         catalog.value=await catalogResponse.json()
         const r=await apiFetch('/api/shenlun/questions')
         if(!r.ok){
           const payload=await r.json().catch(()=>({}))
+          if((r.status===402||r.status===403)&&window.GontuAuth)window.GontuAuth.showVipGate(responseMessage(payload,'该功能仅限 VIP 用户使用'))
           throw new Error(responseMessage(payload,'申论题源暂未提供，请稍后再试。'))
         }
         questions.value=await r.json()
@@ -1122,7 +1125,7 @@ createApp({
         const body={message:text}
         if(selectedQuestion.value) body.questionId=selectedQuestion.value.id
         const r=await apiFetch('/api/shenlun/chat',{method:'POST',body:JSON.stringify(body)})
-        if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(responseMessage(e,'请求失败'))}
+        if(!r.ok){const e=await r.json().catch(()=>({}));if((r.status===402||r.status===403)&&window.GontuAuth)window.GontuAuth.showVipGate(responseMessage(e,'该功能仅限 VIP 用户使用'));throw new Error(responseMessage(e,'请求失败'))}
         const d=await r.json()
         messages.value.push({role:'ai',content:d.reply,formatted:formatTeacherReview(d.reply),historyId:d.historyId||null,tracked:false,tracking:false})
         await scrollToBottom()
@@ -1154,6 +1157,7 @@ createApp({
           questionId:attempt.questionId,studentAnswer:attempt.studentAnswer
         },attempt.key)
         if(!response.ok){
+          if((response.status===402||response.status===403)&&window.GontuAuth)window.GontuAuth.showVipGate(responseMessage(body,'该功能仅限 VIP 用户使用'))
           const error=new Error(responseMessage(body,'批改失败'))
           error.code=body&&body.detail&&body.detail.code
           throw error
@@ -1228,7 +1232,7 @@ createApp({
       analyzing.value=true; analysis.value=null
       try{
         const r=await apiFetch('/api/shenlun/mistakes/analyze',{method:'POST'})
-        if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(responseMessage(e,'分析失败'))}
+        if(!r.ok){const e=await r.json().catch(()=>({}));if((r.status===402||r.status===403)&&window.GontuAuth)window.GontuAuth.showVipGate(responseMessage(e,'该功能仅限 VIP 用户使用'));throw new Error(responseMessage(e,'分析失败'))}
         analysis.value=await r.json()
       }catch(e){alert('分析失败：'+e.message)}
       finally{analyzing.value=false}

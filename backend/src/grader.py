@@ -20,7 +20,7 @@ logger = logging.getLogger("grader")
 # Load config from environment
 API_KEY = os.getenv("LLM_API_KEY") or os.getenv("DEEPSEEK_API_KEY", "")
 BASE_URL = os.getenv("LLM_BASE_URL", "https://api.deepseek.com")
-MODEL = os.getenv("LLM_MODEL", "deepseek-chat")
+MODEL = os.getenv("LLM_MODEL", "deepseek-flash")  # "deepseek-chat" 已于 2026-07-24 下线
 TIMEOUT = int(os.getenv("LLM_TIMEOUT", "30"))
 
 GRADING_DIMENSIONS = (

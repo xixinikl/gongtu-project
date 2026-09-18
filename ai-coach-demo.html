@@ -713,6 +713,7 @@
       .ledger { padding:16px; }
     }
   </style>
+  <script src="/gontu-auth-client.js"></script>
 </head>
 <body>
   <div class="shell">
@@ -779,6 +780,9 @@
       const response = await fetch(API_BASE + path, {...options,headers:{'Content-Type':'application/json','Authorization':`Bearer ${token()}`,...(options.headers||{})}});
       if (response.status === 401) { localStorage.removeItem('gontu_token'); localStorage.removeItem('gontu_user'); location.assign(loginUrl()); throw new Error('auth_required'); }
       const payload = await response.json().catch(() => ({}));
+      if ((response.status === 402 || response.status === 403) && window.GontuAuth) {
+        window.GontuAuth.showVipGate((payload && (payload.detail || payload.error)) || '该功能仅限 VIP 用户使用');
+      }
       if (!response.ok) { const error = new Error(payload.detail || payload.error || `request_${response.status}`); error.status=response.status; error.payload=payload; throw error; }
       return payload;
     }

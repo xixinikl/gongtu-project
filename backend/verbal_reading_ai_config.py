@@ -17,7 +17,7 @@ load_dotenv(Path(__file__).resolve().parent / ".env")
 
 
 DEFAULT_BASE_URL = "https://api.deepseek.com"
-DEFAULT_MODEL = "deepseek-chat"
+DEFAULT_MODEL = "deepseek-flash"  # "deepseek-chat" 已于 2026-07-24 下线
 
 
 def _bounded_int(raw: str | None, *, default: int, minimum: int, maximum: int) -> int:

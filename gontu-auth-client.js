@@ -44,6 +44,32 @@
     return `/login.html?next=${encodeURIComponent(next)}`;
   }
 
+  // ── VIP 专属功能提示 ──────────────────────────────────────────────
+  // 后端对未开通 VIP（403）或积分用完（402）返回的都是一句人话，
+  // 这里只是把它从一闪而过的 toast 换成一个更郑重、带品牌样式的弹层。
+  let vipModalEl = null;
+  function showVipGate(message) {
+    if (vipModalEl) { vipModalEl.querySelector('[data-vip-msg]').textContent = message; return; }
+    const overlay = document.createElement('div');
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;background:rgba(21,29,40,0.55);backdrop-filter:blur(2px);font-family:"Source Han Serif SC","Noto Serif SC",serif;';
+    overlay.innerHTML = `
+      <div style="width:min(380px,88vw);background:#fffef9;border:1px solid rgba(201,169,110,0.4);border-radius:16px;padding:32px 28px 24px;box-shadow:0 24px 60px rgba(0,0,0,0.25);text-align:center;">
+        <div style="width:52px;height:52px;margin:0 auto 16px;border-radius:50%;background:linear-gradient(135deg,#e8d5a3,#c9a96e);display:flex;align-items:center;justify-content:center;font-size:24px;">👑</div>
+        <div style="font-size:1.05rem;font-weight:600;color:#151d28;margin-bottom:8px;">该功能仅限 VIP 使用</div>
+        <div data-vip-msg style="font-size:0.9rem;color:#4b5563;line-height:1.6;margin-bottom:22px;">${message}</div>
+        <button data-vip-dismiss style="min-width:120px;padding:10px 24px;border:none;border-radius:999px;background:#151d28;color:#e8d5a3;font-size:0.9rem;font-family:inherit;cursor:pointer;">我知道了</button>
+      </div>`;
+    overlay.querySelector('[data-vip-dismiss]').addEventListener('click', hideVipGate);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) hideVipGate(); });
+    document.body.appendChild(overlay);
+    vipModalEl = overlay;
+  }
+  function hideVipGate() {
+    if (vipModalEl) { vipModalEl.remove(); vipModalEl = null; }
+  }
+
   async function request(path, options) {
     const url = /^https?:\/\//.test(path) ? path : `${API_BASE}${path}`;
     const value = token();
@@ -51,6 +77,12 @@
     if (value) headers.Authorization = `Bearer ${value}`;
     const response = await fetch(url, Object.assign({}, options || {}, { headers }));
     if (response.status === 401) clearIdentity('unauthorized');
+    if (response.status === 402 || response.status === 403) {
+      response.clone().json().then((body) => {
+        const detail = body && (typeof body.detail === 'string' ? body.detail : body.detail?.message);
+        if (detail) showVipGate(detail);
+      }).catch(() => {});
+    }
     return response;
   }
 
@@ -77,6 +109,8 @@
     clearIdentity,
     loginUrl,
     request,
-    me
+    me,
+    showVipGate,
+    hideVipGate
   });
 })(window);
