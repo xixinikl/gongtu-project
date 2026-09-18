@@ -138,7 +138,7 @@ function lastRecordForGroup(groupId) {
 async function loadAccountRecords() {
   const auth = window.GontuAuth;
   if (!auth?.token()) return;
-  const response = await auth.request("/api/spatial-learning/records");
+  const response = await auth.request("/api/spatial-learning/records", { silent: true });
   if (!response.ok) return;
   const rows = await response.json();
   state.accountRecords = rows
@@ -527,6 +527,7 @@ function completeGroup() {
         last_position: `${record.groupId}:${state.questionIndex + 1}`,
         detail: { answers: record.answers },
       }),
+      silent: true,
     }).then(async (response) => {
       if (!response.ok) {
         elements.historyLabel.textContent = "账号记录保存失败，请稍后重试";
@@ -576,7 +577,7 @@ function renderGroupOptions(bank) {
 
 async function loadBank() {
   const auth = window.GontuAuth;
-  const response = auth ? await auth.request(BANK_URL) : await fetch(BANK_URL);
+  const response = auth ? await auth.request(BANK_URL, { silent: true }) : await fetch(BANK_URL);
   if (!response.ok) throw new Error(`failed to load ${BANK_URL}: ${response.status}`);
   const bank = await response.json();
   const validation = validateThreeViewBank(bank);

@@ -59,6 +59,14 @@
     aiCoachDeck.innerHTML = `<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-3px"><path d="M2.5 2.5h13v10h-6l-3.5 3v-3H2.5z" stroke="rgba(176,138,58,0.7)" stroke-width="1.1" stroke-linejoin="round"/><path d="M5.5 6h7M5.5 8.5h4.5" stroke="rgba(176,138,58,0.35)" stroke-width="0.8" stroke-linecap="round"/><circle cx="13" cy="10" r="1.3" stroke="rgba(176,138,58,0.55)" stroke-width="0.7"/></svg> AI教练`;
     document.getElementById('deckTabs').appendChild(aiCoachDeck);
 
+    const spatialDeck = document.createElement('button');
+    spatialDeck.className = 'deck-tab';
+    spatialDeck.id = 'spatialLearningDeckEntry';
+    spatialDeck.title = '立体图推学习中心';
+    spatialDeck.innerHTML = `<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-3px"><path d="M9 2 L15.5 5.5 L15.5 12.5 L9 16 L2.5 12.5 L2.5 5.5 Z" stroke="rgba(176,138,58,0.7)" stroke-width="1.1" stroke-linejoin="round"/><path d="M9 2 L9 9 M9 9 L15.5 5.5 M9 9 L2.5 5.5" stroke="rgba(176,138,58,0.4)" stroke-width="0.8"/></svg> 立体图推`;
+    spatialDeck.addEventListener('click', () => { window.location.href = '/spatial-learning.html'; });
+    document.getElementById('deckTabs').appendChild(spatialDeck);
+
     const subnav = document.createElement('div');
     subnav.className = 'verbal-demo-subnav';
     subnav.innerHTML = `
