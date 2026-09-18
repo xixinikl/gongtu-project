@@ -10,7 +10,7 @@ from typing import Any, Literal
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field, model_validator
 
-from auth import require_user
+from auth import require_vip_feature
 from database import get_db
 
 router = APIRouter(prefix="/api/spatial-learning", tags=["spatial-learning"])
@@ -102,7 +102,7 @@ def _grade_three_view(body: SpatialRecordIn) -> tuple[int, int]:
 
 
 @router.post("/records", status_code=201)
-def create_record(body: SpatialRecordIn, user: dict = Depends(require_user)):
+def create_record(body: SpatialRecordIn, user: dict = Depends(require_vip_feature)):
     ensure_spatial_learning_schema()
     if body.activity_kind == "three_view_group":
         _grade_three_view(body)
@@ -147,7 +147,7 @@ def create_record(body: SpatialRecordIn, user: dict = Depends(require_user)):
 
 
 @router.get("/records")
-def list_records(user: dict = Depends(require_user)):
+def list_records(user: dict = Depends(require_vip_feature)):
     ensure_spatial_learning_schema()
     with get_db() as conn:
         rows = conn.execute(
@@ -158,7 +158,7 @@ def list_records(user: dict = Depends(require_user)):
 
 
 @router.get("/overview")
-def overview(user: dict = Depends(require_user)):
+def overview(user: dict = Depends(require_vip_feature)):
     records = list_records(user)
     latest: dict[str, dict[str, Any]] = {}
     for item in records:

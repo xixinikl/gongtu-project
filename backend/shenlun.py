@@ -14,7 +14,7 @@ from pathlib import Path
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from database import get_db
-from auth import require_user
+from auth import consume_ai_credit, refund_ai_credit, require_vip_feature
 from demo_limits import enforce_ai_limit
 from dotenv import load_dotenv
 
@@ -107,8 +107,9 @@ def _get_question(qid: str):
 
 # ── Auth helper ────────────────────────────────────────────────────────────────
 async def _require_user(request: Request):
-    """Use the shared auth gate, including checking that the account still exists."""
-    return await require_user(request)
+    """整个申论模块属于 VIP 专属功能：free 模式下对登录用户放行，
+    vip 模式下要求有效 VIP（管理员始终放行）。"""
+    return await require_vip_feature(request)
 
 
 def _safe_provider_failure(exc: Exception, *, operation: str) -> HTTPException:
@@ -584,6 +585,7 @@ async def grade_answer(req: GradingRequest, request: Request):
     if replay is not None:
         return replay
 
+    consume_ai_credit(user_id, feature="shenlun_grade")
     try:
         result = validate_grading_result(
             await asyncio.to_thread(llm_grade, question_obj, req.studentAnswer)
@@ -592,6 +594,7 @@ async def grade_answer(req: GradingRequest, request: Request):
         grading_result["runMetadata"] = _run_metadata()
         grading_result["recordType"] = "grading"
     except Exception as exc:
+        refund_ai_credit(user_id, feature="shenlun_grade", reason=type(exc).__name__)
         safe_error = _safe_provider_failure(exc, operation="grade")
         try:
             _mark_grade_request_failed(
@@ -1044,6 +1047,7 @@ async def analyze_weakness(request: Request):
     analysis_text = "\n\n---\n\n".join(texts)
 
     # 调用 LLM 分析
+    consume_ai_credit(user_id, feature="shenlun_analyze")
     try:
         from src.grader import call_llm_api
 
@@ -1074,6 +1078,7 @@ async def analyze_weakness(request: Request):
         else:
             raise ProviderFailure("provider_invalid_output")
     except Exception as exc:
+        refund_ai_credit(user_id, feature="shenlun_analyze", reason=type(exc).__name__)
         if isinstance(exc, json.JSONDecodeError):
             failure = ProviderFailure("provider_invalid_output")
         elif isinstance(exc, ProviderFailure):
@@ -1116,12 +1121,14 @@ async def chat_with_teacher(req: ChatRequest, request: Request):
         q_obj = Question(**q_copy)
 
     # 调用真实 LLM 对话
+    consume_ai_credit(user["user_id"], feature="shenlun_chat")
     try:
         reply = await asyncio.to_thread(llm_chat, q_obj, req.message)
         if not isinstance(reply, str) or not reply.strip():
             raise ProviderFailure("provider_invalid_output")
         reply = reply.strip()
     except Exception as exc:
+        refund_ai_credit(user["user_id"], feature="shenlun_chat", reason=type(exc).__name__)
         raise _safe_provider_failure(exc, operation="chat") from None
 
     mode = "chat" if not req.questionId else "question_context"

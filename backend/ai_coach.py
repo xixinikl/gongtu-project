@@ -12,7 +12,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, field_validator
 
-from auth import require_user
+from auth import consume_ai_credit, refund_ai_credit, require_vip_feature
 from demo_limits import enforce_ai_limit
 from ai_skill_registry import SkillRegistryError, registry_status, resolve_skill
 from database import get_db
@@ -984,7 +984,7 @@ def _thread_payload(conn, row, uid: int) -> dict:
 
 
 @router.get("/modules")
-def modules(user: dict = Depends(require_user)):
+def modules(user: dict = Depends(require_vip_feature)):
     del user
     enabled = {
         item["module_id"]: item
@@ -1013,7 +1013,7 @@ def modules(user: dict = Depends(require_user)):
 
 
 @router.post("/threads", status_code=201)
-def create_thread(body: ThreadIn, user: dict = Depends(require_user)):
+def create_thread(body: ThreadIn, user: dict = Depends(require_vip_feature)):
     ensure_ai_coach_schema()
     _bundle(body.module_id)
     activity_id = body.activity_id or (
@@ -1053,7 +1053,7 @@ def create_thread(body: ThreadIn, user: dict = Depends(require_user)):
 
 
 @router.get("/threads")
-def list_threads(module_id: str | None = None, user: dict = Depends(require_user)):
+def list_threads(module_id: str | None = None, user: dict = Depends(require_vip_feature)):
     ensure_ai_coach_schema()
     params: list[Any] = [user["user_id"]]
     query = "SELECT * FROM ai_coach_threads WHERE user_id=?"
@@ -1080,7 +1080,7 @@ def list_threads(module_id: str | None = None, user: dict = Depends(require_user
 
 
 @router.get("/threads/{thread_id}")
-def get_thread(thread_id: str, user: dict = Depends(require_user)):
+def get_thread(thread_id: str, user: dict = Depends(require_vip_feature)):
     ensure_ai_coach_schema()
     with get_db() as conn:
         return _thread_payload(
@@ -1091,7 +1091,7 @@ def get_thread(thread_id: str, user: dict = Depends(require_user)):
 
 
 @router.get("/threads/{thread_id}/runs")
-def list_runs(thread_id: str, user: dict = Depends(require_user)):
+def list_runs(thread_id: str, user: dict = Depends(require_vip_feature)):
     ensure_ai_coach_schema()
     with get_db() as conn:
         _owned(conn, "ai_coach_threads", thread_id, user["user_id"])
@@ -1218,6 +1218,7 @@ def _execute_run(thread_id, user_mid, user_text, uid):
                 (thread_id, uid),
             ).fetchall()
         ]
+    consume_ai_credit(uid, feature="ai_coach")
     try:
         provider_result = _call_provider(bundle, context, history)
         if len(provider_result) == 4:  # compatibility for deterministic test providers
@@ -1232,8 +1233,10 @@ def _execute_run(thread_id, user_mid, user_text, uid):
             content, usage, latency, model, output = provider_result
     except ProviderError as exc:
         status, error = exc.status, exc.code
+        refund_ai_credit(uid, feature="ai_coach", reason=error)
     except Exception:
         status, error = "failed", "provider_internal"
+        refund_ai_credit(uid, feature="ai_coach", reason=error)
     else:
         assistant_mid, finished = str(uuid.uuid4()), _now()
         with get_db() as conn:
@@ -1270,7 +1273,7 @@ def _execute_run(thread_id, user_mid, user_text, uid):
 
 
 @router.post("/threads/{thread_id}/messages", status_code=201)
-def send_message(thread_id: str, body: MessageIn, request: Request, user: dict = Depends(require_user)):
+def send_message(thread_id: str, body: MessageIn, request: Request, user: dict = Depends(require_vip_feature)):
     ensure_ai_coach_schema()
     uid = user["user_id"]
     with get_db() as conn:
@@ -1294,7 +1297,7 @@ def send_message(thread_id: str, body: MessageIn, request: Request, user: dict =
 
 
 @router.post("/threads/{thread_id}/runs/{run_id}/retry")
-def retry_run(thread_id: str, run_id: str, request: Request, user: dict = Depends(require_user)):
+def retry_run(thread_id: str, run_id: str, request: Request, user: dict = Depends(require_vip_feature)):
     ensure_ai_coach_schema()
     uid = user["user_id"]
     with get_db() as conn:
@@ -1312,7 +1315,7 @@ def retry_run(thread_id: str, run_id: str, request: Request, user: dict = Depend
 
 
 @router.post("/issue-proposals/{proposal_id}/save")
-def save_proposal(proposal_id: str, user: dict = Depends(require_user)):
+def save_proposal(proposal_id: str, user: dict = Depends(require_vip_feature)):
     ensure_ai_coach_schema()
     uid = user["user_id"]
     now = _now()
@@ -1386,7 +1389,7 @@ def save_proposal(proposal_id: str, user: dict = Depends(require_user)):
 
 @router.post("/threads/{thread_id}/finalize")
 def finalize_message(
-    thread_id: str, body: FinalizeIn, user: dict = Depends(require_user)
+    thread_id: str, body: FinalizeIn, user: dict = Depends(require_vip_feature)
 ):
     """Save a user-approved coach note task; issue creation only uses verified proposals."""
     ensure_ai_coach_schema()

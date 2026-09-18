@@ -651,6 +651,23 @@ def init_db():
         """)
         conn.commit()
 
+        # ── v13 migration: append-only AI 积分消费流水（vip 模式下的扣减/返还）──
+        conn.executescript("""
+            CREATE TABLE IF NOT EXISTS ai_credit_ledger (
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id     INTEGER NOT NULL,
+                username    TEXT NOT NULL,
+                feature     TEXT NOT NULL,
+                delta       INTEGER NOT NULL,
+                status      TEXT NOT NULL,
+                reason      TEXT NOT NULL DEFAULT '',
+                created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+            );
+            CREATE INDEX IF NOT EXISTS idx_ai_credit_ledger_user
+                ON ai_credit_ledger(user_id, id DESC);
+        """)
+        conn.commit()
+
 
 def cleanup_old_events(retention_days: int = 365):
     """Remove learning events older than retention_days (must be positive)."""
