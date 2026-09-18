@@ -96,7 +96,7 @@
       '.inline-v4-coach-card header h3{margin:0!important}.inline-v4-coach-card header small{display:block;color:var(--ink-light);font-size:.67rem;margin-top:2px}',
       '.inline-v4-coach-history{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:9px;padding:13px 2px;scrollbar-width:thin}',
       '.inline-v4-message{max-width:91%;padding:9px 11px;border-radius:10px;color:var(--ink-body);font-size:.76rem;line-height:1.58;white-space:pre-wrap}',
-      '.inline-v4-message.user{display:grid!important;gap:5px;align-self:flex-end;position:relative!important;opacity:1!important;visibility:visible!important;background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#fffef9;border-bottom-right-radius:3px}.inline-v4-message.user.is-latest-user{position:sticky!important;top:0;z-index:3;box-shadow:0 5px 16px rgba(91,70,32,.18)}.inline-v4-message-user-label{font-size:11px;font-weight:700;letter-spacing:.12em;opacity:.78}',
+      '.inline-v4-message.user{display:grid!important;gap:5px;align-self:flex-end;position:relative!important;opacity:1!important;visibility:visible!important;background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#fffef9;border-bottom-right-radius:3px}.inline-v4-message.user.is-latest-user{box-shadow:0 5px 16px rgba(91,70,32,.18)}.inline-v4-message-user-label{font-size:11px;font-weight:700;letter-spacing:.12em;opacity:.78}',
       '.inline-v4-message.assistant{align-self:flex-start;background:#faf6ec;border:1px solid var(--border-light);border-bottom-left-radius:3px}',
       '.inline-v4-coach-empty{margin:auto;text-align:center;color:var(--ink-light);font-size:.74rem;line-height:1.6}',
       '.inline-v4-coach-compose{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;padding-top:11px;border-top:1px solid rgba(176,138,58,.15)}',
@@ -238,9 +238,12 @@
         var sentences = rawContent.match(/[^。！？；]+[。！？；]?/g) || [rawContent];
         rawLines = sentences.map(function (sentence) { return sentence.trim(); }).filter(Boolean);
       }
+      // 只在"句子结束标点之后紧跟编号"时才拆行（例如"先做A。1、再做B"）。
+      // 之前还有一条更宽松的规则——任何空白后面跟着"数字+顿号"就拆行——
+      // 会把"分别为 8、7、5"这种比例表达式误判成"第8步"，
+      // 把"8"抠成一个孤立的编号徽章，正文只剩"7、5（...)"，看起来像乱码。
       var content = esc(rawLines.join('\n'))
-        .replace(/([。；;!?！？])\s*(?=\d+(?:\.\s+|、))/g, '$1\n')
-        .replace(/\s+(?=\d+(?:\.\s+|、))/g, '\n');
+        .replace(/([。；;!?！？])\s*(?=\d+(?:\.\s+|、))/g, '$1\n');
       var formatted = content.split(/\n+/).filter(Boolean).map(function (line) {
         var step = line.match(/^(\d+)(?:\.\s+|、\s*)(.+)$/);
         return step ? '<div class="inline-v4-message-step"><b>' + step[1] + '</b><span>' + step[2] + '</span></div>' : '<p>' + line + '</p>';
