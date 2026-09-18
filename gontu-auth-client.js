@@ -46,21 +46,63 @@
 
   // ── VIP 专属功能提示 ──────────────────────────────────────────────
   // 后端对未开通 VIP（403）或积分用完（402）返回的都是一句人话，
-  // 这里只是把它从一闪而过的 toast 换成一个更郑重、带品牌样式的弹层。
+  // 这里只是把它从一闪而过的 toast 换成一个更郑重的弹层。
+  // 样式照搬 gontu-dialog-card（app 里替换 alert/confirm 用的那套自定义弹窗）：
+  // 米白卡片、20px 圆角、细金边、slideUp 进场；图标用和其他功能图标一样的
+  // 细线条 SVG（无填充、rgba(176,138,58,.7) 描边），不用 emoji、不用大色块圆徽章。
+  const VIP_GATE_STYLE_ID = 'gontu-vip-gate-style';
+  function ensureVipGateStyle() {
+    if (document.getElementById(VIP_GATE_STYLE_ID)) return;
+    const style = document.createElement('style');
+    style.id = VIP_GATE_STYLE_ID;
+    style.textContent = `
+      @keyframes gontuVipFadeIn { from { opacity: 0; } to { opacity: 1; } }
+      @keyframes gontuVipSlideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+      .gontu-vip-gate-overlay {
+        position: fixed; inset: 0; z-index: 100000;
+        display: flex; align-items: center; justify-content: center;
+        background: rgba(26,21,16,0.4); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+        animation: gontuVipFadeIn 0.25s ease;
+      }
+      .gontu-vip-gate-card {
+        width: min(400px, 88vw); background: #fefdf9; border: 1px solid rgba(201,169,110,0.3);
+        border-radius: 20px; padding: 30px 32px 26px; text-align: center;
+        box-shadow: 0 16px 48px rgba(0,0,0,0.15);
+        animation: gontuVipSlideUp 0.3s cubic-bezier(0.16,1,0.3,1);
+        font-family: "Noto Serif SC", "Source Han Serif SC", serif;
+      }
+      .gontu-vip-gate-title { font-size: 1.05rem; font-weight: 700; color: #1e293b; letter-spacing: 1px; margin: 14px 0 8px; }
+      .gontu-vip-gate-msg { font-size: 0.9rem; color: #334155; line-height: 1.8; margin-bottom: 22px; }
+      .gontu-vip-gate-btn {
+        min-width: 120px; padding: 10px 24px; border: none; border-radius: 50px; cursor: pointer;
+        background: linear-gradient(135deg,#c9a96e,#e8d5a3); color: #1a1510; font-weight: 600;
+        font-size: 0.9rem; font-family: inherit; transition: transform 0.2s;
+      }
+      .gontu-vip-gate-btn:hover { transform: translateY(-1px); }
+    `;
+    document.head.appendChild(style);
+  }
+  const VIP_GATE_ICON = `
+    <svg width="30" height="30" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2.5 13.5l-1-7 3.6 2.6L9 4l3.9 5.1 3.6-2.6-1 7z" stroke="rgba(176,138,58,0.75)" stroke-width="1.1" stroke-linejoin="round"/>
+      <line x1="2.5" y1="15.5" x2="15.5" y2="15.5" stroke="rgba(176,138,58,0.5)" stroke-width="1.1" stroke-linecap="round"/>
+    </svg>`;
   let vipModalEl = null;
   function showVipGate(message) {
     if (vipModalEl) { vipModalEl.querySelector('[data-vip-msg]').textContent = message; return; }
+    ensureVipGateStyle();
     const overlay = document.createElement('div');
+    overlay.className = 'gontu-vip-gate-overlay';
     overlay.setAttribute('role', 'dialog');
     overlay.setAttribute('aria-modal', 'true');
-    overlay.style.cssText = 'position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;background:rgba(21,29,40,0.55);backdrop-filter:blur(2px);font-family:"Source Han Serif SC","Noto Serif SC",serif;';
     overlay.innerHTML = `
-      <div style="width:min(380px,88vw);background:#fffef9;border:1px solid rgba(201,169,110,0.4);border-radius:16px;padding:32px 28px 24px;box-shadow:0 24px 60px rgba(0,0,0,0.25);text-align:center;">
-        <div style="width:52px;height:52px;margin:0 auto 16px;border-radius:50%;background:linear-gradient(135deg,#e8d5a3,#c9a96e);display:flex;align-items:center;justify-content:center;font-size:24px;">👑</div>
-        <div style="font-size:1.05rem;font-weight:600;color:#151d28;margin-bottom:8px;">该功能仅限 VIP 使用</div>
-        <div data-vip-msg style="font-size:0.9rem;color:#4b5563;line-height:1.6;margin-bottom:22px;">${message}</div>
-        <button data-vip-dismiss style="min-width:120px;padding:10px 24px;border:none;border-radius:999px;background:#151d28;color:#e8d5a3;font-size:0.9rem;font-family:inherit;cursor:pointer;">我知道了</button>
+      <div class="gontu-vip-gate-card">
+        ${VIP_GATE_ICON}
+        <div class="gontu-vip-gate-title">该功能仅限 VIP 使用</div>
+        <div class="gontu-vip-gate-msg" data-vip-msg></div>
+        <button type="button" class="gontu-vip-gate-btn" data-vip-dismiss>我知道了</button>
       </div>`;
+    overlay.querySelector('[data-vip-msg]').textContent = message;
     overlay.querySelector('[data-vip-dismiss]').addEventListener('click', hideVipGate);
     overlay.addEventListener('click', (e) => { if (e.target === overlay) hideVipGate(); });
     document.body.appendChild(overlay);
