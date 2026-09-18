@@ -115,23 +115,24 @@
       }
       .gontu-status-badge svg { display: block; flex: none; }
       .gontu-status-tip {
-        position: absolute; top: calc(100% + 9px); right: 0;
+        position: absolute; top: calc(100% + 9px); left: 50%;
         background: #2a2015; color: #f3e6c8;
         padding: 7px 12px; border-radius: 9px;
         font-family: "Noto Serif SC", "Source Han Serif SC", serif;
         font-size: 0.68rem; font-weight: 500; letter-spacing: 0.2px;
         white-space: nowrap; box-shadow: 0 10px 24px rgba(0,0,0,0.28);
         opacity: 0; visibility: hidden; pointer-events: none;
-        transform: translateY(-4px); transition: opacity .15s ease, transform .15s ease;
+        transform: translate(-50%, -4px); transition: opacity .15s ease, transform .15s ease;
         z-index: 10;
       }
       .gontu-status-tip::before {
-        content: ''; position: absolute; bottom: 100%; right: 14px;
+        content: ''; position: absolute; bottom: 100%; left: 50%;
+        transform: translateX(-50%);
         border: 5px solid transparent; border-bottom-color: #2a2015;
       }
       .gontu-status-badge:hover .gontu-status-tip,
       .gontu-status-badge:focus-visible .gontu-status-tip {
-        opacity: 1; visibility: visible; transform: translateY(0);
+        opacity: 1; visibility: visible; transform: translate(-50%, 0);
       }
     `;
     document.head.appendChild(style);
