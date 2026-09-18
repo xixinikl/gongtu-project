@@ -994,6 +994,11 @@ async def serve_static(filename: str):
     parts = filename.split("/")
     if len(parts) >= 4 and parts[:2] == ["data", "images"] and parts[2].isdigit():
         raise HTTPException(404)
+    # 三视图题库（含正确答案）是 VIP 专属内容，只能走
+    # GET /api/spatial-learning/three-view-bank 这个鉴权过的接口读取；
+    # 直接暴露这条静态路径会让任何人（甚至未登录）绕开 VIP 校验看到全部答案。
+    if parts[:2] == ["data", "three-view-cases"]:
+        raise HTTPException(404)
     # Skip named page routes that already have dedicated handlers
     if filename in ("", "mindmap", "shenlun"):
         raise HTTPException(404)

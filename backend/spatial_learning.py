@@ -101,6 +101,14 @@ def _grade_three_view(body: SpatialRecordIn) -> tuple[int, int]:
     return score, len(submitted)
 
 
+@router.get("/three-view-bank")
+def get_three_view_bank(user: dict = Depends(require_vip_feature)):
+    """题库内容（含正确答案）本身就是 VIP 专属内容，必须走这个鉴权过的接口，
+    不能再让前端直接拉取 /data/three-view-cases/ 下的静态 JSON——
+    那个路径任何人（甚至未登录）都能直接访问，等于绕过了整个 VIP 校验。"""
+    return json.loads(THREE_VIEW_BANK.read_text(encoding="utf-8"))
+
+
 @router.post("/records", status_code=201)
 def create_record(body: SpatialRecordIn, user: dict = Depends(require_vip_feature)):
     ensure_spatial_learning_schema()

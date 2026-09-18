@@ -8,7 +8,7 @@ import {
   validateThreeViewCase,
 } from "./three-view-case-engine.js";
 
-const BANK_URL = "/data/three-view-cases/black-white-blocks-50.json";
+const BANK_URL = "/api/spatial-learning/three-view-bank";
 const RECORDS_KEY = "gongtu.threeViewTraining.records.v1";
 const COLOR_LABELS = { white: "白", black: "黑" };
 const CUBE_COLORS = {
@@ -575,7 +575,8 @@ function renderGroupOptions(bank) {
 }
 
 async function loadBank() {
-  const response = await fetch(BANK_URL);
+  const auth = window.GontuAuth;
+  const response = auth ? await auth.request(BANK_URL) : await fetch(BANK_URL);
   if (!response.ok) throw new Error(`failed to load ${BANK_URL}: ${response.status}`);
   const bank = await response.json();
   const validation = validateThreeViewBank(bank);
