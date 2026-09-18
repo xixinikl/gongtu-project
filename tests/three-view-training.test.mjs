@@ -107,7 +107,7 @@ test("three-view training page exposes the grouped practice flow", async () => {
   assert.match(css, /body\[data-answered="true"\] \.model-gate/);
   assert.match(css, /\.model-stage[\s\S]*min-height: 300px/);
   assert.match(css, /@media \(max-width: 760px\)/);
-  assert.match(script, /const BANK_URL = "\/data\/three-view-cases\/black-white-blocks-50\.json"/);
+  assert.match(script, /const BANK_URL = "\/api\/spatial-learning\/three-view-bank"/);
   assert.match(script, /const RECORDS_KEY = "gongtu\.threeViewTraining\.records\.v1"/);
   assert.match(script, /VIEW_CAMERA_POSES/);
   assert.match(script, /1 - x/);

@@ -87,6 +87,77 @@
       <path d="M2.5 13.5l-1-7 3.6 2.6L9 4l3.9 5.1 3.6-2.6-1 7z" stroke="rgba(176,138,58,0.75)" stroke-width="1.1" stroke-linejoin="round"/>
       <line x1="2.5" y1="15.5" x2="15.5" y2="15.5" stroke="rgba(176,138,58,0.5)" stroke-width="1.1" stroke-linecap="round"/>
     </svg>`;
+
+  // ── 会员身份徽章 ────────────────────────────────────────────────
+  // 挂在导航栏用户名旁边：VIP 显示皇冠 + 积分 + 到期日，普通用户显示一个
+  // 中性的"普通用户"徽章。用同一套金/墨配色和细线条图标，不用色块emoji。
+  const STATUS_BADGE_STYLE_ID = 'gontu-status-badge-style';
+  function ensureStatusBadgeStyle() {
+    if (document.getElementById(STATUS_BADGE_STYLE_ID)) return;
+    const style = document.createElement('style');
+    style.id = STATUS_BADGE_STYLE_ID;
+    style.textContent = `
+      .gontu-status-badge {
+        position: relative;
+        display: inline-flex; align-items: center; gap: 4px;
+        padding: 2px 9px 2px 7px; border-radius: 999px;
+        font-family: "Noto Serif SC", "Source Han Serif SC", serif;
+        font-size: 0.7rem; font-weight: 700; letter-spacing: 0.4px;
+        white-space: nowrap; vertical-align: middle; cursor: default;
+      }
+      .gontu-status-badge.is-vip {
+        color: #4a3414; background: linear-gradient(135deg,#e8d5a3,#c9a96e);
+        box-shadow: 0 2px 8px rgba(176,138,58,0.3);
+      }
+      .gontu-status-badge.is-user {
+        color: rgba(232,213,163,0.75); background: rgba(232,213,163,0.12);
+        border: 1px solid rgba(232,213,163,0.3);
+      }
+      .gontu-status-badge svg { display: block; flex: none; }
+      .gontu-status-tip {
+        position: absolute; top: calc(100% + 9px); right: 0;
+        background: #2a2015; color: #f3e6c8;
+        padding: 7px 12px; border-radius: 9px;
+        font-family: "Noto Serif SC", "Source Han Serif SC", serif;
+        font-size: 0.68rem; font-weight: 500; letter-spacing: 0.2px;
+        white-space: nowrap; box-shadow: 0 10px 24px rgba(0,0,0,0.28);
+        opacity: 0; visibility: hidden; pointer-events: none;
+        transform: translateY(-4px); transition: opacity .15s ease, transform .15s ease;
+        z-index: 10;
+      }
+      .gontu-status-tip::before {
+        content: ''; position: absolute; bottom: 100%; right: 14px;
+        border: 5px solid transparent; border-bottom-color: #2a2015;
+      }
+      .gontu-status-badge:hover .gontu-status-tip,
+      .gontu-status-badge:focus-visible .gontu-status-tip {
+        opacity: 1; visibility: visible; transform: translateY(0);
+      }
+    `;
+    document.head.appendChild(style);
+  }
+  const STATUS_BADGE_CROWN_ICON =
+    '<svg width="12" height="12" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+    '<path d="M2.5 13.5l-1-7 3.6 2.6L9 4l3.9 5.1 3.6-2.6-1 7z" stroke="#4a3414" stroke-width="1.3" stroke-linejoin="round"/>' +
+    '<line x1="2.5" y1="15.5" x2="15.5" y2="15.5" stroke="#4a3414" stroke-width="1.3" stroke-linecap="round"/></svg>';
+  function statusBadgeHTML(data) {
+    if (!data) return '';
+    if (data.is_vip) {
+      const credits = data.ai_credits ?? 0;
+      const expiry = data.vip_expires_at ? `${data.vip_expires_at} 到期` : '长期有效';
+      return `<span class="gontu-status-badge is-vip" tabindex="0">${STATUS_BADGE_CROWN_ICON}VIP<span class="gontu-status-tip">${credits} 积分 · ${expiry}</span></span>`;
+    }
+    return '<span class="gontu-status-badge is-user">普通用户</span>';
+  }
+  async function mountStatusBadge(target) {
+    const el = typeof target === 'string' ? document.querySelector(target) : target;
+    if (!el) return;
+    ensureStatusBadgeStyle();
+    const data = await me();
+    if (!data) { el.innerHTML = ''; return; }
+    el.innerHTML = statusBadgeHTML(data);
+  }
+
   let vipModalEl = null;
   function showVipGate(message) {
     if (vipModalEl) { vipModalEl.querySelector('[data-vip-msg]').textContent = message; return; }
@@ -198,6 +269,8 @@
     me,
     showVipGate,
     hideVipGate,
-    guardVipPage
+    guardVipPage,
+    statusBadgeHTML,
+    mountStatusBadge
   });
 })(window);

@@ -35,7 +35,8 @@
         if (user) {
             var isAdmin = Number(user.is_admin || localStorage.getItem('is_admin')) === 1;
             var adminAction = isAdmin ? '<button class="btn-nav" onclick="window.location.href=\'/admin\'"><span>管理后台</span></button>' : '';
-            authArea.innerHTML = '<span style="color:rgba(232,213,163,0.85);font-size:0.85rem;margin-right:8px;letter-spacing:1px;">' + escapeHTML(user.username || '用户') + '</span>' + adminAction + '<button class="btn-nav btn-logout" onclick="logout()" style="background:rgba(196,75,58,0.2);color:#c44b3a;border:1px solid rgba(196,75,58,0.4);"><span>退出</span></button>';
+            authArea.innerHTML = '<span id="navStatusBadge" style="margin-right:8px;"></span><span style="color:rgba(232,213,163,0.85);font-size:0.85rem;margin-right:8px;letter-spacing:1px;">' + escapeHTML(user.username || '用户') + '</span>' + adminAction + '<button class="btn-nav btn-logout" onclick="logout()" style="background:rgba(196,75,58,0.2);color:#c44b3a;border:1px solid rgba(196,75,58,0.4);"><span>退出</span></button>';
+            if (window.GontuAuth) window.GontuAuth.mountStatusBadge('#navStatusBadge');
         } else {
             authArea.innerHTML = '<button class="btn-nav" onclick="openLoginModal()" style="margin-right:8px;"><span>登录</span></button><button class="btn-nav" onclick="openRegisterModal()"><span>注册</span></button>';
         }

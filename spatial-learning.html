@@ -1,28 +1,112 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>立体图推学习中心 · 公途</title><link rel="stylesheet" href="/spatial-learning-shell.css"><style>
-*{box-sizing:border-box}body{margin:0;min-height:100vh;color:var(--sp-ink);background:radial-gradient(circle at 12% 8%,rgba(216,183,119,.2),transparent 34%),var(--sp-paper);font-family:"PingFang SC","Microsoft YaHei",sans-serif}.top{display:flex;align-items:center;justify-content:space-between;padding:18px clamp(18px,5vw,70px);border-bottom:1px solid var(--sp-line);background:rgba(255,253,248,.88)}.brand{color:inherit;text-decoration:none;font-size:22px;font-weight:800}.brand small{display:block;color:var(--sp-soft);font-size:12px;font-weight:500}.shell{width:min(1120px,calc(100% - 32px));margin:42px auto}.intro{display:grid;grid-template-columns:1.4fr .8fr;gap:20px}.card{padding:clamp(22px,4vw,42px);border:1px solid var(--sp-line);border-radius:20px;background:rgba(255,253,248,.92);box-shadow:0 16px 55px rgba(63,47,28,.09)}h1{font-size:clamp(30px,5vw,52px);margin:8px 0 16px}.muted{color:var(--sp-soft);line-height:1.8}.continue{display:inline-flex;margin-top:20px;padding:12px 20px;border-radius:12px;background:var(--sp-teal);color:#fff;text-decoration:none;font-weight:700}.path{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:20px}.module{display:flex;min-height:190px;flex-direction:column;padding:22px;border:1px solid var(--sp-line);border-radius:18px;background:#fffdf8;color:inherit;text-decoration:none}.module b{color:var(--sp-gold);font-size:13px}.module h2{margin:16px 0 8px;font-size:22px}.module p{margin:0;color:var(--sp-soft);line-height:1.65}.module span{margin-top:auto;color:var(--sp-teal);font-weight:700}.facts{display:grid;gap:16px}.facts strong{font-size:28px}.facts span{color:var(--sp-soft)}@media(max-width:800px){.intro{grid-template-columns:1fr}.path{grid-template-columns:1fr 1fr}}@media(max-width:520px){.path{grid-template-columns:1fr}.shell{margin-top:22px}.top{align-items:flex-start}}
-</style></head><body><header class="top"><a class="brand" href="/app">公途<small>立体图推学习中心</small></a><a class="spatial-center-link" href="/app">返回学习页</a></header><main class="shell"><section class="intro"><article class="card"><p>按空间认知顺序学习</p><h1>先看懂，再判断，最后自己验证</h1><p class="muted">四段主链保留各自最适合学习与操作的布局。三视图记录真实答案与用时；实验只记录完成任务和最近位置，不把探索伪装成正确率。</p><a id="continue-link" class="continue" href="/section-foundation.html">从基础截面开始</a></article><aside class="card facts"><div><strong id="completed-count">0 / 4</strong><br><span>已完成模块</span></div><div><strong id="last-label">尚未开始</strong><br><span>最近学习</span></div></aside></section><nav id="learning-path" class="path" aria-label="推荐学习路径"></nav></main><script type="module">
-const catalog=await fetch('/data/spatial-learning-modules.json').then(r=>r.json());const path=document.querySelector('#learning-path');for(const item of catalog.modules){const a=document.createElement('a');a.className='module';a.href=item.href;a.innerHTML=`<b>第 ${item.order} 段</b><h2>${item.title}</h2><p>${item.description}</p><span>进入学习 →</span>`;path.append(a)}let last=null;try{last=JSON.parse(localStorage.getItem('gongtu.spatial.preview.last')||'null')}catch{}if(last){const item=catalog.modules.find(x=>x.id===last.moduleId);if(item){document.querySelector('#continue-link').href=item.href;document.querySelector('#continue-link').textContent=`继续：${item.title}`;document.querySelector('#last-label').textContent=item.title}}
-</script><script src="/gontu-auth-client.js"></script><script type="module">
-if(window.GontuAuth?.token()){const r=await window.GontuAuth.request('/api/spatial-learning/overview');if(r.ok){const o=await r.json();document.querySelector('#completed-count').textContent=`${o.completed_count} / 4`;if(o.last){const item=catalog.modules.find(x=>x.id===o.last.stage_id);if(item){document.querySelector('#continue-link').href=item.href;document.querySelector('#continue-link').textContent=`继续：${item.title}`;document.querySelector('#last-label').textContent=item.title}}}}
-</script><script src="/gontu-auth-client.js"></script><script type="module">
-const auth=window.GontuAuth;
-if(auth?.token()){
-  try{
-    const response=await auth.request('/api/spatial-learning/overview');
-    if(!response.ok) throw Object.assign(new Error('空间进度读取失败'),{status:response.status});
-    const overview=await response.json();
-    const catalog=await fetch('/data/spatial-learning-modules.json').then(r=>r.json());
-    document.querySelector('#completed-count').textContent=`${overview.completed_count} / 4`;
-    if(overview.last){
-      const item=catalog.modules.find(entry=>entry.id===overview.last.stage_id);
-      if(item){
-        document.querySelector('#last-label').textContent=item.title;
-        document.querySelector('#continue-link').href=item.href;
-        document.querySelector('#continue-link').textContent=`继续：${item.title}`;
-      }
-    }
-  }catch(error){
-    if(error?.status===401) auth.clearIdentity();
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>立体图推学习中心 · 公途</title>
+<link rel="stylesheet" href="/spatial-learning-shell.css">
+<script src="/gontu-auth-client.js"></script>
+<script>window.GontuAuth && window.GontuAuth.guardVipPage();</script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;color:var(--sp-ink);background:radial-gradient(circle at 12% 8%,rgba(216,183,119,.22),transparent 34%),radial-gradient(circle at 88% 92%,rgba(167,122,56,.1),transparent 40%),var(--sp-paper);font-family:"PingFang SC","Microsoft YaHei",sans-serif}
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px clamp(18px,5vw,70px);border-bottom:1px solid var(--sp-line);background:rgba(255,253,248,.9);backdrop-filter:blur(6px)}
+.brand{display:flex;align-items:center;gap:12px;color:inherit;text-decoration:none}
+.brand-mark{width:42px;height:42px;display:grid;place-items:center;flex:0 0 42px;border-radius:13px;background:linear-gradient(145deg,#d8b777,#9a712f);color:#241b0f;font:700 19px/1 "Noto Serif SC","STKaiti",serif;box-shadow:inset 0 1px rgba(255,255,255,.6),0 8px 18px rgba(86,62,25,.14)}
+.brand-copy strong{display:block;font:700 18px/1.2 "Noto Serif SC",serif;letter-spacing:.02em}
+.brand-copy small{display:block;margin-top:2px;color:var(--sp-soft);font-size:12px;letter-spacing:.06em}
+.top-actions{display:flex;align-items:center;gap:10px}
+.back-link{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border:1px solid var(--sp-line);border-radius:999px;color:var(--sp-ink);text-decoration:none;font-size:13px;font-weight:600;background:#fffdf8;transition:box-shadow .2s}
+.back-link:hover{box-shadow:0 4px 14px rgba(96,67,20,.14)}
+.shell{width:min(1120px,calc(100% - 32px));margin:44px auto 64px}
+.intro{display:grid;grid-template-columns:1.4fr .8fr;gap:20px}
+.card{padding:clamp(24px,4vw,42px);border:1px solid rgba(167,122,56,.22);border-radius:20px;background:#fffdf8;box-shadow:0 18px 55px rgba(63,47,28,.1)}
+.eyebrow{margin:0;color:#a77a38;font-size:13px;font-weight:700;letter-spacing:.14em}
+h1{font-family:"Noto Serif SC",serif;font-size:clamp(28px,4.6vw,46px);line-height:1.28;margin:10px 0 16px;letter-spacing:.01em}
+.muted{color:var(--sp-soft);line-height:1.85}
+.continue{display:inline-flex;align-items:center;gap:8px;margin-top:22px;padding:13px 22px;border-radius:12px;background:linear-gradient(135deg,#d8b777,#a77a38);color:#2b2010;text-decoration:none;font-weight:700;font-size:14px;letter-spacing:.02em;box-shadow:0 10px 26px rgba(150,110,40,.28);transition:transform .2s}
+.continue:hover{transform:translateY(-1px)}
+.facts{display:grid;gap:18px;align-content:center}
+.facts div+div{padding-top:16px;border-top:1px solid var(--sp-line)}
+.facts strong{display:block;font-family:"Noto Serif SC",serif;font-size:30px;color:#5c4319}
+.facts span{color:var(--sp-soft);font-size:13px}
+.path{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:20px}
+.module{display:flex;min-height:196px;flex-direction:column;padding:24px;border:1px solid rgba(167,122,56,.18);border-radius:18px;background:#fffdf8;color:inherit;text-decoration:none;transition:box-shadow .2s,transform .2s}
+.module:hover{box-shadow:0 14px 34px rgba(96,67,20,.14);transform:translateY(-2px)}
+.module b{color:#a77a38;font-size:12px;font-weight:700;letter-spacing:.08em}
+.module h2{margin:14px 0 8px;font-family:"Noto Serif SC",serif;font-size:21px}
+.module p{margin:0;color:var(--sp-soft);line-height:1.7;font-size:13.5px}
+.module span{margin-top:auto;padding-top:14px;color:#8c6825;font-weight:700;font-size:13px}
+@media(max-width:800px){.intro{grid-template-columns:1fr}.path{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.path{grid-template-columns:1fr}.shell{margin-top:24px}.top{align-items:flex-start}}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="/app">
+    <span class="brand-mark">公</span>
+    <span class="brand-copy"><strong>公途</strong><small>立体图推学习中心</small></span>
+  </a>
+  <div class="top-actions">
+    <span id="navStatusBadge"></span>
+    <a class="back-link" href="/app">← 返回学习页</a>
+  </div>
+</header>
+<main class="shell">
+  <section class="intro">
+    <article class="card">
+      <p class="eyebrow">按空间认知顺序学习</p>
+      <h1>先看懂，再判断，最后自己验证</h1>
+      <p class="muted">四段主链保留各自最适合学习与操作的布局。三视图记录真实答案与用时；实验只记录完成任务和最近位置，不把探索伪装成正确率。</p>
+      <a id="continue-link" class="continue" href="/section-foundation.html">从基础截面开始 →</a>
+    </article>
+    <aside class="card facts">
+      <div><strong id="completed-count">0 / 4</strong><span>已完成模块</span></div>
+      <div><strong id="last-label">尚未开始</strong><span>最近学习</span></div>
+    </aside>
+  </section>
+  <nav id="learning-path" class="path" aria-label="推荐学习路径"></nav>
+</main>
+<script type="module">
+  const auth = window.GontuAuth;
+  if (auth) auth.mountStatusBadge('#navStatusBadge');
+
+  const catalog = await fetch('/data/spatial-learning-modules.json').then((r) => r.json());
+  const path = document.querySelector('#learning-path');
+  for (const item of catalog.modules) {
+    const a = document.createElement('a');
+    a.className = 'module';
+    a.href = item.href;
+    a.innerHTML = `<b>第 ${item.order} 段</b><h2>${item.title}</h2><p>${item.description}</p><span>进入学习 →</span>`;
+    path.append(a);
   }
-}
-</script></body></html>
+
+  function applyLast(stageId, completedCount) {
+    const item = catalog.modules.find((entry) => entry.id === stageId);
+    if (!item) return;
+    document.querySelector('#last-label').textContent = item.title;
+    document.querySelector('#continue-link').href = item.href;
+    document.querySelector('#continue-link').textContent = `继续：${item.title} →`;
+    if (completedCount != null) document.querySelector('#completed-count').textContent = `${completedCount} / 4`;
+  }
+
+  // 未登录时先用本地缓存的"上次预览"占位，登录后以后端真实进度为准。
+  try {
+    const last = JSON.parse(localStorage.getItem('gongtu.spatial.preview.last') || 'null');
+    if (last) applyLast(last.moduleId, null);
+  } catch (_) { /* ignore malformed local cache */ }
+
+  if (auth?.token()) {
+    try {
+      const response = await auth.request('/api/spatial-learning/overview');
+      if (!response.ok) throw Object.assign(new Error('空间进度读取失败'), { status: response.status });
+      const overview = await response.json();
+      document.querySelector('#completed-count').textContent = `${overview.completed_count} / 4`;
+      if (overview.last) applyLast(overview.last.stage_id, overview.completed_count);
+    } catch (error) {
+      if (error?.status === 401) auth.clearIdentity();
+    }
+  }
+</script>
+</body>
+</html>

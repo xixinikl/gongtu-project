@@ -603,7 +603,10 @@ window.addEventListener("resize", resizeRenderer);
 
 loadBank().catch((error) => {
   elements.title.textContent = "题库载入失败";
-  elements.prompt.textContent = error.message;
+  // guardVipPage() 已经在非 VIP 时挡住整页；这里兜底的是"确实是 VIP 但题库
+  // 因为别的原因（网络、服务重启等）加载失败"这种情况，所以不再把接口路径和
+  // HTTP 状态码这类开发者信息原样展示给用户。
+  elements.prompt.textContent = "请刷新页面重试；如果一直失败，请稍后再来。";
   elements.canvas.dataset.validation = "load-failed";
   console.error(error);
 });
