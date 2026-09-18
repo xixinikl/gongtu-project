@@ -190,7 +190,11 @@
   // 任何VIP校验，谁都能直接打开用。做法：先盖一层不透明遮罩挡住整页
   // （不管下面的 Three.js 场景有没有已经开始跑），再异步查一次权限；
   // 通过就掀开遮罩，不通过就把遮罩换成"仅限VIP"的说明，永远不掀开。
-  function guardVipPage(checkPath) {
+  function guardVipPage(checkPath, redirectTo) {
+    // 拦截失败后"返回"按钮的去处：默认回立体图推学习中心；但如果这个
+    // 门禁就架在学习中心页面自己身上（该模块整体仅 VIP），再指回自己
+    // 等于原地不动，这里退回主学习页 /app。
+    const target = redirectTo || (location.pathname === '/spatial-learning.html' ? '/app' : '/spatial-learning.html');
     ensureVipGateStyle();
     const style = document.createElement('style');
     style.textContent = `
@@ -222,7 +226,7 @@
           </div>`;
         blocker.querySelector('.gontu-vip-gate-msg').textContent = detail;
         blocker.querySelector('.gontu-vip-gate-btn').addEventListener('click', () => {
-          location.href = '/spatial-learning.html';
+          location.href = target;
         });
       });
     }).catch(() => { blocker.remove(); });
