@@ -112,6 +112,50 @@
     if (vipModalEl) { vipModalEl.remove(); vipModalEl = null; }
   }
 
+  // ── 整页 VIP 门禁 ─────────────────────────────────────────────────
+  // 用于本身不调用任何后端接口的纯前端页面（比如三维空间几何的几个
+  // Three.js 训练页）——它们没有数据请求可以拦截，所以之前完全没有
+  // 任何VIP校验，谁都能直接打开用。做法：先盖一层不透明遮罩挡住整页
+  // （不管下面的 Three.js 场景有没有已经开始跑），再异步查一次权限；
+  // 通过就掀开遮罩，不通过就把遮罩换成"仅限VIP"的说明，永远不掀开。
+  function guardVipPage(checkPath) {
+    ensureVipGateStyle();
+    const style = document.createElement('style');
+    style.textContent = `
+      .gontu-vip-block-overlay {
+        position: fixed; inset: 0; z-index: 100001; background: #fdfbf5;
+        display: flex; align-items: center; justify-content: center;
+      }
+    `;
+    document.head.appendChild(style);
+    const blocker = document.createElement('div');
+    blocker.className = 'gontu-vip-block-overlay';
+    document.documentElement.appendChild(blocker);
+
+    request(checkPath || '/api/spatial-learning/overview', { silent: true }).then((response) => {
+      if (response.ok) { blocker.remove(); return; }
+      return (response.status === 402 || response.status === 403
+        ? response.json().catch(() => ({}))
+        : Promise.resolve({})
+      ).then((body) => {
+        const detail = (body && (typeof body.detail === 'string' ? body.detail : body.detail?.message))
+          || '该功能仅限 VIP 用户使用，请联系管理员开通';
+        ensureVipGateStyle();
+        blocker.innerHTML = `
+          <div class="gontu-vip-gate-card">
+            ${VIP_GATE_ICON}
+            <div class="gontu-vip-gate-title">该功能仅限 VIP 使用</div>
+            <div class="gontu-vip-gate-msg"></div>
+            <button type="button" class="gontu-vip-gate-btn">返回学习页</button>
+          </div>`;
+        blocker.querySelector('.gontu-vip-gate-msg').textContent = detail;
+        blocker.querySelector('.gontu-vip-gate-btn').addEventListener('click', () => {
+          location.href = '/spatial-learning.html';
+        });
+      });
+    }).catch(() => { blocker.remove(); });
+  }
+
   async function request(path, options) {
     const url = /^https?:\/\//.test(path) ? path : `${API_BASE}${path}`;
     const value = token();
@@ -119,7 +163,7 @@
     if (value) headers.Authorization = `Bearer ${value}`;
     const response = await fetch(url, Object.assign({}, options || {}, { headers }));
     if (response.status === 401) clearIdentity('unauthorized');
-    if (response.status === 402 || response.status === 403) {
+    if (!options?.silent && (response.status === 402 || response.status === 403)) {
       response.clone().json().then((body) => {
         const detail = body && (typeof body.detail === 'string' ? body.detail : body.detail?.message);
         if (detail) showVipGate(detail);
@@ -153,6 +197,7 @@
     request,
     me,
     showVipGate,
-    hideVipGate
+    hideVipGate,
+    guardVipPage
   });
 })(window);
