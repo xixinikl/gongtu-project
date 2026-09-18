@@ -1009,4 +1009,9 @@ async def serve_static(filename: str):
     mime_type, _ = mimetypes.guess_type(filepath)
     if mime_type is None:
         mime_type = "application/octet-stream"
-    return FileResponse(filepath, media_type=mime_type)
+    response = FileResponse(filepath, media_type=mime_type)
+    if filepath.endswith(".html"):
+        # 页面通过裸 URL 直接访问（不像 JS/CSS 带 ?v= 版本号做缓存失效），
+        # 若不强制重新校验，浏览器可能在刷新时仍展示改版前的旧页面。
+        response.headers["Cache-Control"] = "no-cache, must-revalidate"
+    return response
