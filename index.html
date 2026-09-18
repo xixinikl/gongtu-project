@@ -3822,7 +3822,7 @@
         <div class="showcase-visual">
             <div class="mindmap-cat-grid">
                 <!-- 01 位置 -->
-                <div class="mindmap-cat-card" onmousemove="var r=this.getBoundingClientRect();this.style.setProperty('--card-spot-x',(event.clientX-r.left)+'px');this.style.setProperty('--card-spot-y',(event.clientY-r.top)+'px');this.classList.add('active-spotlight')" onmouseleave="this.classList.remove('active-spotlight')">
+                <div class="mindmap-cat-card" onmousemove="cardSpotlight(this,event)" onmouseleave="this.classList.remove('active-spotlight')">
                     <div class="mindmap-cat-num">01</div>
                     <div class="mindmap-cat-title">位置</div>
                     <div class="mindmap-cat-subtitle">Position</div>
@@ -3832,7 +3832,7 @@
                     </div>
                 </div>
                 <!-- 02 样式 -->
-                <div class="mindmap-cat-card" onmousemove="var r=this.getBoundingClientRect();this.style.setProperty('--card-spot-x',(event.clientX-r.left)+'px');this.style.setProperty('--card-spot-y',(event.clientY-r.top)+'px');this.classList.add('active-spotlight')" onmouseleave="this.classList.remove('active-spotlight')">
+                <div class="mindmap-cat-card" onmousemove="cardSpotlight(this,event)" onmouseleave="this.classList.remove('active-spotlight')">
                     <div class="mindmap-cat-num">02</div>
                     <div class="mindmap-cat-title">样式</div>
                     <div class="mindmap-cat-subtitle">Pattern</div>
@@ -3842,7 +3842,7 @@
                     </div>
                 </div>
                 <!-- 03 属性 -->
-                <div class="mindmap-cat-card" onmousemove="var r=this.getBoundingClientRect();this.style.setProperty('--card-spot-x',(event.clientX-r.left)+'px');this.style.setProperty('--card-spot-y',(event.clientY-r.top)+'px');this.classList.add('active-spotlight')" onmouseleave="this.classList.remove('active-spotlight')">
+                <div class="mindmap-cat-card" onmousemove="cardSpotlight(this,event)" onmouseleave="this.classList.remove('active-spotlight')">
                     <div class="mindmap-cat-num">03</div>
                     <div class="mindmap-cat-title">属性</div>
                     <div class="mindmap-cat-subtitle">Attribute</div>
@@ -3852,7 +3852,7 @@
                     </div>
                 </div>
                 <!-- 04 数量 -->
-                <div class="mindmap-cat-card" onmousemove="var r=this.getBoundingClientRect();this.style.setProperty('--card-spot-x',(event.clientX-r.left)+'px');this.style.setProperty('--card-spot-y',(event.clientY-r.top)+'px');this.classList.add('active-spotlight')" onmouseleave="this.classList.remove('active-spotlight')">
+                <div class="mindmap-cat-card" onmousemove="cardSpotlight(this,event)" onmouseleave="this.classList.remove('active-spotlight')">
                     <div class="mindmap-cat-num">04</div>
                     <div class="mindmap-cat-title">数量</div>
                     <div class="mindmap-cat-subtitle">Quantity</div>
@@ -4128,6 +4128,14 @@ function throttle(fn, delay) {
     };
 }
 
+// 把鼠标聚光效果的 getBoundingClientRect 节流，避免每次鼠标移动都强制一次布局计算。
+const cardSpotlight = throttle(function(card, event) {
+    var r = card.getBoundingClientRect();
+    card.style.setProperty('--card-spot-x', (event.clientX - r.left) + 'px');
+    card.style.setProperty('--card-spot-y', (event.clientY - r.top) + 'px');
+    card.classList.add('active-spotlight');
+}, 24);
+
 // INTERACTIVE INK SYSTEM — 交互式水墨系统
 // ============================================
 
@@ -4261,14 +4269,14 @@ function throttle(fn, delay) {
     }
     var ctaSection = document.getElementById('cta');
     if (!ctaSection || window.matchMedia('(hover: none) and (pointer: coarse)').matches) return;
-    ctaSection.addEventListener('mousemove', function(e) {
+    ctaSection.addEventListener('mousemove', throttle(function(e) {
         var r = ctaSection.getBoundingClientRect();
         ctaSection.style.setProperty('--cta-spot-x', (e.clientX - r.left) + 'px');
         ctaSection.style.setProperty('--cta-spot-y', (e.clientY - r.top) + 'px');
         if (!ctaSection.classList.contains('cta-spotlight')) {
             ctaSection.classList.add('cta-spotlight');
         }
-    });
+    }, 24));
     ctaSection.addEventListener('mouseleave', function() {
         ctaSection.classList.remove('cta-spotlight');
     });

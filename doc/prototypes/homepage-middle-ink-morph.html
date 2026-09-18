@@ -940,6 +940,12 @@
     let currentIndex = 0;
     let scrollRaf = 0;
     let wheelGestureActive = false;
+    // wheel 是 passive:false（需要 preventDefault 才能接管滚动），
+    // 这意味着浏览器每次滚轮事件都要等这个函数跑完才能继续滚动。
+    // 之前每次都现场调用 getBoundingClientRect() 强制重新排版，
+    // 页面任何地方一滚轮就卡一下。改成只读这份由 updateFromScrollNow()
+    // 顺带更新的缓存值，避免每次滚轮都强制同步布局。
+    let storyBoundsCache = { top: 0, bottom: 0 };
     let wheelGestureTimer = 0;
     let spatialIndex = 0;
     let spatialTimer = 0;
@@ -1083,6 +1089,8 @@
 
     function updateFromScrollNow() {
       const rect = story.getBoundingClientRect();
+      storyBoundsCache.top = rect.top;
+      storyBoundsCache.bottom = rect.bottom;
       const travel = story.offsetHeight - innerHeight;
       const progress = Math.max(0, Math.min(1, -rect.top / Math.max(1, travel)));
       const scenePosition = progress * (scenes.length - 1);
@@ -1111,8 +1119,7 @@
 
     function stepStoryOnWheel(event) {
       if (Math.abs(event.deltaY) < 6 || Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
-      const rect = story.getBoundingClientRect();
-      const storyIsPinned = rect.top <= 1 && rect.bottom >= innerHeight - 1;
+      const storyIsPinned = storyBoundsCache.top <= 1 && storyBoundsCache.bottom >= innerHeight - 1;
       if (!storyIsPinned) return;
       if (wheelGestureActive) {
         event.preventDefault();
