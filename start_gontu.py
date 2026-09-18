@@ -187,7 +187,9 @@ def main():
     # 4. 启动服务
     host = "127.0.0.1"
     port = args.port
-    cmd = [python_cmd, "-m", "uvicorn", "main:app", "--host", host, "--port", port]
+    # --reload：backend 代码改了（比如 git pull 拉到新提交）进程会自动
+    # 重启拿到最新代码，不用每次手动 Ctrl+C 再重开一遍。
+    cmd = [python_cmd, "-m", "uvicorn", "main:app", "--host", host, "--port", port, "--reload"]
 
     print(f"🌐 启动服务: http://{host}:{port}")
     print("-" * 40)
