@@ -159,7 +159,8 @@ def test_gitignore_has_windows():
 
 @test("当前不在 main 分支")
 def test_not_on_main():
-    if os.environ.get("GONGTU_ALLOW_MAIN_DAILY_ACCEPTANCE") == "1":
+    # 这条规则约束的是本地开发，CI 在合并后的 main 上运行时不适用
+    if os.environ.get("GONGTU_ALLOW_MAIN_DAILY_ACCEPTANCE") == "1" or os.environ.get("GITHUB_ACTIONS") == "true":
         return
     result = subprocess.run(['git', 'branch', '--show-current'],
                             capture_output=True, text=True, cwd=PROJECT_DIR)

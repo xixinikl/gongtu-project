@@ -14,7 +14,7 @@ from fastapi import HTTPException, Request
 try:
     from auth_rate_limit import SlidingWindowRateLimiter, request_source
 except ModuleNotFoundError:  # package-style imports used by isolated tests
-    from .auth_rate_limit import SlidingWindowRateLimiter, request_source
+    from .auth_rate_limit import SlidingWindowRateLimiter, request_source  # type: ignore[no-redef]
 
 
 WINDOW_SECONDS = 24 * 60 * 60
