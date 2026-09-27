@@ -180,6 +180,26 @@ class VipAccessControlTests(unittest.TestCase):
         provider.assert_not_called()
         self.assertEqual(resp.status_code, 402)
 
+    def test_admin_grades_in_vip_mode_without_spending_credits(self):
+        self._set_mode("vip")
+        qid = _question_id()
+        with patch.object(shenlun, "llm_grade", return_value=_grading_result()):
+            resp = self.client.post(
+                "/api/shenlun/grade",
+                headers={**self.admin, "Idempotency-Key": "vip-credit-admin-1"},
+                json={"questionId": qid, "studentAnswer": "作答内容" * 10},
+            )
+        self.assertEqual(resp.status_code, 200, resp.text)
+        with patch.object(shenlun, "llm_grade", side_effect=RuntimeError("provider down")):
+            failed = self.client.post(
+                "/api/shenlun/grade",
+                headers={**self.admin, "Idempotency-Key": "vip-credit-admin-2"},
+                json={"questionId": qid, "studentAnswer": "另一份作答" * 10},
+            )
+        self.assertEqual(failed.status_code, 503)
+        me = self.client.get("/api/auth/me", headers=self.admin).json()
+        self.assertEqual(me.get("ai_credits", 0), 0)
+
     def test_plain_user_never_reaches_the_provider_in_vip_mode(self):
         self._set_mode("vip")
         qid = _question_id()
