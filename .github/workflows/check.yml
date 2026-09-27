@@ -6,8 +6,6 @@ on:
   push:
     branches:
       - main
-      - feature/spatial-geometry-lab
-      - feature/spatial-geometry-agent2
 
 jobs:
   frontend-check:

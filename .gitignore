@@ -34,3 +34,9 @@ desktop/node_modules/
 desktop/dist/
 node_modules/
 output/
+
+# 来自 main（Windows 系统文件、每日验收报告、检查缓存）
+.agent-factory/out/
+quality-dashboard/data/
+.mypy_cache/
+.ruff_cache/

@@ -159,6 +159,8 @@ def test_gitignore_has_windows():
 
 @test("当前不在 main 分支")
 def test_not_on_main():
+    if os.environ.get("GONGTU_ALLOW_MAIN_DAILY_ACCEPTANCE") == "1":
+        return
     result = subprocess.run(['git', 'branch', '--show-current'],
                             capture_output=True, text=True, cwd=PROJECT_DIR)
     assert result.stdout.strip() != 'main', "当前在 main 分支，不应直接修改 main！"

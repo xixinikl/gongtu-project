@@ -1,0 +1,30 @@
+name: Xixi Weekly Collaboration Review
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "10 23 * * 0"
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Build weekly evidence review
+        run: python3 .xds-system/xds.py weekly-review --project . --date "$(TZ=Asia/Shanghai date +%F)"
+      - name: Write summary
+        if: always()
+        run: cat ".xds/reports/weekly/$(TZ=Asia/Shanghai date +%F).md" >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload weekly review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xds-weekly-review
+          path: .xds/reports/weekly/
+          retention-days: 90

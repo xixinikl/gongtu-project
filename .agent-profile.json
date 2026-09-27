@@ -4,6 +4,6 @@
   "projectName": "公途 gongtu-project",
   "repository": "https://github.com/xixinikl/gongtu-project.git",
   "doctorCommand": "npm run doctor",
-  "qualityDashboardUrl": "",
+  "qualityDashboardUrl": "https://xixinikl.github.io/gongtu-project/",
   "retrospectiveDirectory": "doc/retrospectives"
 }

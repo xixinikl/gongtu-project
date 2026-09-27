@@ -207,6 +207,9 @@ def main():
             print(f"   访问: http://{host}:{port}")
             print("   停止: kill", process.pid)
         else:
+            if args.bg and platform.system() == "Windows":
+                print("⚠️  Windows 暂不支持 --bg 后台模式，将以前台模式运行")
+                print("   请勿关闭此窗口，按 Ctrl+C 停止服务")
             subprocess.run(cmd, cwd=backend_dir, check=True)
     except KeyboardInterrupt:
         print("\n👋 服务已停止")

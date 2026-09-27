@@ -1,0 +1,127 @@
+name: 每日验收
+
+"on":
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      target_date:
+        description: "验收日期 YYYY-MM-DD，留空则使用当天"
+        required: false
+        default: ""
+  schedule:
+    # GitHub cron uses UTC. 22:40 UTC is 06:40 Asia/Shanghai.
+    - cron: "40 22 * * *"
+
+permissions:
+  contents: read
+  actions: read
+  pages: write
+  id-token: write
+
+jobs:
+  daily-acceptance:
+    name: 公途每日 L0 验收
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 安装 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: 解析验收日期
+        id: date
+        run: |
+          if [ -n "${{ github.event.inputs.target_date }}" ]; then
+            echo "value=${{ github.event.inputs.target_date }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=$(TZ=Asia/Shanghai date +%F)" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: 安装后端依赖
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r backend/requirements.txt
+
+      - name: 运行每日验收
+        id: acceptance
+        continue-on-error: true
+        run: |
+          bash .agent-factory/scripts/daily-check.sh --date "${{ steps.date.outputs.value }}"
+
+      - name: 生成人类日报
+        if: always()
+        run: |
+          python .agent-factory/scripts/render-human-report.py "${{ steps.date.outputs.value }}"
+
+      - name: 生成项目复盘候选
+        if: always()
+        run: |
+          python .agent-factory/scripts/render-retrospective-candidate.py "${{ steps.date.outputs.value }}"
+
+      - name: 生成报告中心数据
+        if: always()
+        run: |
+          python3 .agent-factory/scripts/publish-dashboard.py "${{ steps.date.outputs.value }}" \
+            --previous-base-url "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}" \
+            --run-url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            --artifact-name "gongtu-daily-acceptance-${{ steps.date.outputs.value }}"
+
+      - name: 写入 GitHub 摘要页
+        if: always()
+        run: |
+          REPORT=".agent-factory/out/${{ steps.date.outputs.value }}/daily-report.md"
+          if [ -f "$REPORT" ]; then
+            cat "$REPORT" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "## 公途每日验收报告" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "日报生成失败，请下载 artifact 或查看 workflow 日志。" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: 上传每日验收报告
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gongtu-daily-acceptance-${{ steps.date.outputs.value }}
+          path: .agent-factory/out/${{ steps.date.outputs.value }}/
+          retention-days: 30
+
+      - name: 配置 GitHub Pages
+        if: always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/configure-pages@v5
+
+      - name: 上传报告中心站点
+        if: always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: quality-dashboard
+
+      - name: 发布报告中心
+        if: always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: 根据验收结果标记 workflow
+        if: always()
+        run: |
+          CHECKS=".agent-factory/out/${{ steps.date.outputs.value }}/checks.json"
+          if [ ! -f "$CHECKS" ]; then
+            echo "checks.json 不存在，验收链路失败"
+            exit 1
+          fi
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          checks = json.loads(Path(".agent-factory/out/${{ steps.date.outputs.value }}/checks.json").read_text())
+          failed = checks.get("failedCount", 0)
+          if failed:
+              raise SystemExit(f"{failed} checks failed")
+          PY

@@ -1,0 +1,51 @@
+name: 每周质量回顾
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_date:
+        description: "回顾截止日 YYYY-MM-DD，留空则使用当天"
+        required: false
+        default: ""
+  schedule:
+    # GitHub cron uses UTC. Sunday 23:10 UTC is Monday 07:10 Asia/Shanghai.
+    - cron: "10 23 * * 0"
+
+permissions:
+  contents: read
+
+jobs:
+  weekly-quality-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: 安装 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: 解析回顾日期
+        id: date
+        run: |
+          if [ -n "${{ github.event.inputs.target_date }}" ]; then
+            echo "value=${{ github.event.inputs.target_date }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=$(TZ=Asia/Shanghai date +%F)" >> "$GITHUB_OUTPUT"
+          fi
+      - name: 生成每周质量回顾
+        run: |
+          python .agent-factory/scripts/render-weekly-review.py \
+            --base-url "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}" \
+            --date "${{ steps.date.outputs.value }}" \
+            --out ".agent-factory/out/${{ steps.date.outputs.value }}/weekly-quality-review.md"
+      - name: 写入 GitHub 摘要页
+        if: always()
+        run: |
+          cat ".agent-factory/out/${{ steps.date.outputs.value }}/weekly-quality-review.md" >> "$GITHUB_STEP_SUMMARY"
+      - name: 上传每周质量回顾
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gongtu-weekly-quality-review-${{ steps.date.outputs.value }}
+          path: .agent-factory/out/${{ steps.date.outputs.value }}/weekly-quality-review.md
+          retention-days: 90
