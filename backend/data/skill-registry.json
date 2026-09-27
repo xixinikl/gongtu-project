@@ -32,7 +32,7 @@
       "tasks": {"explanation": {"references": ["skills/spatial/candidate-driven.md", "skills/spatial/huasheng13-spatial-router.md"], "response_schema": "skills/spatial/response.schema.json"}, "method_chat": {"references": ["skills/spatial/candidate-driven.md", "skills/spatial/huasheng13-spatial-router.md"], "response_schema": "skills/coach-chat.schema.json"}}
     },
     "shenlun.review": {
-      "skill_id": "feiyang-shenlun-perspective", "version": "1.1.0", "status": "enabled", "package_hash": "26946d987514b61d2a0830416a7d7669e7a749e76d8636dfa77353b8ebb21127",
+      "skill_id": "feiyang-shenlun-perspective", "version": "1.2.0", "status": "enabled", "package_hash": "3892be62e7bce9796bc5972134f9c88f9258785d5fd8244d5a5e97aad60746a6",
       "entry": "feiyang-skill/SKILL.md",
       "package_files": ["feiyang-skill/SKILL.md", "feiyang-skill/references/公文模板速查.md", "feiyang-skill/references/决策启发式.md", "feiyang-skill/references/心智模型速查.md", "feiyang-skill/references/背景信息.md", "feiyang-skill/references/表达DNA.md", "feiyang-skill/references/huasheng13-申论补充路由.md", "skill-sources/huasheng13-v1.json", "skills/shenlun/response.schema.json", "skills/coach-chat.schema.json"],
       "tasks": {"grading": {"references": ["feiyang-skill/references/心智模型速查.md", "feiyang-skill/references/决策启发式.md", "feiyang-skill/references/huasheng13-申论补充路由.md"], "response_schema": "skills/shenlun/response.schema.json"}, "method_chat": {"references": ["feiyang-skill/references/心智模型速查.md", "feiyang-skill/references/决策启发式.md", "feiyang-skill/references/公文模板速查.md", "feiyang-skill/references/huasheng13-申论补充路由.md"], "response_schema": "skills/coach-chat.schema.json"}}

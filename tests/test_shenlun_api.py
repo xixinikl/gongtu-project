@@ -269,7 +269,7 @@ class ShenlunAPITests(unittest.TestCase):
                     f"shenlun-grade:{response.json()['id']}",
                 )
                 meta = response.json()["runMetadata"]
-                self.assertEqual(meta["skillVersion"], "1.1.0")
+                self.assertEqual(meta["skillVersion"], "1.2.0")
                 self.assertEqual(len(meta["skillHash"]), 64)
                 self.assertTrue(meta["model"])
                 self.assertTrue(meta["provider"])
@@ -459,8 +459,57 @@ class ShenlunAPITests(unittest.TestCase):
         self.assertEqual(response.status_code, 200, response.text)
         self.assertEqual(response.json()["status"], "completed")
         self.assertEqual(response.json()["recordsReviewed"], 1)
-        self.assertEqual(response.json()["runMetadata"]["skillVersion"], "1.1.0")
+        self.assertEqual(response.json()["runMetadata"]["skillVersion"], "1.2.0")
         self.assertIn("飞扬", mocked.call_args.kwargs["system_prompt"])
+
+    def test_grader_computes_point_score_from_coverage(self):
+        question = question_model("q3-1")
+        payload = {
+            **VALID_DIMENSIONS,
+            "pointHits": ["完全", "部分", "未覆盖", "完全", "部分"],
+            "overallComment": "要点基本齐全",
+            "suggestions": ["建议一", "建议二", "建议三"],
+        }
+        result = grader.validate_grading_result(payload, question=question)
+        self.assertEqual(result.maxScore, 10)
+        self.assertEqual(result.score, 6)
+        self.assertEqual(
+            [p.score for p in result.pointScores or []], [2, 1, 0, 2, 1]
+        )
+        # 端点会对结果再校验一次，已算出的分数必须保留。
+        again = grader.validate_grading_result(result)
+        self.assertEqual(again.score, 6)
+        self.assertEqual(again.pointScores, result.pointScores)
+
+        for hits in (None, ["完全"] * 4, ["完全", "满分", "完全", "完全", "完全"]):
+            with self.subTest(hits=hits):
+                with self.assertRaisesRegex(
+                    grader.ProviderFailure, "provider_invalid_output"
+                ):
+                    grader.validate_grading_result(
+                        {**payload, "pointHits": hits}, question=question
+                    )
+
+    def test_grade_response_includes_point_score(self):
+        question = question_model("q3-1")
+        scored = grader.validate_grading_result(
+            {
+                **VALID_DIMENSIONS,
+                "pointHits": ["完全"] * 5,
+                "overallComment": "全部覆盖",
+                "suggestions": ["建议一", "建议二", "建议三"],
+            },
+            question=question,
+        )
+        with patch.object(shenlun, "llm_grade", return_value=scored):
+            response = self.post_grade(
+                headers=self.headers_a,
+                payload={"questionId": "q3-1", "studentAnswer": "完整作答"},
+            )
+        self.assertEqual(response.status_code, 200, response.text)
+        grading = response.json()["gradingResult"]
+        self.assertEqual((grading["score"], grading["maxScore"]), (10, 10))
+        self.assertEqual(len(grading["pointScores"]), 5)
 
     def test_grader_rejects_invalid_schema_and_never_returns_raw_provider_text(self):
         valid_payload = {

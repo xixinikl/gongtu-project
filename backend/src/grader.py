@@ -12,7 +12,7 @@ from typing import Any, TypeVar
 
 from openai import OpenAI
 
-from src.models import GradingResult
+from src.models import GradingResult, PointScore
 from src.prompt_builder import build_chat_prompt, build_grading_prompt
 
 logger = logging.getLogger("grader")
@@ -31,6 +31,8 @@ GRADING_DIMENSIONS = (
     "格式规范",
 )
 GRADING_RATINGS = frozenset({"优秀", "良好", "一般", "较差"})
+# 模型只判断每个赋分要点的覆盖程度，分数由系统按题目赋分计算，保证可复算。
+POINT_HIT_WEIGHTS = {"完全": 1.0, "部分": 0.5, "未覆盖": 0.0}
 PROVIDER_ERROR_CODES = frozenset(
     {"provider_timeout", "provider_invalid_output", "provider_unavailable"}
 )
@@ -87,12 +89,58 @@ def _nonempty_text(value: Any) -> str | None:
     return normalized or None
 
 
-def validate_grading_result(payload: Any) -> GradingResult:
+def _scoring_points(question: Any) -> list[Any]:
+    reference = getattr(question, "referenceAnswer", None)
+    return list(getattr(reference, "scoringPoints", None) or [])
+
+
+def score_point_hits(question: Any, hits: Any) -> tuple[float, float, list[PointScore]]:
+    """Turn per-point coverage judgments into a reproducible score."""
+    points = _scoring_points(question)
+    if not isinstance(hits, list) or len(hits) != len(points):
+        raise ProviderFailure("provider_invalid_output")
+    point_scores: list[PointScore] = []
+    for sp, hit in zip(points, hits):
+        label = _nonempty_text(hit)
+        if label not in POINT_HIT_WEIGHTS:
+            raise ProviderFailure("provider_invalid_output")
+        max_score = float(sp.score)
+        point_scores.append(
+            PointScore(
+                point=sp.point,
+                maxScore=max_score,
+                hit=label,
+                score=round(max_score * POINT_HIT_WEIGHTS[label], 2),
+            )
+        )
+    max_total = float(getattr(question, "score", 0) or sum(p.maxScore for p in point_scores))
+    total = min(round(sum(p.score for p in point_scores), 2), max_total)
+    return total, max_total, point_scores
+
+
+def _existing_score(data: dict[str, Any]) -> dict[str, Any]:
+    """Keep a score that was already computed by the system (re-validation)."""
+    if data.get("score") is None:
+        return {}
+    try:
+        point_scores = [PointScore(**item) for item in data.get("pointScores") or []]
+        score = float(data["score"])
+        max_score = float(data["maxScore"])
+    except (TypeError, ValueError, KeyError):
+        raise ProviderFailure("provider_invalid_output") from None
+    if not 0 <= score <= max_score:
+        raise ProviderFailure("provider_invalid_output")
+    return {"score": score, "maxScore": max_score, "pointScores": point_scores}
+
+
+def validate_grading_result(payload: Any, question: Any = None) -> GradingResult:
     """Validate the exact five-dimension grading contract.
 
     Provider JSON is flat, while the internal model nests values under
     ``dimensions``. Both shapes are accepted; every returned result is
     normalized to the internal model before it can reach persistence.
+    When ``question`` has scoring points, the provider must also return
+    ``pointHits`` and the score is computed here.
     """
     if isinstance(payload, GradingResult):
         data: Any = payload.model_dump()
@@ -129,10 +177,21 @@ def validate_grading_result(payload: Any) -> GradingResult:
     if any(item is None for item in normalized_suggestions):
         raise ProviderFailure("provider_invalid_output")
 
+    if question is not None and _scoring_points(question):
+        total, max_total, point_scores = score_point_hits(question, data.get("pointHits"))
+        score_fields: dict[str, Any] = {
+            "score": total,
+            "maxScore": max_total,
+            "pointScores": point_scores,
+        }
+    else:
+        score_fields = _existing_score(data)
+
     return GradingResult(
         dimensions=normalized_dimensions,
         overallComment=overall_comment,
         suggestions=[item for item in normalized_suggestions if item is not None],
+        **score_fields,
     )
 
 
@@ -201,7 +260,7 @@ def grade(question: Any, student_answer: str) -> GradingResult:
             data = json.loads(_extract_json(raw_output))
         except (json.JSONDecodeError, TypeError, ValueError):
             raise ProviderFailure("provider_invalid_output") from None
-        return validate_grading_result(data)
+        return validate_grading_result(data, question=question)
 
     return _retry_provider("grade", run_once)
 

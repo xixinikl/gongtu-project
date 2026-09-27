@@ -45,11 +45,23 @@ class GradingRequest(BaseModel):
     studentAnswer: str
 
 
+class PointScore(BaseModel):
+    """One scoring point: the model judges coverage, the system computes points."""
+    point: str
+    maxScore: float
+    hit: str              # 完全 / 部分 / 未覆盖
+    score: float
+
+
 class GradingResult(BaseModel):
-    """5-dimension grading result."""
+    """5-dimension grading result plus a point-based score."""
     dimensions: dict[str, Optional[str]]  # e.g. {"内容完整性": "优秀", ...}
     overallComment: str
     suggestions: list[str]
+    # 旧批改记录没有分数，因此以下字段可为空。
+    score: Optional[float] = None
+    maxScore: Optional[float] = None
+    pointScores: Optional[list[PointScore]] = None
 
 
 class HistoryRecord(BaseModel):

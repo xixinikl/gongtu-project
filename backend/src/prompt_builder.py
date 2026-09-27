@@ -188,6 +188,6 @@ def build_grading_prompt(question: Question, student_answer: str) -> tuple[str, 
 
 {student_answer}
 
-## 请你按照飞扬老师的批改标准，对学生作答进行5维度诊断。只输出JSON。"""
+## 请你按照飞扬老师的批改标准，对学生作答进行5维度诊断，并逐条判断上面{len(question.referenceAnswer.scoringPoints)}个赋分要点的覆盖情况（pointHits 按要点顺序填写“完全”“部分”或“未覆盖”）。只输出JSON。"""
 
     return system_prompt, user_prompt
