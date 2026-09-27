@@ -900,6 +900,16 @@ function formatTeacherReview(reply) {
       if (ex.overallComment || ex.dimensions || ex.suggestions) parsed = ex;
     }
     var html = '';
+    if (parsed && typeof parsed.score === 'number' && typeof parsed.maxScore === 'number') {
+      html += '<div class="review-section"><strong>' + _iconRuler() + ' 要点得分：</strong><span style="font-size:18px;font-weight:700;color:#8b3a2a">' + _esc(String(parsed.score)) + '</span> / ' + _esc(String(parsed.maxScore)) + ' 分<br>';
+      if (Array.isArray(parsed.pointScores)) {
+        parsed.pointScores.forEach(function(p, i){
+          var hc = p.hit === '完全' ? 'color:#2d8a56' : (p.hit === '部分' ? 'color:#b08a3a' : 'color:#c4493a');
+          html += '&nbsp;&nbsp;' + (i+1) + '. ' + _esc(String(p.point||'')) + ' <span style="' + hc + ';font-weight:600">' + _esc(String(p.hit||'')) + '</span> ' + _esc(String(p.score)) + '/' + _esc(String(p.maxScore)) + '<br>';
+        });
+      }
+      html += '</div>';
+    }
     if (parsed && parsed.overallComment)
       html += '<div class="review-section"><strong>' + _iconScroll() + ' 总体评价：</strong><br>' + _esc(parsed.overallComment) + '</div>';
     if (parsed && parsed.dimensions) {

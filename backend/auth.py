@@ -309,19 +309,22 @@ async def require_vip_feature(request: Request) -> dict:
 
 
 def consume_ai_credit(user_id: int, feature: str) -> None:
-    """在 vip 模式下扣减一点 AI 积分；free 模式不扣减。积分不足或非 VIP 拒绝。"""
+    """在 vip 模式下扣减一点 AI 积分；free 模式和管理员不扣减。积分不足或非 VIP 拒绝。"""
     from database import get_db
     with get_db() as conn:
         if _get_ai_access_mode(conn) != "vip":
             return
         conn.execute("BEGIN IMMEDIATE")
         row = conn.execute(
-            "SELECT username, is_vip, vip_expires_at, ai_credits FROM users WHERE id = ?",
+            "SELECT username, is_admin, is_vip, vip_expires_at, ai_credits FROM users WHERE id = ?",
             (user_id,),
         ).fetchone()
         if not row:
             conn.rollback()
             raise HTTPException(status_code=401, detail="Not authenticated")
+        if row["is_admin"]:
+            conn.rollback()  # 与 require_vip_feature 一致：管理员始终放行，不计积分
+            return
         if not _vip_is_active(row):
             conn.rollback()
             raise HTTPException(status_code=403, detail="该功能仅限 VIP 用户使用，请联系管理员开通")
@@ -346,9 +349,11 @@ def refund_ai_credit(user_id: int, feature: str, reason: str = "provider_failure
     with get_db() as conn:
         if _get_ai_access_mode(conn) != "vip":
             return
-        row = conn.execute("SELECT username FROM users WHERE id = ?", (user_id,)).fetchone()
-        if not row:
-            return
+        row = conn.execute(
+            "SELECT username, is_admin FROM users WHERE id = ?", (user_id,)
+        ).fetchone()
+        if not row or row["is_admin"]:
+            return  # 管理员调用时没有扣积分，也就不返还
         conn.execute(
             "UPDATE users SET ai_credits = ai_credits + 1 WHERE id = ?", (user_id,)
         )
