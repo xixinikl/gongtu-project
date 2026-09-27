@@ -1,0 +1,807 @@
+# Agent 接力工作日志
+
+> 本日志只追加、不覆盖。每个 Agent 每完成一个 `TASKS.md` 任务，都必须追加一条记录。
+> 日志不能替代 `TASKS.md`、`CURRENT_STATUS.md`、测试结果或 Git 提交。
+
+## 记录模板
+
+```markdown
+## YYYY-MM-DD · Agent 名称 · 任务编号
+
+- 分支：
+- 基线提交：
+- 完成任务：
+- 修改的交付文件：
+- 执行的测试：
+- 测试结果：
+- 任务提交：
+- 已推送远端：
+- 遗留风险：
+- 建议下一任务：
+```
+
+## 2026-07-09 · Codex · HANDOFF-20260709
+
+- 分支：`cx/lesson-015-dynamic-explore`
+- 基线提交：`4350dcb`
+- 完成任务：`docs: 写入当前交接并上传 GitHub`
+- 修改的交付文件：`doc/HANDOFF_2026-07-09.md`、`doc/AGENT_HANDOFF.md`
+- 执行的测试：`npm run doctor`；`git diff --check`；关键 JS 语法检查；`node --test tests/reasoning-lesson-layout.test.mjs`；`node --test tests/reasoning-case-fixtures.test.mjs`；`node --test tests/three-view-training.test.mjs`；`npm run test:geometry`
+- 测试结果：`npm run doctor` 未全绿，Node.js 18.20.8 低于 20+、Python 3.9.6 低于 3.10+；8089/8888 均监听；`git diff --check` 通过；专项测试 17/17、12/12、6/6 通过；全量几何回归 572/572 通过
+- 任务提交：本任务所在提交
+- 已推送远端：待本轮提交后推送到 `origin/cx/lesson-015-dynamic-explore`
+- 遗留风险：`LESSON-015F` 仍待用户最终体验验收；本机 shell 运行时版本低于项目要求，后续开发应切 Node 20+ 与 Python 3.10+
+- 建议下一任务：`LESSON-016 建立四类训练总入口`
+
+## 2026-07-05 · Codex · LESSON-015D
+
+- 分支：`cx/lesson-015-dynamic-explore`
+- 基线提交：本轮开始时工作区已有未提交改动，未单独建立干净基线
+- 完成任务：`fix: 动态解题真实截面正视与草稿答案入库`
+- 修改的交付文件：`reasoning-lesson.html`、`reasoning-lesson.js`、`data/reasoning-cases/draft-video-questions.json`、`data/reasoning-cases/cone-box-001.json`、`data/reasoning-cases/pyramid-cylinder-001.json`、`spec/reasoning-case-v1.schema.json`、`geometry/reasoning-case-validator.js`、`tests/reasoning-lesson-layout.test.mjs`、`tests/reasoning-case-fixtures.test.mjs`、`TASKS.md`、`CURRENT_STATUS.md`、`错误复盘.md`
+- 执行的测试：`node --check reasoning-lesson.js`；`node --check geometry/reasoning-case-validator.js`；JSON 解析；`node --test tests/reasoning-lesson-layout.test.mjs`；`node --test tests/reasoning-case-fixtures.test.mjs`；`npm run test:geometry`；`git diff --check`；`curl -I`；应用浏览器实机验收
+- 测试结果：专项测试 17/17 通过；案例契约 12/12 通过；全量几何 572/572 通过；浏览器 `sectionFacing=1.000`、控制台 error/warn 为空；8089 服务 `open=true` 且 `pidAlive=true`
+- 任务提交：未提交，本轮仅按用户要求完成开发与记录
+- 已推送远端：否
+- 遗留风险：`cone-box-001` 用户本轮给出的“六边形/B”和既有正式答案 A 冲突，已记录为 `conflict-needs-review`，后续需要回看视频确认是否为同一题或题面版本差异
+- 建议下一任务：继续核验动态解题题库答案与题源截图，优先处理 `conflict-needs-review` 的圆锥方体六边形题
+
+## 2026-07-04 · Codex · HANDOFF-LESSON-003
+
+- 分支：`feature/csg-v2-integration`
+- 基线提交：`e312a22`
+- 完成任务：`docs: 记录用户否决与教学方法返工基线`
+- 修改的交付文件：`doc/SPATIAL_REASONING_TEACHING_METHOD.md`、`doc/AGENT_HANDOFF.md`
+- 执行的测试：`git diff --check`
+- 测试结果：通过，未发现空白错误
+- 任务提交：本任务所在提交
+- 已推送远端：否，GitHub HTTPS 凭据未配置，`git push origin feature/csg-v2-integration` 返回 `could not read Username for 'https://github.com'`
+- 遗留风险：`LESSON-013` 的文字修补不能作为最终验收；B 六边形、模型大小和滑动交互仍需代码返工
+- 建议下一任务：`LESSON-014R fix: 返工 B 六边形为候选驱动真实截面演示`
+
+## 2026-07-04 · Codex · LESSON-014R
+
+- 分支：`feature/csg-v2-integration`
+- 基线提交：`3cfbf54`
+- 完成任务：`fix: 返工 B 六边形为候选驱动真实截面演示`
+- 修改的交付文件：`reasoning-lesson.html`、`reasoning-lesson.css`、`reasoning-lesson.js`、`data/reasoning-cases/cone-box-001.json`、`data/images/reasoning/cone-box-001-question.png`、`spec/reasoning-case-v1.schema.json`、`tests/reasoning-case-fixtures.test.mjs`、`tests/reasoning-lesson-layout.test.mjs`
+- 执行的测试：`git diff --check`；`node --experimental-loader ./tests/three-absolute-loader.mjs --test tests/reasoning-case-fixtures.test.mjs tests/reasoning-lesson-layout.test.mjs`；浏览器刷新并点击 B；浏览器三维区拖动验证
+- 测试结果：空白检查通过；专项测试 21/21 通过；原题视频截图加载成功；B 选项真实截面为 1 个 V2 轮廓；向上拖动切面位置 0% -> 20%，水平拖动只改变截面形状；控制台无错误
+- 任务提交：本任务所在提交
+- 已推送远端：否，GitHub HTTPS 凭据未配置，`git push origin feature/csg-v2-integration` 返回 `could not read Username for 'https://github.com'`
+- 遗留风险：基础截面知识库尚未做成独立训练入口；第二题仍未接入原题截图
+- 建议下一任务：`LESSON-014 feat: 建立基础截面知识库与训练入口`
+
+## 2026-07-04 · Codex · LESSON-014
+
+- 分支：`feature/csg-v2-integration`
+- 基线提交：`728f18b`
+- 完成任务：`feat: 建立基础截面知识库与训练入口`
+- 修改的交付文件：`section-foundation.html`、`section-foundation.css`、`section-foundation.js`、`reasoning-lesson.html`、`tests/reasoning-lesson-layout.test.mjs`
+- 执行的测试：`git diff --check`；`node --check section-foundation.js`；`node --experimental-loader ./tests/three-absolute-loader.mjs --test tests/reasoning-lesson-layout.test.mjs`；浏览器打开 `/section-foundation.html` 并切换圆柱不可行演示
+- 测试结果：空白检查通过；JS 语法通过；专项测试 10/10 通过；浏览器默认正方体基础页与圆柱不可行演示均通过，控制台无错误
+- 任务提交：本任务所在提交
+- 已推送远端：已修复本仓库本地 credential helper，提交后使用 `gh auth git-credential` 推送
+- 遗留风险：基础页目前是 2D 教学演示，后续若要和 V2 真实截面联动，可在 LESSON-015 或单独任务里接 Three.js
+- 建议下一任务：`LESSON-015 feat: 重做手动探索为滑动式截面验证`
+
+## 2026-07-04 · Codex · LESSON-014B
+
+- 分支：`feature/csg-v2-integration`
+- 基线提交：`208abf7`
+- 完成任务：`fix: 基础截面页展示全部常见截面图案`
+- 修改的交付文件：`section-foundation.js`、`section-foundation.css`、`tests/reasoning-lesson-layout.test.mjs`
+- 执行的测试：`git diff --check`；`node --check section-foundation.js`；`node --experimental-loader ./tests/three-absolute-loader.mjs --test tests/reasoning-lesson-layout.test.mjs`；浏览器打开 `/section-foundation.html` 验证正方体和圆柱图案墙
+- 测试结果：空白检查通过；JS 语法通过；专项测试 11/11 通过；正方体 7 个可行图案和 4 个不可行图案均显示 SVG；圆柱显示圆、椭圆、矩形、带弧边截面和“斜切必然带曲边”规则；控制台无错误
+- 任务提交：本任务所在提交
+- 已推送远端：已修复本仓库本地 credential helper，提交后使用 `gh auth git-credential` 推送
+- 遗留风险：当前图案墙仍是 2D 静态教学图，后续可逐步接入真实 V2 切面动画
+- 建议下一任务：`LESSON-015 feat: 重做手动探索为滑动式截面验证`
+
+## 2026-06-29 · Agent 1 · 安全交接检查点
+
+- 分支：`feature/spatial-geometry-lab`
+- 基线提交：本次隔离分支治理任务所在提交
+- 完成任务：从 GOV-001 至 LAB-005，详见 `TASKS.md`
+- 修改的交付文件：详见各任务独立提交
+- 执行的测试：Git 差异检查、Python 质量门禁、JavaScript 语法、FastAPI 路由、桌面与窄屏浏览器验收
+- 测试结果：当前基准任务全部通过，各任务已独立推送
+- 任务提交：以 `git log feature/spatial-geometry-lab` 为准
+- 已推送远端：是
+- 遗留风险：实时切割尚未实现；基础模型尚未创建；Electron 依赖打包尚未验收
+- 建议下一任务：`LAB-006 feat: 建立长方体与正方体生成器`
+
+## 2026-06-29 · Agent 2 · LAB-006
+
+- 分支：`feature/spatial-geometry-agent2`
+- 基线提交：`23c76df`
+- 完成任务：`feat: 建立长方体与正方体生成器`
+- 修改的交付文件：`geometry/box-generator.js`（新建）、`geometry.html`
+- 执行的测试：`node --check geometry/box-generator.js`、`git diff --check`、`git status` 确认文件变更范围
+- 测试结果：语法检查通过，diff 无空白冲突，交付文件 2 个未超上限
+- 任务提交：`54a7e9f`
+- 已推送远端：`origin/feature/spatial-geometry-agent2`
+- 遗留风险：浏览器交互验收需用户手动打开 `/geometry` 页面确认；暂时只接入了正方体和长方体两个按钮，其余模型按钮（三棱柱等）点击不响应
+- 建议下一任务：`LAB-007 feat: 建立三棱柱生成器`
+
+## 2026-06-30 · Agent 1 回审 · REVIEW-M1-001
+
+- 分支：`feature/spatial-geometry-agent2`
+- 基线提交：`2da244c`
+- 完成任务：`fix: 修复模型首次加载与场景落位`
+- 修改的交付文件：`geometry.html`
+- 执行的测试：首次加载、七模型切换、参数变更、包围盒落地、控制台错误、JavaScript 语法与 Git 差异
+- 测试结果：首次加载、七模型切换、参数重建和网格落位全部通过，浏览器控制台无错误
+- 任务提交：本任务所在提交
+- 已推送远端：提交后立即推送
+- 遗留风险：生成器测试源码缺失；M1 审计文档状态矛盾
+- 建议下一任务：`REVIEW-M1-002 test: 建立可复现生成器测试`
+
+## 2026-06-30 · Agent 1 回审 · REVIEW-M1-002
+
+- 分支：`feature/spatial-geometry-agent2`
+- 基线提交：`d93bed9`
+- 完成任务：`test: 建立可复现生成器测试`
+- 修改的交付文件：`tests/geometry-generators.test.mjs`、`tests/three-absolute-loader.mjs`、`package.json`
+- 执行的测试：干净 `npm ci`、`npm run test:geometry`、依赖树、JavaScript 语法和 Git 差异
+- 测试结果：从锁文件干净安装后 122/122 通过，依赖树、语法和 Git 差异检查通过
+- 任务提交：本任务所在提交
+- 已推送远端：提交后立即推送
+- 遗留风险：M1 看板、状态、工作日志和交接文档仍待统一
+- 建议下一任务：`REVIEW-M1-003 docs: 校正 M1 看板日志与交接文档`
+
+## 2026-06-30 · Agent 1 回审 · REVIEW-M1-003
+
+- 分支：`feature/spatial-geometry-agent2`
+- 基线提交：`84593ff`
+- 完成任务：`docs: 校正 M1 看板日志与交接文档`
+- 修改的交付文件：`AGENT2_PROGRESS.md`、`doc/AGENT2_HANDOFF.md`、`doc/AGENT_HANDOFF.md`
+- 执行的测试：状态一致性、文件引用、122 项生成器测试、FastAPI、浏览器、Python CI 和 Git 差异
+- 测试结果：状态文档一致；122/122 测试、浏览器、FastAPI、Ruff、mypy、Bandit 和 Git 检查通过
+- 任务提交：本任务所在提交
+- 已推送远端：提交后立即推送
+- 遗留风险：M1 尚未整合回基准分支；M2 实时切割尚未开始
+- 建议下一任务：`CUT-001 feat: 在三维场景显示无限切割平面`
+
+## 2026-06-30 · Agent 1 回审 · CI-M1-001
+
+- 分支：`feature/spatial-geometry-agent2`
+- 基线提交：`9f8836a`
+- 完成任务：`ci: 将空间几何测试接入持续集成`
+- 修改的交付文件：`.github/workflows/check.yml`
+- 执行的测试：YAML 解析、前端 CI 等价命令、122 项测试、GitHub Actions 四作业
+- 测试结果：工作流结构和本地四作业等价检查通过；远端 GitHub Actions 作为下一整合任务门禁
+- 任务提交：本任务所在提交
+- 已推送远端：提交后立即推送并等待 CI
+- 遗留风险：CI 未绿前禁止整合到主功能分支
+- 建议下一任务：`INT-M1-001 merge: 整合已回审 M1 到主功能分支`
+
+## 2026-06-30 · Agent 1 回审 · CI-M1-002
+
+- 分支：`feature/spatial-geometry-agent2`
+- 基线提交：`e3b6655`
+- 完成任务：`ci: 升级 GitHub Actions Node 24 运行时`
+- 修改的交付文件：`.github/workflows/check.yml`
+- 执行的测试：YAML 解析、GitHub Actions 四作业和运行注解检查
+- 测试结果：待本任务最终验收后填写
+- 任务提交：本任务所在提交
+- 已推送远端：提交后立即推送并等待 CI
+- 遗留风险：远端 runner 兼容性必须以实际运行结果确认
+- 建议下一任务：`INT-M1-001 merge: 整合已回审 M1 到主功能分支`
+
+## 2026-06-30 · Agent 1 · INT-M1-001
+
+- 分支：`feature/spatial-geometry-lab`
+- 基线提交：`23c76df`
+- 完成任务：`merge: 整合已回审 M1 到主功能分支`
+- 修改的交付文件：Agent 2 分支的全部已回审 M1 交付及交接状态
+- 执行的测试：Agent 2 远端 CI、回审备份、无冲突合并、合并后全量本地与远端 CI
+- 测试结果：无冲突合并；122/122、Python CI、FastAPI 和浏览器烟测通过；待主功能分支远端 CI
+- 任务提交：本任务所在合并提交
+- 已推送远端：本地验收后推送
+- 遗留风险：M2 实时切割尚未开始；main 尚未合并
+- 建议下一任务：`CUT-001 feat: 在三维场景显示无限切割平面`
+
+## 2026-06-30 · Agent 1 · CUT-001
+
+- 分支：`feature/spatial-geometry-lab`
+- 基线提交：`348b8f5`
+- 完成任务：`feat: 在三维场景显示无限切割平面`
+- 修改的交付文件：`geometry/cutting-plane.js`、`geometry/scene.js`、`doc/AGENT_HANDOFF.md`
+- 执行的测试：模块语法、122 项回归、FastAPI、桌面与窄屏浏览器可见性和 Canvas 状态
+- 测试结果：语法检查、122/122 回归测试通过；627×734 与 1440×900 浏览器验收通过，切面可见且 Canvas 状态正确
+- 任务提交：本任务所在提交
+- 已推送远端：提交后立即推送
+- 遗留风险：模型尚未应用 clipping plane；视觉平面不等于截面计算
+- 建议下一任务：`CUT-002 feat: 拖动切面时实时剖开模型`
+
+## 2026-06-30 · Agent 1 回审 · CUT-003
+
+- 分支：`feature/spatial-geometry-cut003-review`
+- 基线提交：`8caa1ce`
+- 完成任务：`feat: 倾斜切面时实时更新剖面`
+- 修改的交付文件：`geometry.html`
+- 执行的测试：代码增量审查、单独水平倾角输入、单独垂直倾角输入、Canvas 数学状态、窄屏和控制台
+- 测试结果：两个倾角均无需位置滑块二次触发；法向量、刀面和模型裁剪同步更新
+- 任务提交：本任务所在提交
+- 已推送远端：提交后立即推送，合并后由主功能分支 CI 最终验收
+- 遗留风险：固定世界轴旋转不是三点定平面；截面封口尚未实现
+- 建议下一任务：`CUT-004 feat: 由题目三点锁定无限切面`
+
+## 2026-06-30 · Agent 1 回审 · CUT-004
+
+- 分支：`feature/spatial-geometry-cut004-review`
+- 基线提交：`69e0f6c`
+- 完成任务：`feat: 由题目三点锁定无限切面`
+- 修改的交付文件：`geometry.html`
+- 执行的测试：有效三点、单点实时修改、共线点、模型重建、自由模式恢复、Canvas 状态和控制台
+- 测试结果：三点数学正确；无效输入不再保留旧裁剪答案；模式往返状态一致
+- 任务提交：本任务所在提交
+- 已推送远端：提交后立即推送，合并后由主功能分支 CI 最终验收
+- 遗留风险：尚未建立多面体边与平面的确定性交点算法
+- 建议下一任务：`CUT-005 feat: 建立多面体边与平面求交`
+
+## 2026-06-30 · Agent 1 · CUT-005
+
+- 分支：`feature/spatial-geometry-lab`
+- 基线提交：`ca7061b`
+- 完成任务：`feat: 建立多面体边与平面求交`
+- 修改的交付文件：`geometry/plane-intersections.js`、`tests/plane-intersections.test.mjs`、`package.json`
+- 执行的测试：模块语法、线段分支、批量去重、共面边、世界坐标棱线、无效输入和完整前端测试
+- 测试结果：新增 9 项算法测试；完整测试 131/131 通过
+- 任务提交：本任务所在提交
+- 已推送远端：提交后立即推送并等待 CI
+- 遗留风险：交点尚未排序闭合，不能直接当作截面多边形
+- 建议下一任务：`CUT-006 feat: 建立截面交点排序和闭合`
+
+## 2026-06-30 · Agent 1 · CUT-006
+
+- 分支：`feature/spatial-geometry-lab`
+- 基线提交：`5c3e137`
+- 完成任务：`feat: 建立截面交点排序和闭合`
+- 修改的交付文件：`geometry/plane-intersections.js`、`tests/plane-intersections.test.mjs`
+- 执行的测试：乱序、方向、去重、少点、共线、离面和正方体六边形端到端样例
+- 测试结果：新增 5 项算法测试；完整测试 136/136 通过
+- 任务提交：本任务所在提交
+- 已推送远端：提交后立即推送并等待 CI
+- 遗留风险：闭合多边形尚未渲染为切口填充和高亮轮廓
+- 建议下一任务：`CUT-007 feat: 在模型切口实时填充与高亮截面`
+
+## 2026-06-30 · Agent 1 · CUT-007
+
+- 分支：`feature/spatial-geometry-lab`
+- 基线提交：`fc34f7b`
+- 完成任务：`feat: 在模型切口实时填充与高亮截面`
+- 修改的交付文件：`geometry/section-visual.js`、`geometry.html`、`tests/plane-intersections.test.mjs`
+- 执行的测试：封口三角化、闭合轮廓、退化清除、正方体、倾斜、离模和圆柱切换
+- 测试结果：新增 2 项视觉模块测试；完整测试 138/138，浏览器控制台无错误
+- 任务提交：本任务所在提交
+- 已推送远端：提交后立即推送并等待 CI
+- 遗留风险：被切侧透明或隐藏控制尚未实现
+- 建议下一任务：`CUT-008 feat: 实时隐藏或透明显示被切一侧`
+
+## 2026-06-30 · Agent 1 · CUT-008
+
+- 分支：`feature/spatial-geometry-lab`
+- 基线提交：`0950d39`
+- 完成任务：`feat: 实时隐藏或透明显示被切一侧`
+- 修改的交付文件：`geometry/cutaway-visual.js`、`geometry.html`、`tests/plane-intersections.test.mjs`
+- 执行的测试：共享几何、独立材质、反向平面、模式切换、切面同步、模型切换和控制台
+- 测试结果：新增 2 项透明侧测试；完整测试 140/140，浏览器验收无错误
+- 任务提交：本任务所在提交
+- 已推送远端：提交后立即推送并等待 CI
+- 遗留风险：二维截面辅助视图尚未实现
+- 建议下一任务：`CUT-009 feat: 建立可选的二维截面辅助视图`
+
+## 2026-06-30 · Agent 1 · CUT-009
+
+- 分支：`feature/spatial-geometry-lab`
+- 基线提交：`d9f73a8`
+- 完成任务：`feat: 建立可选的二维截面辅助视图`
+- 修改的交付文件：`geometry/section-2d.js`、`geometry.html`、`tests/plane-intersections.test.mjs`
+- 执行的测试：等比投影、边距、空状态、SVG 序列化、默认隐藏、开关、倾斜更新和离模清除
+- 测试结果：新增 2 项二维投影测试；完整测试 142/142，窄屏浏览器无溢出和错误
+- 任务提交：本任务所在提交
+- 已推送远端：提交后立即推送并等待 CI
+- 遗留风险：完整截面顶点坐标与信息面板尚未实现
+- 建议下一任务：`CUT-010 feat: 建立截面边数面积与顶点信息`
+
+## 2026-06-30 · Agent 1 · INT-CUT004-001
+
+- 分支：`feature/spatial-geometry-lab`
+- 基线提交：`69e0f6c`
+- 整合提交：`9dbf0c1`
+- 完成任务：`merge: 整合已回审 CUT-004 到主功能分支`
+- 修改的交付文件：已回审 CUT-004 业务与审计增量
+- 执行的测试：122 项回归、三点数学、共线边界、模式往返、控制台和无冲突合并
+- 测试结果：本地全部通过，推送后等待主功能分支 CI
+- 任务提交：本任务所在合并提交
+- 已推送远端：提交后立即推送
+- 遗留风险：多面体边与平面求交尚未实现
+- 建议下一任务：`CUT-005 feat: 建立多面体边与平面求交`
+
+## 2026-06-30 · Agent 1 · INT-CUT003-001
+
+- 分支：`feature/spatial-geometry-lab`
+- 基线提交：`8caa1ce`
+- 整合提交：`456f280`
+- 完成任务：`merge: 整合已回审 CUT-003 到主功能分支`
+- 修改的交付文件：已回审 CUT-003 业务与审计增量
+- 执行的测试：122 项回归、倾角独立输入、数学状态、窄屏、控制台和无冲突合并
+- 测试结果：本地全部通过，推送后等待主功能分支 CI
+- 任务提交：本任务所在合并提交
+- 已推送远端：提交后立即推送
+- 遗留风险：三点定平面和真实截面算法尚未实现
+- 建议下一任务：`CUT-004 feat: 由题目三点锁定无限切面`
+
+## 2026-06-30 · Agent 1 回审 · CUT-002R
+
+- 分支：`feature/spatial-geometry-cut002-agent`
+- 基线提交：`6578a92`
+- 被审提交：`0b3fe59 feat: 拖动切面时实时剖开模型`
+- 完成任务：`fix: 补齐实时裁剪状态与接力审计`
+- 修改的交付文件：`geometry.html`
+- 执行的测试：依赖树、122 项回归、JavaScript 语法、Git 差异、正负位置和模型切换浏览器验收
+- 测试结果：核心裁剪生效；修正 Canvas 状态滞后和材质重复编译标记，补齐任务审计
+- 任务提交：本任务所在提交
+- 已推送远端：提交后立即推送，合并后由基准分支 CI 最终验收
+- 遗留风险：仅完成沿 X 法向量的位置裁剪；倾斜、封口和真实截面算法尚未实现
+- 建议下一任务：`CUT-003 feat: 倾斜切面时实时更新剖面`
+
+## 2026-06-30 · Agent 1 · INT-CUT002-001
+
+- 分支：`feature/spatial-geometry-lab`
+- 基线提交：`6578a92`
+- 整合提交：`0b3fe59`、`22c51d1`
+- 完成任务：`merge: 整合已回审 CUT-002 到主功能分支`
+- 修改的交付文件：已回审 CUT-002 业务与审计增量
+- 执行的测试：代码增量审查、122 项回归、正负拖动、模型切换、Canvas 状态和控制台检查
+- 测试结果：无冲突合并；本地回审全部通过，推送后等待主功能分支 CI
+- 任务提交：本任务所在合并提交
+- 已推送远端：提交后立即推送
+- 遗留风险：当前没有真实截面封口；倾斜控制尚未实现
+- 建议下一任务：`CUT-003 feat: 倾斜切面时实时更新剖面`
+
+## 2026-06-30 · Agent 1 · GOV-005D
+
+- 分支：`feature/spatial-geometry-lab`
+- 基线提交：`cafdcf6`
+- 完成任务：`docs: 编写 CUT-002 单任务接力交接单`
+- 修改的交付文件：`doc/CUT002_AGENT_HANDOFF.md`
+- 执行的测试：Markdown 结构、任务状态一致性、Git 差异检查
+- 测试结果：交接范围、隔离方案、验收标准、提交规则和停止点完整
+- 任务提交：本任务所在提交
+- 已推送远端：提交后立即推送
+- 遗留风险：接力 Agent 的 CUT-002 实现尚未开始，完成后必须由 Agent 1 增量回审
+- 建议下一任务：`CUT-002 feat: 拖动切面时实时剖开模型`
+
+## 2026-06-30 · Agent 2 · CUT-010
+
+- 分支：`feature/spatial-geometry-lab`
+- 基线提交：`db65bd2`
+- 完成任务：`feat: 建立截面边数面积与顶点信息`
+- 修改的交付文件：`geometry/section-metrics.js`（新增）、`geometry.html`、`tests/section-metrics.test.mjs`（新增）
+- 执行的测试：`node --check` 语法检查、`npm run deps:check`、`npm run test:geometry`（146 项）、`git diff --check`
+- 测试结果：146/146 全部通过，依赖树完整，无空白错误；浏览器验收：切面倾斜实时更新、离模空状态、窄屏无横向溢出
+- 任务提交：本任务所在提交
+- 已推送远端：提交后立即推送
+- 遗留风险：headless Chromium 偶发 WebGL shader 环境错误（非业务算法故障）；顶点列表不支持选中/复制
+- 建议下一任务：`CUT-011 test: 验证立方体典型切面`
+
+## 2026-06-30 · Agent 2 · CUT-011
+
+- 分支：`feature/spatial-geometry-cut011-agent`（从 `feature/spatial-geometry-lab` @ `0a940fd` 创建）
+- 基线提交：`0a940fd`
+- 完成任务：`test: 验证立方体典型切面`
+- 修改的交付文件：`tests/cube-sections.test.mjs`（新增）
+- 执行的测试：`node --check` 语法检查、`npm run deps:check`、`npm run test:geometry`（154 项）、`git diff --check`
+- 测试结果：154/154 全部通过，覆盖正方形(4)、三角形(3)、正六边形(6)、五边形(5)、矩形偏移、无截面空状态、棱线计数、边长一致性
+- 任务提交：本任务所在提交
+- 已推送远端：提交后立即推送
+- 遗留风险：无；本任务仅新增测试，未修改业务代码
+- 建议下一任务：`CUT-012 test: 验证柱锥体典型切面`
+
+## CUT-FIX-002 feat: 建立默认水平切面连续穿模
+
+- **日期**: 2026-06-30
+- **Agent**: Marvis (cutfix002 接力 Agent)
+- **分支**: `feature/spatial-geometry-cutfix002-agent`（从 `origin/feature/spatial-geometry-cutfix-plan` 7e49419 创建）
+- **工作树**: `/Users/xixi/Documents/Codex/2026-06-29/new-chat/work/gongtu-cutfix002`
+
+### 修改摘要
+
+| 文件 | 变更 |
+|---|---|
+| `geometry/cutting-plane.js` | DEFAULT_NORMAL 从 (1,0,0) 改为 (0,1,0)，默认水平切面 |
+| `geometry.html` | 新增 updateCutSliderRange 动态滑块范围；updateCuttingPlane 基线法向量改为 (0,1,0) 且水平倾角轴改为 X；placeModel 调用顺序：先计算 bounds→set activeModel→updateCutSliderRange→再 scene.add |
+| `TASKS.md` | CUT-FIX-002 ○→●，补充验收证据 |
+| `CURRENT_STATUS.md` | 记录完成内容、修改文件、验收结果 |
+| `doc/AGENT_WORK_LOG.md` | 本记录 |
+
+### 验收明细
+
+- 全量 JavaScript 测试：265/265 通过
+- 语法检查：cutting-plane.js、scene.js 通过
+- git diff --check：无空白冲突
+- Playwright 浏览器验证：
+  - canvas.dataset.cuttingPlaneNormal = "0,1,0"
+  - canvas.dataset.activeModel = "box"
+  - canvas.dataset.activeModelBounds = "-0.500,-1.500,-0.500,0.500,-0.500,0.500"
+  - 滑块范围 min=-2.5, max=0.5, val=-0.5（模型包围盒 y[-1.5,-0.5]，pad=1.0）
+- 截图：output/cutfx002-default.png
+
+### 提交
+
+- 提交信息：`feat: 建立默认水平切面连续穿模`
+- 推送目标：`origin/feature/spatial-geometry-cutfix002-agent`
+
+### 停止点
+
+任务完成，等待原 Agent（Codex）回审。
+
+## CUT-FIX-003 feat: 建立默认蓝色截面教学模式
+
+- **日期**：2026-06-30
+- **Agent**：Codex 主协调 Agent
+- **分支**：`feature/spatial-geometry-cutfix003`
+- **基线**：`feature/spatial-geometry-cutfix-plan` @ `f599fe6`
+
+### 修改摘要
+
+| 文件 | 变更 |
+|---|---|
+| `geometry/section-mode.js` | 定义教学、隐藏剖开、透明剖开三种确定性显示策略 |
+| `geometry.html` | 默认保留完整模型；真实交集使用蓝色截面；接入三模式切换与可观测状态 |
+| `tests/section-mode.test.mjs` | 新增 5 项显示策略专项测试 |
+
+### 验收
+
+- 专项测试：5/5 通过
+- 全量 JavaScript：285/285 通过
+- 浏览器默认教学状态：完整模型、无源模型裁剪、蓝色四边截面、面积 1
+- 浏览器模式往返：教学→隐藏剖开→教学，状态正确恢复
+- `git diff --check`：通过
+
+### 继续点
+
+`CUT-FIX-004 feat: 缩小并弱化切割平面视觉`
+
+---
+
+## 2026-06-30 · Marvis · CUT-FIX-002 补证 amend
+
+- 响应：原 Agent 回审反馈——代码方向正确但验收证据不足
+- 分支：`feature/spatial-geometry-cutfix002-agent`（同上工作树）
+- 补证内容：
+  1. 提取 `calculateCutSliderRange(boxMinY, boxMaxY, pad)` 为 cutting-plane.js 的导出纯函数
+  2. 新增 `tests/cut-fix-002.test.mjs`（15 项专项测试）
+  3. Playwright 连续录屏 `output/page@*.webm`（581 KB），依次展示正方体顶部外→穿过→底部外、长方体高度变更、圆柱切换
+  4. 保存 5 张截图到 `output/`
+  5. 更新 TASKS.md、CURRENT_STATUS.md、AGENT_WORK_LOG.md
+- 新增测试覆盖：
+  - 默认法向量 (0,1,0)
+  - createCuttingPlane 默认行为
+  - 正方体/长方体/圆柱 slider 范围
+  - 自定义 pad 值
+  - minY>maxY 和 NaN 输入返回 null
+  - 三种截面状态可区分
+- 专项测试结果：15/15 通过
+- 全量测试结果：280/280 通过（265 + 15）
+- 截图绝对路径：
+  - `/Users/xixi/Documents/Codex/2026-06-29/new-chat/work/gongtu-cutfix002/output/01-cube-top-outside.png`
+  - `/Users/xixi/Documents/Codex/2026-06-29/new-chat/work/gongtu-cutfix002/output/02-cube-inside.png`
+  - `/Users/xixi/Documents/Codex/2026-06-29/new-chat/work/gongtu-cutfix002/output/03-cube-bottom-outside.png`
+  - `/Users/xixi/Documents/Codex/2026-06-29/new-chat/work/gongtu-cutfix002/output/04-box-default-range.png`
+  - `/Users/xixi/Documents/Codex/2026-06-29/new-chat/work/gongtu-cutfix002/output/05-cylinder-default-range.png`
+- 录屏绝对路径：`/Users/xixi/Documents/Codex/2026-06-29/new-chat/work/gongtu-cutfix002/output/page@0b05fadd5523f8eae5f716501836d9ec.webm`
+- CI 状态：当前分支未触发（隔离 worktree 推送，非主功能分支），明确写"未触发"
+- 下一步：等待原 Agent 最终验收后执行 amend + force-with-lease
+## CUT-FIX-003A docs: 冻结 CUT-FIX-004 接力基线
+
+## 2026-06-30 · 主协调 Agent · CUT-FIX-004A
+
+- 日期：2026-06-30
+- 执行者：主协调 Agent
+- 分支：`docs/spatial-geometry-cutfix004-handoff`
+- 交付：`doc/CUT_FIX_004_HANDOFF.md`
+- 基线动作：将 CUT-FIX-003 快进合入 `feature/spatial-geometry-cutfix-plan`
+- 冻结标签：`cutfix004-handoff-v1`
+- 授权边界：新 Agent 只能执行 CUT-FIX-004，必须另开独立分支和 worktree
+- 禁止事项：不得修改基线/main/dev、不得合并、不得开始 CUT-FIX-005
+- 下一步：等待新 Agent 返回分支、提交、测试和视觉证据，由主协调 Agent 回审
+
+## 2026-06-30 · Senior Developer 接力 · CUT-FIX-004
+
+- 分支：`feature/spatial-geometry-cutfix004-agent`
+- 基线提交：`9ab3b8d`（冻结标签 `cutfix004-handoff-v1`）
+- 独立 worktree：`/Users/xixi/Documents/Codex/2026-06-29/new-chat/work/gongtu-cutfix004-agent`
+- 完成任务：`feat: 缩小并弱化切割平面视觉`
+- 修改的交付文件：`geometry/cutting-plane.js`、`geometry.html`、`tests/cut-fix-004.test.mjs`
+- 执行的测试：`npm run test:geometry`（311 项）、`git diff --check`
+- 测试结果：311/311 全通过（285 基线 + 26 专项），无空白冲突
+- 核心变更：
+  1. 视觉刀面纹理填充 0.28→0.08，网格 0.20→0.22，边框 0.65→0.25，材质透明度 0.82→1.0
+  2. 新增 `computeCutPlaneVisualSize(bounds, 1.25)` 包围盒自适应尺寸
+  3. 新增 `resizeCutPlaneVisual(visual, targetSize)` 等比缩放
+  4. 模型切换/尺寸变更时自动调整刀面尺寸
+  5. "显示/隐藏视觉刀面"checkbox，隐藏不影响数学平面和蓝色截面
+  6. 26 项专项测试：尺寸计算、缩放语义、数学平面隔离、策略回归
+- 任务提交：待提交
+- 已推送远端：待推送
+- 遗留风险：
+  1. headless 环境无法生成浏览器截图和录屏，需回审 Agent 人工验收
+  2. 不修改受保护文件，已通过回归测试确认未破坏截面算法
+- 建议下一任务：等待主协调 Agent 回审；回审通过后继续 CUT-FIX-005
+- 明确声明：未合并、未开始 CUT-FIX-005
+
+## 2026-06-30 · Senior Developer 接力 · CUT-FIX-004 P1 回审修正
+
+- 分支：`feature/spatial-geometry-cutfix004-agent`（同上 worktree）
+- 基线提交：`9ab3b8d`（冻结标签 `cutfix004-handoff-v1`）
+- 响应：回审未通过 `222b2e9`，两个 P1 缺陷 + 文档和截图不足
+- P1-1 修正：`computeCutPlaneVisualSize(bounds, planeNormal, scaleFactor)` — 三维顶点投影算法
+  - 修正前：仅取 XZ 世界坐标跨度，高窄长方体倾斜 45° 丢失 Y 分量
+  - 修正后：构建切面局部正交基 (u,v)，包围盒 8 顶点完整投影，max(u,v) 跨度
+- P1-2 修正：显隐状态一致性
+  - 自由切割模式切换：`visual.visible = true` → `visual.visible = cutplaneVisualToggle.checked`
+  - 题目三点锁定：`visual.visible = true` → `visual.visible = cutplaneVisualToggle.checked`
+  - 切面倾斜/三点锁定后同步更新视觉刀面尺寸
+- 测试扩增：+12 项（高窄长方体倾斜、双轴 45°、模式切换显隐保持）
+- 测试结果：320/320 全通过（285 基线 + 35 专项）
+- 浏览器证据：5 张 Playwright 截图 + 1 段连续操作录屏（headless Chromium）
+- 修正文件：`geometry/cutting-plane.js`、`geometry.html`、`tests/cut-fix-004.test.mjs`、`CURRENT_STATUS.md`
+- 任务提交：amend `222b2e9` → `a6e8a5e`，force-with-lease 推送
+- 遗留风险：视觉刀面位置仍锚定于切面原点（非模型中心），对大偏移模型需增大 scaleFactor
+- 明确声明：未合并、未开始 CUT-FIX-005
+
+## 2026-06-30 · Senior Developer 接力 · CUT-FIX-004 视觉中心同步修正
+
+- 分支：`feature/spatial-geometry-cutfix004-agent`（同上 worktree）
+- 响应：轻量回审——刀面尺寸正确但缺少视觉中心同步
+- 新增 `computeCutPlaneVisualCenter(bounds, planeNormal)`：投影 8 顶点到切面 (u,v) 坐标，取中值转回世界坐标，同步 `visual.position`
+- 测试扩增：+5 项（原点正方体中心、非原点长方体中心、倾斜切面中心、null/非法返回 null）
+- 测试结果：325/325 全通过（320 基线 + 5 专项）
+- 任务提交：amend `a6e8a5e` → `2ee4cdf`，force-with-lease 推送
+- 遗留风险：中心计算未加切面法向位移，滑块移动后视觉刀面可能停留在原点平面
+- 明确声明：未合并、未开始 CUT-FIX-005
+
+## 2026-06-30 · Senior Developer 接力 · CUT-FIX-004 法向位移修正
+
+- 分支：`feature/spatial-geometry-cutfix004-agent`（同上 worktree）
+- 响应：数学错误——中心计算未加切面沿法向量的 offset，滑块移动后刀面偏离
+- 修正：`computeCutPlaneVisualCenter` 新增第三参数 `planeOrConstant`（接收 `THREE.Plane` 或数值），投影中心后追加 `normal * (-planeConstant)`；调用处传入实际数学平面
+- 测试扩增：+4 项（非零 offset 位移、`plane.distanceToPoint(center) ≈ 0`、传入 THREE.Plane 实例、offset=0 向后兼容）
+- 测试结果：329/329 全通过（325 基线 + 4 专项）
+- 修正文件：`geometry/cutting-plane.js`、`geometry.html`、`tests/cut-fix-004.test.mjs`
+- 任务提交：amend `2ee4cdf` → `24d2e35`，force-with-lease 推送
+- 最终状态：
+  - 提交：`24d2e35`
+  - 测试：329/329（285 基线 + 44 CUT-FIX-004 专项）
+  - 截图 5 张 + 录屏 1 段（`output/`）
+  - 两个 P1（尺寸不足 + 显隐覆盖）及中心同步、非零 offset 均修复
+  - `CURRENT_STATUS.md` 和 `TASKS.md` 已更新为最终事实
+- 遗留风险：无
+- 下一步：等待主协调 Agent 最终回审并合并到纠偏基线
+- 明确声明：未合并、未开始 CUT-FIX-005
+- 日期：2026-06-30
+- 执行者：主协调 Agent
+- 任务：`CUT-FIX-004A docs: 冻结 CUT-FIX-005 接力基线`
+- 分支：`docs/spatial-geometry-cutfix005-handoff`
+- 交付：`doc/CUT_FIX_005_HANDOFF.md`
+- 基线：CUT-FIX-004 最终提交 `8ae9ed1`
+- 冻结标签：`cutfix005-handoff-v1`
+- 授权：新 Agent 只能在 `feature/spatial-geometry-cutfix005-agent` 执行 CUT-FIX-005
+- 停止点：推送候选分支后停止，禁止合并或开始 CUT-FIX-006
+
+## 2026-06-30 · Senior Developer 接力 · CUT-FIX-005
+
+- 分支：`feature/spatial-geometry-cutfix005-agent`（独立 worktree）
+- 基线提交：`4cda7c9`（冻结标签 `cutfix005-handoff-v1`）
+- 完成任务：`feat: 保留真实剖开辅助模式`
+- 修改的交付文件：`tests/cut-fix-005.test.mjs`（新增）、`output/`（4 张截图 + 1 张录屏终帧）
+  - 注意：未修改 `geometry.html`、`geometry/section-mode.js`——代码接线已正确
+- 执行的测试：`npm run test:geometry`（358/358）、`git diff --check`
+- 测试结果：358/358 全通过（329 基线 + 29 CUT-FIX-005 专项），无空白冲突
+- 核心验收结论：
+  - 三种策略（teaching/hidden/transparent）策略对象正确且不可变 ✅
+  - 默认只进入 teaching，无裁剪、无 ghost ✅
+  - hidden 模式启用裁剪但 ghost 不可见 ✅
+  - transparent 模式显示反向透明镜像 ✅
+  - teaching → hidden → teaching 完整恢复（clipping=false, complete=true, cutaway=false）✅
+  - 10 次往返无场景节点增长（group.children.length ≤ 1）✅
+  - 20 次连续模式切换无累积（source 不变则 setSource 为 no-op）✅
+  - 模型重建在 hidden/transparent 下正确替换 ghost ✅
+  - cutawayVisual.clear() 正确释放材质和移除节点 ✅
+  - "显示/隐藏视觉刀面" checkbox 不影响教学/剖开策略 ✅
+- 浏览器验收：
+  - `01-teaching-blue-section.png`: 教学模式完整正方体 + 蓝色截面
+  - `02-hidden-cutaway.png`: 隐藏剖开模式，被切侧消失，蓝色截面保留
+  - `03-transparent-ghost.png`: 透明模式，保留半 + 透明镜像 + 蓝色截面
+  - `04-restored-teaching.png`: 切回教学模式完整恢复（Canvas 状态验证通过）
+  - `05-recording-end.png`: 连续模式切换终帧
+- 是否发现真实缺陷：**未发现**。代码接线已正确，无需修改业务代码
+- 任务提交：本任务所在提交
+- 已推送远端：提交后立即推送
+- 遗留风险：无
+- 明确声明：未合并、未开始 CUT-FIX-006
+## 2026-06-30 · 主协调 Agent · CUT-FIX-005A
+
+- 任务：`docs: 冻结 CUT-FIX-006A 接力基线`
+- CUT-FIX-005 回审：专项 29/29 通过，提交 `3477694` 已快进合入纠偏基线
+- 拆分原因：当前页面没有阶梯组合体入口，不能把入口开发隐藏在 CUT-FIX-006 测试任务中
+- 交付：`doc/CUT_FIX_006A_HANDOFF.md`
+- 冻结标签：`cutfix006a-handoff-v1`
+- 授权分支：`feature/spatial-geometry-cutfix006a-agent`
+- 停止点：完成入口与冒烟证据后停止，不开始 CUT-FIX-006
+## 2026-07-01 · 主协调 Agent · SEC2-000
+
+- 任务：`docs: 重构凹截面算法任务链`
+- 用户纠偏：当前效果与参考实现差距较大，先拆小任务再分别派发
+- 参考材料：`/Users/xixi/Desktop/给codex看/`
+- 根因：无序交点加极角排序无法恢复凹截面拓扑；Earcut 无法修复错误边界
+- 技术决策：三角面切片、线段归一化、邻接图轮廓、拓扑三角化、稳定视觉更新
+- 实验留档：`cutfix006a-experimental-do-not-merge-v1`，禁止合并
+- 任务拆分：SEC2-001 至 SEC2-009；UX2-001 至 UX2-003
+- 下一步：先派 SEC2-001；UX2-001 可在独立分支并行
+
+## 2026-07-02 · 主协调 Agent · PRD-001
+
+- 分支：`feature/csg-v2-integration`
+- 基线：`csg-section-v6-interactive` / `5fae59f`
+- 用户纠偏：保留实验室和 CSG 工作台，新增独立的考公图推动态解题与讲解入口
+- 参考视频：
+  - 倒圆锥 + 方体经典模型
+  - 棱锥 + 圆柱组合截面
+- 交付：
+  - `doc/SPATIAL_REASONING_PRODUCT_PLAN.md`
+  - `doc/AGENT_HANDOFF.md`
+  - `doc/AGENT_WORK_LOG.md`
+- 技术边界：
+  - 两道参考题先手工建立黄金答案
+  - AI 不生成数学答案
+  - 图片能力默认本地、免费、开源，只输出待确认草稿
+  - 现有 Section Engine V2、Manifold/CSG、Geometry JSON 和两个工具入口全部保留
+- 开源候选：OpenCV、PaddleOCR、Tesseract.js、Transformers.js、Transformers/llama.cpp、Ollama；
+  具体模型权重必须在 OSS-001 单独登记许可证和资源预算
+- 下一项：CASE-001 固化圆锥方体参考题黄金答案
+
+## 2026-07-02 · 主协调 Agent · CASE-001
+
+- 任务：`test: 固化圆锥方体参考题黄金答案`
+- 来源：用户提供的“圆锥+方体经典模型”视频，人工复核，不使用 AI 判题
+- 交付：`data/reasoning-cases/cone-box-001.json`、`tests/reasoning-case-fixtures.test.mjs`
+- 固定内容：四个选项轮廓、答案 A、五条几何约束、逐项理由、五个相机/切面关键帧
+- 诚实边界：视频没有精确尺寸，模型尺寸标记为教学代表参数；低分辨率曲线转写保留 uncertainty
+- 验收：聚焦测试 5/5 通过；`git diff --check` 通过
+- 下一项：CASE-002 固化棱锥圆柱参考题黄金答案
+
+## 2026-07-02 · 主协调 Agent · CASE-002
+
+- 任务：`test: 固化棱锥圆柱参考题黄金答案`
+- 来源：用户提供的“棱锥+圆柱组合截面考察”视频，人工复核
+- 事实纠正：视频实际是 A 至 D 四个选项；A/B/C 可行，D 不可行
+- 核心理由：圆柱椭圆要求切面倾斜，同一平面会切到四棱锥侧棱，因此 D 的完整矩形必然缺角
+- 交付：`data/reasoning-cases/pyramid-cylinder-001.json`，并扩展共同夹具测试
+- 验收：两题聚焦测试 9/9 通过；`git diff --check` 通过
+- 下一项：LESSON-001 冻结动态讲解题目协议
+
+## 2026-07-03 · 主协调 Agent · LESSON-008～009
+
+- 用户视觉纠偏：原三维模型与切平面层级接近，截面不够醒目；要求参考清晰示例增加独立实时截面图
+- LESSON-008：
+  - 提交 `89854a8`
+  - 实体透明度降至 0.46，深色外棱稳定显示，切平面退为淡蓝辅助层
+  - 三维真实截面改为橙色填充与深橙轮廓
+- LESSON-009：
+  - 提交 `351629f`
+  - 三维视口下增加独立二维截面卡片
+  - 数据直接来自 `result.topology.groups` 的 `outerPoints2D` 和 `holes2D`
+  - 等比缩放、居中，显示全部轮廓、孔洞、顶点、面积和状态
+  - 关键帧、屏幕/键盘方向键、偏移滑条均通过 `updateSection()` 实时同步
+- 验收：
+  - 页面、状态机和时间线专项测试 17/17
+  - 第一题 A 显示 1 个轮廓、7 个顶点、面积 5.64
+  - 方向按钮旋转后二维 SVG path 实际变化
+  - 偏移滑条后轮廓与面积同步变化
+  - 浏览器控制台业务错误 0
+- 明确边界：
+  - 未修改 Section Engine V2 数学算法
+  - 未删除原切面旋转按钮或偏移滑条
+  - 未合并 main
+- 唯一下一项：AUTHOR-001 建立不依赖 AI 的手工题目讲解编辑器
+
+## 2026-07-04 · 主协调 Agent · LESSON-010～012
+
+- 用户真实体验否决：
+  - CSG 内部三角碎边太多，模型难看且看不清实体/空处
+  - 真实截面没有从模型中突出
+  - 方向键仍被“手动探索”前置状态锁住
+  - 抽象“可行条件”不符合考公图推的直观讲解方式
+- LESSON-010 `a877e22`：
+  - 删除 CSG 结果网格 EdgesGeometry，改用组合前基本体结构棱
+  - union solid 启用切面裁剪，被切侧以 0.09 ghost 显示
+  - `sectionSource` 后续纠正为只指向 union solid，ghost 不参与 V2 计算
+- LESSON-011 `b921824`：
+  - 选中有切面的选项后，方向按钮和滑条立即启用
+  - 第一次方向键、屏幕按钮或滑条操作自动进入 exploring
+  - 浏览器实测首次 ArrowRight 令 V2 截面 path 和面积立即变化
+- LESSON-012 `bfe3333`：
+  - 讲解顶部并排显示候选 SVG 与实时 V2 截面
+  - 八个选项使用基础图形、直/曲边、尖角和缺角语言说明最接近图形与差异
+  - 抽象约束降为补充信息
+- 验收：聚焦回归 28/28；D 选项候选 SVG/实际 path/关键差异文案均存在；控制台业务错误 0
+- 不得恢复：CSG 全量碎边、ghost 参与截面计算、方向键前置解锁、规则清单优先讲解
+
+## 2026-07-05 · 主协调 Agent · LESSON-014L
+
+- 任务：`fix: 纠正基础截面正多边形与直角三角形规则`
+- 用户纠偏：
+  - 正方体五边形不是标准正五边形，不能按正五边形讲
+  - 正六边形需要讲清是否过棱中点、是否六边等长
+  - 正方体/长方体的直角三角形演示不可信，真实削角截面不应该被按钮名称强行说成直角
+  - 梯形默认能截出，但旧参数稍微拖动就变三角形，教学手感不稳
+- 交付：
+  - `section-foundation.js`
+  - `section-foundation.html`
+  - `tests/reasoning-lesson-layout.test.mjs`
+- 结果：
+  - 正方体/长方体“直角三角形”移入不能直接截出
+  - 三角形分类改为根据真实二维截面角度和边长判断，不再读取按钮名称
+  - 五边形说明补充“通常不是正五边形”
+  - 六边形说明补充“垂直体对角线、穿过六条棱中点、六边等长”
+  - 梯形参数改为稳定区间，默认和拖动到 `偏移 +18` 后都保持真实 4 点梯形
+- 验收：
+  - `git diff --check` 通过
+  - `node --check section-foundation.js` 通过
+  - `node --experimental-loader ./tests/three-absolute-loader.mjs --test tests/reasoning-lesson-layout.test.mjs` 13/13 通过
+  - 应用浏览器验证直角三角形、五边形、六边形、梯形与拖动同步，控制台 error/warning 为空
+- 唯一下一项：LESSON-015 重做手动探索为滑动式截面验证
+
+## 2026-07-05 · 主协调 Agent · LESSON-014M
+
+- 任务：`fix: 补项目错误复盘并收紧盒体直角三角形验证`
+- 用户纠偏：
+  - 上一轮只把错误写入 Skill 仓库，没有把公途项目内的错误复盘和代码边界补完
+  - “验证过”必须区分页面验证、算法验证和数学事实验证
+- 交付：
+  - `section-foundation.js`
+  - `tests/reasoning-lesson-layout.test.mjs`
+  - `错误复盘.md`
+- 结果：
+  - 新增项目根目录 `错误复盘.md`
+  - `classifyTriangle` 接收 `solidId`
+  - 正方体/长方体三角截面不再因接近 90 度被误判成“直角三角形”
+  - 专项测试增加盒体禁用直角误判的源码断言
+- 验收：
+  - `git diff --check` 通过
+  - `node --check section-foundation.js` 通过
+  - `node --experimental-loader ./tests/three-absolute-loader.mjs --test tests/reasoning-lesson-layout.test.mjs` 13/13 通过
+  - 应用浏览器验证正方体“直角三角形”实际显示为等边三角形且控制台无 error/warning
+- 唯一下一项：LESSON-015 重做手动探索为滑动式截面验证
+
+## 2026-07-05 · 主协调 Agent · LESSON-014N
+
+- 任务：`fix: 全量校准基础截面真实形状`
+- 用户纠偏：
+  - 不能再让用户逐个截图发现错误，基础截面页必须由 Agent 自己全量验证
+  - 缩略图、右侧 3D、实时截面必须和卡片标签一致
+  - 长方体“三角形”不能实际切出五边形，其他常见形状也要一次查完
+- 交付：
+  - `section-foundation.js`
+  - `section-foundation.html`
+  - `tests/foundation-section-presets.test.mjs`
+  - `错误复盘.md`
+- 结果：
+  - 修正正方体长方形预设，不再显示为正方形
+  - 修正长方体三角形、平行四边形、梯形、五边形预设
+  - 修正圆柱带弧边截面预设，不再显示为矩形
+  - 修正棱锥五边形预设，不再显示为四边形
+  - 新增真实几何矩阵测试，读取页面预设后用 Three.js 求交验证全部卡片
+  - 错误复盘新增“局部验证不能替代全量截面矩阵”
+- 验收：
+  - `node --check section-foundation.js` 通过
+  - `node --experimental-loader ./tests/three-absolute-loader.mjs --test tests/foundation-section-presets.test.mjs tests/reasoning-lesson-layout.test.mjs` 15/15 通过
+  - `npm run test:geometry` 562/562 通过
+  - 浏览器自动点击基础截面页 44 个截面卡片，44/44 通过，控制台 error/warn 为空
+  - `curl -I http://localhost:8089/section-foundation.html` 返回 200
+- 唯一下一项：LESSON-015 重做手动探索为滑动式截面验证

@@ -1,0 +1,19 @@
+{
+  "version": "1.0",
+  "id": "preset-lshape",
+  "name": "L 形",
+  "description": "基础 L 形拐角，3 块",
+  "type": "unitCubeArray",
+  "source": "builtin",
+  "tags": ["三视图", "入门"],
+  "positions": [[1,0,2], [2,0,2], [2,0,3]],
+  "appearance": { "colorScheme": "layered" },
+  "grid": { "size": 5, "origin": [0, 0, 0] },
+  "cutPlane": { "axis": "y", "defaultOffset": 0.0, "range": [-2.5, 2.5] },
+  "question": {
+    "type": "block-count",
+    "difficulty": 1,
+    "answer": { "count": 3 },
+    "explanation": "俯视图可见全部 3 块"
+  }
+}

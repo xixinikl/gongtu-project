@@ -33,7 +33,7 @@
 ```
 ┌──────────┐     ┌──────────────────┐     ┌─────────┐
 │  网页前端  │────▶│                  │────▶│ SQLite  │
-│  HTML/JS  │     │  FastAPI :8888   │     │ data.db │
+│  HTML/JS  │     │  FastAPI :8888   │     │ /libSQL │
 └──────────┘     │  backend/main.py │     └─────────┘
                  │                  │
 ┌──────────┐     │                  │     ┌──────────────┐
@@ -62,13 +62,23 @@
 | 后端框架 | FastAPI（Python） |
 | 前端 | 原生 HTML + CSS + JavaScript |
 | AI | DeepSeek（OpenAI 兼容接口） |
-| 数据库 | SQLite |
+| 数据库 | SQLite（本地）/ Turso libSQL（公网持久化） |
 | 桌面端 | Electron |
 | CI/CD | GitHub Actions（Ruff + mypy + Bandit） |
 
 ---
 
 ## 快速开始
+
+### 立体图推 / 静态训练页
+
+```bash
+npm run dev
+```
+
+浏览器打开 `http://127.0.0.1:8089/three-view-training.html`。`npm run dev` 会先检查 `8089`，没启动就自动后台启动静态服务；运行状态可用 `npm run dev:status` 查看，必要时用 `npm run dev:stop` 停止。
+
+### 后端版主站
 
 ```bash
 # 1. 进入项目

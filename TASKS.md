@@ -1,18 +1,201 @@
 # 公途空间几何实验室任务看板
 
+## 2026-07-18 生产安全底座
+
+## 公网面试演示保护（2026-07-23）
+
+- [x] DEMO-AI-1 仅在 `GONTU_DEMO_MODE=1` 时启用 AI 额度保护；本机默认关闭。
+  - 默认额度：账号 20 次/24 小时、访问来源 80 次/24 小时。
+  - 验收：额度专项 3/3；AI 教练、申论、言语接口回归通过。
+
+- [x] ● SEC-1A 关闭公开注册提权，并提供仅服务器本机可执行的一次性管理员初始化工具。
+  - 交付文件：`backend/auth.py`、`tools/bootstrap-admin.py`、`tests/test_admin_vip.py`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：空库任意公开注册均为普通用户；本机工具可创建或提升唯一初始管理员；已有管理员后再次初始化必须失败；原管理员/VIP权限回归保持通过。
+  - 结果：公开注册固定 `is_admin=0`；本机工具使用无命令行明文密码的双次交互输入，可新建管理员或提升既有普通账号并重置密码；管理员已存在时 fail closed。管理员/VIP与JWT专项 7/7、Ruff、mypy 26文件、Bandit中高危0、工具真实空库初始化/二次拒绝均通过。
+- [x] ● SEC-1B 修正统一登录页的管理员初始化说明并建立前端合同回归。
+  - 交付文件：`login.html`、`tests/unified-auth-client.test.mjs`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：无管理员时页面明确公开注册仍是普通账号，给出服务器本机初始化命令；旧“第一个注册成为管理员”文案不得回归。
+  - 结果：登录页已改为本机终端初始化说明；统一认证专项新增正向命令与负向旧文案断言，8/8通过。
+- [x] ● SEC-2 登录与注册防爆破：按来源和账号限流、输入长度上限、可信代理显式配置。
+  - 交付文件：`backend/auth.py`、`backend/auth_rate_limit.py`、`tests/test_auth_rate_limit.py`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：账号与来源双层滑动窗口触发429和`Retry-After`；成功登录不能清除来源总限额；代理头默认不可信，只有直连代理命中显式白名单才解析；超长输入422；用户名不存在仍执行等成本密码校验。
+  - 结果：登录账号5次/5分钟、来源20次/5分钟，注册账号3次/小时、来源5次/小时；最多保留10000个内存桶。专项3/3、管理员/VIP 4/4、JWT 3/3、Ruff、mypy 27文件、Bandit中高危0通过。当前实现面向单进程封闭内测；多worker部署必须在SEC-5阻止或换共享限流存储。
+- [x] ● SEC-3 管理员高风险操作审计：授权、VIP、策略与删除操作可追踪且不记录敏感明文。
+  - 交付文件：`backend/database.py`、`backend/main.py`、`tests/test_admin_vip.py`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：授权、VIP/积分、AI访问策略、词库/牌组/申论/整用户删除均在同一事务写审计；审计写失败则业务回滚；管理员可查询最近1—200条；普通用户不可读；删除用户后流水保留；不含密码、Token或AI Key。
+  - 结果：新增v12追加式审计表与双索引、管理员查询接口和7类受控动作；专项5/5、旧库迁移/恢复2/2、Ruff、mypy 27文件通过，注入审计写失败后VIP积分仍保持原值。
+- [x] ● SEC-4 SQLite 自动备份、完整性验证、保留策略与恢复演练工具。
+  - 交付文件：`tools/gontu_db.py`、`tests/test_database_backup.py`、`doc/operations/DATABASE_BACKUP.md`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：运行中WAL数据库通过SQLite在线备份复制；每份副本`integrity_check=ok`且0600；只清理由本工具命名的过期副本；损坏副本拒绝；恢复只写不存在的新目标并再次验证，绝不覆盖。
+  - 结果：备份/验证/恢复三命令和恢复演练说明完成；专项3/3、Ruff、语法与diff检查通过，在线连接保持打开时4行事实完整进入副本，保留2份和覆盖拒绝均有直接断言。
+- [x] ● SEC-5A 生产运行时关闭通配CORS，并要求显式来源白名单。
+  - 交付文件：`backend/main.py`、`backend/.env.example`、`tests/test_production_readiness.py`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：生产环境缺少`GONTU_CORS_ORIGINS`、使用`*`、填写带路径/查询/片段的伪origin均拒绝启动；合法HTTP(S)来源列表可启动；开发环境保持本地兼容。
+  - 结果：正式入口改为运行时来源白名单；生产配置专项3/3、Ruff、mypy 27文件与语法检查通过；环境示例补齐生产密钥、数据库、CORS和可信代理变量。
+- [x] ● SEC-5B 生产就绪检查：密钥、数据库权限、备份新鲜度、运行模式和部署前停止条件。
+  - 交付文件：`tools/production_readiness.py`、`tests/test_production_readiness.py`、`doc/operations/PRODUCTION_READINESS.md`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：生产模式、非示例JWT/AI密钥、HTTPS CORS、合法代理IP、单worker、正式库0600/完整/有管理员和审计表、24小时内0600完整备份、独立恢复库全部通过才返回0；否则逐项失败并返回非零。
+  - 结果：可执行fail-closed门禁与操作说明完成；生产配置/门禁专项5/5、Ruff与语法检查通过。当前未部署环境不会被误报为可收费上线。
+
+生产安全底座 SEC-1A—SEC-5B 已实现、独立审查并合入候选分支；不代表已部署、已收费可用或已合并主分支。
+
+- [x] ● SEC-6 全量回归、远端CI与Draft PR证据收口。
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 结果：20个Python测试文件逐进程通过；Node 673/673；依赖树、Ruff、mypy 27文件、Bandit中高危0、doctor 0 fail；Draft PR #25 OPEN、MERGEABLE，正确以`agent/admin-vip-console`为基线；GitHub Actions run `29641376392` 五项全部成功。保持Draft，不合并`main`。
+- [x] ● SEC-7 独立审查 PR #25，纠正与当前安全实现冲突的旧版本记录，并重新验收后合并到候选分支。
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/releases/RELEASE_CANDIDATE_20260718.md`
+  - 验收：公开注册与初始管理员说明全库一致；PR 无未处理评审意见；本地门禁与 GitHub Actions 全绿；只合并到 `agent/admin-vip-console`，不合并 `main`。
+  - 结果：审查未发现代码阻断项，修正三处旧版自动提权记录；20个Python测试文件、Node 673/673、依赖树、Ruff、mypy 27文件、Bandit中高危0、doctor 0 fail；GitHub Actions run `29647861867` 五项全绿。PR #25 已以 merge commit `a1a836e` 合入 `agent/admin-vip-console`；该合并提交对应 run `29647898525` 五项全绿，`main` 未变。
+
+## 2026-07-18 版本收口
+
+- [x] ● REL-2A 冻结合并后候选并完成真实浏览器冒烟验收。
+  - 交付文件：`doc/acceptance/RC2_FINAL_SMOKE_20260718.md`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：使用隔离数据库启动正式后端；桌面与390px实测首页、统一登录/注册、学习页和管理员入口；公开注册只能得到普通用户且不能进入后台；服务器本机初始化管理员后可正常登录后台；关键页面无横向溢出、破图和控制台错误；PR #24 五项检查全绿；推送 `gongtu-rc-20260718.2`，保持 `main` 不变。
+  - 结果：隔离数据库完成普通用户注册、后台拒绝、服务器本机管理员初始化、管理员登录、后台与学习端往返及首页“开始备考”进入学习端；1280px 与390px页面均无横向溢出、破图和本机控制台错误。验收记录随候选提交进入 `gongtu-rc-20260718.2`；远端标签和 PR #24 检查在提交后复核，`main` 保持不变。
+
+- [x] ● REL-1A 建立跨分支 CI 与数据库恢复门禁。
+  - 交付文件：`.github/workflows/check.yml`、`tests/test_database_migration.py`、`backend/quantity.py`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：任意 PR 基线均会触发工作流；CI 安装锁定依赖并逐文件运行 Python 测试；临时旧库 2/2 证明数据保留、迁移幂等与停服整库恢复；Ruff 通过；数量模块只补 `Any` 类型导入；Node 672/672、doctor 0 fail。
+  - 结果：门禁已能暴露后续 mypy 旧债，转入 REL-1B 窄修复；远端实际运行证据统一在 REL-1C 推送后取得。
+- [x] ● REL-1B 清零候选版既有 mypy 阻塞。
+  - 交付文件：`backend/ai_coach.py`、`backend/shenlun.py`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：只补容器与可空值类型标注，不改运行逻辑；排除本地 `backend/venv` 后 mypy 全库通过，AI/申论专项和 Python 全量回归通过。
+  - 结果：mypy 26 个后端文件无问题；Ruff 通过；Bandit 中高危 0；AI 教练 15/15、申论 15/15、Python 全量 87 项通过。修复仅收窄数量练习证据列表变量与申论历史 id 的可空类型。
+- [x] ● REL-1C 冻结发布候选、推送标签并取得远端检查证据。
+  - 交付文件：`doc/releases/RELEASE_CANDIDATE_20260718.md`、`.github/workflows/check.yml`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：候选清单写清包含项、排除项、启动/测试、SQLite 备份恢复和停止条件；提交与 `gongtu-rc-20260718.1` 标签推送；PR #24 五项检查有明确结果。
+  - 结果：发布候选清单已提交；GitHub Actions run `29640065363` 的 frontend-check、backend-tests、lint、type-check、security 全部通过；候选标签指向最终审计提交，不合并 `main`、不触碰真实数据库。
+
+## 管理员 / VIP 当前收口
+
+- [x] ● ADM-1 统一管理员入口：`/admin` 只认主站 `gontu_token`，未登录回统一登录页，普通用户不能进入后台且不会循环跳转。
+- [x] ● ADM-2 初始管理员与权限分配：公开注册始终创建普通用户；初始管理员仅可由服务器本机工具显式创建或提升；管理员可授权/取消其他账号，不能取消自己的权限。
+- [x] ● ADM-3 VIP 与积分资料：幂等数据库迁移、VIP状态、到期日、AI积分编辑、列表汇总和账号详情均完成。
+- [x] ● ADM-4 管理工作台：公途宣纸/深墨视觉、跨模块学习概览、搜索、详情、危险操作层级以及桌面/390px响应式已由真实浏览器验收。
+- [x] ● ADM-5 AI访问策略预设：默认全站免费，可保存 `free` / `vip` 运营策略；页面明确说明当前不会自动扣点，避免误导。
+- [ ] ○ ADM-6 正式额度执行层：统一AI访问校验、原子扣点、失败退款、积分流水与管理员审计尚未开发；正式收费或限制AI前必须完成。
+
+当前管理员证据：旧版隔离浏览器曾完成首个账号自动提权、授权、VIP=88、策略切换/恢复免费，390px 无页面横向溢出、console error/warn 0；其中“首个账号自动提权”已被 SEC-1A 的服务器本机显式初始化方案取代，不再是当前行为。
+
+## 当前 V3 统一体验修复 Goal（最高优先级）
+
+- [x] ● V3R-1 冻结确认 Demo、正式路径与视觉/用户路径断层；证据见 `doc/acceptance/V3R-1-visual-and-path-baseline.md`。
+- [x] ● V3R-2 十个正式页面接入统一 V3 外壳；空间导航不再藏在横向滚动侧栏；桌面/手机实测与 Node 634/634 通过。证据见 `doc/acceptance/V3R-2-unified-shell-and-navigation.md`。
+- [x] ● V3R-3 言语与数量 AI 上下文闭环：真实作答进入服务端可信上下文，未交卷答案不暴露，返回恢复同一 session；证据见 `doc/acceptance/V3R-3-verbal-quantity-ai-handoff.md`。
+- [x] ● V3R-4 图推与申论 AI 上下文闭环：三条正式入口、正确 Skill、huasheng13 窄适配、本人服务端上下文与安全返回已验收。
+- [x] ● V3R-5 记录、Skill、用户隔离、失败提示与 `return_url` 合同已通过 Python 77/77、Node 643/643并归档证据。
+- [x] ● V3R-6 用户已确认跨电脑找回的水墨首页与最终功能页，并明确进入版本收口。后端 `/` 已指向 `doc/prototypes/homepage-middle-ink-morph.html`，首页内部首屏/CTA 固定读取 `/index.html` 以避免递归，真实 iframe 内“开始备考”进入顶层 `/app`，功能页“返回首页”回到 `/`。根路由接入后的资源路径、标签串色、问西西双模式、提问可见性与双缩小入口均已修复并由真实浏览器验收；最终 Node 全量为 672/672。
+
+- 最终回归补记：悬浮框尺寸按钮与大窗阅读排版断言已纳入同一专项；长回答会按语义分段、使用更宽回答卡和 16px 正文，输入区固定到底部且发送按钮可见。Node/几何全量重跑仍为 670/670；上条“待最终重跑”已完成。
+- [x] 悬浮问西西提问可见性与双缩小入口：确认数据库消息未丢失；给脱离原容器的悬浮窗补齐独立公途色彩变量，最新用户消息固定显示为金色“你问”气泡；左下角增加缩小按钮。浏览器完成刷新历史、缩小、放大和视觉验收，专项 10/10、全量 670/670。
+
+权威进度：`.xds/goals/unified-v3-experience-repair.json`。本节完成前，下方 Phase 6 与空间几何记录仅作为历史证据，不是当前执行入口。
+
+## 当前统一平台 Goal（优先于下方历史空间看板）
+
+- [x] ● GT-P6-1A 跨平台运行基线：恢复 Windows/macOS 打包配置、跨平台 Python 解析和 Windows 启动入口；跨平台脚本不得再依赖单台 Mac 绝对路径。
+  - 结果：桌面打包同时声明 macOS/Windows，Python 优先读取 `GONTU_PYTHON` 或平台虚拟环境且无单机绝对路径，Windows 启动脚本检查 Python/依赖后启动正式服务。
+  - 验证：`node --check desktop/main.js`、desktop package JSON 解析通过；跨平台脚本中本任务覆盖的 14 项通过，剩余 `.gitignore` 与本地 main 状态断言归入 GT-P6-1B。
+- [x] ● GT-P6-1B 可移植运行时声明：提交 `.nvmrc` / `.python-version` 并补 Windows 系统文件忽略，换终端或换设备时不再依赖 Agent 临时 PATH。
+  - 结果：Node 24 与 Python 3.10 最低运行入口可被 nvm/pyenv 读取；`Thumbs.db`、`Desktop.ini` 不会混入提交。
+  - 验证：版本文件精确值检查、忽略项检索与 `git diff --check` 通过；跨平台脚本提升为 15/16。
+- [x] ● GT-P6-1C AI/空间静态回归：清理 AI 教练单行复合语句、修复 AI/空间类型收窄，并把本地 main 同步从产品测试改为 origin 配置检查。
+  - 结果：AI 教练57项 Ruff错误归零；AI/空间 mypy 归零；跨平台测试不再通过移动用户本地 main 来修绿。
+  - 验证：Ruff pass、AI/空间 mypy pass、AI/空间/JWT 19/19、跨平台16/16、`git diff --check`通过。
+- [x] ● GT-P6-1D 申论静态与全量回归：修复旧 grader/mistake tracker 的8项空值类型错误，并运行 lint/schema/migration/adapter、Python、Node、Bandit和依赖全量。
+  - 结果：模型空响应明确失败，不再把 `None` 继续当批改/分析文本；全库静态、类型、安全和自动回归通过。
+  - 验证：Ruff pass；mypy 26文件 pass；Bandit 中高危0；依赖树 pass；Python 64/64；Node 620/620；跨平台16/16；Goal lint pass。
+- [x] ● GT-P6-1E 可移植预览与Python环境：补齐无缓存静态服务的 open/serve、独立端口和安全路径；补齐跨平台 Python 3.10+ venv 助手；旧 Demo 预览改到正式数量页与真实AI教练页。
+  - 结果：不同worktree不会静默复用他人8089；可用 `GONTU_STATIC_PORT` 独立启动；`GONTU_NO_OPEN=1` 支持CI验证；`python:venv`不再指向缺失文件。
+  - 验证：8096端口两条正式预览均HTTP200、no-cache；status识别正确PID、stop成功；Python3.12探测通过；两个脚本语法与diff检查通过。
+- [x] ● GT-P6-1F 数量数据门禁可移植：批准导出识别 `full_visual_set_audit`，portable导出归一化审计字段；CI在干净工作树验证600题、60套、71媒体、第28套、第8套q7和42题解析视觉边界，并已证明会拒绝当前1800个陈旧字段。
+- [x] ● GT-P6-1G 数量portable seed迁移：600题只迁移三个审计字段，答案/题文/71媒体零变化；干净工作树数量CI与5项数量页面测试通过，仍明确42题解析视觉未完成。
+- [x] ● GT-P6-2A 正式页面同源API：三页已移除固定8888合同；8897临时DB收到平面题、AI线程和消息，申论无Key未写正式记录，23项页面/认证测试通过。
+- [x] ● GT-P6-5A 题库不可用合同：两类题库缺失/损坏/计数异常统一503且响应脱敏；401先于加载、深层路由一致、健康未知套题仍404；专项3项、数量4项、片段阅读8项通过。
+- [x] ● GT-P6-5B 申论题源事实合同：认证catalog、缺失/损坏503、未知题404、路径/原异常脱敏、AI不调用和10题summary-only均有直接断言，申论7项通过。
+- [x] ● GT-P6-5C 申论题源状态UI：侧栏持续展示catalog题数/摘要事实；不可用时清空题目与选中态，未知题明确提示并禁用批改，不生成占位题；UI/认证11项通过。
+- [x] ● GT-P6-5D Provider失败关闭与脱敏：严格校验5维度、评级、总结和3条建议；超时/无效/不可用均返回稳定安全码，响应/日志/数据库不得含原始Provider内容，失败不得写学习事实。
+  - 验证：专项10项、Python分进程72项、跨平台16/16、Node页面/认证11项、Ruff与mypy通过；含密钥形态的Provider异常与原始输出均未进入响应、日志或数据库，分析失败不再生成伪建议。
+- [x] ● GT-P6-5E 申论批改幂等后端：按 `users.id + Idempotency-Key` 保存请求哈希与状态；同键同载荷回放同一结果、不同载荷409、处理中409、失败安全回放，新键才允许有意重做。
+  - 验证：专项14项、Python分进程76项、Ruff与mypy通过；同键重放只调用一次Provider且只写一套事实，保存事务故障时历史/问题/活动全部回滚，A/B可安全复用同名键。
+- [x] ● GT-P6-5F 申论批改幂等界面：每次有意提交生成并复用请求键，网络重试不得重复写记录；安全错误对象显示人类可读文案。
+  - 验证：Node页面/认证13项通过；8898临时DB浏览器实测UUID键长36、Provider无配置只写1条failed请求，页面恢复原作答并显示中文安全错误，历史/问题/活动/证据均为0，服务与浏览器已清理。
+- [x] ● GT-P6-2B 正式登录同源合同：首页与正式外壳登录/注册不再固定请求8888；8089 静态预览仍使用8888，其余正式入口使用当前origin。
+  - 验证：Node 页面/认证 14/14；全新 Chrome 用户目录在8899临时服务/临时数据库完成首页注册、申论题库加载与刷新，服务日志确认`POST /api/auth/register -> 200`及所有申论请求均在8899；临时数据库只有测试用户，申论批改请求为0，服务/浏览器已清理。
+- [x] ● GT-P6-4A JWT 签名安全：删除仓库公开固定密钥；本地使用0600持久随机密钥，生产环境强制显式配置；证明旧公开密钥不能伪造用户身份且重启后登录态稳定。
+  - 结果：旧公开 HMAC 值已退役；本地按数据库目录生成并复用0600随机密钥；生产只接受至少32字节且非旧公开值的 `GONTU_JWT_SECRET`。
+  - 验证：安全专项 3/3（旧密钥伪造拒绝、跨重启稳定、生产 fail closed）；既有 API 分进程 61/61；`py_compile` 与 `git diff --check` 通过。
+- [x] ● GT-P6-2—6 全链路验收：六模块真实主路径、身份持久化、A/B、失败降级、桌面/手机与可访问性。
+  - 浏览器：独立 8910 服务/临时 SQLite 注册 B；言语、数量、平面图推、立体三视图、申论和 AI 教练均进入真实路径。言语作答刷新后 1/20；B 登出后 C 为 0/20 且 AI 无历史；重新登录 B 后恢复 1/20；临时服务重启后 C 的登录态仍可用。无 AI 配置时真实消息被保存且显示可重试失败态，不伪造回答。
+  - 自动回归：`backend/venv/bin/python` 分别运行统一学习、认证、言语词库/阅读、数量、平面图推、立体图推、申论、AI 教练和题库不可用合同，共 62/62；Node 六页/认证/正式外壳测试 45/45。
+  - 响应式与可访问性：六页在 390px 与 1280px 都无横向溢出、无破图；最终 console error/warn 为 0。正式外壳覆盖跳转链接、可见焦点、移动端展开/`Escape` 收起和减少动效。
+- [x] ● GT-P6-7—8 完成审计与干净总装：六 PR 证据、全部 worktree 三分类、干净集成分支和完整回归。
+  - 已核实：Phase 1→6 的提交链连续；Draft PR #21 已建立并以 Phase 5 为基线。PR #15—#21 皆为 open 未合并（#17—#21 为 Draft）；所有状态和 9 个 worktree 的三分类已写入 `doc/PHASE6_COMPLETION_AUDIT.md`。
+  - 总装回归：`cx/phase6-clean-integration` 新建 Python 3.12 venv 后服务端 62/62、Node 46/46、portable 数量门禁 600/60/71 通过；B 作答刷新 1/20、C 同套题 0/20；六页在 390px/1280px 无溢出、破图 0、console error/warn 0。临时环境已清理。
+  - 补救：默认数量流水线在无 OCR 中间产物的干净树自动转为已提交 approved seed 的 portable CI；不再要求未提交 `output/quantity-bank/raw_sets`。
+
+- [ ] ○ PRC-1—4 Phase 1—6 外部审阅与合并收口：记录 PR #15—#21 的检查、评论与审阅，处理实际可执行反馈，并保留 Ready/批准/合并的外部决策。
+  - 当前结果（2026-07-13）：#15—#21 均 open、`CLEAN`、无 GitHub checks、无 reviews；#15/#16 非 Draft，#17—#19/#21 为 Draft。无待处理反馈，因此不修改阶段分支。
+  - 外部边界：未经用户明确授权，不标记 Ready、不批准、不合并；具体路由、证据与停止条件见 `doc/PHASE_REVIEW_CLOSURE.md`。
+  - 独立后续：#20 实时预览工具不属于阶段链，已记录 OAuth 写入权限跟进，待本 Goal 停止或完成后另建 Goal。
+
+- [x] GT-P5-1 服务端可信上下文：独立提问与训练引用分离，JWT 垂直 resolver，综合规划不信任客户端摘要。
+- [x] GT-P5-2 版本 Skill Registry：七模块、严格路径、package/bundle hash、响应 Schema、fail closed。
+- [x] GT-P5-3 真实对话持久化：真实 DeepSeek 自由咨询与数量activity上下文均完成；线程/消息/run/usage/hash/幂等/重试/A-B通过。
+- [x] GT-P5-4 问题卡边界：闲聊/无证据0问题；服务端证据门槛→候选→用户确认；普通保存仅 `coach_note`。
+- [x] GT-P5-5 综合复盘：当前模块线程隔离；跨模块只聚合本人真实垂直记录；证据不足明确承认。
+- [x] GT-P5-6 Provider 降级：缺配置/超时/非法输出保留问题与失败 run，支持重试，不展示静态 AI 文案。
+
+当前证据：Python 61/61；Node 620/620；真实 DeepSeek 两条路径；浏览器 1440/390 无横向溢出，A→退出→B 隔离→退出→A 恢复通过；详见 `doc/PHASE5_AI_COACH_AUDIT.md`。
+
+Phase 5 门禁已通过；下一步 Phase 6。
+
 > 状态：`○ 待开始` · `◐ 进行中` · `● 已完成` · `⛔ 阻塞`
-> 规则：同一时刻只能有一个 `◐`；只有验收通过、更新状态并提交后才可标记 `●`。
+> 这是用户验收主看板。同一时刻只能有一个 `◐`；只有验收通过、写明证据并提交后才可标记 `●`。
+
+## 当前验收摘要
+
+| 项目 | 当前结果 |
+|---|---|
+| 当前阶段 | M5A 动态解题先选后析与截面方向同步 |
+| 已完成 | 126 项 |
+| 进行中 | 0 项 |
+| 下一项 | LESSON-016 建立四类训练总入口 |
+| 冻结基线 | `csg-section-v6-interactive` |
+
+## 交接与上传
+
+- [x] ● HANDOFF-20260709 docs: 写入当前交接并上传 GitHub
+  - 交付文件：`doc/HANDOFF_2026-07-09.md`、`doc/AGENT_HANDOFF.md`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
+  - 验收：交接文档写清当前仓库、分支、功能进度、验证状态、未完成项、新 Agent 接手步骤；确认 GitHub 远端不是 `canvas-storm`；上传前不提交本地自动化日志和用户临时 Excel
+  - 结果：已新增最新交接文档，旧交接手册顶部指向最新交接；`npm run doctor` 已运行但受本机 Node/Python 版本限制未全绿；`git diff --check`、三组专项测试和 `npm run test:geometry` 均通过；`.playwright-cli/` 已加入忽略
+  - 提交：本任务所在提交
 
 ## 里程碑
 
 | 阶段 | 目标 | 状态 |
 |---|---|---|
-| M0 | 工程治理与现状保护 | ◐ 进行中 |
-| M1 | 可操作的基础 3D 实验室 | ○ 待开始 |
-| M2 | 无限切平面与精确截面 | ○ 待开始 |
-| M3 | 组合模型与空间视图题 | ○ 待开始 |
-| M4 | 参数化题库与管理工具 | ○ 待开始 |
-| M5 | 图片文字 AI 辅助建模 | ○ 待开始 |
+| M0 | 工程治理与现状保护 | ● 已完成 |
+| M1 | 可操作的基础 3D 实验室 | ● 已完成 |
+| M2 | 无限切平面与精确截面 | ● 已完成 |
+| M3 | 组合模型与空间视图题 | ● 已完成 |
+| M4 | 参数化题库与管理工具 | ◐ 进行中 |
+| M5 | CSG 立体截面模板引擎 | ◐ 进行中 |
+| M5A | 考公立体图推动态解题与讲解 | ◐ 规划中 |
+| M5B | 图片辅助录题（本地开源模型） | ○ 待开始 |
 | M6 | 集成、测试与发布 | ○ 待开始 |
 
 ## M0：工程治理与现状保护
@@ -20,67 +203,503 @@
 - [x] ● GOV-001 docs: 建立 AI 协作章程与任务看板
   - 文件：`.ai_rules.md`、`TASKS.md`、`CURRENT_STATUS.md`
   - 验收：三个文件存在；状态定义一致；单任务修改不超过 3 个文件
-- [ ] ○ GOV-002 docs: 同步项目开发规范的规则优先级
+  - 结果：已通过文件存在性、状态唯一性和 `git diff --check`
+  - 提交：`10324e7`
+- [x] ● GOV-002 docs: 同步项目开发规范的规则优先级
   - 文件：`doc/PROJECT_RULES.md`、`TASKS.md`、`CURRENT_STATUS.md`
   - 验收：旧规则引用 `.ai_rules.md`；冲突优先级清晰
-- [ ] ○ GOV-003 docs: 编写空间几何模块架构决策
+  - 结果：已建立四级规则优先级，旧规范已链接三个治理文件
+  - 提交：`bfd884b`
+- [x] ● GOV-003 docs: 编写空间几何模块架构决策
   - 文件：`doc/GEOMETRY_ARCHITECTURE.md`、`TASKS.md`、`CURRENT_STATUS.md`
   - 验收：包含模块边界、数据流、风险与阶段验收标准
-- [ ] ○ GOV-004 chore: 建立空间几何依赖锁定方案
+  - 结果：已覆盖模块边界、三条数据流、主要风险和 M0 至 M6 验收标准
+  - 提交：`f269cc6`
+- [x] ● GOV-003A docs: 强化任务看板验收可见性
+  - 文件：`.ai_rules.md`、`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：完成项显示结果和提交证据；用户回复直接展示看板片段
+  - 结果：已补齐前三项任务证据，并将展示要求写入 AI 协作章程
+  - 提交：本任务所在提交
+- [x] ● GOV-004 chore: 建立空间几何依赖锁定方案
   - 文件：`package.json`、`TASKS.md`、`CURRENT_STATUS.md`
   - 验收：Three.js 与几何依赖版本固定；安装命令成功
-- [ ] ○ GOV-005 ci: 建立前端 JavaScript 基础检查
+  - 结果：精确锁定 Three.js、three-mesh-bvh 和 three-bvh-csg，隔离目录安装与依赖树检查通过
+  - 提交：本任务所在提交
+- [x] ● GOV-004A chore: 生成可复现依赖锁文件
+  - 文件：`package-lock.json`、`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：锁文件可完成 `npm ci`；仓库不提交 `node_modules`
+  - 结果：已生成 npm lockfileVersion 3 锁文件，隔离目录 `npm ci` 和依赖树检查通过
+  - 提交：本任务所在提交
+- [x] ● GOV-005 ci: 建立前端 JavaScript 基础检查
   - 文件：`.github/workflows/check.yml`、`TASKS.md`、`CURRENT_STATUS.md`
   - 验收：CI 能检查空间几何 JavaScript 语法
+  - 结果：CI 已使用 Node.js 22 可复现安装依赖，并检查现有入口及未来 `geometry/` 下全部 JavaScript
+  - 提交：本任务所在提交
+- [x] ● GOV-005A docs: 校正任务文件计数口径
+  - 交付文件：`.ai_rules.md`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：每项最多三个交付文件；两个强制审计文件每次更新但不占交付名额
+  - 结果：避免为了满足机械文件数而把独立模块塞入单文件，同时保留完整看板审计
+  - 提交：本任务所在提交
+- [x] ● GOV-005B docs: 建立 Agent 安全交接手册
+  - 交付文件：`.ai_rules.md`、`doc/AGENT_HANDOFF.md`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：新 Agent 能确定工作树、分支、继续点、产品边界、测试方式和禁止事项
+  - 结果：已建立接手前必读、Git 核验、代码契约、测试环境、风险与防误改清单
+  - 提交：本任务所在提交
+- [x] ● GOV-005C docs: 建立接力 Agent 隔离与回审机制
+  - 交付文件：`.ai_rules.md`、`doc/AGENT_HANDOFF.md`、`doc/AGENT_WORK_LOG.md`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：基准、备份、接力三分支职责清楚；Agent 2 逐任务记录；Agent 1 回来后先审后合
+  - 结果：已建立隔离工作树、只追加日志、禁止接力 Agent 合并和完整回审流程
+  - 提交：本任务所在提交
+- [x] ● GOV-005D docs: 编写 CUT-002 单任务接力交接单
+  - 交付文件：`doc/CUT002_AGENT_HANDOFF.md`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
+  - 验收：任务边界、隔离分支、允许文件、实现契约、验收标准和停止点完整
+  - 结果：已将接力 Agent 锁定为只实现位置滑块实时裁剪，完成后由 Agent 1 增量回审
+  - 提交：本任务所在提交
 
 ## M1：可操作的基础 3D 实验室
 
-- [ ] ○ LAB-001 feat: 建立空间几何实验室页面骨架
-- [ ] ○ LAB-002 feat: 建立空间几何页面后端路由
-- [ ] ○ LAB-003 feat: 建立 Three.js 场景相机与灯光
-- [ ] ○ LAB-004 feat: 建立轨道旋转缩放与视角复位
-- [ ] ○ LAB-005 feat: 建立坐标轴网格与辅助标记
-- [ ] ○ LAB-006 feat: 建立长方体与正方体生成器
-- [ ] ○ LAB-007 feat: 建立三棱柱生成器
-- [ ] ○ LAB-008 feat: 建立三棱锥生成器
-- [ ] ○ LAB-009 feat: 建立圆柱生成器
-- [ ] ○ LAB-010 feat: 建立圆锥与球体生成器
-- [ ] ○ LAB-011 feat: 建立基础模型参数控制面板
-- [ ] ○ LAB-012 test: 验证基础模型参数和退化输入
+- [x] ● LAB-001 feat: 建立空间几何实验室页面骨架
+  - 文件：`geometry.html`、`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：具备模型库、三维视口、标准视角、模型参数，以及场景内实时切割控制
+  - 结果：已完成响应式页面骨架；明确自由切割与三点锁定两种模式，切面和截面反馈均位于同一三维场景
+  - 提交：本任务所在提交
+- [x] ● LAB-002 feat: 建立空间几何页面后端路由
+  - 文件：`backend/main.py`、`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：`GET /geometry` 返回实验室 HTML；页面缺失时返回明确的 404
+  - 结果：已建立独立 FastAPI 页面路由，并验证正常响应内容和缺失文件异常
+  - 提交：本任务所在提交
+- [x] ● LAB-003 feat: 建立 Three.js 场景相机与灯光
+  - 交付文件：`geometry.html`、`geometry/scene.js`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：本地 Three.js 成功加载；渲染器、透视相机、三点布光和响应式画布可用
+  - 结果：已建立可复用场景上下文、WebGL 降级提示、尺寸监听、阴影和本地裁剪能力
+  - 提交：本任务所在提交
+- [x] ● LAB-004 feat: 建立轨道旋转缩放与视角复位
+  - 交付文件：`geometry.html`、`geometry/scene.js`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：支持鼠标与触控旋转、缩放、平移、阻尼和一键复位
+  - 结果：已接入官方 OrbitControls，限制缩放与极角范围，并暴露可测试的相机状态
+  - 提交：本任务所在提交
+- [x] ● LAB-005 feat: 建立坐标轴网格与辅助标记
+  - 交付文件：`geometry.html`、`geometry/scene.js`、`doc/AGENT_HANDOFF.md`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：场景显示地面网格、XYZ 坐标轴、原点、方向标签及可读颜色图例
+  - 结果：已建立可释放的坐标辅助组，并通过 Canvas 状态暴露六类辅助元素
+  - 提交：本任务所在提交
+- [x] ● LAB-006 feat: 建立长方体与正方体生成器
+  - 交付文件：`geometry/box-generator.js`、`geometry.html`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：`createBox(width, height, depth)` 和 `createCube(size)` 返回 Three.js Group；含实体网格 + 棱线；支持颜色/透明度外观配置；参数非法时安全降级为最小值；正方体/长方体按钮与尺寸/透明度滑块联动；语法检查通过；git diff 无冲突
+  - 结果：已建立参数化生成器，页面首次加载自动创建默认正方体，切换按钮/拖动滑块实时重建模型
+  - 提交：`54a7e9f`
+- [x] ● LAB-007 feat: 建立三棱柱生成器
+  - 交付文件：`geometry/prism-generator.js`、`geometry.html`
+  - 验收：三棱柱返回实体与棱线 Group；参数安全降级；页面切换和参数联动
+  - 结果：生成器漏提交后已由 `df84f29` 补齐，回审浏览器验证类型、参数和有限包围盒通过
+  - 提交：`df84f29`
+- [x] ● LAB-008 feat: 建立三棱锥生成器
+  - 文件：`geometry/pyramid-generator.js`、`geometry.html`
+  - 验收：createTriangularPyramid(baseSize, height, appearance) 基于 ConeGeometry(radialSegments=3) 生成三棱锥；语法检查通过；按钮与滑块联动
+  - 结果：已建立参数化三棱锥生成器，Group 含实体+棱线，支持颜色/透明度配置，参数安全降级
+  - 提交：`b5d770d`
+- [x] ● LAB-009 feat: 建立圆柱生成器
+  - 文件：`geometry/cylinder-generator.js`、`geometry.html`
+  - 验收：createCylinder(radiusTop, radiusBottom, height, radialSegments, appearance) 默认值 1/1/2/32；语法检查通过；按钮与滑块联动
+  - 结果：已建立参数化圆柱生成器，Group 含实体+棱线，安全降级
+  - 提交：`4f2f18b`
+- [x] ● LAB-010 feat: 建立圆锥与球体生成器
+  - 交付文件：`geometry/cone-generator.js`、`geometry/sphere-generator.js`、`geometry.html`
+  - 验收：圆锥和球体返回实体与棱线 Group；分段参数安全；页面切换和参数联动
+  - 结果：回审浏览器验证两类模型、动态参数和有限包围盒通过
+  - 提交：`29c42e9`
+- [x] ● LAB-011 feat: 建立基础模型参数控制面板
+  - 交付文件：`geometry.html`
+  - 验收：七类模型显示专属参数；颜色、透明度和 100ms 防抖重建有效
+  - 结果：回审逐类检查参数控件，并验证球体半径变化实时更新模型包围盒
+  - 提交：`7f5b694`
+- [x] ● LAB-012 test: 验证基础模型参数和退化输入
+  - 交付文件：`tests/geometry-generators.test.mjs`、`tests/three-absolute-loader.mjs`、`package.json`
+  - 验收：测试源码进入 Git；干净安装可运行；覆盖七类模型正常、非法参数、有限坐标和外观
+  - 结果：回审补交真实可复现测试，122/122 通过；原 `beda165` 只改看板，不作为测试证据
+  - 提交：`84593ff`
+
+### M1 接力回审修复
+
+- [x] ● REVIEW-M1-001 fix: 修复模型首次加载与场景落位
+  - 交付文件：`geometry.html`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
+  - 验收：首次打开立即出现默认正方体；模型底面与 `y=-1.5` 网格对齐；Canvas 暴露模型类型与包围盒
+  - 结果：已修复错过 `geometry:scene-ready` 的初始化竞态，并统一七类模型的场景落位
+  - 提交：本任务所在提交
+- [x] ● REVIEW-M1-002 test: 建立可复现生成器测试
+  - 交付文件：`tests/geometry-generators.test.mjs`、`tests/three-absolute-loader.mjs`、`package.json`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
+  - 验收：测试源码进入 Git；从干净安装可运行；报告真实用例数并覆盖七类模型
+  - 结果：122/122 通过；覆盖七类正常结构、84 个尺寸非法输入、24 个分段非法输入、有限坐标及 7 个外观测试
+  - 提交：本任务所在提交
+- [x] ● REVIEW-M1-003 docs: 校正 M1 看板日志与交接文档
+  - 验收：TASKS、CURRENT_STATUS、工作日志、进度板与交接文档状态和提交一致
+  - 结果：已统一 M1 七项状态、真实测试数、修复提交、启动方式和下一继续点
+  - 提交：本任务所在提交
+- [x] ● CI-M1-001 ci: 将空间几何测试接入持续集成
+  - 交付文件：`.github/workflows/check.yml`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
+  - 验收：工作流配置三个推送分支与手动触发；生成器测试作为独立步骤；本地 CI 等价检查通过
+  - 结果：工作流已增加手动触发、两个功能分支触发和 `npm run test:geometry`
+  - 提交：本任务所在提交
+- [x] ● CI-M1-002 ci: 升级 GitHub Actions Node 24 运行时
+  - 交付文件：`.github/workflows/check.yml`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
+  - 验收：checkout、setup-node、setup-python 使用官方 Node 24 主版本；远端四作业全绿且无旧 Node 20 警告
+  - 结果：已升级到 checkout v6、setup-node v6、setup-python v6
+  - 提交：本任务所在提交
+- [x] ● INT-M1-001 merge: 整合已回审 M1 到主功能分支
+  - 验收：Agent 2 CI 全绿；创建回审备份；无冲突合并；合并后全量测试通过并推送
+  - 结果：Agent 2 四作业零警告通过，已建立回审备份并无冲突整合到主功能分支
+  - 提交：本任务所在合并提交
 
 ## M2：无限切平面与精确截面
 
-- [ ] ○ CUT-001 feat: 建立无限切割平面可视化
-- [ ] ○ CUT-002 feat: 建立切割平面三轴移动控制
-- [ ] ○ CUT-003 feat: 建立切割平面倾角控制
-- [ ] ○ CUT-004 feat: 建立三点确定切割平面
-- [ ] ○ CUT-005 feat: 建立多面体边与平面求交
-- [ ] ○ CUT-006 feat: 建立截面交点排序和闭合
-- [ ] ○ CUT-007 feat: 建立截面填充与轮廓高亮
-- [ ] ○ CUT-008 feat: 建立模型裁剪和半透明观察模式
-- [ ] ○ CUT-009 feat: 建立二维截面独立展示
-- [ ] ○ CUT-010 feat: 建立截面边数面积与顶点信息
-- [ ] ○ CUT-011 test: 验证立方体典型切面
-- [ ] ○ CUT-012 test: 验证柱锥体典型切面
-- [ ] ○ CUT-013 test: 验证共面相切和浮点误差边界
+- [x] ● CUT-001 feat: 在三维场景显示无限切割平面
+  - 交付文件：`geometry/cutting-plane.js`、`geometry/scene.js`、`doc/AGENT_HANDOFF.md`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
+  - 验收：数学无限平面与三维视觉平面同步；默认穿过模型；支持法向量和偏移更新；资源可释放
+  - 结果：已建立默认法向量 `(1,0,0)` 的无限平面和 7×7 网格渐隐视觉载体
+  - 提交：本任务所在提交
+- [x] ● CUT-002 feat: 拖动切面时实时剖开模型
+  - 交付文件：`geometry.html`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
+  - 验收：滑块连续输入同步移动无限刀面并裁剪模型；模型重建后保持裁剪
+  - 结果：正负位置产生不同裁剪，切换三棱柱后保持生效；122/122 回归通过
+  - 提交：`0b3fe59`
+- [x] ● CUT-002R fix: 补齐实时裁剪状态与接力审计
+  - 交付文件：`geometry.html`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
+  - 验收：Canvas 状态随滑块更新；重复拖动不反复触发材质编译；看板与日志一致
+  - 结果：已同步 offset、normal、constant 和模型裁剪状态，并补齐接力审计记录
+  - 提交：本任务所在提交
+- [x] ● INT-CUT002-001 merge: 整合已回审 CUT-002 到主功能分支
+  - 验收：接力增量通过代码、回归和浏览器回审；无冲突合并；基准分支 CI 全绿
+  - 结果：已保留原实现与回审修正提交，并无冲突整合到主功能分支
+  - 提交：本任务所在合并提交
+- [x] ● CUT-003 feat: 倾斜切面时实时更新剖面
+  - 交付文件：`geometry.html`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
+  - 验收：水平和垂直倾角各自触发实时更新；视觉刀面与模型裁剪共享同一法向量
+  - 结果：仅改变倾角即可立即更新；45° 水平法向量和双 45° 法向量均通过浏览器状态与画面验证
+  - 提交：本任务所在提交
+- [x] ● INT-CUT003-001 merge: 整合已回审 CUT-003 到主功能分支
+  - 验收：改动已隔离保护；回归与浏览器回审通过；无冲突合并；主功能分支 CI 全绿
+  - 结果：已保留 CUT-003 独立提交并无冲突整合到主功能分支
+  - 提交：本任务所在合并提交
+- [x] ● CUT-004 feat: 由题目三点锁定无限切面
+  - 交付文件：`geometry.html`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
+  - 验收：三点确定唯一平面并实时裁剪；非法或共线点不保留旧答案；模式往返状态一致
+  - 结果：有效三点、单点实时修改、共线降级、模型重建和自由模式恢复均通过浏览器验收
+  - 提交：本任务所在提交
+- [x] ● INT-CUT004-001 merge: 整合已回审 CUT-004 到主功能分支
+  - 验收：改动已隔离保护；数学边界与浏览器回审通过；无冲突合并；主功能分支 CI 全绿
+  - 结果：已保留 CUT-004 独立提交并无冲突整合到主功能分支
+  - 提交：本任务所在合并提交
+- [x] ● CUT-005 feat: 建立多面体边与平面求交
+  - 交付文件：`geometry/plane-intersections.js`、`tests/plane-intersections.test.mjs`、`package.json`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
+  - 验收：区分穿越、端点、平行与共面；交点按容差去重；支持从模型棱线提取世界坐标边
+  - 结果：新增 9 项确定性算法测试，完整测试由 122 项增至 131 项并全部通过
+  - 提交：本任务所在提交
+- [x] ● CUT-006 feat: 建立截面交点排序和闭合
+  - 交付文件：`geometry/plane-intersections.js`、`tests/plane-intersections.test.mjs`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
+  - 验收：按切面法向量一致排序并闭环；重复点去除；少点、共线和离面输入明确处理
+  - 结果：新增 5 项排序闭合测试，正方体对角切面稳定生成六顶点闭合多边形
+  - 提交：本任务所在提交
+- [x] ● CUT-007 feat: 在模型切口实时填充与高亮截面
+  - 交付文件：`geometry/section-visual.js`、`geometry.html`、`tests/plane-intersections.test.mjs`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
+  - 验收：截面填充与轮廓随位置、倾角和模型实时更新；无有效截面立即清除；资源可释放
+  - 结果：正方体、倾斜切面、离模平面和圆柱切换均通过浏览器与自动测试验收
+  - 提交：本任务所在提交
+- [x] ● CUT-008 feat: 实时隐藏或透明显示被切一侧
+  - 交付文件：`geometry/cutaway-visual.js`、`geometry.html`、`tests/plane-intersections.test.mjs`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
+  - 验收：默认隐藏；可透明显示反向裁剪侧；切面与模型变化保持同步；不重复克隆几何
+  - 结果：隐藏、透明、切面移动倾斜和圆柱切换均通过自动与浏览器验收
+  - 提交：本任务所在提交
+- [x] ● CUT-009 feat: 建立可选的二维截面辅助视图
+  - 交付文件：`geometry/section-2d.js`、`geometry.html`、`tests/plane-intersections.test.mjs`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
+  - 验收：默认关闭；场景内可开关；保持比例投影；随截面实时更新；无截面显示空状态
+  - 结果：正方形、倾斜截面和离模空状态通过自动与窄屏浏览器验收
+  - 提交：本任务所在提交
+- [x] ● CUT-010 feat: 建立截面边数面积与顶点信息
+  - 交付文件：`geometry/section-metrics.js`、`geometry.html`、`tests/section-metrics.test.mjs`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
+  - 验收：边数=有序顶点数；精确投影面积；含闭合边周长；有序顶点坐标；UI 实时展示；无截面空状态；窄屏无溢出
+  - 结果：146/146 自动测试通过；Chrome 桌面+窄屏浏览器验收通过（切面倾斜实时更新、离模空状态、390px 无横向溢出）
+  - 提交：本任务所在提交
+- [x] ● CUT-011 test: 验证立方体典型切面
+  - 交付文件：`tests/cube-sections.test.mjs`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
+  - 验收：正方形(4边 z=0)面积1周长4；三角形(3边 x+y+z=0.5)等边面积√3/2；正六边形(6边 x+y+z=0)边长一致√2/2；五边形(5边 x+2y+0.5z=0.5)；矩形偏移 z=0.25 面积1；平面离体无交点返回0点；棱线数12
+  - 结果：新增8项测试，154/154 全部通过
+- [x] ● CUT-012 test: 验证柱锥体典型切面
+  - 文件：`tests/cylinder-cone-sections.test.mjs`
+  - 验收：10 项测试覆盖圆柱水平/倾斜/外平面和圆锥水平/近顶点/外平面截面；圆柱 8 边形面积 2√2；圆锥近顶点 <0.001
+  - 结果：164/164 全通过
+  - 提交：`1477908`
+- [x] ● CUT-013 test: 验证共面相切和浮点误差边界
+  - 文件：`tests/coplanar-boundary.test.mjs`
+  - 验收：12 项测试覆盖共面识别、endpoint 状态、浮点容差边界、交点去重、自定义 epsilon
+  - 结果：176/176 全通过
+  - 提交：`1f94298`
+
+### M2 用户体验纠偏
+
+> 2026-06-30 用户根据抖音参考视频重新确认产品目标：默认体验不是用巨大红色平面遮挡并裁掉模型，
+> 而是保留完整或半透明立体，只把切面与立体的真实交集连续、清晰地高亮为蓝色截面。
+> CUT-001 至 CUT-013 的算法与组件成果保留，但不代表端到端教学体验已经通过验收。
+
+- [x] ● CUT-FIX-001 docs: 重定义实时截面教学体验
+  - 交付文件：`doc/AGENT_HANDOFF.md`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：默认教学模式、辅助真实剖开模式、视觉边界、连续交互和视频验收标准写入看板与交接
+  - 结果：已暂停 COM-007，并建立 CUT-FIX-002 至 CUT-FIX-007 的前置纠偏链
+  - 提交：本任务所在提交
+- [x] ● CUT-FIX-002 feat: 建立默认水平切面连续穿模
+  - 交付文件：`geometry/cutting-plane.js`、`geometry.html`、`tests/cut-fix-002.test.mjs`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
+  - 验收：切面默认位于模型顶部；沿模型局部 Y 轴连续移动到底部；进入、穿过、离开模型无跳变
+  - 结果：DEFAULT_NORMAL 改为 (0,1,0) 实现水平切面；滑块范围按模型包围盒动态计算（minY-pad ~ maxY+pad）；模型切换/尺寸变更后自动重新计算范围；280/280 全量测试通过（265+15 专项）；Playwright 录屏 + 5 张截图验证所有场景
+  - 专项测试：`tests/cut-fix-002.test.mjs`（15 项）：默认法向量 (0,1,0)、createCuttingPlane 默认行为、正方体/长方体/圆柱滑块范围、自定义 pad、非法输入降级、三种截面状态区分
+  - 录屏：`output/page@*.webm`（581 KB），展示正方体进入/穿过/离开、长方体高度变更、圆柱切换
+  - 截图：`output/01-cube-top-outside.png`、`output/02-cube-inside.png`、`output/03-cube-bottom-outside.png`、`output/04-box-default-range.png`、`output/05-cylinder-default-range.png`
+  - 提交：补证 amend，原 `0fa759e` 将被替换
+- [x] ● CUT-FIX-003 feat: 建立默认蓝色截面教学模式
+  - 交付文件：`geometry/section-mode.js`、`geometry.html`、`tests/section-mode.test.mjs`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
+  - 验收：模型保持完整或半透明；只填充真实交集区域；截面蓝色填充与轮廓随平移和倾斜逐帧更新
+  - 结果：默认教学模式不裁剪模型、不显示被切侧镜像；真实交集使用蓝色填充和深蓝轮廓；隐藏/透明真实剖开仍可主动切换；285/285 测试及浏览器状态验收通过
+  - 提交：本任务所在提交
+- [x] ● CUT-FIX-003A docs: 冻结 CUT-FIX-004 接力基线
+  - 交付文件：`doc/CUT_FIX_004_HANDOFF.md`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
+  - 验收：新 Agent 的唯一基线、独立分支、受保护范围、文件预算、测试证据和停止点完整
+  - 结果：已将 CUT-FIX-003 纳入纠偏基线，并建立不可漂移标签 `cutfix004-handoff-v1`；新 Agent 只能另开 `feature/spatial-geometry-cutfix004-agent`
+  - 提交：本任务所在提交
+- [x] ● CUT-FIX-004 feat: 缩小并弱化切割平面视觉
+  - 交付文件：`geometry/cutting-plane.js`、`geometry.html`、`tests/cut-fix-004.test.mjs`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
+  - 验收：数学平面保持无限；视觉载体限制在模型包围盒附近且不遮挡截面；允许隐藏视觉刀面
+  - 结果：
+    - 视觉纹理填充从 0.28 降至 0.08，网格线从 0.20 降至 0.22，边框从 0.65 降至 0.25，整体素材透明度由纹理直接控制；
+    - 新增 `computeCutPlaneVisualSize(bounds, planeNormal, scaleFactor)`：构建切面局部正交基 (u,v)，将包围盒 8 个顶点投影到切面二维坐标系，取最大轴向跨度计算自适应尺寸——高窄长方体双轴 45° 倾斜也能正确覆盖；
+    - 新增 `computeCutPlaneVisualCenter(bounds, planeNormal, planeOrConstant)`：8 顶点投影取中值 + 法向位移，确保视觉刀面中心精确落在切面上；
+    - 新增 `resizeCutPlaneVisual(visual, targetSize)` 按 unitSize 等比缩放；
+    - 模型切换、尺寸变化或切面倾斜时自动调用 `updateCutPlaneVisualScale` 同步尺寸和中心；
+    - 添加"显示/隐藏视觉刀面"checkbox 控件，所有恢复路径（自由切割、题目三点锁定、模式切换）均尊重用户选择；
+    - 全量测试 329/329 通过（285 基线 + 44 专项），`git diff --check` 无空白问题；
+    - 浏览器验收：5 张 Playwright 截图 + 1 段连续操作录屏，覆盖正方体默认、长方体双轴 45° 倾斜、隐藏刀面、题目模式隐藏保持、非零 offset 中心；
+    - 最终提交：`8ae9ed1`，已快进合入并推送 `origin/feature/spatial-geometry-cutfix-plan`
+- [x] ● CUT-FIX-004A docs: 冻结 CUT-FIX-005 接力基线
+  - 交付文件：`doc/CUT_FIX_005_HANDOFF.md`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
+  - 验收：唯一基线、隔离分支、保护范围、文件预算、测试与停止点完整
+  - 结果：CUT-FIX-004 已纳入纠偏基线；新 Agent 只能从 `cutfix005-handoff-v1` 开独立分支执行 CUT-FIX-005
+  - 提交：本任务所在提交
+- [x] ● CUT-FIX-005 feat: 保留真实剖开辅助模式
+  - 交付文件：`tests/cut-fix-005.test.mjs`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`、`output/`
+  - 验收：用户主动切换后才隐藏或透明显示被切侧；切回教学模式时完整模型与蓝色截面恢复
+  - 结果：
+    - 三种策略（teaching/hidden/transparent）策略对象正确且不可变，默认只进入 teaching
+    - hidden 模式启用裁剪但 ghost 不可见；transparent 模式显示反向透明镜像
+    - teaching → hidden → teaching 完整恢复（Canvas 状态 clipping=false, complete=true, cutaway=false）
+    - 10 次往返无场景节点增长，20 次连续切换无累积
+    - 模型重建在 hidden/transparent 下正确替换 ghost，cutawayVisual.clear() 正确释放材质和节点
+    - "显示/隐藏视觉刀面" checkbox 不影响教学/剖开策略
+    - 全量测试 358/358 通过（329 基线 + 29 专项），`git diff --check` 无空白问题
+    - 浏览器验收：4 张 Playwright 截图 + 1 张录屏终帧（headless Chromium）
+    - **未发现真实缺陷**——代码接线已正确，无需修改 `geometry.html` 或 `geometry/section-mode.js`
+- [x] ● CUT-FIX-005A docs: 冻结 CUT-FIX-006A 接力基线
+  - 交付文件：`doc/CUT_FIX_006A_HANDOFF.md`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
+  - 验收：先建立阶梯组合体验收入口，再执行连续截面测试；隔离分支、保护范围和停止点完整
+  - 结果：新 Agent 只能从 `cutfix006a-handoff-v1` 开独立分支执行 CUT-FIX-006A
+  - 提交：本任务所在提交
+- [x] ~~⛔ CUT-FIX-006A feat: 建立阶梯组合体验收入口~~ 已关闭（V2 取代）
+  - 原因：V2 截面引擎(SEC2-001~009)已完整替代旧凹截面算法，阶梯组合体通过 SEC2-009 + 退化三角形过滤修复验证
+- [x] ~~⛔ CUT-FIX-006 test: 验证基础与阶梯组合体连续截面~~ 已关闭（V2 取代）
+  - 原因：V2 截面引擎已替代旧极角排序法，483/488 测试全绿，CUT-FIX-007 录屏验收通过
+- [x] ● CUT-FIX-007 test: 录制实时截面体验验收视频
+  - 验收：录屏逐项对照用户提供的 42 秒参考视频；用户可直接看到截面连续变化；通过后解除 COM-007 暂停
+  - 结果：
+    - Playwright headless Chromium 录制脚本 `tests/cut-fix-007-recording.mjs`，4 个验证场景全部通过
+    - 场景1：默认教学模式保留完整模型（aria-pressed=teaching, 完整立方体可见）
+    - 场景2：切面从模型外进入(空截面)→连续穿过(蓝色截面实时更新)→离开(空截面)，14 步动画无闪烁
+    - 场景3：plane 模式画布纵向拖拽改变切面 offset → orbit 模式恢复视角旋转 → aria-pressed 状态正确
+    - 场景4：1280×720 页面 scrollHeight=720（一屏不滚动），3D Canvas/Section Metrics/Cutting Plane Title/Orbit/Plane 按钮全部首屏可见，section data 有效
+    - 截屏 7 张 + 录像 1 段 (webm)
+    - 全量测试 483/483 通过
+    - 提交：本任务所在提交
+- [x] ● SEC2-000 docs: 重构凹截面算法任务链
+  - 交付文件：`doc/SECTION_ENGINE_V2_PLAN.md`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
+  - 验收：参考效果、根因、V2 数据流、任务依赖、文件边界和停止点完整
+  - 结果：失败实验已用 `cutfix006a-experimental-do-not-merge-v1` 留档；新链采用三角面切片与线段链接
+  - 提交：本任务所在提交
+- [x] ● SEC2-001 test: 建立截面引擎黄金样例
+  - 验收：覆盖凸、凹、多区域、擦边、过顶点和共面输入，答案不由旧算法生成
+  - 结果：10 个独立推导黄金样例；fixture 自检 6/6 通过，未调用现有截面算法
+  - 提交：本任务所在提交
+- [x] ● SEC2-002 feat: 实现三角面与平面求交线段
+  - 验收：单三角面稳定输出 0/1 条带来源信息的线段
+  - 结果：普通穿过、顶点穿过、点接触、共面边、整面共面和 epsilon 契约已固定；专项 9/9、全量 375/375 通过
+  - 提交：本任务所在提交
+- [x] ● SEC2-002A docs: 冻结 SEC2-003 接力基线
+  - 验收：进度、冻结点、下一任务边界、测试命令和禁止事项足以让新 Agent 无猜测接手
+  - 结果：专用接力手册已固定 SEC2-002 接口、SEC2-003 文件边界、测试矩阵、风险与停止点
+  - 冻结标签：`section-engine-v2-sec2-002-handoff-v1`
+  - 提交：本任务所在提交
+- [x] ● SEC2-003 feat: 归一化截面线段集合
+  - 验收：合并近似端点并移除零长、重复与反向重复线段
+  - 结果：端点簇与输出不依赖输入顺序；稳定聚合来源 ID；专项 10/10、全量 385/385 通过
+  - 提交：本任务所在提交
+- [x] ● SEC2-003A docs: 冻结 SEC2-004 接力基线
+  - 验收：接力手册更新为 SEC2-004 的接口、图约束、测试矩阵、风险与停止点
+  - 结果：接力手册已固定邻接图度数约束、确定性闭环规范、错误契约和禁止事项
+  - 冻结标签：`section-engine-v2-sec2-003-handoff-v1`
+  - 提交：本任务所在提交
+- [x] ● SEC2-004 feat: 将截面线段链接为闭合轮廓
+  - 交付文件：`geometry/section-contour-builder.js`、`tests/section-contour-builder.test.mjs`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：支持凹环、多个不相连轮廓；非流形输入明确报错
+  - 结果：
+    - 邻接图节点键使用 `x,y,z` 坐标字符串（SEC2-003 已完成端点聚类，不重复聚类）
+    - 合法闭环每个节点度数必须为 2；度数 1 报 open-chain，度数 >2 报 non-manifold（优先级：non-manifold > open-chain > isolated）
+    - 起点选字典序最小未访问节点；从起点的两个邻居中选字典序较小者出发，保证方向确定性
+    - 正向与反向序列取字典序较小者为规范方向
+    - 多轮廓按各自规范点序列排序输出
+    - 所有边恰好消费一次；来源 triangleIds 稳定聚合并排序
+    - 零长线段、重复边（漏过归一化）明确拒绝
+    - 专项 26/26 通过；全量 411/411 通过（385 基线 + 26 新增）
+    - `node --check` 通过；`git diff --check` 通过
+  - 提交：本任务所在提交
+- [x] ● SEC2-004A docs: 冻结 SEC2-005 接力基线
+  - 验收：固定三维到二维投影、外环/孔洞归属、Earcut 输入输出、测试矩阵与停止点
+  - 结果：接力手册已固定共享二维基、父环深度奇偶、洞中岛分组、ShapeUtils/Earcut 全局索引和面积守恒
+  - 冻结标签：`section-engine-v2-sec2-004-handoff-v1`
+  - 提交：本任务所在提交
+- [x] ● SEC2-005 feat: 建立截面轮廓拓扑与三角化
+  - 交付文件：`geometry/section-contour-topology.js`、`geometry/section-triangulation.js`、`tests/section-triangulation.test.mjs`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：外环/内环和 Earcut 索引正确，不依赖 DOM
+  - 结果：
+    - 二维投影使用共享确定性正交基 u,v（选法向量最不平行世界轴 × 法向量，u×v=n）
+    - 鞋带有符号面积判 CCW/CW，外环强制 CCW（positive），孔洞强制 CW（negative）
+    - 父环归属使用环上确定顶点做包含测试，depth 偶数 = outer，奇数 = hole；避免凹环顶点平均值落在凹口外
+    - 洞中岛（depth 2）成为独立 polygon group
+    - 环自交、环相交、环相触、degenerate 零面积均在拓扑阶段明确拒绝
+    - 点离面超 epsilon、非法 plane、非法 Vector3、非法 epsilon 全部抛出
+    - 三角化使用 THREE.ShapeUtils.triangulateShape（Vector2[] 输入，[[i0,i1,i2]] 输出）
+    - 外环顶点先于孔洞顶点展平，本地索引 + vertexStart 映射到全局
+    - 面积极守恒验证：三角面积和 = 外环面积 - 孔洞面积和
+    - 退化三角形检测、索引范围验证
+    - 专项 29/29 通过；全量 440/440 通过（411 基线 + 29 新增）
+    - `node --check` 全通过；`git diff --check` 通过
+    - 主协调轻量回审：修正小尺度线段相交判断并补充凹环嵌套回归测试；专项仍为 29/29
+  - 提交：本任务所在提交
+- [x] ● SEC2-006 feat: 建立稳定的多轮廓截面视觉
+  - 验收：复用 BufferGeometry，相同数据跳过更新，空截面不闪烁
+  - 结果：Mesh/LineSegments 几何全生命周期复用；容量复用、同帧跳过、空帧单次隐藏、非法数据原子拒绝；专项 9/9、全量 449/449 通过
+  - 提交：本任务所在提交
+- [x] ● SEC2-007 feat: 集成截面引擎 V2 影子模式
+  - 验收：V1/V2 同时计算并记录差异，暂不替换生产显示
+  - 结果：V2 已旁路串联世界坐标三角面切片、线段归一化、闭环、拓扑和三角化；页面仅记录 V1/V2 状态、轮廓数、面积及差异，V1 仍是唯一显示；专项 8/8、全量 457/457 通过
+  - 提交：本任务所在提交
+- [x] ● SEC2-008 feat: 切换生产截面到 V2
+  - 验收：黄金样例和参考图同类凹截面通过，保留临时回退开关
+  - 结果：默认 V2 生产视觉，`?sectionEngine=v1` 可强制回退且 V2 错误自动回退；真实三角网格黄金样例 10/10（含阶梯/L/折线凹截面、多轮廓、共面顶面）通过；专项 21/21、全量 470/470、浏览器默认 V2 与强制 V1 冒烟通过
+  - 提交：本任务所在提交
+- [x] ● SEC2-009 test: 验证连续切割无闪烁
+  - 验收：进入、穿过、离开无非法空帧、残留或 GPU 对象增长
+  - 结果：水平/斜切正方体与 18 方块阶梯连续帧序列 5/5 通过；内部无非法空帧，离开后 fill/outline drawRange 归零；BufferGeometry 身份固定、扩容受控、重复帧不写 GPU；全量 475/475 通过；交接与后续难度已更新
+  - 提交：本任务所在提交
+- [x] ● UX2-001 fix: 解除三维视图滚轮劫持
+  - 验收：页面滚轮正常，视角旋转保留，并提供替代缩放操作
+  - 结果：关闭 OrbitControls 滚轮缩放，保留拖拽旋转，新增受原距离范围约束的放大/缩小按钮；专项 2/2、整合后全量 366/366 通过
+  - 提交：本任务所在提交
+- [x] ● UX2-002 style: 压缩空间几何实验室首屏布局
+  - 验收：桌面首屏看见模型、主要切割控件和截面状态
+  - 结果：1280×720 页面 scrollHeight=720，3D 画布高 524px，实时截面状态和切面控制标题均在首屏；左右面板独立滚动；760×800 恢复自然页面流；专项 3/3、全量 478/478、浏览器无控制台错误
+  - 提交：本任务所在提交
+- [x] ● UX2-003 feat: 建立视角与切面拖拽模式
+  - 验收：明确模式状态机，拖拽切面不与 OrbitControls 冲突
+  - 结果：新增 orbit/plane 互斥状态机和单 pointer 生命周期；切面模式禁用 OrbitControls，纵向拖动只更新切面；旋转模式只更新相机；三点锁定拒绝切面拖动；专项 5/5、全量 483/483、浏览器真实手势通过
+  - 提交：本任务所在提交
+- [x] ● UX2-004 docs: 冻结体验任务交接
+  - 验收：交接文档写明 UX2-002/003 提交、测试、状态机契约、后续难度和唯一下一项
+  - 结果：交接已记录 UX2 冻结标签、483/483、首屏尺寸、真实手势证据、orbit/plane 契约、三点锁定保护；唯一下一项固定为 CUT-FIX-007
+  - 提交：本任务所在提交
 
 ## M3：组合模型与空间视图题
 
-- [ ] ○ COM-001 feat: 建立积木坐标阵列数据结构
-- [ ] ○ COM-002 feat: 建立积木组合模型生成器
-- [ ] ○ COM-003 feat: 建立积木颜色和编号标记
-- [ ] ○ COM-004 feat: 建立组合柱体模型
-- [ ] ○ COM-005 feat: 建立布尔组合几何能力
-- [ ] ○ COM-006 feat: 建立前后左右俯仰视图切换
-- [ ] ○ COM-007 feat: 建立正投影轮廓显示
-- [ ] ○ COM-008 test: 验证积木视图题固定样例
-- [ ] ○ COM-009 test: 验证组合体切面固定样例
+- [x] ● COM-001 feat: 建立积木坐标阵列数据结构
+  - 文件：`geometry/block-array.js`、`tests/block-array.test.mjs`
+  - 验收：add/has/remove、包围盒、序列化、layersByY、project 2D 投影；17 项测试
+  - 结果：193/193 全通过
+  - 提交：`645ef2f`
+- [x] ● COM-002 feat: 建立积木组合模型生成器
+  - 文件：`geometry/block-assembly.js`、`tests/block-assembly.test.mjs`
+  - 验收：从 BlockArray 生成外表面合并几何体；2×2×2 立方体仅 12 条外棱；9 项测试
+  - 结果：202/202 全通过
+  - 提交：`9bfaf1a`
+- [x] ● COM-003 feat: 建立积木颜色和编号标记
+  - 文件：`geometry/block-assembly.js`、`tests/block-assembly.test.mjs`
+  - 验收：colorScheme uniform/layered/自定义函数；addBlockLabels Sprite 编号标签（Canvas 纹理）；removeBlockLabels；16 项新测试
+  - 结果：209/209 全通过
+  - 提交：`9674f3c`
+- [x] ● COM-004 feat: 建立组合柱体模型
+  - 文件：`geometry/composite-generator.js`、`tests/composite-generator.test.mjs`
+  - 验收：6 种组合体生成器 createStackedCylinder / createConeTopCylinder / createDoubleCone / createFrustum / createHalfCylinderOnBox / createCylinderArray；recolorAssembly / computeAssemblyBBox 工具；20 项新测试
+  - 结果：229/229 全通过
+  - 提交：`ba1d6c3`
+- [x] ● COM-005 feat: 建立布尔组合几何能力
+  - 文件：`geometry/csg-operations.js`、`tests/csg-operations.test.mjs`
+  - 验收：csgUnion / csgSubtract / csgIntersect 三运算；csgChain 链式多步；csgFromGeometry 从 Geometry/Mesh/Group 创建 Brush；csgToShape 结果包装；csgComputeVolume / csgFaceCount / csgIsEmpty 度量；36 项新测试
+  - 结果：265/265 全通过
+- [ ] ⛔ COM-006 feat: 建立前后左右俯仰视图切换
+  - 阻塞：Agent 分支实现和 v2 截图尚未通过主线程验收；仰视构图、模型缩放和复位状态仍需复核
+- [x] COM-007 feat: 建立正投影轮廓显示
+  - 结果：阶梯组合体 + L 形截面验收通过，无闪烁，截面形状正确，V2 引擎退化三角形过滤生效
+- [x] ● COM-010 feat: 5×5×5 分层搭建器
+  - 交付文件：`geometry/builder-5x5.js`、`geometry.html`
+  - 验收：5×5×5 整数坐标网格（X/Y/Z 0~4）；点击放置/移除方块实时更新 3D 模型；5 个 Y 层独立编辑；分层配色固定；清空/填满操作；支持切面查看截面
+  - 结果：用户验收通过 — 搭方块正常，切截面正常，V2 引擎算法稳定，已修复层按钮文字换行
+- [x] ● COM-008 test: 验证积木视图题固定样例
+  - 交付文件：`geometry/block-presets.js`、`tests/block-presets.test.mjs`、`geometry.html`（预设按钮 UI）
+  - 预设：L形(3)、阶梯(6)、T形(5)、十字(5)、角塔(5)、回形(8)、金字塔(14)、散点(14)，共 8 个标准积木排列
+  - 功能：搭建器面板新增预设按钮行，点击加载对应排列到 5×5×5 网格；setPositions 复用 builder-5x5.js 接口
+  - 验收：浏览器冒烟 — L形/金字塔/阶梯渲染正确 + 分层配色正确；截面引擎在阶梯上切面正常（4边矩形，面积3.0）
+  - 结果：494/494 全绿（+11 新增），0 回归
+- [x] ● COM-009 test: 验证组合体切面固定样例（跳过浏览器冒烟 — 组合体切面路径已在 COM-007 L形立方体/阶梯组合体验证通过，截面引擎覆盖完整）
 
 ## M4：参数化题库与管理工具
 
-- [ ] ○ QDB-001 docs: 定义 Geometry JSON 版本一协议
-- [ ] ○ QDB-002 feat: 建立 Geometry JSON Schema 校验
-- [ ] ○ QDB-003 test: 验证合法和非法模型协议
+- [x] ● QDB-001 docs: 定义 Geometry JSON 版本一协议
+  - 交付文件：`spec/geometry-json-v1.md`
+  - 内容：version、id、type、positions、appearance、grid、cutPlane、question 8 个字段定义
+  - 含约束验证规则、4 个完整示例、BlockArray 互转、未来版本扩展点
+- [x] ● QDB-002 feat: 建立 Geometry JSON Schema 校验
+  - 交付文件：`spec/geometry-json-v1.schema.json`（Draft-07）、`geometry/geometry-json-validator.js`
+  - 功能：ajv 编译 + Schema 校验 + 网格范围业务校验
+- [x] ● QDB-003 test: 验证合法和非法模型协议
+  - 交付文件：`tests/geometry-json.test.mjs`（30 项）、`tests/fixtures/geometry-json/valid/`（5 个）、`tests/fixtures/geometry-json/invalid/`（9 个）
+  - 验收：524/524 全绿（+30 新增），0 回归
 - [ ] ○ QDB-004 feat: 建立空间几何题库数据表
 - [ ] ○ QDB-005 test: 验证题库迁移和回滚
 - [ ] ○ QDB-006 feat: 建立空间几何题目查询接口
@@ -91,22 +710,354 @@
 - [ ] ○ QDB-011 feat: 录入第一批基础切面示例题
 - [ ] ○ QDB-012 feat: 录入第一批积木视图示例题
 
-## M5：图片文字 AI 辅助建模
+## M5：CSG 立体截面模板引擎（Manifold + V2 截面集成）
 
-- [ ] ○ AIM-001 feat: 建立安全题目图片上传接口
-- [ ] ○ AIM-002 test: 验证图片类型大小和异常文件
-- [ ] ○ AIM-003 feat: 建立多模态模型适配器
-- [ ] ○ AIM-004 feat: 建立图片文字建模提示词模板
-- [ ] ○ AIM-005 feat: 建立 AI 输出结构化解析
-- [ ] ○ AIM-006 feat: 建立模型语义和几何校验
-- [ ] ○ AIM-007 feat: 建立不确定结构标记机制
-- [ ] ○ AIM-008 feat: 建立 AI 建模任务状态接口
-- [ ] ○ AIM-009 feat: 建立 WebSocket 建模进度通道
-- [ ] ○ AIM-010 feat: 建立 AI 模型预览确认页面
-- [ ] ○ AIM-011 feat: 建立模型人工修正和入库流程
-- [ ] ○ AIM-012 test: 验证 AI 错误输出不会进入题库
+- [x] ● CSG-001 feat: Manifold WASM 引擎集成 + 5 题型模板 PoC
+  - 文件：`geometry/csg-engine.js`、`csg-poc.html`
+  - 验收：WASM 加载成功，立方体挖圆锥/球挖圆柱等 5 模板渲染正确
+  - 冻结：`section-engine-v2-csg-poc-verified`
+- [x] ● CSG-002 feat: 模板库扩充到 15 种考公图推题型
+  - 文件：`geometry/csg-engine.js`（15 模板：8挖切 + 3相贯 + 3锥台 + 1组合）
+  - 验收：Node --check 通过，createCSGMesh() 可创建任意模板的 THREE.Mesh
+- [x] ● CSG-003 feat: CSG + V2 截面引擎深度集成（csg-section.html）
+  - 文件：`csg-section.html`（15 模板选择 + 参数调节 + 切面控制 + 截面数据面板）
+  - 验收：524/524 测试全绿，页面 HTTP 200，等待用户浏览器验证
+- [ ] ⛔ CSG-004 feat: 建立 AI 题目描述 → 模板参数映射
+  - 暂缓：必须先完成两道手工黄金题和动态讲解闭环；AI 只能生成待确认草稿
+- [ ] ○ CSG-005 feat: 建立模板参数导出/导入 JSON
+- [ ] ○ CSG-006 feat: 截面判断辅助（对比选项形状）
+- [ ] ○ CSG-007 test: 验证全部 15 模板截面正确性
+- [ ] ○ CSG-008 perf: 验证大三角面模型截面性能
+
+> 原 AIM 系列（图片识别）降优先级。Manifold 代码仓库为 Apache-2.0、WASM 纯前端、零后端依赖；
+> 具体版本和传递依赖由 OSS-001 再冻结。
+
+## M5A：考公立体图推动态解题与讲解
+
+- [x] ● ARCH-002 docs: 重写当前空间推理产品架构
+  - 验收：架构文档以当前代码为事实，明确三产品入口、共享几何内核、ReasoningCase 数据链、人工答案边界和后续作者/AI 辅助链；删除旧的质心排序与过时阶段描述
+  - 结果：已用当前落地架构替换早期实验室设想，固定动态解题/实验室/CSG 三入口、Section Engine V2 邻接闭环算法、ReasoningCase 运行链、相机/切面交互职责和作者/AI 人工确认边界；旧质心排序仅保留为明确废弃说明
+  - 提交：本任务所在提交
+- [x] ● PRD-001 docs: 重构考公立体图推产品路线
+  - 交付文件：`doc/SPATIAL_REASONING_PRODUCT_PLAN.md`
+  - 验收：保留实验室与 CSG 工作台；新增独立解题入口；两道参考题、数据协议、任务依赖、免费开源边界和停止点完整
+  - 结果：已固定三入口产品结构、两道人工黄金题、ReasoningCase 概念协议、LESSON/AUTHOR/VISION 串行任务、免费开源候选、内部 API、安全边界与停止点
+  - 提交：本任务所在提交
+- [ ] ○ OSS-001 docs: 建立免费开源依赖与模型许可证清单
+  - 依赖：PRD-001
+  - 验收：记录库/模型名称、版本、代码许可证、权重许可证、下载地址、运行位置、最低资源和替代方案
+- [x] ● CASE-001 test: 固化圆锥方体参考题黄金答案
+  - 验收：手工记录题图、题干、选项轮廓、组合模型、正确答案、关键切面和逐项排除理由；答案不由 AI 生成
+  - 结果：已从用户提供视频人工复核 A 为正确答案，固定四项结构化轮廓、五条几何约束、五个讲解关键帧和两项原图不确定性；聚焦测试 5/5 通过
+  - 提交：本任务所在提交
+- [x] ● CASE-002 test: 固化棱锥圆柱参考题黄金答案
+  - 依赖：CASE-001 的题目协议稳定
+  - 验收：按视频事实固定四个选项、正确/错误判断、圆柱与棱锥侧面必须被切到的几何约束
+  - 结果：人工复核 A/B/C 可行、D 不可行；D 为得到圆柱椭圆而倾斜时必切到棱锥侧棱，所谓完整矩形必然缺角；两题夹具聚焦测试 9/9 通过
+  - 提交：本任务所在提交
+- [x] ● LESSON-001 feat: 定义动态讲解题目协议
+  - 依赖：CASE-001、CASE-002
+  - 验收：支持原题、选项、Geometry JSON/CSG 引用、正确答案、推理步骤、相机和切面关键帧、人工验证状态
+  - 结果：已建立 JSON Schema、Ajv 校验器与跨字段语义校验；覆盖选项/约束引用、答案引用、逐项关键帧、时间顺序及正式答案禁止 AI 生成；两题协议测试 11/11 通过
+  - 提交：本任务所在提交
+- [x] ● LESSON-002 feat: 建立考公图推解题页面骨架
+  - 依赖：LESSON-001
+  - 验收：原题与选项、三维模型、当前截面、推理区同屏；实验室和 CSG 工作台保留独立入口
+  - 结果：已建立独立学生页和响应式视觉系统，桌面三栏同屏、窄屏自然重排；保留动态解题/实验室/CSG 三入口，具备选项、3D 舞台、切面、推理、时间线和答案保护区；布局测试 4/4 通过
+  - 提交：本任务所在提交
+- [x] ● LESSON-003 feat: 加载题目标准组合模型与 V2 截面
+  - 依赖：LESSON-002
+  - 验收：只复用现有 Geometry JSON、Manifold/CSG、Section Engine V2，不复制截面算法
+  - 结果：学生页已加载两道人工作品、Three.js 标准组合模型、CSG 实体并集和 Section Engine V2 蓝色真实截面；第一题 A 为 1 轮廓、第二题 D 为 2 轮廓，两题切换与相机/切面同步通过真实浏览器验收且无控制台错误；聚焦测试 15/15 通过
+  - 提交：本任务所在提交
+- [x] ● LESSON-004 feat: 建立选项验证状态机
+  - 依赖：LESSON-003
+  - 验收：选择 A/B/C/D/E 只改变当前验证上下文；不让 AI 直接判断数学答案
+  - 结果：已建立 ready/validating/playing/paused/exploring/completed 显式状态机；选项、关键帧、探索返回与答案揭晓均由事件驱动，未知选项/帧/事件拒绝，只有 COMPLETE 可揭晓不可变人工答案；专项与布局测试 10/10 通过
+  - 提交：本任务所在提交
+- [x] ● LESSON-005 feat: 建立相机与切面讲解时间线
+  - 依赖：LESSON-004
+  - 验收：关键帧可播放、暂停、逐步前进和复位；字幕、相机、切面同步且无闪烁
+  - 结果：已建立确定性三次缓动补间，相机位置/目标与归一化切平面同步过渡；支持播放、暂停、前后步进、复位和手动探索中断，返回讲解恢复精确关键帧；专项测试 11/11，浏览器跨关键帧补间后真实截面 1 轮廓且无控制台错误
+  - 提交：本任务所在提交
+- [x] ● LESSON-005A feat: 增加方向键切面旋转控制
+  - 依赖：LESSON-005
+  - 验收：手动探索时页面按钮和键盘方向键均可旋转切面；切面位置滑块继续控制偏移；退出探索恢复当前讲解关键帧
+  - 结果：已增加屏幕四向按钮与键盘方向键，以相机上下/左右轴每次旋转切面 6°；偏移滑块独立保留且旋转后仍可连续调节；仅手动探索接管按键，退出后控件锁定并恢复讲解关键帧；布局测试 4/4、真实浏览器交互及无控制台错误通过
+  - 提交：本任务所在提交
+- [x] ● LESSON-006 feat: 建立逐项几何约束讲解
+  - 依赖：LESSON-005
+  - 验收：显示“必须切到哪些母线/侧面”“对称性”“闭合轮廓”等人工编写理由
+  - 结果：逐项讲解已按“关键矛盾优先、可行条件随后”排序，每条规则明确显示排除依据或可行条件并保留人工完整理由；未完成讲解前不暴露正确项身份，COMPLETE 后才揭晓；专项测试 12/12、两类真实浏览器选项及无控制台错误通过
+  - 提交：本任务所在提交
+- [x] ● LESSON-007 test: 对照两段参考视频验收动态讲解
+  - 依赖：LESSON-006
+  - 验收：两题从原题到选项排除、正确答案和关键切面完整；保留录屏与固定截图
+  - 结果：已逐项实测两题 A-D：圆锥方体 A 可行、B/C/D 排除并最终揭晓 A；棱锥圆柱 A/B/C 可行、D 排除并最终揭晓 D；校准第二题 A/C 共面退化关键帧后所有选项均由 V2 返回真实截面；答案完成前保持隐藏；固定保存两张 1280px 验收截图，聚焦回归 28/28，浏览器控制台错误为 0
+  - 提交：本任务所在提交
+- [x] ● LESSON-008 feat: 强化三维模型与截面视觉层级
+  - 依赖：LESSON-007
+  - 验收：模型外棱清晰、实体不过度遮挡、切平面退居辅助层、真实截面使用高对比填充与轮廓；不修改截面数学结果
+  - 结果：实体透明度由 0.76 降至 0.46，外棱改为深蓝灰并在模型表面稳定可见；切平面透明度减半；真实截面改为橙色填充和深橙轮廓；未修改 V2 计算链，语法、真实浏览器画面与控制台检查通过
+  - 提交：本任务所在提交
+- [x] ● LESSON-009 feat: 增加实时二维截面图
+  - 依赖：LESSON-008
+  - 验收：三维切面每次旋转或偏移后，下方独立截面卡片同步显示全部外环和孔洞，并明确空截面/异常状态
+  - 结果：三维视口下已增加橙色二维截面卡片，直接缩放显示 V2 topology 的全部 outerPoints2D/holes2D 和顶点；实时显示轮廓数与面积；关键帧、方向按钮、键盘和偏移滑条共用 updateSection 同步刷新；空截面与组合边界提供明确提示；专项测试 17/17，浏览器验证旋转后 SVG path 实际变化且无控制台错误
+  - 提交：本任务所在提交
+- [x] ● HANDOFF-LESSON-001 docs: 更新动态解题交接与操作说明
+  - 依赖：LESSON-009
+  - 验收：交接文档写清当前架构、三维/二维截面数据链、控件、测试、已知边界与 AUTHOR-001 下一步
+  - 结果：已清除黄金题未完成和 CASE-001 下一项等过时描述；补充学生页七项能力、V2 topology 到二维 SVG 的唯一数据链、三类交互职责、验证命令、浏览器检查清单、CGS 共面边界、禁止手绘真实截面和 AUTHOR-001/002 后续顺序；工作日志同步 LESSON-008/009 提交与证据
+  - 提交：本任务所在提交
+- [x] ● LESSON-010 fix: 修复组合模型杂线与剖切层级
+  - 依赖：LESSON-009
+  - 验收：不再显示 CSG 三角碎边；只显示基本体结构棱；切面一侧保留实体，另一侧以低透明度 ghost 显示；橙色截面始终位于视觉上层
+  - 结果：已删除基于 CSG 输出网格的 EdgesGeometry，改为组合前基本体结构棱；启用 Three.js 本地裁剪，切面一侧显示 0.68 实体，完整被切侧以 0.09 ghost 提示空间位置；无切面关键帧自动恢复完整模型；专项测试 17/17，浏览器无业务错误
+  - 提交：本任务所在提交
+- [x] ● LESSON-011 fix: 让方向键直接控制当前切面
+  - 依赖：LESSON-010
+  - 验收：选中带切面的选项后，屏幕四向按钮和键盘方向键无需预先点击“手动探索”即可旋转；滑条继续独立控制偏移
+  - 结果：选项关键帧加载后四向按钮与滑条立即启用；第一次屏幕/键盘方向操作自动进入探索并保留返回讲解能力；偏移滑条第一次拖动同样自动接管当前切面；修复 ghost 重复网格被 V2 遍历导致截面丢失，计算现只读取 union solid；浏览器实测首次 ArrowRight 令 SVG path 与面积立即变化，控制台无业务错误
+  - 提交：本任务所在提交
+- [x] ● LESSON-012 feat: 建立候选图与实际截面对比讲解
+  - 依赖：LESSON-011
+  - 验收：讲解先并排显示候选轮廓和当前真实截面，再用基础图形语言说明最接近形状及关键差异；抽象规则降为补充信息
+  - 结果：右侧讲解顶部已增加候选图/当前 V2 截面并排对比，实际图随方向键与偏移实时同步；八个选项分别使用矩形、三角形、四边形、六边形、椭圆、直边、曲边、尖角和缺角描述最接近图形及差异；抽象规则列表降为次级补充；聚焦回归 28/28，浏览器实测 D 显示候选 SVG、真实 path 和基础图形差异文案且无业务错误
+  - 提交：本任务所在提交
+- [x] ● LESSON-013 fix: 先讲清基础截面再排除相似选项
+  - 依赖：LESSON-012
+  - 验收：圆锥方体 B 选项明确“正方体/长方体能截六边形”，再说明本题组合体的纯凸六边形为什么不匹配；页面在候选/实际对比前显示基础提醒；测试防止退回“六边形不可能”的错误表达
+  - 结果：已新增基础提醒卡，B 选项 reason 与关键帧改为“六边形可行但本题不匹配”，补充页面和数据测试
+  - 用户复核：否决。该任务只补文字，没有让三维模型真的切出接近六边形并显示会带出下方/接触结构，不能作为最终验收。
+  - 提交：本任务所在提交
+- [x] ● HANDOFF-LESSON-003 docs: 记录用户否决与教学方法返工基线
+  - 依赖：LESSON-013
+  - 验收：记录 8 个参考视频的讲解套路、基础截面知识表、圆锥+方体 B 六边形视觉返工要求、滑动交互和模型缩放要求；明确 `LESSON-013` 不再作为最终验收
+  - 结果：新增 `doc/SPATIAL_REASONING_TEACHING_METHOD.md`，同步 `CURRENT_STATUS.md`、`TASKS.md`、`doc/AGENT_HANDOFF.md`，并通过 `git diff --check`
+  - 提交：本任务所在提交
+- [x] ● LESSON-014R fix: 返工 B 六边形为候选驱动真实截面演示
+  - 依赖：LESSON-013
+  - 验收：点击 B 时，三维切面先尽量贴近候选凸六边形；真实二维截面来自 V2，能看出方体直边/转折和倒圆锥或接触结构被带出；不再用文字替代画面；模型默认完整可见且不过大
+  - 子项：补自动 fit camera；把上下操作改为移动切面、左右操作改为旋转切面；方向键只作为备用，主交互支持连续滑动/滚轮
+  - 交接：先读 `doc/SPATIAL_REASONING_TEACHING_METHOD.md`
+  - 结果：已从用户视频截取原题图并接入 source.image；B 关键帧改为方体可出六边形且倒圆锥被同一切面带出的 V2 真实截面；相机统一拉远；三维区支持上下拖/滚轮移动切面、左右拖/横向滚轮旋转切面；专项测试 21/21，浏览器实测原题图、B 截面、拖动和控制台均通过
+  - 提交：本任务所在提交
+- [x] ● HANDOFF-LESSON-002 docs: 记录视觉与讲解返工交接
+  - 依赖：LESSON-012
+  - 验收：记录干净结构棱、裁剪实体/ghost、唯一 sectionSource、方向键自动探索、候选/实际图对比及后续禁止事项
+  - 结果：交接手册已写清基本体结构棱、union solid clipping、0.09 ghost、唯一 sectionSource、方向键/滑条自动探索和候选/实际图优先讲解；新增四项禁止恢复事项；工作日志记录用户否决原因、三个修复提交与 28/28 验收证据
+  - 提交：本任务所在提交
+- [x] ● LESSON-014 feat: 建立基础截面知识库与训练入口
+  - 依赖：LESSON-014R
+  - 验收：正方体、长方体、圆柱、圆锥、棱锥列出能截/不能截的常见形状；每个形状有一键演示和“为什么能/不能”的短讲解
+  - 结果：新增 `/section-foundation.html` 基础截面训练页，动态解题页顶部已增加“基础截面”入口；五类基础体均有能截/不能截清单、判断口诀和 3 个一键演示；专项测试 10/10，浏览器实测正方体默认页和圆柱不可行演示均通过
+  - 提交：本任务所在提交
+- [x] ● LESSON-014B fix: 基础截面页展示全部常见截面图案
+  - 依赖：LESSON-014
+  - 验收：基础页每个“能截/不能截”条目都有对应图案；正方体/长方体区分等边三角形、直角三角形、六边形等；圆柱明确展示圆、椭圆、矩形和带弧边截面，并说明斜切一定带曲边；测试和浏览器验收写入状态
+  - 结果：已把基础页“能截/不能截”从文字标签改成截面图案墙；正方体显示等边三角形、直角三角形、正方形、长方形、梯形、五边形、六边形等 7 个可行图案和 4 个不可行图案；圆柱显示圆、椭圆、矩形、带弧边截面并强调斜切必然带曲边；专项测试 11/11，浏览器实测正方体和圆柱图案墙通过
+  - 提交：本任务所在提交
+- [x] ● LESSON-014C fix: 修复基础截面页立体表达
+  - 依赖：LESSON-014B
+  - 验收：基础页“常见能截出/不能直接截出”必须体现在当前立体上，而不是孤立二维图标；正方体六边形示意完整落在正方体内部且接近六边形；模型默认缩小且看得全；圆柱圆/椭圆/矩形/带弧边截面都有对应立体切法；写明浏览器验收方式
+  - 结果：已把基础页图案墙改为“当前立体 + 切面/截面”卡片；正方体三角形、正方形、长方形、梯形、五边形、六边形均落在正方体示意上，圆/椭圆/曲边/超过 6 条边用正方体叠加不可行标记；圆柱圆、椭圆、矩形、带弧边截面均显示在圆柱上；桌面和手机宽度浏览器检查无控制台错误
+  - 提交：本任务所在提交
+- [x] ● LESSON-014D feat: 基础截面页升级为可操作 3D
+  - 依赖：LESSON-014C
+  - 验收：右侧演示区必须是真 Three.js 3D 视口；点击“能截出/不能直接截出”任一条目后，3D 视口切换到对应立体与截面；支持在当前切面基础上上下拖动/滚轮移动切面；支持一键复位；正方体六边形、圆柱椭圆等默认画面能看清截面存在于立体内部；桌面和手机宽度浏览器无控制台错误
+  - 结果：右侧演示区已改为 Three.js 3D 画布；基础截面条目和一键演示按钮均能驱动 3D 视口；默认正方体六边形、圆柱椭圆等都以透明立体、蓝色切面、橙色截面显示；支持画布上下拖动、滚轮移动和复位；桌面与 390px 手机宽度浏览器验收无控制台错误
+  - 提交：本任务所在提交
+- [x] ● LESSON-014E feat: 基础截面增加实时截面图
+  - 依赖：LESSON-014D
+  - 验收：3D 视口旁必须同步显示独立“实时截面”轮廓；拖动切面时实时截面跟随缩放/变化；可行项明确显示“能截出”，不可行项明确显示“不能直接截出”；默认正方体六边形和圆柱椭圆在桌面、手机宽度都能一眼看清
+  - 结果：右侧演示区已改为 3D 视口 + 实时截面并排；实时截面显示当前轮廓、可行/不可行状态和说明；拖动 3D 切面时实时截面同步缩放；不可行项显示红色错误尝试和叉号；桌面与 390px 手机宽度浏览器验收无控制台错误
+  - 提交：本任务所在提交
+- [x] ● LESSON-014F fix: 补充截面位置规律讲解
+  - 依赖：LESSON-014E
+  - 验收：右侧标题和说明从“看截面为什么成立”改为“切面放在哪里”；选中每个基础截面后，说明卡明确写出切面经过哪些面、角、边或曲面才会出现该截面；正方体三角形、六边形和圆柱椭圆必须有明确位置规律；测试覆盖关键文案
+  - 结果：右侧标题已改为“切面放在哪里”；说明卡随选中截面显示“某立体怎样截出某截面”，并写清切到哪些面、角、边或曲面；正方体六边形、正方体等边三角形、圆柱椭圆等已通过浏览器验收
+  - 提交：本任务所在提交
+- [x] ● LESSON-014G fix: 前置当前截面位置说明
+  - 依赖：LESSON-014F
+  - 验收：右栏首屏必须直接看到“当前切面位置”和当前截面的具体放置规则；旧的“能/不能”规则不能再顶在“切面放在哪里”标题下误导用户；点击不可行项时必须说明为什么“放哪里都不行”；浏览器验收默认六边形和正方体圆两个状态
+  - 结果：已把解释卡移到 3D 视口前；顶部切法卡改为“切法选择”，摘要直接取位置规则；默认正方体六边形首屏显示“从一个角附近斜穿到对角附近，同时经过六个面”；点击“圆”显示“为什么放哪里都不行”和“无论放在哪里，都不能直接得到圆”
+  - 提交：本任务所在提交
+- [x] ● LESSON-014H fix: 删除右栏切法选择并口语化讲解
+  - 依赖：LESSON-014G
+  - 验收：右栏不再显示“切法选择”三张卡；切换截面只通过中栏图案墙完成；右栏标题和说明必须用学生能听懂的讲法，比如“这刀怎么摆”“把刀片斜着放”“碰到 6 个面，所以有 6 条边”；默认六边形、等边三角形和圆不可行三个状态需要通过本地服务响应确认
+  - 结果：已删除右栏 `demo-buttons`；右栏标题改为“这刀怎么摆”；默认六边形说明改为“从上面三个面穿进去、从下面三个面穿出来”；等边三角形说明改为“只削掉一个顶角、碰到 3 个面”；不可行圆说明改为“没有圆滚滚的曲面，碰到的边都是直的”
+  - 验收证据：已启动 `python3 -m http.server 8089`；`curl http://localhost:8089/section-foundation.html` 返回 200 且包含“这刀怎么摆”；反向检查确认旧的“切法选择 / demo-buttons / 当前切面位置 / 切面放在哪里”均不存在；专项测试 13/13 通过
+  - 提交：本任务所在提交
+- [x] ● LESSON-014I fix: 基础截面 3D 改为真实相交截面
+  - 依赖：LESSON-014H
+  - 验收：右侧 3D 橙色截面不能再用预设图形贴到切面上；必须由蓝色切面和当前立体真实相交点生成；正方体“直角三角形”默认状态必须显示 3 个真实边界点且贴在正方体面/边界上；六边形必须显示 6 个真实边界点；不可行“圆”不能在 3D 里假装画圆
+  - 结果：已新增 `collectPlaneSectionPoints`、`makeSectionGeometryFromPoints`、`updateRealSectionGeometry`，从 Three.js 几何体三角面边界收集切面交点生成橙色截面；正方体直角三角形参数改为贴近边角的真实三点截面；不可行圆状态在 3D 中显示实际直边截面，实时截面仍提示“不能直接截出”
+  - 验收证据：Chrome + Playwright 打开 `/section-foundation.html`，点击“直角三角形”后 `data-real-section=true` 且 `data-section-vertex-count=3`；点击“六边形”后顶点数为 6；点击不可行“圆”后顶点数为 4 且状态为 `cannot`；专项测试 13/13 通过
+  - 提交：本任务所在提交
+- [x] ● LESSON-014J fix: 基础截面强化颜色并改真实 3D 缩略图
+  - 依赖：LESSON-014I
+  - 验收：右侧 3D 截面必须有明显橙色填充，不再像只有一圈线；中栏“常见能截出/不能直接截出”卡片不能再使用手绘假图，必须由当前立体和当前切面真实求交后投影成 3D 缩略图；正方体六边形卡片和右侧 3D 都应显示 6 个真实点；正方体直角三角形卡片和右侧 3D 都应显示 3 个真实点
+  - 结果：已删除旧的 `drawingForSection` 手绘截面入口；新增 `renderSectionThumb3d`、`geometryEdgeSegments`、`makeThumbProjector` 等函数，中栏卡片用当前 Three.js 立体几何体与切面求交后生成缩略图；右侧 3D 橙色截面提高不透明度并置于透明模型上层显示；不可行项卡片显示真实能切到的形状并用红色/斜线标出“不等于目标截面”
+  - 验收证据：本地服务 `/section-foundation.html` 加载 `section-foundation.css?v=20260704g` 与 `section-foundation.js?v=20260704j`；浏览器 DOM 显示真实缩略图数量 11；默认正方体六边形 `canvasVertexCount=6`、缩略图 `data-section-vertices=6`、橙色填充 `rgba(228, 86, 27, 0.58)`；点击正方体直角三角形后大 3D 和缩略图均为 3 点真实截面；浏览器控制台无 error/warning；专项测试 13/13 通过
+  - 提交：本任务所在提交
+- [x] ● LESSON-014K fix: 基础截面实时截面同步真实切面
+  - 依赖：LESSON-014J
+  - 验收：右侧实时截面不能再用预设形状；必须由当前 3D 切面与立体真实交点生成；选中正方体五边形时默认大 3D、实时截面、缩略图都显示 5 个真实点；拖动五边形切面后如果真实截面变成 4 边，实时截面必须同步变成 4 边并提示目标仍是五边形；正方体梯形默认必须实际分类为梯形，不能显示成正方形/普通四边形
+  - 结果：已删除旧 `shapePoints`/`makeShapeGeometry` 预设绘图死代码；`renderLiveSection` 改为读取 `viewer.currentSectionPoints` 并用切面局部坐标生成实时截面；新增真实形状分类、顶点点位显示和 `data-actual-section`；卡片缩略图改为尽量正对当前切面投影，避免五边形/梯形被视角压歪；正方体“梯形”切面参数改为 `[0.8, 1, 1] / offset 0.5`
+  - 验收证据：浏览器加载 `/section-foundation.html` 的 `v=20260705a`；点击“五边形”后大 3D `data-section-vertex-count=5`、实时截面 `data-vertex-count=5`、卡片 `data-section-vertices=5`；拖动后真实截面变为 `梯形` 且大 3D/实时截面均为 4 点，文案显示“目标：五边形”；点击“梯形”后默认 `data-actual-section=梯形`、实时截面显示“正方体当前真实截面：梯形”；浏览器控制台无 error/warning；专项测试 13/13 通过
+  - 提交：本任务所在提交
+- [x] ● LESSON-014L fix: 纠正基础截面正多边形与直角三角形规则
+  - 依赖：LESSON-014K
+  - 验收：正方体/长方体“直角三角形”必须归入不能直接截出；点击后 3D 和实时截面显示真实削角三角形而不是假直角三角形；正方体五边形说明必须明确“不是正五边形”；正六边形说明必须明确“垂直体对角线并穿过六条棱的中点，六边等长”；梯形说明必须明确“一个面接近走对角线，另一个面不要也走对角线”；专项测试和浏览器验收写入状态
+  - 结果：已把正方体/长方体“直角三角形”移入不能直接截出，并让三角形分类读取真实角度而不是按钮名称；点击“直角三角形”时 3D/实时截面显示真实削角等边三角形并提示“不是直角三角形”；五边形讲清通常不是正五边形；六边形讲清垂直体对角线、穿过六条棱中点且六边等长；梯形切面参数改为 `[0.15, 0.5, 0.5] / offset 0.36 / limit 0.18`，默认和上下拖动到限制位置都保持真实梯形
+  - 验收证据：`git diff --check` 通过；`node --check section-foundation.js` 通过；`node --experimental-loader ./tests/three-absolute-loader.mjs --test tests/reasoning-lesson-layout.test.mjs` 13/13 通过；应用浏览器加载 `/section-foundation.html` 的 `v=20260705b`；直角三角形在不能直接截出列表，点击后大 3D `actual=等边三角形`、实时截面提示“不是直角三角形”；五边形为 5 点且文案包含“不是正五边形”；六边形为 6 点且文案包含“六条棱的中点”；梯形默认 4 点，拖到 `偏移 +18` 后仍为 4 点梯形；浏览器控制台 error/warning 为空
+  - 提交：本任务所在提交
+- [x] ● LESSON-014M fix: 补项目错误复盘并收紧盒体直角三角形验证
+  - 依赖：LESSON-014L
+  - 验收：项目根目录必须有 `错误复盘.md` 记录“页面验证不等于数学事实验证”；正方体/长方体三角截面分类不得因接近 90 度被误判成“直角三角形”；专项测试必须覆盖盒体三角形禁用直角误判；状态文件写清上一轮哪里没改完
+  - 结果：已新增项目根目录 `错误复盘.md`，记录上一轮把页面验收说成数学事实验收的错误；`classifyTriangle` 增加 `solidId` 参数，正方体/长方体三角截面不再因接近 90 度被误判为“直角三角形”；`classifySectionPoints` 调用已传入 `state.solidId`；专项测试新增盒体禁用直角误判源码断言
+  - 验收证据：`git diff --check` 通过；`node --check section-foundation.js` 通过；`node --experimental-loader ./tests/three-absolute-loader.mjs --test tests/reasoning-lesson-layout.test.mjs` 13/13 通过；应用浏览器点击正方体“直角三角形”后 `actual=等边三角形`、实时截面提示“不是直角三角形”、控制台 error/warning 为空
+  - 提交：本任务所在提交
+- [x] ● LESSON-014N fix: 全量校准基础截面真实形状
+  - 依赖：LESSON-014M
+  - 验收：浏览器自动点击基础截面页 44 个截面卡片，缩略图、大 3D、实时截面三者必须与标签一致；正方体长方形、长方体三角形/平行四边形/梯形/五边形、圆柱带弧边截面、棱锥五边形这 7 个已发现错位项必须修正；新增真实几何矩阵测试，防止只靠文案和 DOM 测试漏错；错误复盘补充“全量矩阵验证”要求
+  - 结果：已修正 7 个错位预设，新增 `tests/foundation-section-presets.test.mjs` 真实几何矩阵测试，浏览器自动点击 44 个截面卡片全部通过
+  - 验收证据：`node --check section-foundation.js` 通过；`node --experimental-loader ./tests/three-absolute-loader.mjs --test tests/foundation-section-presets.test.mjs tests/reasoning-lesson-layout.test.mjs` 15/15 通过；`npm run test:geometry` 562/562 通过；浏览器矩阵 44/44 通过且控制台 error/warn 为空；`curl -I http://localhost:8089/section-foundation.html` 返回 200
+  - 提交：本任务所在提交
+- [x] ✓ LESSON-015A feat: 重做动态解题手动探索手感
+  - 依赖：LESSON-014R
+  - 验收：上下滑/滚轮连续移动切面，左右滑连续旋转切面；不需要先点“手动探索”也能从三维区直接拖动；页面同步显示“偏移 + 旋转角度 + 实时截面状态”；浏览器真实拖动验证通过；控制台无 error/warn
+  - 结果：已在动态解题页新增 3D 切面实时读数；三维区可直接拖动自动进入探索；上下拖动改变偏移，左右拖动改变旋转；复位会退出探索并回到当前讲解帧
+  - 验收证据：`node --check reasoning-lesson.js` 通过；`node --test tests/reasoning-lesson-layout.test.mjs` 14/14 通过；浏览器未点选项直接拖动通过，竖向拖动后偏移 `+20%`，横向拖动后旋转 `-41°`，控制台 error/warn 为空
+- [x] ✓ LESSON-015B feat: 重做候选图对比区
+  - 依赖：LESSON-015A
+  - 验收：点击任一选项后，同屏显示“候选图 / 真实截面 / 3D 切面”；错误选项要能看见多出来、缺掉、带出的结构，不只靠文字解释；浏览器逐项点击 A/B/C/D 验证对比区不空、真实截面同步、控制台无 error/warn
+  - 结果：已新增候选图放大区；候选图、真实截面图和 3D 切面同屏同步；换题时候选状态会重置，避免旧题污染
+  - 验收证据：浏览器逐项点击默认题 A/B/C/D 均有候选 SVG 与真实截面 path；第二题 A/B/C/D 均有候选 SVG 与真实截面 path；控制台 error/warn 为空
+- [x] ✓ CASE-IMPORT-001 feat: 把现有视频题逐步录入动态解题题库
+  - 依赖：LESSON-015B
+  - 验收：每个本地参考视频至少抽取一张原题清晰截图；能进入题目下拉列表；未人工确认答案的题目标为 draft，不混进正式题；题目来源和人工确认状态在页面可见
+  - 结果：已抽取 8 张新视频截图并保留已有圆锥方体截图；已补齐第二道正式题原题图；新增 `draft-video-questions.json`，7 个未核验视频条目单独进入“待核验草稿”下拉，不进入正式判题
+  - 验收证据：浏览器打开 `?case=draft-section-stair-model`，下拉草稿数 7，页面显示原题图、来源、`draft-unverified`、`待人工核验`，切面控件禁用，控制台 error/warn 为空；切回正式题后 4 个选项恢复，草稿提示清空
+- [x] ● LESSON-015C fix: 动态解题截面正面可见与题图裁剪
+  - 依赖：CASE-IMPORT-001
+  - 验收：动态解题页 3D 舞台必须有“正对截面”的默认可视化，不让学生只能从斜侧面猜；第二道正式题原题图只保留上方题目和选项区域，不展示整段视频画面；后续草稿题继续保留在下拉中且明确为待核验；`node --check reasoning-lesson.js`、`node --test tests/reasoning-lesson-layout.test.mjs`、`curl -I http://127.0.0.1:8089/reasoning-lesson.html` 必须通过
+  - 结果：已在 3D 舞台右下角新增“正面看这一刀”浮层，正式题加载后自动用第一条真实 V2 切面做预览，浮层、下方实时截面和三维橙色截面同步；不会提前选中 A/B/C/D。第二道正式题原图已裁成 996×430，只保留题干与选项区，并同步到正式题和视频题索引。
+  - 验收证据：`node --check reasoning-lesson.js` 通过；`node --test tests/reasoning-lesson-layout.test.mjs` 16/16 通过；`npm run test:geometry` 571/571 通过；`git diff --check` 通过；`curl -I 'http://127.0.0.1:8089/reasoning-lesson.html?case=pyramid-cylinder-001'` 返回 200；裁剪图 `/data/images/reasoning/pyramid-cylinder-001-question-crop.png` 返回 200 且尺寸 996×430；应用浏览器刷新第二题后 `engine=真实截面 · 1 个轮廓`、`front-section-card[data-section-state]=ok`、正对截面 SVG 有 `.section-shape` 和 3 个顶点、选项选中数为 0、控制台 error/warn 为空。
+- [x] ● LESSON-015D fix: 动态解题真实截面正视与草稿答案入库
+  - 依赖：LESSON-015C
+  - 验收：动态解题正式题初始 3D 相机必须沿真实切面法向正对截面，不只依赖右下浮层；浏览器能读取 `data-section-facing` 且接近 1；用户本轮给出的草稿/视频题答案必须记录为 `user-provided-needs-review`，与既有正式答案冲突的圆锥方体六边形说法必须记录为冲突待核验，不能硬覆盖；`node --check reasoning-lesson.js`、`node --test tests/reasoning-lesson-layout.test.mjs`、`curl -I`、浏览器控制台检查和 `git diff --check` 必须通过
+  - 结果：已把动态解题正式题初始相机改为沿切面法向正对真实橙色截面，并在 `#lesson-canvas[data-section-facing]` 暴露可验收指标；已把用户给出的草稿题答案录入 `draft-video-questions.json`，第二张 A、第三张 C、第四张 D、第六张 B 均标记为 `user-provided-needs-review`；第五张正式题 D 与现有答案一致已记录；第七张“六边形/B”和现有正式答案 A 冲突，已记录为 `conflict-needs-review`，没有硬覆盖；`ReasoningCase` schema/validator 已补 `answerReviewNotes`，避免答案复核字段变成随便加的自由文本。
+  - 验收证据：`node --check reasoning-lesson.js`、`node --check geometry/reasoning-case-validator.js` 通过；JSON 解析 `spec/reasoning-case-v1.schema.json`、`cone-box-001.json`、`pyramid-cylinder-001.json` 通过；`node --test tests/reasoning-lesson-layout.test.mjs` 17/17 通过；`node --test tests/reasoning-case-fixtures.test.mjs` 12/12 通过；`npm run test:geometry` 572/572 通过；`git diff --check` 通过；`curl -I` 检查 `reasoning-lesson.html?case=pyramid-cylinder-001` 与 `reasoning-lesson.html?case=cone-box-001` 均返回 200；应用浏览器打开 `/reasoning-lesson.html?case=pyramid-cylinder-001&verify=front-facing`，加载 `reasoning-lesson.css/js?v=20260705f`，`engineText=真实截面 · 1 个轮廓`，`sectionFacing=1.000`，正对截面 SVG 有 1 个 path 和 3 个顶点，控制台 error/warn 为空。
+- [x] ● LESSON-015E fix: 动态解题正面截面视觉与未选项布局干扰
+  - 依赖：LESSON-015D
+  - 验收：动态解题页不能再在 3D 舞台右下角放“正面看这一刀”小图卡片；初始真实截面必须在 3D 舞台本体里清楚、正面、居中可见，而不是像在背后或被蓝色切平面挡住；未选择 A/B/C/D 前，候选图区不能突然放大、顶开下方内容；浏览器移动宽度和桌面宽度都要截图/读数验收，控制台 error/warn 为空；`node --check reasoning-lesson.js`、专项测试、`git diff --check` 必须通过
+  - 结果：已删除 3D 舞台内 `#front-section-card` 小图卡片，改为只在三维模型本体里展示橙色真实截面；正面预览相机沿切面法向对准真实截面并退远，模型透明度降低，避免截面像藏在背后；候选预览区、实时截面区、基础说明区、候选/真实对比区均改为稳定尺寸/占位隐藏，点击 A/B/C/D 不再把 3D 舞台或下方截面区顶开；CSS/JS 版本升到 `20260705h`。
+  - 验收证据：`node --check reasoning-lesson.js` 通过；`node --test tests/reasoning-lesson-layout.test.mjs` 17/17 通过；`node --test tests/reasoning-case-fixtures.test.mjs` 12/12 通过；`npm run test:geometry` 572/572 通过；`git diff --check -- reasoning-lesson.html reasoning-lesson.css reasoning-lesson.js tests/reasoning-lesson-layout.test.mjs` 通过；`npm run dev:status` 返回 `open=true`、`pidAlive=true`；`curl -I 'http://127.0.0.1:8089/reasoning-lesson.html?case=pyramid-cylinder-001&verify=front-facing'` 返回 `HTTP/1.0 200 OK`；桌面浏览器打开验收页加载 `reasoning-lesson.css/js?v=20260705h`，初始 `selected=null`、`frontCardExists=false`、`engineText=真实截面 · 1 个轮廓`、`sectionFacing=1.000`、实时截面 path 数 1、控制台 error/warn 为空；桌面 1440×1000 下未选和 A/B/C/D 点击后 3D 舞台均保持 `y=174 height=520`，下方截面区均保持 `y=694 height=223`，右侧基础说明/对比图均保持 `y=276 / y=402`；移动端 390×844 下 `documentWidth=390` 无横向溢出，未选和 A/B/C/D 点击后 3D 舞台均保持 `x=11 y=839 width=368 height=470`；截图已保存：`output/playwright/lesson015e-desktop-initial-final.png`、`output/playwright/lesson015e-desktop-front-facing-v4.png`、`output/playwright/lesson015e-mobile-front-facing.png`。
+- [x] ● LESSON-015F fix: 动态解题先选后析与截面方向同步
+  - 依赖：LESSON-015E
+  - 验收：未选择 A/B/C/D 前，页面不能提前展示逐项解析、候选/真实对比结论或“图形能对上”；点击选项后才出现候选图、真实截面图和逐项验证；真实截面小图必须按当前 3D 相机方向投影，不能和三维橙色截面方向各画各的；候选图与当前真实截面不完全一致时，文案必须诚实区分“这类截面可行”和“当前候选是否匹配”，不能把没对上的说成对上；浏览器桌面和移动宽度都要验证控制台 error/warn 为空。
+  - 结果：已把动态解题页改成先选后析：未选 A/B/C/D 时解析卡、结论卡、基础说明均隐藏，播放/上一步/下一步和切面控制均禁用，3D 真实截面也不提前显示；点击选项后才展示候选图、真实截面图和逐项验证。真实截面 SVG 改为按当前 3D 相机方向投影，3D 画面怎么朝向，下方“实时同步截面”和右侧“当前实际截面”就用同一份 camera projection。候选 C 的文案从“对上”改为“类型可验证”，明确还要核对曲边朝向、连接位置和外轮廓比例。CSS/JS 版本更新到 `reasoning-lesson.css/js?v=20260705j`。
+  - 验收证据：`node --check reasoning-lesson.js` 通过；`node --test tests/reasoning-lesson-layout.test.mjs` 17/17 通过；`node --test tests/reasoning-case-fixtures.test.mjs` 12/12 通过；`npm run test:geometry` 572/572 通过；浏览器打开 `/reasoning-lesson.html?case=pyramid-cylinder-001&verify=front-facing&fresh=015f4`，初始 `shapeComparisonClassHidden=true`、`verdictClassHidden=true`、`foundationClassHidden=true`、`previous/play/next/up/range` 全部禁用、`sectionProjection=locked`、`engineText=先选一个选项后显示真实切面`、控制台 error/warn 为空；点击 C 后 `selectedCard=C`、`sectionProjection=camera`、`comparisonProjection=camera`、`sectionMatchesComparison=true`、`resultText=类型可验证`；点上移后 path 变化且仍 `sectionMatchesComparison=true`；桌面和 390px 移动端截图已保存到 `output/playwright/lesson015f-desktop-after-reset.png`、`output/playwright/lesson015f-mobile-after-c.png`。
+- [x] ✓ THREEVIEW-001 feat: 建立三视图训练 MVP
+  - 依赖：CASE-IMPORT-001
+  - 验收：用用户提供的黑白块三视图题做第一题；用户选择 A/B/C/D 后立刻反馈对错；下方出现真实 3D 方块模型；模型可旋转，并能切换主视图、左视图、俯视图；讲解使用“看黑块数量、锁定位置、排除差异”的做题话术
+  - 结果：已新增 `three-view-training.html` 训练页；录入黑白块第一题、原题截图来源、18 个真实方块坐标、A-D 选项和正确答案 C；点击选项会立即反馈对错；3D 模型可拖动旋转，并支持自由观察、主视图、左视图、俯视图切换；前台已删除“题目截图”区，避免重复占位，原图只保留在数据里做来源追溯
+  - 验收证据：`node --test tests/three-view-training.test.mjs` 5/5 通过，证明 18 块、3 黑 15 白、左/俯视图和主视图 C 投影一致，且页面不再包含 `source-image` / “题目截图”；此前浏览器打开 `/three-view-training.html`，D 显示“再想想”和错误理由，C 显示“答对了”；3D canvas 截图非空，视角按钮 main/left/top/free 逐个切换成功，控制台 error/warn 为空；本轮浏览器刷新 `127.0.0.1` 被工具安全策略拦截，未作为新增验收证据
+- [x] ✓ DEVSERVER-001 chore: 固化 8089 静态训练页启动方式
+  - 依赖：THREEVIEW-001
+  - 验收：`npm run dev` 能启动 `127.0.0.1:8089`；`curl -I 'http://127.0.0.1:8089/three-view-training.html?verify=threeview001'` 返回 200；README 写明 `ERR_CONNECTION_REFUSED` 先启动静态服务
+  - 结果：已在 `package.json` 增加 `dev` / `dev:static` 脚本；已在 README 增加立体图推静态训练页启动说明；当前 8089 服务已重新启动
+  - 验收证据：已停掉手动服务并改用 `npm run dev` 启动；`lsof -nP -iTCP:8089 -sTCP:LISTEN` 显示 Python 正在监听；`curl -I` 返回 `HTTP/1.0 200 OK`
+- [x] ✓ DEVSERVER-002 fix: 让 8089 静态服务可重复自检并后台保活
+  - 依赖：DEVSERVER-001
+  - 验收：`npm run dev` 不能再依赖前台终端长期挂着；端口未开时自动后台启动，端口已开时复用现有服务；`npm run dev:status` 能显示端口与 PID 状态；运行痕迹不得提交；`curl -I` 必须返回 200
+  - 结果：新增 `tools/dev-server.mjs`，统一实现 `ensure/status/stop`；`npm run dev` / `dev:static` 改为先检查再后台启动；新增 `npm run dev:status` / `dev:stop`；运行 PID 和日志写入 `.codex-runtime/`，并已加入 `.gitignore`
+  - 验收证据：`node --check tools/dev-server.mjs` 通过；第一次 `npm run dev` 输出 `dev server started at http://127.0.0.1:8089 pid=72457`；再次 `npm run dev` 输出 `dev server already listening`；`npm run dev:status` 返回 `open=true`、`pidAlive=true`；`lsof -nP -iTCP:8089 -sTCP:LISTEN` 显示 Python 监听；`curl -I 'http://127.0.0.1:8089/three-view-training.html?verify=orientation-fix'` 返回 `HTTP/1.0 200 OK`；页面 HTML 包含 `three-view-training.css?v=20260705h` 与 `three-view-training.js?v=20260705e`
+- [x] ✓ THREEVIEW-002 feat: 沉淀三视图做题技巧模板
+  - 依赖：THREEVIEW-001
+  - 验收：每题都有短句技巧，不写专业定理；技巧围绕黑/白块数量、列/层定位、候选差异排除；专项测试覆盖技巧字段必填且页面显示
+  - 结果：已新增 `data/three-view-cases/technique-template.json` 和 `doc/THREE_VIEW_TEACHING_TEMPLATE.md`；第一题包含 `teaching.short`、`teaching.steps`、`teaching.optionFocus`
+  - 验收证据：`node --test tests/three-view-training.test.mjs` 覆盖模板字段、禁用专业定理话术和页面显示容器；浏览器确认短技巧、4 条做题步骤、4 条选项差异实际渲染，控制台 error/warn 为空
+- [x] ✓ THREEVIEW-003 feat: 升级为 50 题五题一组训练
+  - 依赖：THREEVIEW-002
+  - 验收：正式题达到 50 道；每 5 道一组共 10 组；15 张用户截图保留来源记录；每题自动校验总块数、黑白块数、给定视图、目标视图、正确答案和唯一答案；页面能连续做完一组并显示正确率、总用时、平均用时、错题；刷新后历史记录仍在；3D 区答题前不抢空间、答题后可看模型和主/左/右/俯视角；控制台无 error/warn
+  - 结果：已新增 `three-view-case-engine.js` 与 `tools/generate-three-view-bank.mjs`；15 张题源截图已保存到 `data/images/three-view/sources/`；生成并校验 `data/three-view-cases/black-white-blocks-50.json`，50 题分成 10 组；训练页改为组训练流程，答题后展示 3D 验证和四视图投影，完成一组后写入本地历史；3D 区桌面/手机答题前约 302px，不再被题目区撑高
+  - 验收证据：`node --check three-view-training.js`、`node --check three-view-case-engine.js`、`node --check tools/generate-three-view-bank.mjs` 均通过；`node --test tests/three-view-training.test.mjs` 5/5 通过，覆盖 50 题、10 组、15 张来源截图、每题投影一致、唯一答案、讲解话术和生成器可复现；`npm run test:geometry` 569/569 通过；`lsof -nP -iTCP:8089 -sTCP:LISTEN` 显示 8089 正在监听，`curl -I http://127.0.0.1:8089/three-view-training.html` 返回 `HTTP/1.0 200 OK`；浏览器实测第 1 组：第 1 题先选错显示“再想想”和错误原因，再选对显示“答对了”，主/左/右/俯/自由视角均可切换，连续完成 5 题后显示 `5/5 正确`、`正确率 100%`、总用时和平均用时；刷新后历史显示“上次 5/5”；桌面 1366px 与手机 390px 响应式检查控制台 error/warn 为空
+- [x] ✓ THREEVIEW-004 fix: 校准三视图 3D 固定视角方向
+  - 依赖：THREEVIEW-003
+  - 验收：题面二维视图、选项二维视图、答题后模型投影和右侧 3D 固定视角必须同向；主视图以题面正面为基准，左/右/俯按钮切出的相机位置必须能被页面状态读到；俯视图必须从上往下看；专项测试必须覆盖相机横向、纵向和遮挡顺序，不再只测题库 JSON 自洽
+  - 结果：已新增 `VIEW_CAMERA_POSES` 作为固定相机单一事实源；训练页 3D 坐标入口统一镜像 x 轴，使题库网格的左到右和 3D 主视图左到右一致；左/右相机改为与题面视图同向；俯视图改为上方相机且遮挡顺序为高层优先；页面 `canvas` 暴露 `data-camera-position` / `data-camera-up` 便于验收
+  - 验收证据：`node --check three-view-training.js`、`node --check three-view-case-engine.js`、`node --check tools/generate-three-view-bank.mjs` 均通过；`node --test tests/three-view-training.test.mjs` 6/6 通过，新增固定 3D 相机与 2D 视图同向测试；`npm run test:geometry` 570/570 通过；`lsof -nP -iTCP:8089 -sTCP:LISTEN` 显示 8089 正在监听，`curl -I http://127.0.0.1:8089/three-view-training.html` 返回 `HTTP/1.0 200 OK`；浏览器逐个点击主/左/右/俯/自由，页面状态分别为 `0,0,-7.2`、`7.2,0,0`、`-7.2,0,0`、`0,7.2,0`、`5.4,4.5,6.2`，`validation=pass`、`bankValidation=pass`，控制台 error/warn 为空
+- [x] ✓ THREEVIEW-005 style: 打磨三视图训练官方化布局
+  - 依赖：THREEVIEW-004
+  - 验收：三视图训练页要更像正式训练系统；宽屏下题目、真实模型、做题技巧三栏顶部同线且间距统一；模型视角按钮固定成规则网格；1280px 左右自动变为两栏，手机自动变为单栏；页面不能横向溢出；题库验证、模型验证和控制台检查保持通过
+  - 结果：已将训练页从偏米色 demo 风格改为白底浅灰官方界面；统一三栏最大宽度、列宽、间距和面板阴影；中间 3D 区加宽并把 6 个视角按钮改成 3×2 固定网格；题面视图、选项卡、状态徽标和底部按钮使用稳定尺寸；新增 1320px 两栏断点和 980px 单栏断点
+  - 验收证据：`node --check three-view-training.js`、`node --check three-view-case-engine.js` 通过；`node --test tests/three-view-training.test.mjs` 6/6 通过；`npm run test:geometry` 570/570 通过；浏览器加载 `/three-view-training.html?verify=orientation-fix` 的 `three-view-training.css?v=20260705e`，1440px 下三栏分别约 534/452/370px，视角按钮为 3 列规则网格且无横向溢出；1366px 仍为三栏，1280px 自动为两栏，390px 自动为单栏且选项两列；`canvas.validation=pass`、`canvas.bankValidation=pass`，控制台 error/warn 为空
+- [x] ✓ THREEVIEW-006 style: 三视图训练改为两栏工作台布局
+  - 依赖：THREEVIEW-005
+  - 验收：不再用三张不等高卡片硬对齐；左侧题目卡作为主操作区，右侧模型验证和做题技巧上下等宽排列；3D 区高度受控，不能为了对齐被拉成长条；答题后 4 个模型投影视图在宽屏一排展示；1440/1280/980/390 宽度无横向溢出；题库验证、模型验证、控制台和测试保持通过
+  - 结果：训练页改为 `question / model / explanation` 两栏网格，左侧题目卡跨两行，右侧模型卡与技巧卡上下排列；模型区未作答时固定 240px，答题后按 320-390px 展开；答题后的主/左/右/俯投影视图宽屏改为 4 列，手机改为 2 列；CSS 版本更新到 `three-view-training.css?v=20260705g`
+  - 验收证据：浏览器加载 `/three-view-training.html?verify=orientation-fix` 的 `v=20260705g`；1440×900 下左侧题目卡约 742px，右侧模型/技巧卡约 632px，模型区 240px，视角按钮 3×2；1280×800 下仍为两栏，模型区 240px；980×820 和 390×844 自动单栏且无横向溢出；答题后 1440px 下 4 个模型投影视图为一排四列，单个约 140×148px；`canvas.validation=pass`、`canvas.bankValidation=pass`，控制台 error/warn 为空；`node --check three-view-training.js`、`node --check three-view-case-engine.js`、`node --test tests/three-view-training.test.mjs` 6/6、`npm run test:geometry` 570/570、`git diff --check` 均通过
+- [x] ✓ THREEVIEW-007 fix: 三视图训练未作答前隐藏 3D 验证
+  - 依赖：THREEVIEW-006
+  - 验收：未选择 A/B/C/D 前不能看到真实 3D 模型、不能操作视角按钮、不能看到统计徽标和模型投影视图；选择任一选项后才解锁真实 3D、主/左/右/俯/自由视角、统计徽标和四个模型投影；题库验证、模型验证、控制台和测试保持通过
+  - 结果：训练页新增 `model-gate` 选前遮罩；页面初始 `body[data-answered=false]` 会隐藏 canvas、统计徽标和投影视图，并禁用视角按钮；点击选项后 `setModelAccess(true)` 统一解锁模型验证区；换题或重做本组时会重新锁回选前状态；CSS/JS 版本更新到 `three-view-training.css?v=20260705h`、`three-view-training.js?v=20260705e`
+  - 验收证据：浏览器加载 `/three-view-training.html?verify=orientation-fix` 的 `v=20260705h/e`；未选前 `answered=false`、canvas `opacity=0`、`pointer-events=none`、`aria-hidden=true`、视角按钮全部 `disabled=true`、统计徽标 `display=none`、投影视图 `display=none`；点击 A 后 `answered=true`、canvas `opacity=1`、`pointer-events=auto`、视角按钮全部启用、统计徽标 `display=flex`、投影视图 `display=grid`；`validation=pass`、`bankValidation=pass`，控制台 error/warn 为空；`node --check three-view-training.js`、`node --check three-view-case-engine.js`、`node --test tests/three-view-training.test.mjs` 6/6、`npm run test:geometry` 570/570、`git diff --check` 均通过
+- [ ] ○ LESSON-016 feat: 建立四类训练总入口
+  - 依赖：LESSON-014
+  - 验收：提供立体拼合、三视图、展开图、截面图训练四个学生入口；保留动态解题、几何实验室和 CSG 工作台为高级入口
+- [ ] ○ LESSON-017 feat: 按参考视频重构逐项排除讲解节奏
+  - 依赖：LESSON-015
+  - 验收：讲解按“看选项差异 → 摆切面贴近 → 找多边/缺角/接触/曲直差异 → 排除或确认”推进，并支持逐帧手动验证
+- [ ] ○ AUTHOR-001 feat: 建立手工题目讲解编辑器
+  - 依赖：LESSON-007
+  - 验收：管理员可选择模板、调参数、保存关键帧、录入选项与解析；不需要 AI 也能完整录题
+- [ ] ○ AUTHOR-002 feat: 建立讲解题 JSON 导入导出
+  - 依赖：AUTHOR-001
+  - 验收：版本化、Schema 校验、错误定位和往返一致；禁止导入可执行代码
+
+## M5B：图片辅助录题（默认本地、免费、开源）
+
+- [ ] ○ VISION-001 docs: 冻结本地图片辅助录题技术选型
+  - 依赖：LESSON-007
+  - 验收：固定 OpenCV、PaddleOCR/Tesseract.js 和本地多模态候选适配器的许可证、运行位置、资源预算与降级路径
+- [ ] ○ VISION-002 feat: 建立安全图片上传与裁剪
+  - 依赖：VISION-001
+  - 验收：限制格式、大小、文件名；原题区和选项区由用户确认裁剪
+- [ ] ○ VISION-003 feat: 建立 OpenCV 图像预处理与选项轮廓提取
+  - 依赖：VISION-002
+  - 验收：灰度、二值化、去噪、透视矫正、轮廓候选可预览和人工修正
+- [ ] ○ VISION-004 feat: 建立本地 OCR 适配器
+  - 依赖：VISION-002
+  - 验收：后端 PaddleOCR 为中文主路径；浏览器 Tesseract.js 为轻量降级；失败不阻止手工录入
+- [ ] ○ VISION-005 feat: 建立本地多模态候选草稿适配器
+  - 依赖：VISION-003、VISION-004、AUTHOR-002
+  - 验收：通过可替换本地接口输出候选基本体、CSG 关系、参数和 uncertainties；不得输出答案或可执行代码
+- [ ] ○ VISION-006 feat: 建立候选草稿校验与人工确认
+  - 依赖：VISION-005
+  - 验收：Schema、几何、预览三重校验；用户确认前不得进入正式题库
+- [ ] ○ VISION-007 test: 建立图片辅助录题基准集
+  - 依赖：VISION-006
+  - 验收：至少 20 道固定题图，分别统计 OCR、选项轮廓、基本体和 CSG 关系准确率；不以单个演示代替评测
 
 ## M6：集成、测试与发布
+
+- [x] ● RESCUE-UIAI-001 fix: 修复主标签串色与逻辑填空 AI 空回复
+  - 结果：从图形推理切回言语/数量时，会同时清理图推主标签与子导航；逻辑填空作答前隐藏标准答案不再被误判为“证据不足”，AI 必须返回不泄题的语境/辨词提示。
+  - 真实验收：隔离预览账号实测“言语 → 逻辑填空”，提问后收到非空语境分析且未公布正确选项；图推→数量后仅“数量关系”高亮，图推子导航为 `display:none`。
+  - 回归：Python AI/Skill 21/21；Node/几何全量 669/669；`py_compile` 与 `git diff --check` 通过。
+
+- [x] ● GT-P4 feat: 接入图推并真实整改申论
+  - 依赖：Phase 3 PR #17、空间图推交接、`backend/data/feiyang-skill`
+  - 结果：平面图推媒体/编辑/复习安全化；立体图推四段中心与真实记录；申论确认10道摘要题边界并修复错题、鉴权、答案泄露、XSS、Skill运行记录和统一复盘
+  - 验收：Python 17/17、Phase4 Node 36/36、全量 Node/几何 611/611；浏览器桌面与390px主路径通过
+
+- [x] ● GT-P3 feat: 接入言语与数量真实题库
+  - 依赖：统一外壳 PR #15、统一学习合同 PR #16、数量最终交接
+  - 结果：迁入 801 成语、231 逻辑填空、600 片段阅读、600 数量关系；保留原卡片与词语联动；言语和数量均为真实 JWT 作答、服务端判题与统一记录；混合模式未以假数据开放
+  - 验收：数量 pipeline 14/14；Python 22/22、Node 15/15；浏览器实测数量 set08 q7 A-H/E 保存与刷新恢复、片段阅读词语卡、801 原词库、231 逻辑填空、390px 无横向溢出；42题解析视觉引用继续标记为待独立审计
 
 - [ ] ○ REL-001 feat: 将空间几何入口接入学习应用
 - [ ] ○ REL-002 feat: 将空间几何介绍接入项目首页
@@ -117,3 +1068,15 @@
 - [ ] ○ REL-007 ci: 将空间几何测试接入完整 CI
 - [ ] ○ REL-008 docs: 更新 README 使用和部署说明
 - [ ] ○ REL-009 release: 完成发布前验收清单
+## 2026-07-22 macOS 演示启动
+
+- [x] ● DEMO-MAC-1 提供可双击、自检、隔离数据并可安全停止的 Mac 演示启动器。
+  - 交付文件：`公途启动.command`、`tests/test_cross_platform.py`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：不得使用旧电脑绝对路径，不得覆盖真实数据库；缺少项目环境时自动准备 Python 3.11 和申论页本地 Vue；等待健康接口后打开浏览器；关闭终端或按 `Control+C` 停止后端。
+  - 结果：真实启动成功，重复双击只复用既有服务；`/`、`/app`、`/shenlun`、`/admin` 和 `/api/health` 均可访问；桌面与 390px 下无横向溢出和破图，登录后的申论页无脚本错误；专项 17/17、脚本语法和 diff 检查通过。本轮未提交、未推送。
+- [x] ● DEMO-MAC-2 让 AI 密钥跨工作树持久复用，并在打开网页前主动显示真实可用状态。
+  - 交付文件：`公途启动.command`、`tests/test_cross_platform.py`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：本机私密文件权限正确；启动器不得打印密钥；启动前检查 DeepSeek 真实连通性；申论与主 AI 教练各完成一次真实回复。
+  - 结果：`~/.config/gongtu` 为0700、`ai.env`为0600；新启动端口在打开网页前显示 DeepSeek 已连接；申论 AI 返回200/72字，主 AI 教练返回201/41字，均收到真实回答且日志未输出密钥。

@@ -1,0 +1,321 @@
+{
+  "version": 1,
+  "set_id": "verbal_hs13_set05",
+  "source_name": "2025年花生片段阅读600题",
+  "range": "q11-q20",
+  "status": "visual_verified_minimal_practice",
+  "transcription_scope": {
+    "question_stem_and_options": "full_visual_transcription_from_question_book",
+    "answer_and_type": "visual_verified_from_analysis_book",
+    "official_analysis": "core_summary_from_visual_review",
+    "peanut_notes": "core_method_points_from_visual_review",
+    "ai_brief_example": "supplemental_ai_tutor_hint"
+  },
+  "source_pages": {
+    "question_book": {
+      "pdf": "/Users/miduoduo/Downloads/2025年花生片段阅读600题-题本【上】.pdf",
+      "rendered_images": [
+        "tmp/pdfs/verbal-reading-set05/questions_up-30.png",
+        "tmp/pdfs/verbal-reading-set05/questions_up-31.png",
+        "tmp/pdfs/verbal-reading-set05/questions_up-32.png",
+        "tmp/pdfs/verbal-reading-set05/questions_up-33.png"
+      ],
+      "printed_pages": [28, 29, 30, 31]
+    },
+    "analysis_book": {
+      "pdf": "/Users/miduoduo/Downloads/2025年花生片段阅读600题-解析【上】.pdf",
+      "rendered_images": [
+        "tmp/pdfs/verbal-reading-set05/analysis_up-066.png",
+        "tmp/pdfs/verbal-reading-set05/analysis_up-067.png",
+        "tmp/pdfs/verbal-reading-set05/analysis_up-068.png",
+        "tmp/pdfs/verbal-reading-set05/analysis_up-069.png",
+        "tmp/pdfs/verbal-reading-set05/analysis_up-070.png",
+        "tmp/pdfs/verbal-reading-set05/analysis_up-071.png",
+        "tmp/pdfs/verbal-reading-set05/analysis_up-072.png"
+      ],
+      "printed_pages": [64, 65, 66, 67, 68, 69, 70]
+    }
+  },
+  "questions": [
+    {
+      "id": "verbal_hs13_set05_q11",
+      "question_no": 11,
+      "source": { "question_images": ["questions_up-30.png"], "analysis_images": ["analysis_up-066.png"] },
+      "content": {
+        "stem": "土地流转有助于调动农民务农投入的积极性，提高农业综合生产能力，促进农业增效和农民增收。近年来，我国农村土地承包经营权流转明显加快。但我们似乎忽略了一个问题，那就是劳动生产率和土地产出率并非完全正相关。规模经营主体的劳动生产率是相对较高，但他们在耕种大面积土地时，很难像小户一样实现精耕细作，很可能出现土地产出率降低和经营亏损。因此，土地流转规模就不该是越大越好，而是要有个度。如果任由土地大面积流转，经营规模是变得可观了，单产却没像预期那样增加，这种流转还有什么意义呢？",
+        "prompt": "这段文字意在说明：",
+        "options": [
+          { "key": "A", "text": "土地的流转规模应保证粮食单产不断增长" },
+          { "key": "B", "text": "对土地流转的规模效应目前存在认识误区" },
+          { "key": "C", "text": "土地流转应引导形成合理的土地经营规模" },
+          { "key": "D", "text": "土地流转面积速度过快规模过大弊大于利" }
+        ]
+      },
+      "answer": "C",
+      "analysis_source": { "source_type_label": "中心理解题 + 说理类文章", "answer_source": "analysis_page_visual_verified" },
+      "learning_tags": {
+        "question_type": "中心理解题",
+        "passage_type": "说理类文章",
+        "method_tags": ["后对策结构", "问题对策", "对策优选", "反问提示"],
+        "option_trap_tags": { "A": ["对策失当", "要求不切实际"], "B": ["只述问题"], "C": ["正确对策", "合理适度"], "D": ["无中生有", "强行比较"] },
+        "weak_steps": ["识别文末对策", "优先选择对策项", "避免把适度流转夸大成单产必须增长"],
+        "estimated_seconds": 55
+      },
+      "official_analysis": "文段先引出土地承包经营权流转，继而指出劳动生产率和土地产出率并非完全正相关的问题，随后明确给出对策：土地流转规模不是越大越好，而是要有个度，即应形成合理适度的经营规模，对应 C。A 所说保证粮食单产不断增长不切实际；B 仅概括问题，弱于对策；D 的弊大于利属于无中生有。",
+      "peanut_notes": ["土地承包经营权流转是全文论述话题。", "行文结构是后对策结构：先谈积极作用，再提出问题，最后给出规模应有度的对策。", "原文强调规模合理，不等于保证粮食单产不断增长。", "明显反问可借助设问语句分析作者意图。"],
+      "ai_brief_example": "作者不是反对土地流转，而是反对盲目追求越大越好。抓住文末‘要有个度’，就能锁定 C。"
+    },
+    {
+      "id": "verbal_hs13_set05_q12",
+      "question_no": 12,
+      "source": { "question_images": ["questions_up-31.png"], "analysis_images": ["analysis_up-066.png", "analysis_up-067.png"] },
+      "content": {
+        "stem": "中国自古以来有“叶落归根”的思想观念，而中华民族文化就是海外侨胞的“根”之所在。弘扬中华优秀传统文化不仅可以增强海外侨胞的文化认同感，也可以促进中华优秀文化的海外传播。同时，侨务资源是我国顺利开展国际合作、宣传中华文化的重要媒介。在推动文化“走出去”的同时，我们也在积极倡导文化“请进来”。浙江、广东等沿海省份邀请海外华侨回到祖源地开展“寻根”之旅。这种良好的互动交流方式，不仅促进了海外侨胞更好地了解中华文化，同时也以文化为纽带，加强了海外华侨与中国的联系，为未来中华文化走向海外打下了坚实的基础。",
+        "prompt": "这段文字主要说明了：",
+        "options": [
+          { "key": "A", "text": "中华优秀民族文化的重要纽带作用" },
+          { "key": "B", "text": "“叶落归根”对文化交流的促进作用" },
+          { "key": "C", "text": "文化“走出去”和“请进来”的重要举措" },
+          { "key": "D", "text": "侨务资源在推动文化“走出去”方面的意义" }
+        ]
+      },
+      "answer": "A",
+      "analysis_source": { "source_type_label": "中心理解题 + 说理类文章", "answer_source": "analysis_page_visual_verified" },
+      "learning_tags": {
+        "question_type": "中心理解题",
+        "passage_type": "说理类文章",
+        "method_tags": ["并列结构", "双向概括", "文化纽带", "排除片面"],
+        "option_trap_tags": { "A": ["正确概括", "统摄双向作用"], "B": ["背景误作重点"], "C": ["具体类选项", "未概括作用"], "D": ["片面概括"] },
+        "weak_steps": ["同时概括走出去与请进来", "识别中华文化这一共同主体", "区分背景与重点"],
+        "estimated_seconds": 55
+      },
+      "official_analysis": "文段先引出中华民族文化，介绍文化走出去时它对增强海外侨胞认同、促进海外传播和发挥侨务媒介作用的意义；再介绍文化请进来时它对了解中华文化、加强华侨与中国联系及未来传播的意义。两方面共同说明中华优秀民族文化的重要纽带作用，对应 A。B 的叶落归根只是背景；C 是具体举措而非作用概括；D 只涉及走出去，片面。",
+      "peanut_notes": ["行文结构为并列结构，文化走出去和请进来两方面都要概括。", "走出去时，中华文化能增强认同、促进传播，侨务资源还能充当合作和宣传媒介。", "请进来时，中华文化能帮助了解文化、加强联系并为未来传播打基础。", "‘叶落归根’来自首句背景引入，不是中心。"],
+      "ai_brief_example": "把两部分压成一句：无论走出去还是请进来，中华文化都在连接海外华侨与中国，因此选 A。"
+    },
+    {
+      "id": "verbal_hs13_set05_q13",
+      "question_no": 13,
+      "source": { "question_images": ["questions_up-31.png"], "analysis_images": ["analysis_up-067.png", "analysis_up-068.png"] },
+      "content": {
+        "stem": "①以上三个属，在新版《国家重点保护野生植物名录》中共列入5个物种，相比我国的苔藓多样性来说还远远不足，却是一个好的开始\n②总的来说，苔藓植物“不太皮实”，对环境改变比较敏感\n③苔藓植物若论多样性，比蕨类和裸子植物都要高，但是因为长得实在太不起眼，极少受到保护工作者的关注\n④值得一提的是，在新名录征求意见稿里没有苔藓，这5个种是根据各界提交的意见加进名录的，体现了主管部门对专业意见的尊重\n⑤比如藻苔，国内只在少数海拔4000米以上的高山上有分布，一旦生境改变，则有灭绝之虞\n⑥同时，国内园艺界对苔藓的需求正在高涨，无论是用于植材的泥炭藓属，还是用于观赏的白发藓属，野生种群都受到比较严重的威胁",
+        "prompt": "将以上6个句子重新排列，语序正确的是：",
+        "options": [
+          { "key": "A", "text": "②③⑥④⑤①" },
+          { "key": "B", "text": "②⑥⑤①③④" },
+          { "key": "C", "text": "③②⑤⑥①④" },
+          { "key": "D", "text": "③⑤⑥④②①" }
+        ]
+      },
+      "answer": "C",
+      "analysis_source": { "source_type_label": "语句排序类 + 科普介绍文章", "answer_source": "analysis_page_visual_verified" },
+      "learning_tags": {
+        "question_type": "语句排序题",
+        "passage_type": "科普介绍文章",
+        "method_tags": ["指代词", "并列标志", "转折开篇", "尾句总结"],
+        "option_trap_tags": { "A": ["指代错位"], "B": ["话题衔接断裂"], "C": ["正确排序"], "D": ["总结句位置错误"] },
+        "weak_steps": ["用指代关系绑定①④", "利用同时确定⑤⑥", "识别③转折引出话题"],
+        "estimated_seconds": 70
+      },
+      "official_analysis": "首句不易直接判断，可先利用指代关系：④中的“这5个种”指代①中“共列入5个物种”，因此①在④前，排除 A、D。①所说“以上三个属”可能对应⑤的藻苔以及⑥的泥炭藓属、白发藓属；⑥以“同时”连接，与⑤构成并列，因此⑤在⑥前。综合可确定顺序为③②⑤⑥①④，选 C。",
+      "peanut_notes": ["文段逻辑：③转折引出苔藓缺少保护的问题；②概括其对环境敏感；⑤⑥分别介绍生境变化和园艺需求两类威胁；①④介绍进入新名录的进步。", "④的‘这5个种’明确指代①的‘共列入5个物种’，①④相连且①在前。", "⑥的‘同时’表并列，⑤⑥应相邻。"],
+      "ai_brief_example": "排序题先抓硬钩子：‘这5个种’锁定①④，‘同时’锁定⑤⑥，再用③的转折作话题起点，答案就是 C。"
+    },
+    {
+      "id": "verbal_hs13_set05_q14",
+      "question_no": 14,
+      "source": { "question_images": ["questions_up-31.png"], "analysis_images": ["analysis_up-068.png"] },
+      "content": {
+        "stem": "①外生菌根真菌还可以减缓森林土壤中的碳返回到大气中的自然过程，增强森林固碳的能力\n②树木与许多不同的菌根真菌形成共生关系，通过这些与树木同步生长的微生物，牢牢将碳固定在土壤中\n③科学家们已经了解到，一种叫做外生菌根真菌的特殊菌根真菌正在帮助树木更快地吸收二氧化碳\n④只要将这些碳元素留在森林、不进入大气，就能减少对全球变暖的影响\n⑤但树木并不能独立完成这一固碳过程，每一片森林中都有一个微生物群\n⑥目前全球森林大概吸收了三分之一的人类排放的二氧化碳",
+        "prompt": "将以上6个句子重新排列，语序正确的是：",
+        "options": [
+          { "key": "A", "text": "③①②⑤④⑥" },
+          { "key": "B", "text": "③①④⑤⑥②" },
+          { "key": "C", "text": "⑥②③①⑤④" },
+          { "key": "D", "text": "⑥④⑤②③①" }
+        ]
+      },
+      "answer": "D",
+      "analysis_source": { "source_type_label": "语句排序类 + 科普介绍文章", "answer_source": "analysis_page_visual_verified" },
+      "learning_tags": {
+        "question_type": "语句排序题",
+        "passage_type": "科普介绍文章",
+        "method_tags": ["转折句", "指代关系", "总分结构", "宏观到微观"],
+        "option_trap_tags": { "A": ["转折承接错误"], "B": ["话题次序错误"], "C": ["指代衔接不顺"], "D": ["正确排序"] },
+        "weak_steps": ["识别⑤承上启下", "区分树木固碳与微生物固碳", "用指代和话题层级排序"],
+        "estimated_seconds": 70
+      },
+      "official_analysis": "可从含转折和指代的⑤入手：前半句“但树木并不能独立完成这一固碳过程”承接前文树木固碳，后半句引出微生物群，故前文应先介绍树木固碳，后文再介绍微生物作用。⑥介绍森林吸收二氧化碳，④说明固碳意义；⑤转入微生物群；②③①依次介绍树木与菌根真菌共生、外生菌根真菌帮助吸收二氧化碳及减缓碳返回大气。正确顺序为⑥④⑤②③①，选 D。",
+      "peanut_notes": ["看到⑤的‘但树木并不能独立完成’，应想到前文先讲树木固碳，后文转向微生物群。", "行文结构是并列中的总分：⑥④介绍森林固碳及意义，⑤承上启下，②③①介绍微生物作用。", "符合从宏观森林、树木到微观菌根真菌的观察顺序。"],
+      "ai_brief_example": "⑤是关键转轴：前面必须有树木固碳，后面必须讲微生物。只有 D 同时满足这两边的衔接。"
+    },
+    {
+      "id": "verbal_hs13_set05_q15",
+      "question_no": 15,
+      "source": { "question_images": ["questions_up-32.png"], "analysis_images": ["analysis_up-068.png", "analysis_up-069.png"] },
+      "content": {
+        "stem": "围棋和中国古老的哲学应该同出一源，尤其和中国太极文化相辅相成。太极是通过黑白的交融和互补，展现了世界的矛盾统一，而围棋的黑子和白子构成的奇特图景也是流动的太极图，而中国古代哲学的朴素辩证法，阴阳、盛衰、盈亏、优劣、虚实、有无，都辩证地融合在一起。",
+        "prompt": "这段文字主要讲的是：",
+        "options": [
+          { "key": "A", "text": "中国古代哲学的朴素辩证法" },
+          { "key": "B", "text": "围棋和中国太极文化的渊源" },
+          { "key": "C", "text": "以世界矛盾统一辩证法的发现" },
+          { "key": "D", "text": "围棋的起源与发展" }
+        ]
+      },
+      "answer": "B",
+      "analysis_source": { "source_type_label": "中心理解题 + 科普介绍文章", "answer_source": "analysis_page_visual_verified" },
+      "learning_tags": {
+        "question_type": "中心理解题",
+        "passage_type": "科普介绍文章",
+        "method_tags": ["总分结构", "双主体", "区别比较关系", "首句主旨"],
+        "option_trap_tags": { "A": ["片面概括"], "B": ["正确概括", "主体完整"], "C": ["无中生有"], "D": ["历程偷换"] },
+        "weak_steps": ["保留围棋与太极文化两个主体", "识别关系类文段", "排除起源发展类选项"],
+        "estimated_seconds": 45
+      },
+      "official_analysis": "文段首句引出围棋与中国古老哲学，尤其是太极文化这一对论述主体，后文具体说明围棋和太极文化之间的交融互补关系，属于典型的区别比较关系类文段，对应 B。A 只涉及古代哲学，片面；C 未提围棋且表述无中生有；D 属历程类选项，原文并未介绍围棋的发展过程。",
+      "peanut_notes": ["行文结构为总分结构，开门见山引出围棋和中国古老哲学、太极文化的关系。", "下文通过黑白、矛盾统一和朴素辩证法具体展开二者联系。", "关系类文段的正确选项要保留双方主体。"],
+      "ai_brief_example": "题目问的是‘围棋与太极文化有什么关系’，不是单独介绍哲学或围棋发展。保留双主体即可选 B。"
+    },
+    {
+      "id": "verbal_hs13_set05_q16",
+      "question_no": 16,
+      "source": { "question_images": ["questions_up-32.png"], "analysis_images": ["analysis_up-069.png"] },
+      "content": {
+        "stem": "真正的通俗应该是从最简单的、众所周知的材料出发，用简单的推论和恰当的例子来说明从这些材料中得出的主要结论，启发肯动脑筋的读者不断去思考更深一层的问题。把读者当成不动脑筋或不会动脑筋的人，试图通过一种畸形简化的充满玩笑和俏皮话的形式，把某一种学说的全部结论现成地奉献给读者，读者连咀嚼都用不着，只要囫囵吞下去就行了的做法，是十足的庸俗之举。",
+        "prompt": "最适于作上述语段标题的是：",
+        "options": [
+          { "key": "A", "text": "通俗有赖于读者思考" },
+          { "key": "B", "text": "囫囵吞枣不是通俗化" },
+          { "key": "C", "text": "大众化离不开通俗化" },
+          { "key": "D", "text": "通俗化不等于庸俗化" }
+        ]
+      },
+      "answer": "D",
+      "analysis_source": { "source_type_label": "标题拟定类 + 说理类文章", "answer_source": "analysis_page_visual_verified" },
+      "learning_tags": {
+        "question_type": "标题拟定题",
+        "passage_type": "说理类文章",
+        "method_tags": ["二层对比", "标题拟定", "双概念", "主题完整"],
+        "option_trap_tags": { "A": ["片面概括"], "B": ["只概括后半段"], "C": ["无中生有"], "D": ["正确概括", "对比完整"] },
+        "weak_steps": ["同时概括真正通俗与庸俗做法", "从对比关系提炼标题", "避免只抓比喻句"],
+        "estimated_seconds": 50
+      },
+      "official_analysis": "文段清晰分为前后两部分：前半介绍真正的通俗应启发读者思考，后半介绍把结论畸形简化、让读者囫囵吞下的做法属于庸俗。全文通过对比说明通俗化不等于庸俗化，对应 D，最适合作标题。其他选项均未同时涵盖这两个方面。",
+      "peanut_notes": ["行文结构是二层结构之对比：前半介绍真正的通俗，后半介绍十足的庸俗。", "下面的做法根本不是通俗，而是庸俗。", "标题需同时覆盖对比双方，不能只抓‘囫囵吞枣’这一局部。"],
+      "ai_brief_example": "前半定义‘通俗’，后半批判‘庸俗’，标题必须把两者的界线说清楚，所以选 D。"
+    },
+    {
+      "id": "verbal_hs13_set05_q17",
+      "question_no": 17,
+      "source": { "question_images": ["questions_up-32.png"], "analysis_images": ["analysis_up-070.png"] },
+      "content": {
+        "stem": "我国科普工作虽然取得了很大进步，可是科普读物，无论数量还是质量，与发达国家还有着数量级的差距。在一些社会关注的重大问题上，科学家更应该主动站出来讲话。要把科学语言转化为老百姓听得懂的语言，实事求是讲真话。如果连科学家都不愿意、不敢讲话，任由真相缺失、谣言扩散，那么势必会引起公众的恐慌和困惑。",
+        "prompt": "上述文字意在强调：",
+        "options": [
+          { "key": "A", "text": "科普工作应该通俗化，接地气" },
+          { "key": "B", "text": "我国科普读物数量少，质量差" },
+          { "key": "C", "text": "科学家负有做科普工作的义务" },
+          { "key": "D", "text": "科学家应坚持求真务实的原则" }
+        ]
+      },
+      "answer": "C",
+      "analysis_source": { "source_type_label": "中心理解题 + 说理类文章", "answer_source": "analysis_page_visual_verified" },
+      "learning_tags": {
+        "question_type": "中心理解题",
+        "passage_type": "说理类文章",
+        "method_tags": ["前对策结构", "问题对策", "主体匹配", "反面论证"],
+        "option_trap_tags": { "A": ["片面概括", "缺主体"], "B": ["只述问题"], "C": ["正确对策", "主体完整"], "D": ["话题范围偏离", "缺科普"] },
+        "weak_steps": ["识别科学家这一对策主体", "概括多项科普要求", "避免只抓通俗或求真一项"],
+        "estimated_seconds": 50
+      },
+      "official_analysis": "文段开篇指出我国科普工作和科普读物仍存在不足，之后直接提出对策：科学家要主动做好科普，把科学语言转化为百姓听得懂的语言，并实事求是讲真话，最后用不这样做会引起恐慌和困惑进行反面论证。C 是对该对策的完整概括。B 只是问题；A 只对应通俗表达且缺少科学家这一主体；D 未体现科普主题。",
+      "peanut_notes": ["‘科普工作’是文段核心话题，‘科学家’是对策主体。", "行文结构是前对策结构：先提出科普读物落后的问题，再要求科学家主动科普，最后反面论证。", "对策选项既要有主体，也要覆盖主题，不能只保留一个方法点。"],
+      "ai_brief_example": "A、D 各抓一个要求，B 只说问题；C 把‘谁来做什么’概括完整：科学家应承担科普义务。"
+    },
+    {
+      "id": "verbal_hs13_set05_q18",
+      "question_no": 18,
+      "source": { "question_images": ["questions_up-32.png"], "analysis_images": ["analysis_up-070.png", "analysis_up-071.png"] },
+      "content": {
+        "stem": "职业病的机理和发生规律的基础研究是许多工作推进的基础。当前对职业病的认定仍然停留在2013年制定的《职业病分类和目录》，10大类132种，以呼吸系统、皮肤、眼睛、耳鼻喉口腔等为主。但随着我国经济转型升级，新技术、新材料的广泛应用，新业态的产生，新的职业危害因素不断出现。与工作相关的肌肉骨骼系统疾病和心理健康等职业健康问题已引起广大劳动者和社会各界的广泛关注。__________，如何认定、如何核查、如何治疗都是我们不得不面对的问题。",
+        "prompt": "填入文中画横线部分最恰当的一项是：",
+        "options": [
+          { "key": "A", "text": "新的职业危害引发的安全与健康问题" },
+          { "key": "B", "text": "新的经济形势下职业病的分类和目录" },
+          { "key": "C", "text": "经济转型期职业病的机理和发生规律" },
+          { "key": "D", "text": "职业病的出现与新业态新技术的关系" }
+        ]
+      },
+      "answer": "A",
+      "analysis_source": { "source_type_label": "语句填入类 + 说理类文章", "answer_source": "analysis_page_visual_verified" },
+      "learning_tags": {
+        "question_type": "语句填入题",
+        "passage_type": "说理类文章",
+        "method_tags": ["后观点结构", "宾语搭配", "上下文衔接", "动宾关系"],
+        "option_trap_tags": { "A": ["正确衔接", "动宾搭配合理"], "B": ["与治疗搭配不当"], "C": ["与治疗搭配不当"], "D": ["与认定治疗搭配不当"] },
+        "weak_steps": ["把选项代入后文三个动词", "同时承接新危害与职业健康问题", "利用‘如何治疗’排除抽象关系项"],
+        "estimated_seconds": 55
+      },
+      "official_analysis": "文段引出职业病话题，介绍现行认定标准以及新技术、新材料、新业态带来的新职业危害因素和职业健康问题，文末总结这些问题的认定、核查和治疗均须面对。横线处需与“认定、核查、治疗”形成合适的动宾关系。A 所说新的职业危害引发的安全与健康问题既承接前文，也能被认定、核查和治疗，最恰当；其余三项均无法自然与‘治疗’搭配。",
+      "peanut_notes": ["行文结构是后观点结构：前文分析新的职业危害和健康问题，文末给出总观点。", "语句填入可利用后文并列动词做搭配检验，尤其是‘治疗’这一限制最强的词。", "分类和目录、机理和规律、事物关系都不能被‘治疗’。"],
+      "ai_brief_example": "把四个选项依次放到‘如何认定、核查、治疗’前面，只有‘安全与健康问题’三个动词都能搭配，所以选 A。"
+    },
+    {
+      "id": "verbal_hs13_set05_q19",
+      "question_no": 19,
+      "source": { "question_images": ["questions_up-33.png"], "analysis_images": ["analysis_up-071.png"] },
+      "content": {
+        "stem": "作为发展中国家，为引进外商直接投资提供一定的优惠政策是必要的，但我国目前在这方面给予各级地方政府自主权过大，直接导致恶性竞争。从保障国民经济长期稳定的需要出发，中央政府应当对招商引资的优惠政策实行高度的集中统一，使各地政府把注意力转移到创造公平竞争的市场环境上去，从全局上形成协调引进外商直接投资与国内经济发展关系的氛围。",
+        "prompt": "这段话的主旨是：",
+        "options": [
+          { "key": "A", "text": "引资优惠政策要集中授权" },
+          { "key": "B", "text": "地方政府的竞争要公平" },
+          { "key": "C", "text": "发展中国家引进外资意义重大" },
+          { "key": "D", "text": "提供引资优惠政策的必要性" }
+        ]
+      },
+      "answer": "A",
+      "analysis_source": { "source_type_label": "中心理解题 + 说理类文章", "answer_source": "analysis_page_visual_verified" },
+      "learning_tags": {
+        "question_type": "中心理解题",
+        "passage_type": "说理类文章",
+        "method_tags": ["前对策结构", "转折后重点", "对策概括", "政策集中统一"],
+        "option_trap_tags": { "A": ["正确对策"], "B": ["缺主题词", "表述有误"], "C": ["非对策选项"], "D": ["非对策选项", "背景信息"] },
+        "weak_steps": ["抓住中央政府集中统一这一核心对策", "区分问题后的对策与背景", "理解集中授权的含义"],
+        "estimated_seconds": 50
+      },
+      "official_analysis": "文段先肯定优惠政策的必要性，转折指出地方政府自主权过大导致恶性竞争，随后直接提出核心对策：中央政府应对招商引资优惠政策实行高度的集中统一，并分析这一做法的意义，对应 A。B 未体现引资优惠政策这一主题且表述偏离；C、D 都不是针对问题提出的对策。",
+      "peanut_notes": ["优惠政策是全文论述话题。", "行文结构是前对策结构：转折提出地方自主权过大的问题，随后要求中央政府集中统一优惠政策。", "‘各地政府把注意力转移到创造公平竞争环境’是在说明集中授权的意义，不是另一项中心对策。"],
+      "ai_brief_example": "主旨要落在问题后的解决办法：地方自主权过大，就由中央统一优惠政策，即 A。"
+    },
+    {
+      "id": "verbal_hs13_set05_q20",
+      "question_no": 20,
+      "source": { "question_images": ["questions_up-33.png"], "analysis_images": ["analysis_up-072.png"] },
+      "content": {
+        "stem": "在群体决策中，由于群体成员心理相互作用影响，易屈于权威或大多数人意见，形成所谓的“群体思维”，群体思维削弱了群体的批判精神和创造力，损害了决策的质量。为了保证群体决策的创造性、提高决策质量，管理上发展了一系列改善群体决策的方法，头脑风暴法是较为典型的一个。",
+        "prompt": "文段接下来最可能讲述的是：",
+        "options": [
+          { "key": "A", "text": "头脑风暴法的特点" },
+          { "key": "B", "text": "头脑风暴法的定义" },
+          { "key": "C", "text": "头脑风暴法的原则" },
+          { "key": "D", "text": "头脑风暴法的使用" }
+        ]
+      },
+      "answer": "B",
+      "analysis_source": { "source_type_label": "下文推断类 + 提出新内容→解释新内容", "answer_source": "analysis_page_visual_verified" },
+      "learning_tags": {
+        "question_type": "下文推断题",
+        "passage_type": "说理类文章",
+        "method_tags": ["新话题", "下文推断", "先定义后展开", "文末衔接"],
+        "option_trap_tags": { "A": ["定义之后的内容"], "B": ["正确承接", "先解释新概念"], "C": ["定义之后的内容"], "D": ["定义之后的内容"] },
+        "weak_steps": ["定位文末新话题", "判断陌生概念先解释是什么", "区分定义与后续展开内容"],
+        "estimated_seconds": 45
+      },
+      "official_analysis": "文段先提出群体思维损害决策质量的问题，继而说明管理上发展出改善群体决策的方法，文末首次提出‘头脑风暴法’这一新话题。下文应围绕新话题展开，而解释一个新概念通常先回答‘是什么’，因此最可能先介绍头脑风暴法的定义，选 B。特点、原则和使用一般在定义之后继续说明。",
+      "peanut_notes": ["‘头脑风暴法’是文末首次出现的新话题。", "下文推断常见结构：上文未提新内容，下文先解释新内容。", "解释新概念的第一步通常是下定义；特点、原则、使用可在此后展开。"],
+      "ai_brief_example": "文末刚抛出一个陌生方法，作者通常先解释‘它是什么’，再谈特点、原则或用法，所以选 B。"
+    }
+  ]
+}

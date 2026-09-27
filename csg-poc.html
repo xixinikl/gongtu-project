@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSG PoC — 立方体挖圆锥 切面验证</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #1a1a2e;
+    --surface: #16213e;
+    --border: #2a2a4a;
+    --text: #e0e0e0;
+    --text-muted: #888;
+    --accent: #4fc3f7;
+    --accent2: #ff8a65;
+    --danger: #ef5350;
+    --success: #66bb6a;
+    --radius: 10px;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+  #canvas-wrap {
+    flex: 1;
+    position: relative;
+    background: radial-gradient(ellipse at center, #1a1a3e 0%, #0a0a1e 100%);
+  }
+  #canvas-wrap canvas { display: block; }
+  #status {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 20px;
+    font-size: 14px;
+    color: var(--accent);
+  }
+  #panel {
+    width: 340px;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    gap: 16px;
+    overflow-y: auto;
+  }
+  h2 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .subtitle {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .template-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .tpl-btn {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 12px;
+    color: var(--text);
+    cursor: pointer;
+    transition: border-color 0.2s;
+    text-align: center;
+  }
+  .tpl-btn:hover { border-color: var(--accent); }
+  .tpl-btn.active {
+    border-color: var(--accent);
+    background: rgba(79, 195, 247, 0.1);
+  }
+  .tpl-btn .cat {
+    display: block;
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+  .param-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+  }
+  .param-row label {
+    min-width: 60px;
+    text-align: right;
+    color: var(--text-muted);
+  }
+  .param-row input[type=range] {
+    flex: 1;
+    accent-color: var(--accent);
+  }
+  .param-row .val {
+    min-width: 36px;
+    text-align: right;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+  .section-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+  }
+  .section-row select {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+  .section-row input[type=range] {
+    flex: 1;
+    accent-color: var(--accent2);
+  }
+  .info-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 12px;
+  }
+  .info-box .metric {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+  }
+  .info-box .metric .v {
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+  .build-btn {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: var(--radius);
+    background: var(--accent);
+    color: #000;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .build-btn:hover { opacity: 0.85; }
+</style>
+</head>
+<body>
+
+<div id="canvas-wrap">
+  <div id="status">加载 Manifold WASM...</div>
+</div>
+
+<div id="panel">
+  <div>
+    <h2>CSG 立体切面 PoC</h2>
+    <p class="subtitle">Manifold 布尔运算 + Three.js 渲染 + 切面</p>
+  </div>
+
+  <div class="template-grid" id="template-grid"></div>
+
+  <div id="params-container">
+    <p class="subtitle" style="margin-bottom:8px;">参数</p>
+  </div>
+
+  <button class="build-btn" id="btn-build">重新生成模型</button>
+
+  <div style="margin-top:8px;">
+    <p class="subtitle" style="margin-bottom:6px;">切面控制</p>
+    <div class="section-row" style="margin-bottom:8px;">
+      <select id="cut-axis">
+        <option value="x">X 轴</option>
+        <option value="y">Y 轴</option>
+        <option value="z" selected>Z 轴</option>
+      </select>
+      <input type="range" id="cut-offset" min="-200" max="200" value="0" step="1">
+    </div>
+    <div class="info-box" id="section-info">
+      <div class="metric"><span>截面顶点</span><span class="v">—</span></div>
+      <div class="metric"><span>截面面积</span><span class="v">—</span></div>
+      <div class="metric"><span>三角面数</span><span class="v">—</span></div>
+    </div>
+  </div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "/node_modules/three/build/three.module.js",
+    "three/addons/": "/node_modules/three/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+  import * as THREE from 'three';
+  import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+  import {
+    initManifold, isReady, cube, cone, sphere, cylinder,
+    subtract, add, intersect, getMeshData, buildTemplate, getTemplateIds,
+    CSG_TEMPLATES,
+  } from '/geometry/csg-engine.js';
+
+  // =========================================================================
+  // Three.js 场景
+  // =========================================================================
+  const wrap = document.getElementById('canvas-wrap');
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
+  wrap.appendChild(renderer.domElement);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(45, 2, 0.1, 50);
+  camera.position.set(5, 3.5, 6);
+  camera.lookAt(0, 0, 0);
+
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.target.set(0, 0, 0);
+
+  // 光照
+  scene.add(new THREE.AmbientLight(0x404060, 2.5));
+  const key = new THREE.DirectionalLight(0xffffff, 3);
+  key.position.set(5, 8, 5);
+  scene.add(key);
+  const fill = new THREE.DirectionalLight(0x8899cc, 1.5);
+  fill.position.set(-3, 2, -2);
+  scene.add(fill);
+
+  // 网格参考平面
+  const grid = new THREE.GridHelper(8, 8, 0x333366, 0x222244);
+  scene.add(grid);
+
+  // =========================================================================
+  // 状态
+  // =========================================================================
+  let currentModel = null;    // THREE.Mesh
+  let currentTemplate = 'cube-minus-cone';
+  let currentParams = {};
+
+  // 切面可视化
+  const cutPlaneGeo = new THREE.PlaneGeometry(8, 8);
+  const cutPlaneMat = new THREE.MeshBasicMaterial({
+    color: 0xff8a65, side: THREE.DoubleSide,
+    transparent: true, opacity: 0.35, depthWrite: false,
+  });
+  const cutPlane = new THREE.Mesh(cutPlaneGeo, cutPlaneMat);
+  scene.add(cutPlane);
+
+  // 外轮廓线
+  let outlineGroup = new THREE.Group();
+  scene.add(outlineGroup);
+
+  // =========================================================================
+  // UI
+  // =========================================================================
+  const statusEl = document.getElementById('status');
+  const tplGrid   = document.getElementById('template-grid');
+  const paramsCtr = document.getElementById('params-container');
+  const cutAxis   = document.getElementById('cut-axis');
+  const cutOffset = document.getElementById('cut-offset');
+  const btnBuild  = document.getElementById('btn-build');
+  const secInfo   = document.getElementById('section-info');
+
+  // 渲染模板按钮
+  function renderTemplateButtons() {
+    tplGrid.innerHTML = '';
+    for (const id of getTemplateIds()) {
+      const tpl = CSG_TEMPLATES[id];
+      const btn = document.createElement('button');
+      btn.className = 'tpl-btn' + (id === currentTemplate ? ' active' : '');
+      btn.innerHTML = `${tpl.name}<span class="cat">${tpl.category}</span>`;
+      btn.addEventListener('click', () => {
+        currentTemplate = id;
+        currentParams = {};
+        renderTemplateButtons();
+        renderParams();
+        rebuild();
+      });
+      tplGrid.appendChild(btn);
+    }
+  }
+
+  // 渲染参数滑块
+  function renderParams() {
+    const tpl = CSG_TEMPLATES[currentTemplate];
+    if (!tpl?.params) { paramsCtr.innerHTML = ''; return; }
+
+    let html = '<p class="subtitle" style="margin-bottom:8px;">参数</p>';
+    for (const [key, p] of Object.entries(tpl.params)) {
+      const val = currentParams[key] ?? p.default;
+      html += `
+        <div class="param-row">
+          <label>${p.label}</label>
+          <input type="range" id="p-${key}" min="${p.min}" max="${p.max}" step="${p.step}" value="${val}">
+          <span class="val" id="pv-${key}">${val}</span>
+        </div>`;
+    }
+    paramsCtr.innerHTML = html;
+
+    // bind events
+    for (const [key] of Object.entries(tpl.params)) {
+      const slider = document.getElementById('p-' + key);
+      const valEl   = document.getElementById('pv-' + key);
+      if (!slider) continue;
+      slider.addEventListener('input', () => {
+        currentParams[key] = parseFloat(slider.value);
+        if (valEl) valEl.textContent = slider.value;
+      });
+    }
+  }
+
+  // =========================================================================
+  // 模型构建
+  // =========================================================================
+
+  async function rebuild() {
+    statusEl.textContent = '生成 CSG 模型...';
+
+    const { name, manifold } = buildTemplate(currentTemplate, currentParams);
+    const data = getMeshData(manifold);
+    manifold.delete();
+
+    // 替换场景中的模型
+    if (currentModel) {
+      currentModel.geometry.dispose();
+      currentModel.material.dispose();
+      scene.remove(currentModel);
+    }
+
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(data.positions, 3));
+    geo.setIndex(new THREE.BufferAttribute(data.indices, 1));
+    geo.computeVertexNormals();
+
+    const mat = new THREE.MeshStandardMaterial({
+      color: 0x4fc3f7,
+      roughness: 0.3,
+      metalness: 0.1,
+      side: THREE.DoubleSide,
+    });
+    currentModel = new THREE.Mesh(geo, mat);
+    scene.add(currentModel);
+
+    statusEl.textContent = `${name} — ${geo.index.count / 3} 三角面`;
+    updateSection();
+  }
+
+  // =========================================================================
+  // 切面逻辑
+  // =========================================================================
+
+  function updateSection() {
+    if (!currentModel) return;
+
+    const axis  = cutAxis.value;
+    const offset = parseFloat(cutOffset.value) / 100;  // slider: -200..200 → -2..2
+
+    // 更新切面位置
+    cutPlane.position.set(0, 0, 0);
+    cutPlane.rotation.set(0, 0, 0);
+    if (axis === 'x') {
+      cutPlane.position.x = offset;
+      cutPlane.rotation.y = Math.PI / 2;
+    } else if (axis === 'y') {
+      cutPlane.position.y = offset;
+      cutPlane.rotation.x = -Math.PI / 2;
+    } else {
+      cutPlane.position.z = offset;
+    }
+
+    // 尝试使用截面引擎计算轮廓
+    try {
+      computeSection(currentModel.geometry, axis, offset);
+    } catch (e) {
+      // 截面计算失败，仅显示基本信息
+      const tris = currentModel.geometry.index
+        ? currentModel.geometry.index.count / 3
+        : currentModel.geometry.attributes.position.count / 3;
+      secInfo.innerHTML = `
+        <div class="metric"><span>三角面数</span><span class="v">${tris}</span></div>
+        <div class="metric"><span>截面引擎</span><span class="v" style="color:var(--danger)">计算失败</span></div>`;
+    }
+  }
+
+  /**
+   * 简化版截面计算: 遍历三角面，找出与切平面相交的边
+   */
+  function computeSection(geometry, axis, offset) {
+    const pos = geometry.attributes.position;
+    const idx = geometry.index;
+    if (!pos || !idx) throw new Error('No geometry data');
+
+    const positions = pos.array;
+    const triangles = idx.array;
+
+    const axisIdx = axis === 'x' ? 0 : axis === 'y' ? 1 : 2;
+    const segments = [];
+
+    for (let t = 0; t < triangles.length; t += 3) {
+      const ia = triangles[t] * 3;
+      const ib = triangles[t + 1] * 3;
+      const ic = triangles[t + 2] * 3;
+
+      const da = positions[ia + axisIdx] - offset;
+      const db = positions[ib + axisIdx] - offset;
+      const dc = positions[ic + axisIdx] - offset;
+
+      // 检查三个顶点的符号模式 (全正或全负 = 不相交)
+      if ((da > 0 && db > 0 && dc > 0) || (da < 0 && db < 0 && dc < 0)) continue;
+
+      // 找到交点
+      const points = [];
+      const edges = [[ia, ib, da, db], [ib, ic, db, dc], [ic, ia, dc, da]];
+
+      for (const [eia, eib, eda, edb] of edges) {
+        if ((eda >= 0 && edb >= 0) || (eda <= 0 && edb <= 0)) continue;
+        const tVal = -eda / (edb - eda);
+        const pt = [0, 1, 2].map(k => {
+          const va = positions[eia + k];
+          const vb = positions[eib + k];
+          return va + (vb - va) * tVal;
+        });
+        points.push(pt);
+      }
+
+      if (points.length >= 2) {
+        segments.push([points[0], points[1]]);
+      }
+    }
+
+    // 渲染轮廓线
+    clearOutline();
+
+    if (segments.length === 0) {
+      secInfo.innerHTML = `<div class="metric"><span>截面</span><span class="v" style="color:var(--text-muted);">无交点</span></div>`;
+      return;
+    }
+
+    const lineGeo = new THREE.BufferGeometry();
+    const flatVerts = [];
+    for (const [a, b] of segments) {
+      flatVerts.push(...a, ...b);
+    }
+    lineGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(flatVerts), 3));
+    const lineMat = new THREE.LineBasicMaterial({ color: 0xff8a65, linewidth: 2, depthTest: false });
+    outlineGroup.add(new THREE.LineSegments(lineGeo, lineMat));
+
+    // 信息
+    secInfo.innerHTML = `
+      <div class="metric"><span>交线段数</span><span class="v">${segments.length}</span></div>
+      <div class="metric"><span>三角面数</span><span class="v">${triangles.length / 3}</span></div>`;
+  }
+
+  function clearOutline() {
+    while (outlineGroup.children.length > 0) {
+      const c = outlineGroup.children[0];
+      c.geometry?.dispose();
+      c.material?.dispose();
+      outlineGroup.remove(c);
+    }
+  }
+
+  // =========================================================================
+  // 事件
+  // =========================================================================
+
+  cutAxis.addEventListener('input', updateSection);
+  cutOffset.addEventListener('input', updateSection);
+  btnBuild.addEventListener('click', rebuild);
+
+  window.addEventListener('resize', () => {
+    const w = wrap.clientWidth;
+    const h = wrap.clientHeight;
+    renderer.setSize(w, h);
+    camera.aspect = w / Math.max(h, 1);
+    camera.updateProjectionMatrix();
+  });
+
+  // =========================================================================
+  // 启动
+  // =========================================================================
+
+  async function boot() {
+    // resize
+    const w = wrap.clientWidth;
+    const h = wrap.clientHeight;
+    renderer.setSize(w, h);
+    camera.aspect = w / Math.max(h, 1);
+    camera.updateProjectionMatrix();
+
+    // 初始化 Manifold
+    statusEl.textContent = '加载 Manifold WASM (~1.5MB)...';
+    await initManifold();
+    statusEl.textContent = 'Manifold 就绪，构建第一个模型...';
+
+    // 渲染 UI
+    await renderTemplateButtons();
+    await renderParams();
+
+    // 第一个模型
+    await rebuild();
+    updateSection();
+
+    statusEl.textContent = 'PoC 就绪 — 拖拽切面看截面';
+  }
+
+  // 动画循环
+  function animate() {
+    requestAnimationFrame(animate);
+    controls.update();
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  boot().catch(err => {
+    statusEl.innerHTML = `<span style="color:var(--danger)">错误: ${err.message}</span>`;
+    console.error(err);
+  });
+</script>
+</body>
+</html>

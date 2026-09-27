@@ -20,9 +20,9 @@ EXPORT_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "exports")
 _lock = Lock()
 
 # ── LLM 配置 ──
-API_KEY = os.getenv("LLM_API_KEY", "")
+API_KEY = os.getenv("LLM_API_KEY") or os.getenv("DEEPSEEK_API_KEY", "")
 BASE_URL = os.getenv("LLM_BASE_URL", "https://api.deepseek.com")
-MODEL = os.getenv("LLM_MODEL", "deepseek-chat")
+MODEL = os.getenv("LLM_MODEL", "deepseek-flash")  # "deepseek-chat" 已于 2026-07-24 下线
 TIMEOUT = int(os.getenv("LLM_TIMEOUT", "30"))
 
 
@@ -130,6 +130,8 @@ def analyze_with_ai() -> MistakeAnalysis:
     )
 
     ai_reply = response.choices[0].message.content
+    if not isinstance(ai_reply, str) or not ai_reply.strip():
+        raise RuntimeError("LLM returned an empty response")
 
     # 从AI回复中提取弱维度（简单关键词匹配）
     weak_keywords = []

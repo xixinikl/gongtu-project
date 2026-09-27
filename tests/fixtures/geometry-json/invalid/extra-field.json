@@ -1,0 +1,8 @@
+{
+  "version": "1.0",
+  "id": "ExtraField",
+  "name": "额外字段",
+  "type": "unitCubeArray",
+  "positions": [[0,0,0]],
+  "extraUnexpectedField": "should not be here"
+}

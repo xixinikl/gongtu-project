@@ -1,0 +1,157 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://gongtu.dev/schemas/geometry-json-v1.schema.json",
+  "title": "Geometry JSON v1.0",
+  "description": "空间几何模型序列化协议 — unitCubeArray 类型校验",
+  "type": "object",
+  "required": ["version", "id", "name", "type", "positions"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "协议版本，固定 1.0",
+      "pattern": "^1\\.0$"
+    },
+    "id": {
+      "type": "string",
+      "description": "唯一标识符，kebab-case",
+      "pattern": "^[a-z0-9][a-z0-9-]*[a-z0-9]$",
+      "minLength": 2,
+      "maxLength": 64
+    },
+    "name": {
+      "type": "string",
+      "description": "中文显示名称",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "description": {
+      "type": "string",
+      "description": "简短描述",
+      "maxLength": 256
+    },
+    "type": {
+      "type": "string",
+      "description": "模型类型",
+      "const": "unitCubeArray"
+    },
+    "source": {
+      "type": "string",
+      "description": "数据来源",
+      "enum": ["builtin", "user", "ai"]
+    },
+    "tags": {
+      "type": "array",
+      "description": "标签",
+      "items": { "type": "string", "maxLength": 32 },
+      "maxItems": 16,
+      "uniqueItems": true
+    },
+    "positions": {
+      "type": "array",
+      "description": "方块坐标数组 [x, y, z]",
+      "minItems": 1,
+      "maxItems": 10000,
+      "uniqueItems": true,
+      "items": {
+        "type": "array",
+        "minItems": 3,
+        "maxItems": 3,
+        "items": { "type": "integer" }
+      }
+    },
+    "appearance": {
+      "type": "object",
+      "description": "外观配置",
+      "additionalProperties": false,
+      "properties": {
+        "colorScheme": {
+          "type": "string",
+          "enum": ["uniform", "layered"]
+        },
+        "color": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        },
+        "opacity": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "wireframeColor": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        },
+        "layerPalette": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+          "minItems": 1,
+          "maxItems": 32
+        }
+      }
+    },
+    "grid": {
+      "type": "object",
+      "description": "网格约束",
+      "additionalProperties": false,
+      "required": ["size", "origin"],
+      "properties": {
+        "size": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "origin": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": { "type": "integer" }
+        }
+      }
+    },
+    "cutPlane": {
+      "type": "object",
+      "description": "预设切面配置",
+      "additionalProperties": false,
+      "required": ["axis"],
+      "properties": {
+        "axis": {
+          "type": "string",
+          "enum": ["x", "y", "z"]
+        },
+        "defaultOffset": {
+          "type": "number"
+        },
+        "range": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": { "type": "number" }
+        }
+      }
+    },
+    "question": {
+      "type": "object",
+      "description": "题目元数据",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["front-view", "top-view", "side-view", "cross-section", "block-count"]
+        },
+        "difficulty": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "answer": {
+          "type": "object"
+        },
+        "explanation": {
+          "type": "string",
+          "maxLength": 1024
+        }
+      }
+    }
+  }
+}

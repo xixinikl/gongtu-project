@@ -1,0 +1,322 @@
+{
+  "version": 1,
+  "set_id": "verbal_hs13_set07",
+  "source_name": "2025年花生片段阅读600题",
+  "range": "q11-q20",
+  "status": "visual_verified_minimal_practice",
+  "transcription_scope": {
+    "question_stem_and_options": "full_visual_transcription_from_question_book",
+    "answer_and_type": "visual_verified_from_analysis_book",
+    "official_analysis": "core_summary_from_visual_review",
+    "peanut_notes": "core_method_points_from_visual_review",
+    "ai_brief_example": "supplemental_ai_tutor_hint"
+  },
+  "source_pages": {
+    "question_book": {
+      "pdf": "/Users/miduoduo/Downloads/2025年花生片段阅读600题-题本【上】.pdf",
+      "rendered_images": [
+        "tmp/pdfs/verbal-reading-set07/questions-42.png",
+        "tmp/pdfs/verbal-reading-set07/questions-43.png",
+        "tmp/pdfs/verbal-reading-set07/questions-44.png",
+        "tmp/pdfs/verbal-reading-set07/questions-45.png"
+      ],
+      "printed_pages": [40, 41, 42, 43]
+    },
+    "analysis_book": {
+      "pdf": "/Users/miduoduo/Downloads/2025年花生片段阅读600题-解析【上】.pdf",
+      "rendered_images": [
+        "tmp/pdfs/verbal-reading-set07/analysis-093.png",
+        "tmp/pdfs/verbal-reading-set07/analysis-094.png",
+        "tmp/pdfs/verbal-reading-set07/analysis-095.png",
+        "tmp/pdfs/verbal-reading-set07/analysis-096.png",
+        "tmp/pdfs/verbal-reading-set07/analysis-097.png",
+        "tmp/pdfs/verbal-reading-set07/analysis-098.png",
+        "tmp/pdfs/verbal-reading-set07/analysis-099.png",
+        "tmp/pdfs/verbal-reading-set07/analysis-100.png"
+      ],
+      "printed_pages": [91, 92, 93, 94, 95, 96, 97, 98]
+    }
+  },
+  "questions": [
+    {
+      "id": "verbal_hs13_set07_q11",
+      "question_no": 11,
+      "source": {"question_images": ["questions-42.png"], "analysis_images": ["analysis-093.png", "analysis-094.png"]},
+      "content": {
+        "stem": "与东京奥运会相比，北京2022年冬奥会在这些方面下了大功夫：在场馆筹建方面，不仅最大限度地利用现有场馆和设施，而且制定了更严格的绿色建筑标准，推动场馆节能改造，打造冬奥低碳场馆；在交通方面，规模化应用清洁能源车辆，通过智能化管理提升交通运行效率，构建冬奥低碳交通体系；在可再生能源利用方面，建立跨区域绿色电力交易机制，实现冬奥场馆100%绿电供应；在生态修复方面，尽可能减少人工建筑和人为活动对生态环境的干扰，应用技术创新促进生态修复，为赛事实现碳中和奠定坚实基础。",
+        "prompt": "这段文字意在说明，北京2022年冬奥会：",
+        "options": [
+          {"key": "A", "text": "重视发挥新科技实现碳中和的作用"},
+          {"key": "B", "text": "为赛事构建低碳交通体系奠定基础"},
+          {"key": "C", "text": "在场馆、交通、能源和生态方面狠下功夫"},
+          {"key": "D", "text": "重视新科技在场馆、交通、能源和生态方面的作用"}
+        ]
+      },
+      "answer": "A",
+      "analysis_source": {"source_type_label": "中心理解题 + 科普介绍文章", "answer_source": "analysis_page_visual_verified"},
+      "learning_tags": {
+        "question_type": "中心理解题",
+        "passage_type": "科普介绍文章",
+        "method_tags": ["大并列结构", "共同特征概括", "主题词匹配", "低碳环保"],
+        "option_trap_tags": {"A": ["正确概括", "贯穿并列分句"], "B": ["片面"], "C": ["表述宽泛", "缺少低碳环保关键词"], "D": ["缺少碳中和关键词"]},
+        "weak_steps": ["提炼四个并列方面的共同特征", "比较选项关键词完整度", "避免只复述并列项目"],
+        "estimated_seconds": 60
+      },
+      "official_analysis": "文段采用大并列结构，依次介绍北京冬奥会在场馆筹建、交通、可再生能源利用和生态修复方面所下的功夫，共同指向低碳环保与碳中和。A 同时包含‘新科技’和‘碳中和’，概括最全面。B 仅对应交通方面；C 未体现低碳环保；D 只强调新科技，未点明碳中和。",
+      "peanut_notes": ["行文结构为大并列：场馆、交通、可再生能源、生态修复四方面并列。", "四个方面都突出‘低碳环保’，正确选项应保留这一共同特征。", "A 的‘新科技’虽不是每个分句都明说，但各措施符合常识，且相较其他选项最全面，要抓大放小。"],
+      "ai_brief_example": "不要只数并列项目，要找它们共同服务的目标：技术措施贯穿四方面，最终为碳中和奠基，因此选 A。"
+    },
+    {
+      "id": "verbal_hs13_set07_q12",
+      "question_no": 12,
+      "source": {"question_images": ["questions-43.png"], "analysis_images": ["analysis-094.png"]},
+      "content": {
+        "stem": "人口向城市迁移并不一定会推动经济增长和生产率的提高。如果人口流入城市，却没有优质的就业作为依托，就会导致城市的贫民窟化。只有经济结构根据经济发展阶段进行转换，经济才会增长，并创造良好的就业机会，收入才会随之增加，人口才会向城市迁移。所以，____________。",
+        "prompt": "填入文中画横线部分最恰当的一项是：",
+        "options": [
+          {"key": "A", "text": "人口向城市迁移是经济发展的必然趋势"},
+          {"key": "B", "text": "人口迁移率是衡量经济发展水平的重要指标"},
+          {"key": "C", "text": "只有调整经济结构，才能增加城市中的就业机会"},
+          {"key": "D", "text": "城镇化其实是经济发展的结果，而非前提"}
+        ]
+      },
+      "answer": "D",
+      "analysis_source": {"source_type_label": "语句填入类 + 说理类文章", "answer_source": "analysis_page_visual_verified"},
+      "learning_tags": {
+        "question_type": "语句填入题",
+        "passage_type": "说理类文章",
+        "method_tags": ["尾句总结", "因果倒置", "A且B类选项", "对应验证"],
+        "option_trap_tags": {"A": ["绝对化", "无中生有"], "B": ["观点相悖"], "C": ["语义重复"], "D": ["正确总结", "双向对应"]},
+        "weak_steps": ["概括前文两层关系", "辨别城镇化与经济发展的因果方向", "识别尾句应作总结"],
+        "estimated_seconds": 55
+      },
+      "official_analysis": "横线位于文末，应概括上文：人口向城市迁移不一定带来经济发展；相反，只有经济发展并创造就业机会，才会带来人口向城市迁移。因此城镇化是经济发展的结果而非前提，对应 D。A 过于绝对；B 与文意相悖；C 仅重复前文局部信息。",
+      "peanut_notes": ["逻辑判断题中，因果倒置选项常用‘只有才’表达先后：先有经济发展，再有城镇化。", "D 属于‘A 且 B’类总结：分别对应‘迁移不一定促进经济’和‘经济发展才带来迁移’。", "尾句填空优先对上文作概括总结。"],
+      "ai_brief_example": "把因果箭头画出来：经济发展→就业与收入→人口进城，而不是人口进城→经济发展，所以选 D。"
+    },
+    {
+      "id": "verbal_hs13_set07_q13",
+      "question_no": 13,
+      "source": {"question_images": ["questions-43.png"], "analysis_images": ["analysis-094.png", "analysis-095.png"]},
+      "content": {
+        "stem": "目前许多农业电子商务网站的前身是农业信息服务网站，本身并不具备商业目的性，因而在转变为电子商务网站之初，将首要目标定位在吸引更多人关注和增加网站流量而非如何发挥商业价值上。在这种思路指导下，大多数农业电子商务网站往往重视网站的‘新、全、奇’特点，打出‘中国最大’‘全国第一’的口号，以期获得更多的点击率和流量，但这并不能让市场和网民对这些网站有全面的了解，因此其中大量的信息资源并不被人所知，其商业价值也无法发挥出来。",
+        "prompt": "这段文字的主要意思是：",
+        "options": [
+          {"key": "A", "text": "农业电子商务网站过多地侧重信息服务功能"},
+          {"key": "B", "text": "农业电子商务网站在实现商业目的上做得不够"},
+          {"key": "C", "text": "农业电子商务网站成功地获得网站流量和关注"},
+          {"key": "D", "text": "农业电子商务网站应注重宣传的真实性和创新性"}
+        ]
+      },
+      "answer": "B",
+      "analysis_source": {"source_type_label": "中心理解题 + 说理类文章", "answer_source": "analysis_page_visual_verified"},
+      "learning_tags": {
+        "question_type": "中心理解题",
+        "passage_type": "说理类文章",
+        "method_tags": ["转折后重点", "问题概括", "商业目的", "首句锁定"],
+        "option_trap_tags": {"A": ["曲解文意"], "B": ["正确概括问题"], "C": ["中性表述", "无中生有"], "D": ["对策不针对问题"]},
+        "weak_steps": ["识别转折后的问题", "将信息资源不被知概括为商业目的未实现", "避免自行提出对策"],
+        "estimated_seconds": 55
+      },
+      "official_analysis": "转折前说明农业电商网站为何形成重流量的发展思路，转折后指出这种思路使信息资源不被人所知、商业价值无法发挥。B 概括了这一核心问题。A 曲解原文；C 未体现问题且‘成功获得’无中生有；D 提出的对策不能解决商业价值无法发挥的问题。",
+      "peanut_notes": ["行文结构为二层结构之转折，转折后是重点。", "首句已指出网站本身不具备商业目的性，后文现状仍无法发挥商业价值，可直接锁定 B。", "问题概括题不要用不能针对问题的对策项替代。"],
+      "ai_brief_example": "作者不是批评网站没有流量，而是说即便追求流量，信息和商业价值仍没发挥，所以选 B。"
+    },
+    {
+      "id": "verbal_hs13_set07_q14",
+      "question_no": 14,
+      "source": {"question_images": ["questions-43.png"], "analysis_images": ["analysis-095.png"]},
+      "content": {
+        "stem": "企业‘上云’不止提升自身竞争力，也可为智慧城市贡献一份力量。最近杭州市政府和阿里云、富士康共同发布的‘杭州城市数据大脑’，运用人工智能技术对城市进行全局实时分析，自动调配公共资源，解决城市治理中的棘手问题。开放的算法平台使城市大脑可以广泛吸取智慧，从互联网+信号灯到智能物流配送，任何优良算法都可以放入城市大脑的插槽中。同时，智慧城市建设不能仅靠一家企业单打独斗，政府需要提供引导平台，把碎片化产品加以整合。走上云端的浙企，让浙江乃至中国看到了下一代社会治理结构的美好未来。",
+        "prompt": "最适合做这段文字标题的是：",
+        "options": [
+          {"key": "A", "text": "优良算法融入智慧城市"},
+          {"key": "B", "text": "做好智慧城市建设，整合碎片化产品"},
+          {"key": "C", "text": "社会治理拥抱‘云模式’"},
+          {"key": "D", "text": "企业‘上云’，实现企业和城市双赢"}
+        ]
+      },
+      "answer": "D",
+      "analysis_source": {"source_type_label": "标题拟定类 + 说理类文章", "answer_source": "analysis_page_visual_verified"},
+      "learning_tags": {
+        "question_type": "标题拟定题",
+        "passage_type": "说理类文章",
+        "method_tags": ["总分总结构", "首尾呼应", "主题词匹配", "双重意义"],
+        "option_trap_tags": {"A": ["缺主题词"], "B": ["缺主题词"], "C": ["缺主题词", "范围泛化"], "D": ["正确标题", "主体完整"]},
+        "weak_steps": ["锁定企业上云这一主题词", "概括企业与城市双重收益", "排除只概括中间例子的标题"],
+        "estimated_seconds": 50
+      },
+      "official_analysis": "首句和尾句均围绕企业‘上云’，说明其既提升企业竞争力，又有益于智慧城市和社会治理，D 准确概括双重意义。A、B、C 均未保留‘企业上云’这一全文主题词。",
+      "peanut_notes": ["企业‘上云’是全文论述话题。", "文章结构为总分总：首句提出企业上云对企业和智慧城市都有利，中间举例，尾句再次说明意义。", "标题拟定要保留主体并兼顾全文，不只摘取算法、整合等局部内容。"],
+      "ai_brief_example": "标题先看主角：全文主角是‘企业上云’，再看效果：企业和城市都受益，因此 D 最完整。"
+    },
+    {
+      "id": "verbal_hs13_set07_q15",
+      "question_no": 15,
+      "source": {"question_images": ["questions-43.png"], "analysis_images": ["analysis-096.png"]},
+      "content": {
+        "stem": "碳纳米管是由石墨中一层或者千层碳原子卷曲而成的笼状‘纤维’，内部是空的，外部直径只是几到几十纳米，比重只有钢的六分之一，而强度却是钢的100倍。轻而柔软又非常结实的材料，是做防弹背心的最佳选择。如果用碳纳米管做绳索，是从月球上挂到地球表面，而唯一不被自身重量所拉断的绳索。如果用它做成地球—月球乘人的电梯，人们在月球定居就很容易了。",
+        "prompt": "最适合这段文字的标题是：",
+        "options": [
+          {"key": "A", "text": "奇妙的碳纳米管"},
+          {"key": "B", "text": "碳纳米管的功用"},
+          {"key": "C", "text": "最轻的月梯"},
+          {"key": "D", "text": "神奇的‘纤维’"}
+        ]
+      },
+      "answer": "A",
+      "analysis_source": {"source_type_label": "标题拟定类 + 科普介绍文章", "answer_source": "analysis_page_visual_verified"},
+      "learning_tags": {
+        "question_type": "标题拟定题",
+        "passage_type": "科普介绍文章",
+        "method_tags": ["主体词匹配", "特点概括", "顺承结构", "标题吸引力"],
+        "option_trap_tags": {"A": ["正确标题", "主体明确"], "B": ["片面"], "C": ["缺主题词"], "D": ["缺主题词"]},
+        "weak_steps": ["锁定碳纳米管主体", "区分特性与具体用途", "避免用例子代替全文标题"],
+        "estimated_seconds": 45
+      },
+      "official_analysis": "全文围绕碳纳米管展开，既介绍其轻、柔软、强度高等特点，也用防弹背心和月球电梯说明这些特点，因此 A 既保留主体又概括其奇妙特性。B 只概括用途；C、D 均未点明碳纳米管。",
+      "peanut_notes": ["碳纳米管是全文论述话题。", "顺承结构：先介绍轻而强的特点，再介绍防弹背心和月球电梯等例子。", "月球电梯是为突出材料质量而举的夸张例子，不是在单独介绍一种功用。"],
+      "ai_brief_example": "文章既讲性质又讲用途，不能只选‘功用’；标题要带主角‘碳纳米管’，故选 A。"
+    },
+    {
+      "id": "verbal_hs13_set07_q16",
+      "question_no": 16,
+      "source": {"question_images": ["questions-44.png"], "analysis_images": ["analysis-096.png", "analysis-097.png"]},
+      "content": {
+        "stem": "这些年西汉纸不断出土，从材料上看，西汉纸大多夹带许多未被捣碎的纤维团，这种纸制作粗糙，组织松散，纸浆分布不匀，透眼较多，不太适于落笔着墨，书写起来也不顺畅。西汉纸大多不平整，像被揉搓过一样。出土的很多纸上都没有字，即便有字，也是写在纸的右下角，常见的字有‘付子’‘细辛’等。经考证它们基本都是汉代的药名。于是有学者推论，如果这类纸用于包装药材，那些写在纸角的字，恰好就会露在药包的表面。这样看来，____________。",
+        "prompt": "填入文中画横线部分最恰当的一项是：",
+        "options": [
+          {"key": "A", "text": "原来早在蔡伦之前纸就已经被发明出来了"},
+          {"key": "B", "text": "纸张成为主要书写工具经历了漫长过程"},
+          {"key": "C", "text": "西汉的古纸极有可能主要用来包装东西"},
+          {"key": "D", "text": "我国古代造纸起源与中药学发展不无关系"}
+        ]
+      },
+      "answer": "C",
+      "analysis_source": {"source_type_label": "语句填入类 + 科普介绍文章", "answer_source": "analysis_page_visual_verified"},
+      "learning_tags": {
+        "question_type": "语句填入题",
+        "passage_type": "科普介绍文章",
+        "method_tags": ["尾句总结", "分总结构", "证据归纳", "主体一致"],
+        "option_trap_tags": {"A": ["无中生有"], "B": ["历程类误读"], "C": ["正确总结"], "D": ["无中生有", "片面"]},
+        "weak_steps": ["识别尾句总结功能", "归纳三个西汉纸特征", "避免扩大为造纸起源"],
+        "estimated_seconds": 55
+      },
+      "official_analysis": "‘这样看来’表明横线应总结上文。前文依次说明西汉纸不适合书写、纸张不平整、纸角所写药名可能露在药包表面，据此可推断西汉纸很可能主要用于包装，对应 C。A、D 无中生有；B 把材料误读成纸张发展的历程。",
+      "peanut_notes": ["西汉纸是全文论述主体。", "分总结构：分述不适书写、不平整、右下角有药名三个特点，末句据此总结。", "不要把‘纸角写药名’扩大成造纸起源与中药学发展的关系。"],
+      "ai_brief_example": "三条线索都指向‘包装’：不好写、像包装纸、药名露在纸角，所以选 C。"
+    },
+    {
+      "id": "verbal_hs13_set07_q17",
+      "question_no": 17,
+      "source": {"question_images": ["questions-44.png"], "analysis_images": ["analysis-097.png"]},
+      "content": {
+        "stem": "①有一种奇特的感觉，肺腑之间最后一缕从城市带来的污浊空气在这里被替换\n②那些我能想到的与绿有关的词，都能在这里找到其现实所在\n③沿林中石路，走进树荫遮蔽却非常明亮的林中空地，呼吸春茶般的清新\n④天地之间，被绿色点缀、绞缠、流绕、覆盖。嫩绿、黛绿、葱绿、碧绿、水绿、豆绿、墨绿……\n⑤小河的这片水杉林有上千株之多，枝繁叶茂，顶天立地，横成行，竖成队，斜成线，像迎接检阅的威武方阵\n⑥通直向上的树干，铺伸空中的枝条，摇曳对生的细叶，天光穿过缝隙，它们像是点燃的一团团蓬松的绿火",
+        "prompt": "将以上6个句子重新排列，语序正确的是：",
+        "options": [
+          {"key": "A", "text": "⑥②④⑤③①"},
+          {"key": "B", "text": "③⑥④②①⑤"},
+          {"key": "C", "text": "⑤③①⑥④②"},
+          {"key": "D", "text": "④⑥②⑤③①"}
+        ]
+      },
+      "answer": "C",
+      "analysis_source": {"source_type_label": "语句排序类 + 散文", "answer_source": "analysis_page_visual_verified"},
+      "learning_tags": {
+        "question_type": "语句排序题",
+        "passage_type": "散文",
+        "method_tags": ["首句判断", "指代词捆绑", "话题一致", "空间顺序"],
+        "option_trap_tags": {"A": ["首句不当"], "B": ["末句不当"], "C": ["正确排序"], "D": ["指代断裂"]},
+        "weak_steps": ["用⑤引出水杉林", "识别④②的指代捆绑", "按进入林中再写景的顺序排列"],
+        "estimated_seconds": 65
+      },
+      "official_analysis": "⑤首次引出‘水杉林’，适合首句；③写走进林中，①承接③写清新空气，构成⑤③①。⑥和④都描写林中绿色，②中的‘那些’指代④列举的多种绿色，因此④②捆绑。完整顺序为⑤③①⑥④②，对应 C。",
+      "peanut_notes": ["⑤引出‘水杉林’，应作首句。", "②的‘那些’指代④中的嫩绿、黛绿等词，④②必须相连。", "⑤③①先写进入林中并感受清新，⑥④②再展开林中绿色描写。"],
+      "ai_brief_example": "先锁两个硬线索：⑤先介绍水杉林，④②因‘那些’紧连；只有 C 同时满足。"
+    },
+    {
+      "id": "verbal_hs13_set07_q18",
+      "question_no": 18,
+      "source": {"question_images": ["questions-44.png"], "analysis_images": ["analysis-098.png"]},
+      "content": {
+        "stem": "①如果作家们不想放弃由自己直接来描写对象的权利和责任，就一定要躲避\n②例如，一个真正的作家在描写时间时几乎不会用‘光阴似箭’‘日月如梭’之类的成语\n③同样的道理，现代生活中那些互相模仿的四字句现代骈体，听起来整齐而顺口\n④成语是人们作一般表述时的拐杖，对文学表述者来说，它很可能变成‘类型化’障碍\n⑤实际上却造成了接受上的惰性疲倦，又败坏了中国语文的生动风姿\n⑥因为那太偷懒了，无论是成语还是定型的形容词，都是经过太多人手的‘语言硬块’",
+        "prompt": "将以上6个句子重新排列，语序正确的是：",
+        "options": [
+          {"key": "A", "text": "④②①⑥③⑤"},
+          {"key": "B", "text": "④②⑥⑤③①"},
+          {"key": "C", "text": "④②⑥①③⑤"},
+          {"key": "D", "text": "④①⑥②③⑤"}
+        ]
+      },
+      "answer": "C",
+      "analysis_source": {"source_type_label": "语句排序类 + 说理类文章", "answer_source": "analysis_page_visual_verified"},
+      "learning_tags": {
+        "question_type": "语句排序题",
+        "passage_type": "说理类文章",
+        "method_tags": ["指代词捆绑", "前对策结构", "转折关系", "举例论证"],
+        "option_trap_tags": {"A": ["因果顺序不当"], "B": ["话题衔接断裂"], "C": ["正确排序"], "D": ["指代对象错误"]},
+        "weak_steps": ["识别⑥中的‘那’指代②", "识别③⑤转折捆绑", "判断①是分析后的对策"],
+        "estimated_seconds": 70
+      },
+      "official_analysis": "④提出成语可能成为类型化障碍，②举例，⑥中的‘那太偷懒了’指代②中直接使用成语的做法，故②⑥捆绑；①进一步给出作家应躲避这类语言的对策。③写四字句听起来整齐顺口，⑤以‘实际上却’转折说明危害，③⑤相连。顺序为④②⑥①③⑤，对应 C。",
+      "peanut_notes": ["⑥的‘那’指代一种偷懒的做法，即②中直接套用成语，②⑥必须相连。", "前对策结构：④提出问题，②⑥分析问题，①给出作家应躲避成语的对策。", "③的表面好处与⑤的实际危害构成转折，③⑤相连。"],
+      "ai_brief_example": "抓两组固定搭配：②⑥是‘那’的指代，③⑤是‘听起来……实际上却……’的转折，答案只剩 C。"
+    },
+    {
+      "id": "verbal_hs13_set07_q19",
+      "question_no": 19,
+      "source": {"question_images": ["questions-45.png"], "analysis_images": ["analysis-098.png", "analysis-099.png"]},
+      "content": {
+        "stem": "____________。正如游戏要求团队协作，真正让一款游戏成为广受追捧且健康向上的产品，也需要协同的力量。如果开发团队只考虑市场效益，对游戏内容和形式放任自流，纵使在短时间内能取得佳绩，也会因过度消费用户而败下阵来。如果政府部门只在一些节点上把一把、管一管，纵使出台了一些政策文件，也不过是形式大于效力。如果家长对孩子不管不问或一封到底，纵使气急败坏也无济于事，与其关上游戏的门还不如打开疏导陪伴的窗。",
+        "prompt": "填入文中画横线部分最恰当的一项是：",
+        "options": [
+          {"key": "A", "text": "国产游戏行业的有序发展需要多方的共同努力"},
+          {"key": "B", "text": "游戏监管不该只堵不疏而应树立‘大监管’理念"},
+          {"key": "C", "text": "各方力量紧密合作才能让游戏成为生活的有益补充"},
+          {"key": "D", "text": "游戏监管需制作方、政府部门、家长三方形成合力"}
+        ]
+      },
+      "answer": "D",
+      "analysis_source": {"source_type_label": "语句填入类 + 说理类文章", "answer_source": "analysis_page_visual_verified"},
+      "learning_tags": {
+        "question_type": "语句填入题",
+        "passage_type": "说理类文章",
+        "method_tags": ["总分结构", "首句总领", "主体一一对应", "协同监管"],
+        "option_trap_tags": {"A": ["片面", "监管缺失"], "B": ["片面", "无中生有"], "C": ["片面", "监管缺失"], "D": ["正确总领", "主体对应"]},
+        "weak_steps": ["从后文反推首句总领", "识别制作方政府家长三主体", "同时保留协同和监管"],
+        "estimated_seconds": 55
+      },
+      "official_analysis": "横线后的‘正如’表明下文举例说明所填句，且‘也需要协同的力量’要求答案体现协同。后文分别从开发团队、政府部门和家长三个角度反面论证监管必要性，D 同时包含三方主体、协同和监管，并与后文顺序一一对应。A、C 只谈共同努力而未体现监管；B 只谈监管且未体现协同。",
+      "peanut_notes": ["行文结构为总分：横线处总领‘需要协同’，后文从三个角度反面论证。", "三个角度分别是开发团队不能放任、政府不能形式监管、家长不能粗暴监管。", "A 既未体现监管，主体也不能与后文三方精确对应；D 是完美选项。"],
+      "ai_brief_example": "首句要同时覆盖后文三个分支。只有 D 把制作方、政府、家长和‘监管合力’都写全。"
+    },
+    {
+      "id": "verbal_hs13_set07_q20",
+      "question_no": 20,
+      "source": {"question_images": ["questions-45.png"], "analysis_images": ["analysis-099.png", "analysis-100.png"]},
+      "content": {
+        "stem": "儿童期是血友病治疗的黄金时期，标准预防治疗并不能使已有的关节病变逆转，但可降低出血频率，延缓关节病变的进展并提高生活质量。临床研究表明，12岁以下儿童患者中接受艾美赛珠单抗每周一次预防治疗58周后，年化出血率仅0.3%，零治疗出血率达77%，且无论患者年龄大小以及体内是否存在抗体。随着治疗时间的延长，治疗效果将明显改观，可使99%以上的靶关节停止频繁出血，避免关节病变和残疾的发生。但由于社会对血友病的认知相对不足、药物可及性较低、现有治疗手段还存在一定局限，许多血友病家庭常常面临沉重的疾病负担。",
+        "prompt": "根据这段文字，下列说法正确的是：",
+        "options": [
+          {"key": "A", "text": "及早治疗血友病能避免关节病变和残疾的发生"},
+          {"key": "B", "text": "对血友病患者来说治疗的时间越长效果越明显"},
+          {"key": "C", "text": "儿童期采取标准预防治疗有利于血友病的治疗"},
+          {"key": "D", "text": "标准预防治疗可帮助血友病家庭消除疾病负担"}
+        ]
+      },
+      "answer": "C",
+      "analysis_source": {"source_type_label": "细节判断类 + 科普介绍文章", "answer_source": "analysis_page_visual_verified"},
+      "learning_tags": {
+        "question_type": "细节判断题",
+        "passage_type": "科普介绍文章",
+        "method_tags": ["逐项对应", "概念匹配", "绝对化识别", "首句定位"],
+        "option_trap_tags": {"A": ["偷换概念"], "B": ["绝对化", "线性关系误读"], "C": ["正确对应"], "D": ["无中生有", "绝对化"]},
+        "weak_steps": ["区分及早治疗与治疗时间延长", "警惕越长越好等绝对表述", "核对标准预防治疗的真实作用"],
+        "estimated_seconds": 60
+      },
+      "official_analysis": "首句明确说明儿童期是治疗黄金期，标准预防治疗可降低出血频率、延缓关节病变并提高生活质量，因此 C 正确。A 将‘随着治疗时间延长可避免病变和残疾’偷换为‘及早治疗能避免’；B 把‘随着延长，效果明显改观’扩大成时间越长效果越明显的绝对线性关系；D 所说消除疾病负担无中生有。",
+      "peanut_notes": ["速读可直接由首句判断 C 符合全文感情色彩。", "A 把‘随着治疗时间延长’偷换为‘及早治疗’，概念不一致。", "B 的‘越长越明显’过于绝对；D 的‘消除疾病负担’原文未提。"],
+      "ai_brief_example": "细节题优先找原句同义替换：首句直接支持儿童期标准预防治疗有益，C 最稳。"
+    }
+  ]
+}

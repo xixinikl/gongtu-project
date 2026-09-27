@@ -1,0 +1,7 @@
+{
+  "version": "2.0",
+  "id": "wrong-version",
+  "name": "版本号错误",
+  "type": "unitCubeArray",
+  "positions": [[0,0,0]]
+}

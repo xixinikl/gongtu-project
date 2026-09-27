@@ -1,0 +1,322 @@
+{
+  "version": 1,
+  "set_id": "verbal_hs13_set08",
+  "source_name": "2025年花生片段阅读600题",
+  "range": "q11-q20",
+  "status": "visual_verified_minimal_practice",
+  "transcription_scope": {
+    "question_stem_and_options": "full_visual_transcription_from_question_book",
+    "answer_and_type": "visual_verified_from_analysis_book",
+    "official_analysis": "core_summary_from_visual_review",
+    "peanut_notes": "core_method_points_from_visual_review",
+    "ai_brief_example": "supplemental_ai_tutor_hint"
+  },
+  "source_pages": {
+    "question_book": {
+      "pdf": "/Users/miduoduo/Downloads/2025年花生片段阅读600题-题本【上】.pdf",
+      "rendered_images": [
+        "tmp/pdfs/verbal-reading-set08/questions-48.png",
+        "tmp/pdfs/verbal-reading-set08/questions-49.png",
+        "tmp/pdfs/verbal-reading-set08/questions-50.png",
+        "tmp/pdfs/verbal-reading-set08/questions-51.png"
+      ],
+      "printed_pages": [46, 47, 48, 49]
+    },
+    "analysis_book": {
+      "pdf": "/Users/miduoduo/Downloads/2025年花生片段阅读600题-解析【上】.pdf",
+      "rendered_images": [
+        "tmp/pdfs/verbal-reading-set08/analysis-107.png",
+        "tmp/pdfs/verbal-reading-set08/analysis-108.png",
+        "tmp/pdfs/verbal-reading-set08/analysis-109.png",
+        "tmp/pdfs/verbal-reading-set08/analysis-110.png",
+        "tmp/pdfs/verbal-reading-set08/analysis-111.png",
+        "tmp/pdfs/verbal-reading-set08/analysis-112.png",
+        "tmp/pdfs/verbal-reading-set08/analysis-113.png",
+        "tmp/pdfs/verbal-reading-set08/analysis-114.png"
+      ],
+      "printed_pages": [105, 106, 107, 108, 109, 110, 111, 112]
+    }
+  },
+  "questions": [
+    {
+      "id": "verbal_hs13_set08_q11",
+      "question_no": 11,
+      "source": {"question_images": ["questions-48.png"], "analysis_images": ["analysis-107.png", "analysis-108.png"]},
+      "content": {
+        "stem": "在21世纪，新能源必将取得快速发展正逐渐成为人们的共识。然而，从长远来看，解决人类能源需求的清洁技术路线不一定是现在占主导地位的这几种模式，新能源的研发与新型技术的进步仍然需要充分的资金支持。近年来，一些新能源技术路线受成本因素影响而被压制发展。因此，需要政府补贴来支持其初始阶段的发展。",
+        "prompt": "这段文字最可能讨论的是：",
+        "options": [
+          {"key": "A", "text": "是否应探索新能源技术路线"},
+          {"key": "B", "text": "新能源技术路线是否需要调整"},
+          {"key": "C", "text": "现阶段是否应取消新能源补贴"},
+          {"key": "D", "text": "是否应加强对新能源市场的管理"}
+        ]
+      },
+      "answer": "C",
+      "analysis_source": {"source_type_label": "中心理解题 + 说理类文章", "answer_source": "analysis_page_visual_verified"},
+      "learning_tags": {
+        "question_type": "中心理解题",
+        "passage_type": "说理类文章",
+        "method_tags": ["后对策结构", "对策反推问题", "主题词匹配", "变式提问"],
+        "option_trap_tags": {"A": ["无主题词"], "B": ["无主题词"], "C": ["正确反推"], "D": ["无主题词"]},
+        "weak_steps": ["识别末句政府补贴这一对策", "由对策反推作者讨论的问题", "紧扣资金补贴主题词"],
+        "estimated_seconds": 50
+      },
+      "official_analysis": "文段先提出并分析新能源研发因成本受压制的问题，随后给出‘需要政府补贴’的对策。由对策反推问题，文段讨论的是现阶段是否应取消新能源政府补贴，对应 C。其余选项均未涉及‘资金/补贴’这一核心话题。",
+      "peanut_notes": ["行文结构是后对策结构：先转折提出并分析资金支持不足的问题，后给出政府补贴对策。", "‘这段文字最可能讨论的是’可看作中心理解题的变形，要根据主旨反推议题。", "抓住‘资金支持—成本压制—政府补贴’这一主题链，排除不含主题词的选项。"],
+      "ai_brief_example": "把末句改成问题：既然作者主张政府补贴，所反驳的议题就是‘现阶段是否该取消补贴’，因此选 C。"
+    },
+    {
+      "id": "verbal_hs13_set08_q12",
+      "question_no": 12,
+      "source": {"question_images": ["questions-49.png"], "analysis_images": ["analysis-108.png"]},
+      "content": {
+        "stem": "瓦特发明的蒸汽机将人类带入工业社会，从此，以消耗自然资源为基础的社会经济发展模式向各领域逐渐渗透，开始主导人类社会的方方面面。这种模式如同做蛋糕一样，被做得越来越大，已经不只局限在‘突飞猛进’的工业生产领域，在城市规划与建设等领域更为突出。这种模式的确为社会创造出了巨大财富，人们也从中或多或少得到了实惠，但其弊端正在逐渐显现。",
+        "prompt": "根据这段文字，可以看出作者的意图是：",
+        "options": [
+          {"key": "A", "text": "倡导转变社会经济发展模式"},
+          {"key": "B", "text": "批判工业社会的经济增长方式"},
+          {"key": "C", "text": "揭示工业社会经济发展模式的实质"},
+          {"key": "D", "text": "呼吁人们降低对自然资源的消耗水平"}
+        ]
+      },
+      "answer": "A",
+      "analysis_source": {"source_type_label": "中心理解题 + 说理类文章", "answer_source": "analysis_page_visual_verified"},
+      "learning_tags": {
+        "question_type": "中心理解题",
+        "passage_type": "说理类文章",
+        "method_tags": ["二层结构", "转折后重点", "问题推对策", "主题词分析"],
+        "option_trap_tags": {"A": ["正确对策"], "B": ["无主题词"], "C": ["中性表述"], "D": ["无主题词"]},
+        "weak_steps": ["识别尾句弊端显现的问题", "由问题推出改变发展模式的对策", "避免只复述模式实质"],
+        "estimated_seconds": 55
+      },
+      "official_analysis": "文段介绍工业社会后形成的社会经济发展模式，末句转折指出其弊端正在显现。正确选项应针对这一问题提出对策，即转变这种社会经济发展模式，对应 A。C 只是对首句模式实质的中性复述；B、D 均未准确扣住全文主体。",
+      "peanut_notes": ["社会经济发展模式是全文论述主体。", "行文为二层结构之转折：前面介绍模式及收益，尾句指出弊端显现。", "针对‘弊端正在显现’，作者意图应是改变这种发展模式，而非仅描述或泛化批判。"],
+      "ai_brief_example": "尾句给出的是‘模式有弊端’这一问题，最直接的作者意图就是转变模式，选 A。"
+    },
+    {
+      "id": "verbal_hs13_set08_q13",
+      "question_no": 13,
+      "source": {"question_images": ["questions-49.png"], "analysis_images": ["analysis-108.png", "analysis-109.png"]},
+      "content": {
+        "stem": "每当寒暑假期来临，大量的少儿节目开始在荧屏上活跃，力图充实孩子们的假期。近年来，文化类节目的大热渲染了良好的荧屏氛围，文物、汉字、诗词等优秀传统文化搭载综艺节目的外壳在镜头中大放异彩。而如何将少儿节目与文化类节目联结，如何在少年儿童的休闲娱乐时光中潜移默化地为他们树立文化自觉、弘扬中华优秀传统文化，则是电视行业践行‘将最好的留给孩子’这一信念的必经之路。",
+        "prompt": "下列适合作为文段标题的是：",
+        "options": [
+          {"key": "A", "text": "创新是少儿节目的生命力所在"},
+          {"key": "B", "text": "给少儿节目浸润点文化底色"},
+          {"key": "C", "text": "给少年儿童多些文化熏陶"},
+          {"key": "D", "text": "电视行业要‘将最好的留给孩子’"}
+        ]
+      },
+      "answer": "B",
+      "analysis_source": {"source_type_label": "标题拟定类 + 说理类文章", "answer_source": "analysis_page_visual_verified"},
+      "learning_tags": {
+        "question_type": "标题拟定题",
+        "passage_type": "说理类文章",
+        "method_tags": ["后对策结构", "主体词匹配", "对策同义替换", "标题吸引力"],
+        "option_trap_tags": {"A": ["无中生有"], "B": ["正确标题"], "C": ["缺主题词"], "D": ["缺主题词", "对策错误"]},
+        "weak_steps": ["锁定少儿节目这一主体", "识别传统文化这一对策重点", "避免用泛化口号替代核心对策"],
+        "estimated_seconds": 50
+      },
+      "official_analysis": "文段先引出少儿节目与文化类节目，末句提出对策：把二者联结，让少年儿童在少儿节目中受到传统文化熏陶。主体是‘少儿节目’，对策重点是‘传统文化’，B 是对策的准确同义替换。A 无中生有；C、D 均未保留少儿节目这一主体，且 D 把信念误作具体对策。",
+      "peanut_notes": ["少儿节目是全文论述主体。", "行文结构为后对策：先引出少儿节目，再介绍文化类节目，末句用‘必经之路’提出融合对策。", "完美标题兼具主体词、对策同义替换和吸引力，B 三点齐全。"],
+      "ai_brief_example": "标题要同时出现‘谁’和‘做什么’：少儿节目要加入传统文化，正是 B 的‘浸润文化底色’。"
+    },
+    {
+      "id": "verbal_hs13_set08_q14",
+      "question_no": 14,
+      "source": {"question_images": ["questions-49.png"], "analysis_images": ["analysis-109.png", "analysis-110.png"]},
+      "content": {
+        "stem": "农民是乡村振兴的主体，也是受益者，必须要把亿万农民群众的积极性、主动性、创造性调动起来。在过去长期的农业生产中，我们或多或少存在重物轻人的现象。这表现在只注重农产品的数量增长，不重视务农队伍的素质提高和职业化。相应的是，农村教育、科技、卫生、文化等公共资源投入少，导致农村人口素质偏低、人才缺乏。而乡村发展的本质是人的健康发展，只有农民自身素质和能力不断提升，才能有效推进乡村的可持续发展。因此，____________。",
+        "prompt": "填入文中画横线部分最恰当的一项是：",
+        "options": [
+          {"key": "A", "text": "乡村振兴必须加大对农村公共资源的投入"},
+          {"key": "B", "text": "要提升农民科学素养，提高农业农村现代化水平"},
+          {"key": "C", "text": "乡村振兴在注重硬件建设的同时也要大力提高人口素质"},
+          {"key": "D", "text": "乡村基础教育、职业教育、就业培训等才是乡村建设的根本"}
+        ]
+      },
+      "answer": "C",
+      "analysis_source": {"source_type_label": "语句填入类 + 说理类文章", "answer_source": "analysis_page_visual_verified"},
+      "learning_tags": {
+        "question_type": "语句填入题",
+        "passage_type": "说理类文章",
+        "method_tags": ["尾句对策", "问题针对性", "反复主题词", "并列对策"],
+        "option_trap_tags": {"A": ["对策不针对问题", "片面"], "B": ["偷换概念", "无中生有"], "C": ["正确对策"], "D": ["过度推断"]},
+        "weak_steps": ["定位重物轻人的核心问题", "保留重物与重人两方面", "避免将人口素质窄化为科学素养"],
+        "estimated_seconds": 60
+      },
+      "official_analysis": "横线位于尾句，应针对前文‘重物轻人’问题提出对策，即在继续重视‘物’的同时重视‘人’、提高人口素质，对应 C。A 未涵盖全文重点‘农民/人’；B 将人口素质偷换为科学素养；D 将教育培训过度推断为乡村建设的根本。",
+      "peanut_notes": ["农民是全文论述主体，文中反复强调务农队伍素质、农村人口素质和农民能力。", "行文为后对策结构：引入农民重要性，提出‘重物轻人’问题，分析资源投入少和人才缺乏，尾句应给对策。", "C 虽是并列对策，但准确回应‘重物轻人’，并非只抓某个局部资源。"],
+      "ai_brief_example": "把问题原样取反：过去‘重物轻人’，今后就要既重硬件又重人口素质，因此选 C。"
+    },
+    {
+      "id": "verbal_hs13_set08_q15",
+      "question_no": 15,
+      "source": {"question_images": ["questions-49.png", "questions-50.png"], "analysis_images": ["analysis-110.png"]},
+      "content": {
+        "stem": "①张库商道南承京津，辐射湖广，北面一直延伸至俄国恰克图，影响直达欧洲\n②张家口也逐渐发展成为中国北方最重要的陆路商埠\n③张家口凭借其地理位置的优势，成为内地行省与蒙古地区商业贸易的中转站\n④18世纪中期，经清政府允许，俄国开辟了经恰克图、库伦、张家口到北京的商队贸易路线——张库商道\n⑤清初沿袭明制，以沿边定点互市作为对蒙贸易的主要形式\n⑥在鸦片战争前相当长的一段历史时期，这条商道是中俄贸易的唯一通道",
+        "prompt": "将以上6个句子重新排列，语序正确的是：",
+        "options": [
+          {"key": "A", "text": "④⑤②③①⑥"},
+          {"key": "B", "text": "④⑤③⑥①②"},
+          {"key": "C", "text": "⑤②④③①⑥"},
+          {"key": "D", "text": "⑤③④①⑥②"}
+        ]
+      },
+      "answer": "D",
+      "analysis_source": {"source_type_label": "语句排序类 + 科普介绍文章", "answer_source": "analysis_page_visual_verified"},
+      "learning_tags": {
+        "question_type": "语句排序题",
+        "passage_type": "科普介绍文章",
+        "method_tags": ["时间顺序", "话题引入", "指代词衔接", "总结句判断"],
+        "option_trap_tags": {"A": ["时间顺序错误"], "B": ["话题衔接错误"], "C": ["总结句位置错误"], "D": ["正确排序"]},
+        "weak_steps": ["用⑤清初锁定首句", "识别④引出张库商道", "识别②为张家口影响的总结"],
+        "estimated_seconds": 65
+      },
+      "official_analysis": "④写18世纪中期，应置于写‘清初’的⑤之后，排除 A、B。③先交代张家口成为贸易中转站，④再具体介绍清政府开辟张库商道，构成⑤③④；①介绍商道范围，⑥中的‘这条商道’承接①，②总结张家口的发展结果。顺序为⑤③④①⑥②，对应 D。",
+      "peanut_notes": ["⑤从‘清初’引出并介绍对蒙贸易背景，适合首句。", "④引出新话题‘张库商道’，①⑥随后具体介绍；⑥的‘这条商道’承接前文。", "②是张家口发展结果的总结句，并与⑤③的张家口话题首尾呼应。"],
+      "ai_brief_example": "先用时间线锁定⑤在④前，再用‘这条商道’锁定①⑥，最后②作结果总结，只剩 D。"
+    },
+    {
+      "id": "verbal_hs13_set08_q16",
+      "question_no": 16,
+      "source": {"question_images": ["questions-50.png"], "analysis_images": ["analysis-110.png", "analysis-111.png"]},
+      "content": {
+        "stem": "①有的人整天忙碌，却不清楚究竟做了什么；而有的人无论碰到多急多难的事情，总能从容不迫，轻松化解\n②我们周围常有这种情况，有的人一生没有干几件出彩的事，有的人只要用心干的事，件件精彩\n③提高工作水平是每一位年轻干部的迫切期盼\n④分析后者，他们在进入重要领导岗位之前，通过理论学习、专业训练和经验积累，一般具有较强的基本功、鲜明的角色认知和境界、方法上的充分储备\n⑤有了这些准备，无论到什么岗位，只要熟悉业务、注意方法，工作都会干得很好，工作水平一定会很快提高\n⑥工作水平的提高离不开科学合理安排，离不开对事物深厚的感悟积累，这就要求持续加强理论学习",
+        "prompt": "将以上6个句子重新排列，语序正确的是：",
+        "options": [
+          {"key": "A", "text": "①⑥④③⑤②"},
+          {"key": "B", "text": "③⑥②①④⑤"},
+          {"key": "C", "text": "②①③④⑤⑥"},
+          {"key": "D", "text": "⑥③①②④⑤"}
+        ]
+      },
+      "answer": "B",
+      "analysis_source": {"source_type_label": "语句排序类 + 科普介绍文章", "answer_source": "analysis_page_visual_verified"},
+      "learning_tags": {
+        "question_type": "语句排序题",
+        "passage_type": "科普介绍文章",
+        "method_tags": ["首句判断", "指代词捆绑", "话题一致", "对策先行"],
+        "option_trap_tags": {"A": ["首句不当"], "B": ["正确排序"], "C": ["对策位置错误"], "D": ["逻辑衔接错误"]},
+        "weak_steps": ["用③引出工作水平话题", "识别③⑥对策衔接", "识别④⑤指代捆绑"],
+        "estimated_seconds": 70
+      },
+      "official_analysis": "本题首句不易直接确定，可先抓捆绑：②的‘这种情况’引出①中的两类人，②①相连；③和⑥都谈提高工作水平，③先引出、⑥给要求，③⑥相连；④的‘后者’指①中做事出彩、从容的人，⑤的‘这些准备’指④列举的准备，④⑤相连。只有 B 的③⑥②①④⑤全部满足。",
+      "peanut_notes": ["③下定义引出‘提高工作水平’，⑥提出理论学习等要求，③⑥衔接。", "②①围绕周围两类人的表现展开；④的‘后者’承接其中优秀的一类。", "⑤的‘这些准备’明确指代④中的理论学习、专业训练和经验积累，④⑤必须相连。"],
+      "ai_brief_example": "排序题优先找硬捆绑：③⑥、②①、④⑤，三个组合顺序一拼就是 B。"
+    },
+    {
+      "id": "verbal_hs13_set08_q17",
+      "question_no": 17,
+      "source": {"question_images": ["questions-50.png"], "analysis_images": ["analysis-111.png", "analysis-112.png"]},
+      "content": {
+        "stem": "世上常有千里马，而人们训练千里马的方法却各有不同。古时方仲永泯然众人，让人扼腕叹息。如今人才少被埋没，但他们在道德和文明方面所暴露出的短板，同样令人震惊。才育对于千里马来说是必不可少的部分，然而同时我们也应勿使千里马疏于德育，不要让千里马变成一匹才高侍人、玩世不恭的恶马。",
+        "prompt": "最合适这段文字的标题是：",
+        "options": [
+          {"key": "A", "text": "莫使千里马疏于德育"},
+          {"key": "B", "text": "千里马也需有伯乐"},
+          {"key": "C", "text": "勿使千里马变恶马"},
+          {"key": "D", "text": "千里马也需全方面发展"}
+        ]
+      },
+      "answer": "A",
+      "analysis_source": {"source_type_label": "标题拟定类 + 说理类文章", "answer_source": "analysis_page_visual_verified"},
+      "learning_tags": {
+        "question_type": "标题拟定题",
+        "passage_type": "说理类文章",
+        "method_tags": ["后对策结构", "问题针对性", "禁止型对策", "主题词匹配"],
+        "option_trap_tags": {"A": ["正确标题"], "B": ["对策有误"], "C": ["对策有误", "因果倒置"], "D": ["宽泛非具体"]},
+        "weak_steps": ["锁定人才道德短板问题", "区分核心对策与对策后果", "避免宽泛全面发展表述"],
+        "estimated_seconds": 50
+      },
+      "official_analysis": "文段先引出千里马训练话题，继而指出如今人才在道德和文明方面存在短板，最后提出禁止型对策：勿使千里马疏于德育。A 直接概括重点。B 所答‘伯乐’不是文段问题；C 将‘变恶马’这一后果误作核心对策；D‘全面发展’过于宽泛。",
+      "peanut_notes": ["行文结构是后对策：先引出千里马训练，后提出人才德育短板，最后给禁止型对策。", "标题应突出具体对策中的核心词‘德育’，而非只写后果‘变恶马’。", "对策要针对问题：问题是道德和文明短板，所以答案必须谈德育。"],
+      "ai_brief_example": "问题是‘德育短板’，对策是‘不要疏于德育’；标题直接用核心对策，选 A。"
+    },
+    {
+      "id": "verbal_hs13_set08_q18",
+      "question_no": 18,
+      "source": {"question_images": ["questions-50.png"], "analysis_images": ["analysis-112.png"]},
+      "content": {
+        "stem": "虽然树种对水分的利用规律大同小异，但不同的森林类型涵养水源的作用大小不一。科学评估显示，长江上游天然林保护工程的实施为岷江上游的水生态安全做出了明显贡献，但大面积的人工植被覆盖可能加重区域生态用水，从而降低流域产水量，且大规模集中连片种植的人工纯林引发的外来物种入侵、病虫害、生态系统健康问题凸显。因此，应首先____________。",
+        "prompt": "填入文中画横线部分最恰当的一项是：",
+        "options": [
+          {"key": "A", "text": "保护现存的天然林植被"},
+          {"key": "B", "text": "发挥森林涵养水源功能"},
+          {"key": "C", "text": "保障水资源和生态安全"},
+          {"key": "D", "text": "加强人工造林植被建设"}
+        ]
+      },
+      "answer": "A",
+      "analysis_source": {"source_type_label": "语句填入类 + 说理类文章", "answer_source": "analysis_page_visual_verified"},
+      "learning_tags": {
+        "question_type": "语句填入题",
+        "passage_type": "说理类文章",
+        "method_tags": ["尾句对策", "对比结构", "首先提示词", "问题针对性"],
+        "option_trap_tags": {"A": ["正确对策"], "B": ["无中生有"], "C": ["无中生有"], "D": ["本身有误"]},
+        "weak_steps": ["识别天然林与人工林对比", "利用‘首先’判断优先对策", "避免选择抽象目标项"],
+        "estimated_seconds": 55
+      },
+      "official_analysis": "文段对比天然林和人工林：天然林保护效果好，而大面积人工林会带来生态用水、外来物种、病虫害等问题。文末要求给出优先对策，因此应首先保护现存天然林，对应 A。B、C 与上文对比无直接对应；D 与文意相悖且本身有误。",
+      "peanut_notes": ["‘首先’是对比关系的提示词，要求从两类对象中确定优先保护的一方。", "行文为后对策结构：先引出不同森林涵养水源作用不同，再比较天然林效果好、人工林问题多，末句总结对策。", "选具体可执行的‘保护天然林’，不要选抽象目的‘保障生态安全’。"],
+      "ai_brief_example": "对比表：天然林有贡献，人工林问题多；‘首先’自然落在保护天然林上，选 A。"
+    },
+    {
+      "id": "verbal_hs13_set08_q19",
+      "question_no": 19,
+      "source": {"question_images": ["questions-51.png"], "analysis_images": ["analysis-113.png"]},
+      "content": {
+        "stem": "偶然性在心理学中扮演的角色时常被外行人士甚至临床心理从业者忽略。人们很难意识到，行为的变化有一部分是随机因素引起的，因此心理学家不应自诩能够预测每一例个案的行为。心理学的预测应该是概率性的，表示自己可以在个体层次上进行心理预测，是临床心理学家常犯的错误。",
+        "prompt": "这段文字意在说明：",
+        "options": [
+          {"key": "A", "text": "人的行为发展变化具有偶然性"},
+          {"key": "B", "text": "心理学的预测是对行为的总体预测"},
+          {"key": "C", "text": "目前对人类行为预测的准确性还不高"},
+          {"key": "D", "text": "临床心理学家更擅长对个体进行心理预测"}
+        ]
+      },
+      "answer": "B",
+      "analysis_source": {"source_type_label": "中心理解题 + 说理类文章", "answer_source": "analysis_page_visual_verified"},
+      "learning_tags": {
+        "question_type": "中心理解题",
+        "passage_type": "说理类文章",
+        "method_tags": ["前观点结构", "主题词匹配", "同义替换", "概率与个体辨析"],
+        "option_trap_tags": {"A": ["缺主题词"], "B": ["正确概括"], "C": ["缺主题词"], "D": ["本身有误"]},
+        "weak_steps": ["锁定心理学预测这一主题", "理解概率预测对应总体预测", "排除只谈行为偶然性的片面项"],
+        "estimated_seconds": 50
+      },
+      "official_analysis": "文段观点句是‘心理学家不应自诩能够预测每一例个案的行为’，随后解释心理学预测应是概率性的，不能在个体层次上预测。概率预测即对行为作总体预测，B 是观点的同义替换。A、C 未涉及全文主题‘心理学预测’；D 与原文相悖。",
+      "peanut_notes": ["心理学是全文论述话题，选项必须保留该主题。", "行文为前观点结构：先提出不能预测每一例个案，后用概率性预测解释。", "‘概率性’指总体中某事件发生的次数或比例，不能等同于能否预测具体个人。"],
+      "ai_brief_example": "‘概率性’不是给某个人算命，而是描述一群人的总体规律，所以选 B。"
+    },
+    {
+      "id": "verbal_hs13_set08_q20",
+      "question_no": 20,
+      "source": {"question_images": ["questions-51.png"], "analysis_images": ["analysis-113.png", "analysis-114.png"]},
+      "content": {
+        "stem": "专家认为，近视一旦发生，不可逆转。特别是在低年龄阶段发生近视的孩子，更容易变成高度近视，导致视力损伤，充分接触阳光可以有效地保护视力。每天2小时、每周10小时以上的户外活动，可使青少年的近视发生率降低10%以上。这主要因为太阳的光照强度比室内光照强度高数百倍，光照越强，多巴胺释放量越多，而多巴胺能抑制近视的发生发展。高强度光照一方面可使瞳孔缩小、景深加深、模糊减少，另一方面也能起到抑制近视的作用。",
+        "prompt": "这段文字重在说明：",
+        "options": [
+          {"key": "A", "text": "低龄近视是光照弱引发的视力损伤"},
+          {"key": "B", "text": "太阳光照能有效抑制近视发生发展"},
+          {"key": "C", "text": "光照强度与近视发生率呈现负相关"},
+          {"key": "D", "text": "户外活动可以有效预防近视的发生"}
+        ]
+      },
+      "answer": "D",
+      "analysis_source": {"source_type_label": "中心理解题 + 说理类文章", "answer_source": "analysis_page_visual_verified"},
+      "learning_tags": {
+        "question_type": "中心理解题",
+        "passage_type": "说理类文章",
+        "method_tags": ["前对策结构", "对策优先", "论证与对策区分", "同义替换"],
+        "option_trap_tags": {"A": ["无中生有"], "B": ["非对策选项", "易错项"], "C": ["绝对化"], "D": ["正确对策"]},
+        "weak_steps": ["区分户外活动对策与阳光作用论证", "抓住每天两小时这一具体做法", "排除绝对化相关关系"],
+        "estimated_seconds": 55
+      },
+      "official_analysis": "文段先引出近视问题并说明充分接触阳光可保护视力，随后给出具体对策：每天2小时、每周10小时以上的户外活动可降低近视发生率；后文解释光照为何有效。D 是这一具体对策的同义替换。A 无中生有；C 将‘光照越强、多巴胺越多’绝对化为发生率负相关；B 只是论证户外活动有效的道理，不是重点对策。",
+      "peanut_notes": ["行文结构为前对策：引出近视话题，提出户外活动对策，后文分析其有效原因。", "中心理解题中，具体做法‘户外活动’通常比道理‘接触阳光’更能概括作者重点。", "‘越……越……’和正负相关容易造成绝对化错误；原文并未给出线性发生率关系。", "原书补充材料标题为《户外活动是最简单的预防近视方式》，进一步印证 D。"],
+      "ai_brief_example": "后半段都在解释为什么户外活动有效，不能把原因‘太阳光照’当成最终对策；重点是做法，选 D。"
+    }
+  ]
+}

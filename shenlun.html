@@ -7,7 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<script src="/node_modules/vue/dist/vue.global.prod.js"></script>
+<script src="/gontu-auth-client.js"></script>
 <style>
 /* ============================================
    飞扬申论 · 文人书斋 | 宣纸暖白底 · 点墨成金
@@ -107,6 +108,14 @@ body::before {
 }
 .sidebar-header h2 { font-size:16px; font-weight:700; letter-spacing:2px; color:#e0d6b8; line-height:1.3; }
 .sidebar-header p { font-size:11px; color:rgba(224,214,184,0.5); line-height:1.2; }
+.source-status {
+  margin:12px 12px 0; padding:10px 12px; border:1px solid rgba(176,138,58,0.18);
+  border-radius:10px; background:var(--gold-bg); color:var(--ink-mid); line-height:1.55;
+}
+.source-status strong { display:block; color:var(--gold-dark); font-size:12px; margin-bottom:2px; }
+.source-status span { display:block; font-size:11px; }
+.source-status.unavailable { border-color:rgba(160,70,55,0.24); background:#fff7f4; }
+.source-status.unavailable strong { color:#9a493c; }
 
 .question-list { flex:1; overflow-y:auto; padding:12px; background:var(--card-cool); }
 .question-list::-webkit-scrollbar { width:4px; }
@@ -266,6 +275,15 @@ body::before {
   box-shadow:var(--shadow-sm); white-space:pre-wrap;
   animation:msgSlideLeft 0.35s cubic-bezier(0.16,1,0.3,1);
 }
+.msg-content { max-width:72%; }
+.msg-content .msg-bubble { max-width:none; }
+.msg-actions { display:flex; gap:8px; margin-top:7px; }
+.msg-track-btn {
+  border:1px solid var(--border); background:var(--card-white); color:var(--ink-mid);
+  border-radius:999px; padding:5px 11px; font:inherit; font-size:12px; cursor:pointer;
+}
+.msg-track-btn:hover:not(:disabled) { border-color:var(--gold); color:var(--gold-dark); }
+.msg-track-btn:disabled { cursor:default; opacity:0.65; }
 @keyframes msgSlideRight { from { opacity:0; transform:translateX(24px) scale(0.95); } to { opacity:1; transform:translateX(0) scale(1); } }
 @keyframes msgSlideLeft { from { opacity:0; transform:translateX(-24px) scale(0.95); } to { opacity:1; transform:translateX(0) scale(1); } }
 
@@ -425,6 +443,8 @@ body::before {
   border-radius:50%; animation:spin 0.7s linear infinite; vertical-align:middle; margin-right:8px;
 }
 @keyframes spin { to { transform:rotate(360deg); } }
+.thinking-dots { display:inline-block; width:1.2em; overflow:hidden; vertical-align:bottom; animation:thinkingDots 1.1s steps(3,end) infinite; }
+@keyframes thinkingDots { from { width:.25em; } to { width:1.2em; } }
 
 /* ========== 面板入场 ========== */
 @keyframes panelFadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
@@ -480,9 +500,13 @@ body::before {
         <p>点击题目关联到对话</p>
       </div>
     </div>
+    <div class="source-status" :class="{unavailable:questionSourceUnavailable}" role="status" aria-live="polite">
+      <strong>{{questionSourceUnavailable ? '题源暂未提供' : '当前题库 · '+catalog.questionCount+'题材料摘要'}}</strong>
+      <span>{{questionSourceError || catalog.contentNotice || '正在核对题库状态…'}}</span>
+    </div>
     <div class="filter-bar">
-      <button class="filter-tag" :class="{active:filterType==='全部'}" @click="filterType='全部'">全部</button>
-      <button class="filter-tag" :class="{active:filterType===t}" v-for="t in types" :key="t" @click="filterType=t">{{t}}</button>
+      <button class="filter-tag" :class="{active:filterType==='全部'}" :aria-pressed="filterType==='全部'" @click="filterType='全部'">全部</button>
+      <button class="filter-tag" :class="{active:filterType===t}" :aria-pressed="filterType===t" v-for="t in types" :key="t" @click="filterType=t">{{t}}</button>
     </div>
     <div class="question-list">
       <div class="q-card" v-for="q in filteredQuestions" :key="q.id"
@@ -502,7 +526,7 @@ body::before {
   <!-- 主区域 -->
   <main class="main">
     <header class="chat-header">
-      <a href="/app" class="back-btn"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 2L3 7l5 5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><line x1="3" y1="7" x2="11" y2="7" stroke="currentColor" stroke-width="0.8" opacity="0.5"/></svg> 返回</a>
+      <a href="/智学成语-高级版.html?demo=verbal-ai-v3" class="back-btn"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 2L3 7l5 5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><line x1="3" y1="7" x2="11" y2="7" stroke="currentColor" stroke-width="0.8" opacity="0.5"/></svg> 返回</a>
       <div class="avatar">
         <svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
           <rect width="44" height="44" rx="22" fill="rgba(176,138,58,0.12)"/>
@@ -519,20 +543,20 @@ body::before {
     </header>
 
     <!-- 标签切换 -->
-    <div class="tab-bar">
-      <button class="tab-btn" :class="{active:activeTab==='chat'}" @click="activeTab='chat'">
+    <div class="tab-bar" role="group" aria-label="申论功能">
+      <button class="tab-btn" :class="{active:activeTab==='chat'}" :aria-pressed="activeTab==='chat'" @click="activeTab='chat'">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M2 3h12v7H5l-3 3V3z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
         </svg>
         飞扬对话
       </button>
-      <button class="tab-btn" :class="{active:activeTab==='tracking'}" @click="switchToTracking">
+      <button class="tab-btn" :class="{active:activeTab==='tracking'}" :aria-pressed="activeTab==='tracking'" @click="switchToTracking">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
           <rect x="1.5" y="8" width="3" height="5.5" rx="0.5" stroke="currentColor" stroke-width="1.2"/>
           <rect x="6.5" y="4.5" width="3" height="9" rx="0.5" stroke="currentColor" stroke-width="1.2"/>
           <rect x="11.5" y="2" width="3" height="11.5" rx="0.5" stroke="currentColor" stroke-width="1.2"/>
         </svg>
-        错题追踪
+        问题追踪
         <span class="badge" v-if="mistakeCount>0">{{mistakeCount}}</span>
       </button>
     </div>
@@ -549,8 +573,16 @@ body::before {
         </button>
         <button class="quick-btn" @click="selectedQuestion=null">✕ 取消关联</button>
       </div>
+      <div class="context-hint" v-if="selectedQuestion" style="margin:0 24px 12px;padding:14px 16px;display:block">
+        <strong>{{selectedQuestion.questionText}}</strong>
+        <p style="margin:8px 0;white-space:pre-wrap">{{selectedQuestion.material || '正在读取材料摘要…'}}</p>
+        <small style="color:var(--ink-light)">{{selectedQuestion.contentNotice || '当前内容状态待确认'}}</small>
+      </div>
 
       <div class="messages" ref="msgContainer">
+        <div class="context-hint" v-if="questionError" style="margin:0;padding:12px 14px;display:block;color:#9a493c;background:#fff7f4;border:1px solid rgba(160,70,55,0.2);border-radius:10px" role="alert">
+          {{questionError}}
+        </div>
         <div class="empty-state" v-if="messages.length===0">
           <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity:0.5">
             <path d="M8 12h28v20H16l-8 8V12z" stroke="#b0a692" stroke-width="1.5" stroke-linejoin="round" fill="none"/>
@@ -580,13 +612,18 @@ body::before {
               </svg>
             </template>
           </div>
-          <div>
+          <div class="msg-content">
             <div class="msg-bubble" v-html="m.role==='ai' ? (m.formatted || m.content) : renderMessage(m.content)"></div>
+            <div class="msg-actions" v-if="m.role==='ai'&&m.historyId">
+              <button class="msg-track-btn" @click="trackMessage(m)" :disabled="m.tracking||m.tracked">
+                {{m.tracked?'已加入问题追踪':(m.tracking?'正在加入…':'加入问题追踪')}}
+              </button>
+            </div>
           </div>
         </div>
         <div v-if="loading" style="display:flex;align-items:center;gap:10px;padding:8px 0 0 46px">
           <span class="spinner"></span>
-          <span style="font-size:13px;color:var(--ink-light)">老师正在思考...</span>
+          <span style="font-size:13px;color:var(--ink-light)">老师思考中<span class="thinking-dots" aria-hidden="true">…</span></span>
         </div>
       </div>
 
@@ -595,7 +632,8 @@ body::before {
           <textarea id="shenlun-input" name="shenlun-input" v-model="inputText" @keydown.enter.exact.prevent="sendMessage"
                     placeholder="输入你的问题或作答..." rows="1"
                     :disabled="loading" ref="inputEl"></textarea>
-          <button class="send-btn" @click="sendMessage" :disabled="loading||!inputText.trim()">➤</button>
+          <button class="btn btn-primary" v-if="selectedQuestion" @click="gradeAnswer" :disabled="loading||!inputText.trim()||questionSourceUnavailable||!!questionError">提交批改</button>
+          <button class="send-btn" @click="sendMessage" :disabled="loading||!inputText.trim()" title="向老师提问，回复后可手动加入问题追踪">➤</button>
         </div>
         <div class="context-hint" v-if="selectedQuestion">
           <span class="tag">
@@ -619,7 +657,7 @@ body::before {
             <rect x="9" y="7" width="4" height="11" rx="0.6" stroke="#1e1b14" stroke-width="1.3"/>
             <rect x="16" y="3" width="4" height="15" rx="0.6" stroke="#1e1b14" stroke-width="1.3"/>
           </svg>
-          错题追踪
+          问题追踪
         </h2>
         <div class="tracking-actions">
           <button class="btn btn-primary" @click="doAnalyze" :disabled="analyzing || mistakeCount===0">
@@ -689,8 +727,8 @@ body::before {
           <line x1="23" y1="20" x2="34" y2="20" stroke="#b0a692" stroke-width="0.8" opacity="0.5"/>
           <line x1="23" y1="26" x2="30" y2="26" stroke="#b0a692" stroke-width="0.8" opacity="0.3"/>
         </svg>
-        <h4>暂无错题记录</h4>
-        <p>在对话中提交作答请老师批改，<br>系统会自动记录到错题本</p>
+        <h4>暂无问题追踪记录</h4>
+        <p>正式批改会自动加入；普通问答可在老师回复下方<br>点击“加入问题追踪”手动保存。</p>
       </div>
 
       <div class="mistake-card" v-for="m in mistakes" :key="m.id">
@@ -699,6 +737,13 @@ body::before {
           <span class="card-time">{{m.createdAt.slice(0,16)}}</span>
         </div>
         <div style="font-size:13px;color:var(--ink-light);margin-bottom:8px">
+          {{m.recordType==='chat'?'我的提问：':'完整题目：'}}
+        </div>
+        <div class="answer" style="background:#fffdf7">{{m.questionText||m.questionTitle}}</div>
+        <div v-if="m.material" style="font-size:13px;color:var(--ink-body);line-height:1.8;white-space:pre-wrap;margin:8px 0;padding:10px 12px;border-left:3px solid rgba(176,138,58,0.35);background:#faf8f2">{{m.material}}</div>
+        <div v-if="m.questionRequirement" style="font-size:13px;color:var(--ink-mid);margin:8px 0"><strong>作答要求：</strong>{{m.questionRequirement}}</div>
+        <template v-if="m.recordType!=='chat'">
+        <div style="font-size:13px;color:var(--ink-light);margin-bottom:8px">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle;margin-right:3px">
             <path d="M3 2h6l3 3v7H3V2z" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/>
             <path d="M9 2v3h3M5 7h4M5 9h3" stroke="currentColor" stroke-width="0.8" stroke-linecap="round"/>
@@ -706,14 +751,19 @@ body::before {
           学生作答：
         </div>
         <div class="answer">{{m.studentAnswer}}</div>
+        </template>
         <div style="font-size:13px;color:var(--ink-light);margin-bottom:8px">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle;margin-right:3px">
             <circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1"/>
             <path d="M4 7c2-2 4-2 5 0-1 2-3 2-5 0z" fill="currentColor" opacity="0.4"/>
           </svg>
-          老师批改：
+          飞扬老师回复：
         </div>
         <div class="reply" v-html="m.aiReply"></div>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="btn btn-outline" @click="redoMistake(m)">重新作答</button>
+          <button class="btn btn-danger" @click="deleteMistake(m)">删除</button>
+        </div>
       </div>
     </div>
   </main>
@@ -829,7 +879,8 @@ function formatTeacherReview(reply) {
     var parsed = null;
     if (typeof reply === 'object' && reply !== null && !Array.isArray(reply)) parsed = reply;
     var raw = String(reply).replace(/^\uFEFF/, '').replace(/[\u200B-\u200D\uFEFF]/g, '').trim();
-    if (raw.startsWith('<')) return raw;
+    // LLM/历史内容永远视为不可信文本；禁止原样 HTML 进入 v-html。
+    if (raw.startsWith('<')) return '<div style="white-space:pre-wrap">' + _esc(raw) + '</div>';
     if (!parsed && raw.startsWith('{')) {
       try { parsed = JSON.parse(raw); } catch(e1) { try { parsed = JSON.parse(_repairJsonStr(raw)); } catch(e2) {} }
     }
@@ -875,6 +926,9 @@ function formatTeacherReview(reply) {
       parsed.suggestions.forEach(function(s,i){ html += '&nbsp;&nbsp;'+(i+1)+'. '+_esc(String(s))+'<br>'; });
       html += '</div>';
     }
+    if (!html && parsed && typeof parsed.reply === 'string' && parsed.reply.trim()) {
+      return '<div style="white-space:pre-wrap;font-size:14px;line-height:1.8;color:#2c2618">' + _esc(parsed.reply).replace(/\n/g, '<br>') + '</div>';
+    }
     if (html) return html;
 
     // 纯文本兜底 — 聊天模式下飞扬老师的自然语言回复直接展示
@@ -906,7 +960,7 @@ function _iconBrush() {
 }
 
 // ─── JWT 认证 helpers ────────────────────────────────────────────────
-const API_BASE = 'http://127.0.0.1:8888';
+const API_BASE = window.__GONTU_API_BASE__ || (location.port === '8089' ? 'http://127.0.0.1:8888' : location.origin);
 function getToken() {
   return localStorage.getItem('gontu_token');
 }
@@ -922,6 +976,52 @@ function apiFetch(path, options = {}) {
 function checkAuth() {
   if (!getToken()) { window.location.href = API_BASE + '/'; }
 }
+function responseMessage(payload,fallback){
+  const detail=payload&&payload.detail
+  return typeof detail==='string' ? detail : (detail&&detail.message)||fallback
+}
+function createGradeRequestKey(){
+  if(window.crypto&&typeof window.crypto.randomUUID==='function') return window.crypto.randomUUID()
+  return 'grade-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2)
+}
+function waitForGradeRetry(delay){
+  return new Promise(resolve=>setTimeout(resolve,delay))
+}
+async function requestFormalGrade(payload,key){
+  const retryDelays=[0,600,1200,2400,4800]
+  let lastNetworkError=null
+  for(let attempt=0;attempt<retryDelays.length;attempt+=1){
+    if(retryDelays[attempt]) await waitForGradeRetry(retryDelays[attempt])
+    try{
+      const response=await apiFetch('/api/shenlun/grade',{
+        method:'POST',
+        headers:{'Idempotency-Key':key},
+        body:JSON.stringify(payload)
+      })
+      const body=await response.json().catch(()=>({}))
+      const code=body&&body.detail&&body.detail.code
+      if(response.status===409&&code==='idempotency_in_progress'&&attempt<retryDelays.length-1) continue
+      return {response,body}
+    }catch(error){
+      lastNetworkError=error
+      if(attempt===retryDelays.length-1) break
+    }
+  }
+  const error=new Error('网络连接中断，已保留本次提交，可再次点击继续查询。')
+  error.code='network_unavailable'
+  error.cause=lastNetworkError
+  throw error
+}
+
+function publishShenlunCoach(activityId,questionId){
+  const returnUrl=new URL(location.href)
+  if(questionId)returnUrl.searchParams.set('question',questionId)
+  const detail={moduleId:'shenlun.review',returnUrl:returnUrl.pathname+returnUrl.search+returnUrl.hash}
+  if(activityId){detail.contextKind='activity';detail.contextId=activityId;detail.label='带本次批改问西西'}
+  window.__gontuCoachContext=detail
+  window.GontuV3Shell?.setCoachContext(detail)
+  window.dispatchEvent(new CustomEvent('gontu:v3-coach-context',{detail}))
+}
 
 // ─── Vue App ─────────────────────────────────────────────────────────
 const {createApp,ref,computed,nextTick,onMounted} = Vue
@@ -930,6 +1030,9 @@ createApp({
   setup(){
     const questions = ref([])
     const selectedQuestion = ref(null)
+    const catalog = ref({catalogStatus:'loading',isComplete:false,contentNotice:'正在核对题库状态…',questionCount:0})
+    const questionSourceError = ref('')
+    const questionError = ref('')
     const filterType = ref('全部')
     const messages = ref([])
     const inputText = ref('')
@@ -941,6 +1044,8 @@ createApp({
     const mistakeCount = ref(0)
     const analysis = ref(null)
     const analyzing = ref(false)
+    let pendingGradeAttempt=null
+    const questionSourceUnavailable = computed(()=>catalog.value.catalogStatus==='not-provided')
 
     const types = computed(()=>[...new Set(questions.value.map(q=>q.type))].sort())
     const filteredQuestions = computed(()=>{
@@ -949,14 +1054,55 @@ createApp({
     })
 
     async function loadQuestions(){
-      try{const r=await apiFetch('/api/shenlun/questions'); questions.value=await r.json()}catch(e){}
+      questionSourceError.value=''; questionError.value=''
+      try{
+        const catalogResponse=await apiFetch('/api/shenlun/catalog')
+        if(!catalogResponse.ok){
+          const payload=await catalogResponse.json().catch(()=>({}))
+          if((catalogResponse.status===402||catalogResponse.status===403)&&window.GontuAuth)window.GontuAuth.showVipGate(responseMessage(payload,'该功能仅限 VIP 用户使用'))
+          throw new Error(responseMessage(payload,'申论题源暂未提供，请稍后再试。'))
+        }
+        catalog.value=await catalogResponse.json()
+        const r=await apiFetch('/api/shenlun/questions')
+        if(!r.ok){
+          const payload=await r.json().catch(()=>({}))
+          if((r.status===402||r.status===403)&&window.GontuAuth)window.GontuAuth.showVipGate(responseMessage(payload,'该功能仅限 VIP 用户使用'))
+          throw new Error(responseMessage(payload,'申论题源暂未提供，请稍后再试。'))
+        }
+        questions.value=await r.json()
+        const requestedId=new URLSearchParams(location.search).get('question')
+        const requested=questions.value.find(item=>item.id===requestedId)
+        if(requested)await selectQuestion(requested)
+      }catch(e){
+        catalog.value={catalogStatus:'not-provided',isComplete:false,contentNotice:'',questionCount:0}
+        questionSourceError.value=e.message||'申论题源暂未提供，请稍后再试。'
+        questions.value=[]; selectedQuestion.value=null
+      }
     }
 
-    function selectQuestion(q){
+    async function selectQuestion(q){
+      if(questionSourceUnavailable.value){gontuToast(questionSourceError.value||'申论题源暂未提供','warning');return}
+      questionError.value=''
       if(selectedQuestion.value&&selectedQuestion.value.id===q.id){
         selectedQuestion.value=null
+        const url=new URL(location.href);url.searchParams.delete('question');history.replaceState(null,'',url)
+        publishShenlunCoach(null,null)
       }else{
         selectedQuestion.value=q; activeTab.value='chat'
+        try{
+          const r=await apiFetch('/api/shenlun/questions/'+encodeURIComponent(q.id))
+          if(!r.ok){
+            const payload=await r.json().catch(()=>({}))
+            throw new Error(responseMessage(payload,'当前题库未提供这道题。'))
+          }
+          selectedQuestion.value=await r.json()
+          const url=new URL(location.href);url.searchParams.set('question',selectedQuestion.value.id);history.replaceState(null,'',url)
+          publishShenlunCoach(null,selectedQuestion.value.id)
+        }catch(e){
+          selectedQuestion.value=null
+          questionError.value=e.message||'当前题库未提供这道题。'
+          gontuToast(questionError.value,'error')
+        }
       }
     }
 
@@ -979,9 +1125,9 @@ createApp({
         const body={message:text}
         if(selectedQuestion.value) body.questionId=selectedQuestion.value.id
         const r=await apiFetch('/api/shenlun/chat',{method:'POST',body:JSON.stringify(body)})
-        if(!r.ok){const e=await r.json();throw new Error(e.detail||'请求失败')}
+        if(!r.ok){const e=await r.json().catch(()=>({}));if((r.status===402||r.status===403)&&window.GontuAuth)window.GontuAuth.showVipGate(responseMessage(e,'该功能仅限 VIP 用户使用'));throw new Error(responseMessage(e,'请求失败'))}
         const d=await r.json()
-        messages.value.push({role:'ai',content:d.reply,formatted:formatTeacherReview(d.reply)})
+        messages.value.push({role:'ai',content:d.reply,formatted:formatTeacherReview(d.reply),historyId:d.historyId||null,tracked:false,tracking:false})
         await scrollToBottom()
         if(selectedQuestion.value) setTimeout(loadMistakes,1000)
       }catch(e){
@@ -990,6 +1136,42 @@ createApp({
         loading.value=false
         nextTick(()=>inputEl.value?.focus())
       }
+    }
+
+    async function gradeAnswer(){
+      const text=inputText.value.trim()
+      if(!selectedQuestion.value||!text||loading.value||questionSourceUnavailable.value||questionError.value)return
+      const questionId=selectedQuestion.value.id
+      const attempt=pendingGradeAttempt&&pendingGradeAttempt.questionId===questionId&&pendingGradeAttempt.studentAnswer===text
+        ? pendingGradeAttempt
+        : {questionId,studentAnswer:text,key:createGradeRequestKey(),displayed:false}
+      pendingGradeAttempt=attempt
+      if(!attempt.displayed){
+        messages.value.push({role:'user',content:text})
+        attempt.displayed=true
+      }
+      inputText.value=''; loading.value=true
+      await scrollToBottom()
+      try{
+        const {response,body}=await requestFormalGrade({
+          questionId:attempt.questionId,studentAnswer:attempt.studentAnswer
+        },attempt.key)
+        if(!response.ok){
+          if((response.status===402||response.status===403)&&window.GontuAuth)window.GontuAuth.showVipGate(responseMessage(body,'该功能仅限 VIP 用户使用'))
+          const error=new Error(responseMessage(body,'批改失败'))
+          error.code=body&&body.detail&&body.detail.code
+          throw error
+        }
+        const d=body
+        pendingGradeAttempt=null
+        publishShenlunCoach(d.activityId,d.questionId)
+        messages.value.push({role:'ai',content:JSON.stringify(d.gradingResult),formatted:formatTeacherReview(d.gradingResult)})
+        await loadMistakes(); await scrollToBottom()
+      }catch(e){
+        if(e.code!=='network_unavailable'&&e.code!=='idempotency_in_progress') pendingGradeAttempt=null
+        inputText.value=text
+        messages.value.push({role:'ai',content:'批改失败：'+e.message,formatted:'<span style="color:#c4493a">批改失败：'+_esc(e.message)+'</span>'})
+      }finally{ loading.value=false; nextTick(()=>inputEl.value?.focus()) }
     }
 
     async function scrollToBottom(){
@@ -1017,75 +1199,97 @@ createApp({
       await loadMistakes()
     }
 
+    async function trackMessage(message){
+      if(!message.historyId||message.tracking||message.tracked)return
+      message.tracking=true
+      try{
+        const r=await apiFetch('/api/shenlun/mistakes',{method:'POST',body:JSON.stringify({historyId:message.historyId})})
+        if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(responseMessage(e,'加入问题追踪失败'))}
+        message.tracked=true
+        await loadMistakes()
+        gontuToast('已加入问题追踪','success')
+      }catch(e){gontuToast(e.message||'加入问题追踪失败','error')}
+      finally{message.tracking=false}
+    }
+
+    async function redoMistake(m){
+      const q=questions.value.find(item=>item.id===m.questionId)
+      if(!q){gontuToast('原题暂不可用','warning');return}
+      await selectQuestion(q)
+      inputText.value=m.studentAnswer||''
+      activeTab.value='chat'
+      nextTick(()=>inputEl.value?.focus())
+    }
+
+    async function deleteMistake(m){
+      if(!confirm('确定删除这条问题记录？批改历史仍会保留。'))return
+      const r=await apiFetch('/api/shenlun/mistakes/'+encodeURIComponent(m.id),{method:'DELETE'})
+      if(!r.ok){const e=await r.json().catch(()=>({}));gontuToast(responseMessage(e,'删除失败'),'error');return}
+      await loadMistakes(); analysis.value=null
+    }
+
     async function doAnalyze(){
       analyzing.value=true; analysis.value=null
       try{
         const r=await apiFetch('/api/shenlun/mistakes/analyze',{method:'POST'})
-        if(!r.ok){const e=await r.json();throw new Error(e.detail||'分析失败')}
+        if(!r.ok){const e=await r.json().catch(()=>({}));if((r.status===402||r.status===403)&&window.GontuAuth)window.GontuAuth.showVipGate(responseMessage(e,'该功能仅限 VIP 用户使用'));throw new Error(responseMessage(e,'分析失败'))}
         analysis.value=await r.json()
       }catch(e){alert('分析失败：'+e.message)}
       finally{analyzing.value=false}
     }
 
+    function trackingRecordsHtml(){
+      return mistakes.value.map(function(m){
+        const isChat=m.recordType==='chat'
+        let html='<section><h3>'+_esc(m.questionTitle||'申论问题')+' <small>'+_esc(m.questionType||'')+'</small></h3>'
+        html+='<div class="meta">'+_esc((m.createdAt||'').slice(0,16))+'</div>'
+        html+='<span class="label">'+(isChat?'我的提问：':'完整题目：')+'</span><div class="box">'+_esc(m.questionText||m.questionTitle||'')+'</div>'
+        if(m.material)html+='<span class="label">材料：</span><div class="box">'+_esc(m.material)+'</div>'
+        if(m.questionRequirement)html+='<span class="label">作答要求：</span><div class="box">'+_esc(m.questionRequirement)+'</div>'
+        if(!isChat)html+='<span class="label">学生作答：</span><div class="box">'+_esc(m.studentAnswer||'无')+'</div>'
+        html+='<span class="label">飞扬老师回复：</span><div class="box">'+formatTeacherReview(m._aiReplyRaw||m.aiReply||'无')+'</div></section>'
+        return html
+      }).join('')
+    }
+
+    function buildTrackingDocument(){
+      return '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><title>申论问题追踪</title><style>body{font-family:"Microsoft YaHei","SimSun",serif;font-size:14px;padding:24px;color:#333;line-height:1.8}h1{color:#8b6826;text-align:center;font-size:22px}h3{color:#5a4a30;border-bottom:1px solid #e8dcc8;padding-bottom:6px}small{font-size:13px;font-weight:normal;color:#888}.meta{font-size:12px;color:#999;margin-bottom:12px}section{border:1px solid #ddd;border-radius:10px;padding:16px;margin-bottom:18px;background:#fff}.label{font-weight:600;color:#8b6826;display:block;margin:10px 0 4px}.box{background:#faf8f3;border-radius:6px;padding:12px;white-space:pre-wrap;word-break:break-word}@media print{body{padding:0}}</style></head><body><h1>飞扬申论 · 问题追踪</h1><p class="meta" style="text-align:center">导出时间：'+_esc(new Date().toLocaleString())+'</p>'+trackingRecordsHtml()+'</body></html>'
+    }
+
     function exportWord(){
-      // 生成 Word 内容并下载
-      let content = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><title>申论错题本</title><style>body{font-family:\'Microsoft YaHei\',\'SimSun\',serif;font-size:14px;padding:20px;}h1{color:#8b6826;text-align:center;}.card{border:1px solid #dfd7c6;border-radius:10px;padding:16px;margin-bottom:16px;background:#fefdf9;}.ct{font-weight:600;color:#b08a3a;margin-top:12px;}.ans{padding:10px;background:#f6f4ef;border-radius:6px;margin:6px 0;white-space:pre-wrap;}.rpy{padding:10px;background:#f9f7f2;border-radius:6px;margin:6px 0;white-space:pre-wrap;}</style></head><body>';
-      content += '<h1>飞扬申论 · 错题本</h1><p style="color:#999;text-align:center">导出时间：'+new Date().toLocaleString()+'</p>';
-      if(!mistakes.value.length){content+='<p>暂无记录</p>';}
-      else{
-        mistakes.value.forEach(m => {
-          content += '<div class="card">';
-          content += '<h3 style="margin-bottom:6px">'+(m.questionTitle||'')+' · '+(m.questionType||'')+'</h3>';
-          content += '<span style="font-size:12px;color:#999">'+(m.createdAt||'').slice(0,16)+'</span>';
-          content += '<div class="ct">✍️ 学生作答：</div><div class="ans">'+(m.studentAnswer||'无')+'</div>';
-          content += '<div class="ct">👨‍🏫 老师批改：</div><div class="rpy">'+formatTeacherReview(m.aiReply||'无')+'</div>';
-          content += '</div>';
-        });
-      }
-      content += '</body></html>';
+      if(!mistakes.value.length){gontuToast('暂无可导出内容','warning');return}
+      const content=buildTrackingDocument()
       const blob = new Blob([content], {type:'application/vnd.ms-word'});
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url; a.download = '申论错题本_'+new Date().toISOString().slice(0,10)+'.doc';
+      a.href = url; a.download = '申论问题追踪_'+new Date().toISOString().slice(0,10)+'.doc';
       a.click(); URL.revokeObjectURL(url);
     }
 
     function exportPDF(){
-      // 使用 tracking-panel class 作为打印内容（修复：原选择器找不到元素）
-      const printContent = document.querySelector('.tracking-panel');
-      if(!printContent || !mistakes.value.length){ gontuToast('暂无可导出内容', 'warning'); return; }
+      if(!mistakes.value.length){ gontuToast('暂无可导出内容', 'warning'); return; }
       const win = window.open('','_blank','width=800,height=900');
-      win.document.write('<html><head><meta charset="utf-8"><title>申论错题本</title>');
-      win.document.write('<style>body{font-family:"Microsoft YaHei","SimSun",serif;font-size:14px;padding:24px;color:#333;line-height:1.8}h1{color:#8b6826;text-align:center;font-size:22px}h3{color:#5a4a30;border-bottom:1px solid #e8dcc8;padding-bottom:6px}.meta{font-size:12px;color:#aaa;text-align:right;margin-bottom:20px}section{border:1px solid #ddd;border-radius:10px;padding:16px;margin-bottom:18px;background:#fff}.label{font-weight:600;color:#b08a3a;display:block;margin:10px 0 4px}.box{background:#faf8f3;border-radius:6px;padding:12px;white-space:pre-wrap;word-break:break-all}@media print{body{padding:0}}}</style>');
-      win.document.write('</head><body>');
-      win.document.write('<h1>飞扬申论 · 错题本</h1><p class="meta">导出时间：'+new Date().toLocaleString()+'</p>');
-      mistakes.value.forEach(m => {
-        win.document.write('<section>');
-        win.document.write('<h3>'+(m.questionTitle||'')+' <small style="font-size:13px;font-weight:normal;color:#888">'+(m.questionType||'')+'</small></h3>');
-        win.document.write('<span class="meta" style="display:block;text-align:left;margin-bottom:10px">'+(m.createdAt||'').slice(0,16)+'</span>');
-        win.document.write('<span class="label">✍️ 学生作答：</span><div class="box">'+(m.studentAnswer||'无')+'</div>');
-        win.document.write('<span class="label">👨‍🏫 老师批改：</span><div class="box">'+formatTeacherReview(m.aiReply||'无')+'</div>');
-        win.document.write('</section>');
-      });
-      win.document.write('</body></html>');
+      if(!win){gontuToast('浏览器阻止了打印窗口，请允许弹窗后重试','warning');return}
+      win.document.write(buildTrackingDocument());
       win.document.close();
       setTimeout(function(){ win.print(); }, 300);
     }
 
     async function clearMistakes(){
-      if(!confirm('确定清空所有错题记录？此操作不可恢复。')) return
-      await apiFetch('/api/shenlun/mistakes',{method:'DELETE'})
+      if(!confirm('确定清空所有问题追踪记录？此操作不可恢复。')) return
+      const r=await apiFetch('/api/shenlun/mistakes',{method:'DELETE'})
+      if(!r.ok){const e=await r.json().catch(()=>({}));gontuToast(responseMessage(e,'清空失败'),'error');return}
       mistakes.value=[]; mistakeCount.value=0; analysis.value=null
     }
 
     onMounted(()=>{ checkAuth(); loadQuestions(); loadMistakes(); inputEl.value?.focus() })
 
     return{
-      questions,selectedQuestion,filterType,types,filteredQuestions,
+      questions,selectedQuestion,catalog,questionSourceError,questionError,questionSourceUnavailable,filterType,types,filteredQuestions,
       messages,inputText,loading,msgContainer,inputEl,activeTab,
       mistakes,mistakeCount,analysis,analyzing,
-      selectQuestion,sendMessage,renderMessage,
-      switchToTracking,doAnalyze,exportWord,exportPDF,clearMistakes,
+      selectQuestion,sendMessage,gradeAnswer,renderMessage,
+      switchToTracking,trackMessage,redoMistake,deleteMistake,doAnalyze,exportWord,exportPDF,clearMistakes,
       formatTeacherReview
     }
   }

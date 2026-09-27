@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gongtu.local/spec/verbal-reading-ai-diagnosis-v1.schema.json",
+  "title": "Verbal Reading AI Diagnosis v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "status",
+    "summary",
+    "primary_weakness",
+    "mistake_patterns",
+    "question_feedback",
+    "next_training",
+    "limitations"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "status": { "enum": ["completed", "insufficient_evidence"] },
+    "summary": { "type": "string", "minLength": 1, "maxLength": 800 },
+    "primary_weakness": {
+      "anyOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["skill", "evidence_question_ids", "confidence", "reason"],
+          "properties": {
+            "skill": { "type": "string", "minLength": 1, "maxLength": 80 },
+            "evidence_question_ids": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": { "type": "string", "minLength": 1 }
+            },
+            "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+            "reason": { "type": "string", "minLength": 1, "maxLength": 600 }
+          }
+        }
+      ]
+    },
+    "mistake_patterns": {
+      "type": "array",
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["label", "question_ids", "explanation"],
+        "properties": {
+          "label": { "type": "string", "minLength": 1, "maxLength": 80 },
+          "question_ids": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "explanation": { "type": "string", "minLength": 1, "maxLength": 600 }
+        }
+      }
+    },
+    "question_feedback": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["question_id", "user_answer", "correct_answer", "why_user_missed", "better_path", "next_signal"],
+        "properties": {
+          "question_id": { "type": "string", "minLength": 1 },
+          "user_answer": { "anyOf": [{ "enum": ["A", "B", "C", "D"] }, { "type": "null" }] },
+          "correct_answer": { "enum": ["A", "B", "C", "D"] },
+          "why_user_missed": { "type": "string", "minLength": 1, "maxLength": 800 },
+          "better_path": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 8,
+            "items": { "type": "string", "minLength": 1, "maxLength": 160 }
+          },
+          "next_signal": { "type": "string", "minLength": 1, "maxLength": 400 }
+        }
+      }
+    },
+    "next_training": {
+      "anyOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["focus", "recommended_question_ids", "reason", "practice_instruction"],
+          "properties": {
+            "focus": { "type": "string", "minLength": 1, "maxLength": 100 },
+            "recommended_question_ids": {
+              "type": "array",
+              "maxItems": 5,
+              "uniqueItems": true,
+              "items": { "type": "string", "minLength": 1 }
+            },
+            "reason": { "type": "string", "minLength": 1, "maxLength": 600 },
+            "practice_instruction": { "type": "string", "minLength": 1, "maxLength": 400 }
+          }
+        }
+      ]
+    },
+    "limitations": {
+      "type": "array",
+      "maxItems": 10,
+      "items": { "type": "string", "minLength": 1, "maxLength": 400 }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "const": "completed" } } },
+      "then": { "properties": { "primary_weakness": { "type": "object" }, "next_training": { "type": "object" } } }
+    },
+    {
+      "if": { "properties": { "status": { "const": "insufficient_evidence" } } },
+      "then": {
+        "properties": {
+          "primary_weakness": { "type": "null" },
+          "mistake_patterns": { "type": "array", "maxItems": 0 },
+          "question_feedback": { "type": "array", "maxItems": 0 },
+          "next_training": { "type": "null" },
+          "limitations": { "type": "array", "minItems": 1 }
+        }
+      }
+    }
+  ]
+}

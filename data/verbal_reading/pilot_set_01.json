@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "set_id": "verbal_hs13_set01",
+  "source_name": "2025年花生片段阅读600题",
+  "set_no": 1,
+  "status": "pilot_page_map_verified",
+  "scope": {
+    "question_count": 20,
+    "question_range": "01-20",
+    "purpose": "validate product data contract before full transcription"
+  },
+  "source_pages": {
+    "question_book": {
+      "pdf": "/Users/miduoduo/Downloads/2025年花生片段阅读600题-题本【上】.pdf",
+      "physical_pages": [3, 4, 5, 6, 7, 8],
+      "printed_pages": [1, 2, 3, 4, 5, 6],
+      "observed_questions": "01-20"
+    },
+    "analysis_book": {
+      "pdf": "/Users/miduoduo/Downloads/2025年花生片段阅读600题-解析【上】.pdf",
+      "physical_pages": [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+      "printed_pages": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+      "observed_questions": "01-20"
+    }
+  },
+  "set_summary_from_analysis": {
+    "correct_questions": 12,
+    "wrong_questions": 8,
+    "review_status": "visually_observed_on_analysis_page_3"
+  },
+  "sample_questions": [
+    {
+      "id": "verbal_hs13_set01_q01",
+      "question_no": 1,
+      "review_status": "sample_visual_observed_not_full_transcription",
+      "source": {
+        "question_physical_pages": [3],
+        "analysis_physical_pages": [3]
+      },
+      "answer": "C",
+      "answer_source": "analysis_page_visual_observed",
+      "question_type": "中心理解题",
+      "passage_type": "说理类文章",
+      "method_tags": ["分总结构", "尾句观点", "主题词一致", "选项排除"],
+      "option_trap_tags": {
+        "A": ["片面"],
+        "B": ["区分比较联系类"],
+        "C": ["具体类", "正确概括"],
+        "D": ["区分比较联系类"]
+      },
+      "ai_brief_example": "这题的关键不是只说“混居有好处”，而是抓住尾句的总结：这种住宿布局更有利于培养视野宽阔的人才。A 只说知识结构，B 和 D 都在做文段没有展开的比较。"
+    },
+    {
+      "id": "verbal_hs13_set01_q20",
+      "question_no": 20,
+      "review_status": "sample_visual_observed_not_full_transcription",
+      "source": {
+        "question_physical_pages": [8],
+        "analysis_physical_pages": [16]
+      },
+      "answer": "D",
+      "answer_source": "analysis_page_visual_observed",
+      "question_type": "中心理解题",
+      "passage_type": "说理类文章",
+      "method_tags": ["后对策结构", "问题转对策", "对策优先", "选项排除"],
+      "option_trap_tags": {
+        "A": ["问题表述"],
+        "B": ["缺少主题词", "中性表达"],
+        "C": ["问题表述"],
+        "D": ["对策句概括"]
+      },
+      "ai_brief_example": "这题前半段提出诚信缺失会产生负外部性，后半段才落到对策：用制度机制让行为者承担责任。D 抓住了对策句，A 和 C 停在问题表述，B 过于中性。"
+    }
+  ],
+  "next_pilot_steps": [
+    "按题本物理页 3-5 先视觉录入 01-10 题题干和 A/B/C/D。",
+    "按解析物理页 3-9 视觉录入 01-10 题答案、题型与文段类型、实战解析和花生批注。",
+    "生成 10 行核对表，逐题确认题本题干与解析题头同题。",
+    "通过后再处理 11-20 题；不要跳到全量 OCR。"
+  ]
+}

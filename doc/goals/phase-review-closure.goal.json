@@ -1,0 +1,31 @@
+{
+  "id": "phase-review-closure",
+  "title": "Phase 1—6 外部审阅与合并收口",
+  "objective": "将 Phase 1—6 的线性 PR 链交给外部审阅：持续核对 PR #15—#21 的检查、评论和审阅状态，精确处理可执行反馈，并把批准、转为就绪和合并等需要用户或审阅者决定的操作清楚保留在可见任务中。",
+  "authority": "doc/PHASE_REVIEW_CLOSURE.md",
+  "tasks": [
+    {
+      "id": "PRC-1",
+      "title": "盘点 Phase 1—6 PR 当前事实",
+      "acceptance": "PR #15—#21 的基线/分支、Draft 状态、合并状态、检查、评论和审阅结论均有带日期的可复查记录。"
+    },
+    {
+      "id": "PRC-2",
+      "title": "建立反馈路由与审阅清单",
+      "acceptance": "每个阶段的反馈归属、验证边界和需要外部决定的操作均写入唯一权威文档；PR #20 被明确列为非主线的独立后续事项。",
+      "dependsOn": ["PRC-1"]
+    },
+    {
+      "id": "PRC-3",
+      "title": "处理可执行审阅反馈",
+      "acceptance": "每条实际收到的可执行反馈均在所属阶段分支修复并重新验证，或有明确的不处理理由；没有反馈时记录零待处理项。",
+      "dependsOn": ["PRC-2"]
+    },
+    {
+      "id": "PRC-4",
+      "title": "等待外部审阅并保留合并决策",
+      "acceptance": "PR 的就绪、批准和合并边界保持可见；未经用户明确授权，Agent 不标记 Ready、不批准、不合并。",
+      "dependsOn": ["PRC-3"]
+    }
+  ]
+}

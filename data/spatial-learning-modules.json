@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "moduleId": "reasoning.spatial",
+  "modules": [
+    {"id":"foundation","title":"基础截面","href":"/section-foundation.html","order":1,"description":"先建立常见立体的截面规律","scored":false},
+    {"id":"three-view","title":"三视图训练","href":"/three-view-training.html","order":2,"description":"五题一组，先判断再用模型验证","scored":true},
+    {"id":"free-cut","title":"自由切面","href":"/geometry.html","order":3,"description":"连续移动切面，自主验证空间判断","scored":false},
+    {"id":"csg","title":"组合体切割","href":"/csg-section.html","order":4,"description":"探索挖孔、相贯与组合体截面","scored":false}
+  ]
+}

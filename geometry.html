@@ -1,0 +1,2237 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <script src="/gontu-auth-client.js"></script>
+  <script>window.GontuAuth && window.GontuAuth.guardVipPage();</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="公途空间几何实验室：观察立体、移动切面并理解真实截面。">
+  <title>空间几何实验室 · 公途</title>
+  <style>
+    :root {
+      --ink: #252018;
+      --ink-soft: #655d52;
+      --paper: #f7f3ea;
+      --paper-deep: #ece3d3;
+      --panel: rgba(255, 253, 248, 0.92);
+      --line: rgba(91, 74, 51, 0.16);
+      --gold: #a77a38;
+      --gold-light: #d8b777;
+      --teal: #39736b;
+      --teal-soft: #dceae6;
+      --shadow: 0 18px 60px rgba(63, 47, 28, 0.12);
+      --radius-lg: 24px;
+      --radius-md: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% 8%, rgba(216, 183, 119, 0.2), transparent 34%),
+        radial-gradient(circle at 88% 84%, rgba(57, 115, 107, 0.12), transparent 38%),
+        var(--paper);
+      font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    }
+
+    button,
+    select,
+    input {
+      font: inherit;
+    }
+
+    button:focus-visible,
+    select:focus-visible,
+    input:focus-visible,
+    a:focus-visible {
+      outline: 3px solid rgba(57, 115, 107, 0.35);
+      outline-offset: 2px;
+    }
+
+    .app-header {
+      min-height: 72px;
+      padding: 12px clamp(18px, 4vw, 56px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(247, 243, 234, 0.86);
+      backdrop-filter: blur(18px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      color: #fffaf0;
+      background: var(--ink);
+      border-radius: 13px;
+      font-family: "STKaiti", "KaiTi", serif;
+      font-size: 22px;
+      box-shadow: 0 8px 22px rgba(37, 32, 24, 0.18);
+    }
+
+    .brand-copy strong,
+    .brand-copy span {
+      display: block;
+    }
+
+    .brand-copy strong {
+      letter-spacing: 0.12em;
+    }
+
+    .brand-copy span {
+      margin-top: 2px;
+      color: var(--ink-soft);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .button {
+      min-height: 40px;
+      padding: 9px 16px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.54);
+      cursor: pointer;
+    }
+
+    .button-primary {
+      color: #fff;
+      border-color: var(--teal);
+      background: var(--teal);
+    }
+
+    .workspace {
+      width: min(1560px, 100%);
+      min-height: calc(100vh - 72px);
+      margin: 0 auto;
+      padding: clamp(16px, 2.4vw, 34px);
+      display: grid;
+      grid-template-columns: minmax(220px, 280px) minmax(0, 1fr) minmax(240px, 310px);
+      gap: 20px;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .sidebar {
+      padding: 22px;
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--gold);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+      font-family: "STKaiti", "KaiTi", serif;
+      font-size: clamp(24px, 3vw, 36px);
+      font-weight: 700;
+    }
+
+    h2 {
+      margin-bottom: 14px;
+      font-size: 16px;
+    }
+
+    .intro {
+      margin-bottom: 24px;
+      color: var(--ink-soft);
+      font-size: 14px;
+      line-height: 1.75;
+    }
+
+    .model-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .model-button {
+      width: 100%;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border: 1px solid transparent;
+      border-radius: 12px;
+      color: var(--ink);
+      background: transparent;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .model-button:hover,
+    .model-button[aria-pressed="true"] {
+      border-color: rgba(57, 115, 107, 0.2);
+      background: var(--teal-soft);
+    }
+
+    .model-icon {
+      color: var(--teal);
+      font-family: ui-monospace, monospace;
+      font-weight: 700;
+    }
+
+    .stage-column {
+      min-width: 0;
+      display: grid;
+      grid-template-rows: auto minmax(460px, 1fr) auto;
+      gap: 14px;
+    }
+
+    .stage-heading {
+      padding: 6px 4px 0;
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .stage-heading p {
+      margin-bottom: 0;
+      color: var(--ink-soft);
+      font-size: 13px;
+    }
+
+    .viewport {
+      position: relative;
+      min-height: 460px;
+      overflow: hidden;
+      background:
+        linear-gradient(rgba(37, 32, 24, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(37, 32, 24, 0.035) 1px, transparent 1px),
+        linear-gradient(145deg, #fffdf8, #eee7db);
+      background-size: 28px 28px, 28px 28px, auto;
+    }
+
+    .viewport::after {
+      position: absolute;
+      inset: 0;
+      content: "";
+      pointer-events: none;
+      box-shadow: inset 0 0 80px rgba(77, 57, 33, 0.08);
+    }
+
+    #geometryCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .empty-stage {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-content: center;
+      padding: 30px;
+      text-align: center;
+      pointer-events: none;
+    }
+
+    .empty-stage[hidden] {
+      display: none;
+    }
+
+    .wire-cube {
+      width: 112px;
+      height: 112px;
+      margin: 0 auto 28px;
+      position: relative;
+      border: 2px solid rgba(57, 115, 107, 0.5);
+      transform: rotate(-8deg) skewY(8deg);
+    }
+
+    .wire-cube::before {
+      position: absolute;
+      inset: -18px 18px 18px -18px;
+      content: "";
+      border: 2px solid rgba(167, 122, 56, 0.45);
+    }
+
+    .cut-plane-demo {
+      width: 210px;
+      height: 86px;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: -1;
+      border: 2px solid rgba(193, 82, 59, 0.72);
+      background: rgba(193, 82, 59, 0.16);
+      transform: translate(-50%, -66%) rotate(-13deg) skewX(-16deg);
+      box-shadow: 0 0 28px rgba(193, 82, 59, 0.16);
+    }
+
+    .cut-plane-demo::after {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      content: "无限切平面";
+      padding: 4px 8px;
+      color: #94412f;
+      background: rgba(255, 250, 244, 0.9);
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      transform: translate(-50%, -50%);
+      white-space: nowrap;
+    }
+
+    .empty-stage strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 18px;
+    }
+
+    .empty-stage span {
+      color: var(--ink-soft);
+      font-size: 14px;
+    }
+
+    .viewport-tools {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      z-index: 2;
+      display: flex;
+      gap: 8px;
+    }
+
+    .interaction-tools {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      z-index: 3;
+      display: flex;
+      gap: 6px;
+      padding: 5px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255, 253, 248, 0.9);
+      box-shadow: 0 8px 24px rgba(63, 47, 28, 0.08);
+      backdrop-filter: blur(10px);
+    }
+
+    .interaction-button {
+      min-height: 34px;
+      padding: 6px 10px;
+      border: 1px solid transparent;
+      border-radius: 9px;
+      color: var(--ink-soft);
+      background: transparent;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .interaction-button[aria-pressed="true"] {
+      color: var(--teal);
+      border-color: rgba(57, 115, 107, 0.2);
+      background: var(--teal-soft);
+      font-weight: 700;
+    }
+
+    .viewport[data-interaction-mode="plane"] #geometryCanvas {
+      cursor: ns-resize;
+      touch-action: none;
+    }
+
+    .viewport[data-interaction-dragging="true"] #geometryCanvas {
+      cursor: grabbing;
+    }
+
+    .tool-button {
+      width: 40px;
+      height: 40px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      color: var(--ink);
+      background: rgba(255, 253, 248, 0.88);
+      cursor: pointer;
+    }
+
+    .section-2d-card {
+      position: absolute;
+      right: 16px;
+      bottom: 58px;
+      z-index: 3;
+      width: min(220px, calc(100% - 32px));
+      padding: 10px;
+      border: 1px solid rgba(193, 82, 59, 0.28);
+      border-radius: 14px;
+      background: rgba(255, 253, 248, 0.94);
+      box-shadow: 0 12px 36px rgba(63, 47, 28, 0.14);
+      backdrop-filter: blur(10px);
+    }
+
+    .section-2d-card[hidden] {
+      display: none;
+    }
+
+    .section-2d-card strong,
+    .section-2d-card small {
+      display: block;
+    }
+
+    .section-2d-card small {
+      margin-top: 2px;
+      color: var(--ink-soft);
+    }
+
+    .section-2d-card svg {
+      width: 100%;
+      height: auto;
+      margin-top: 6px;
+      display: block;
+    }
+
+    .live-section-card {
+      position: absolute;
+      left: 16px;
+      bottom: 16px;
+      z-index: 2;
+      min-width: 168px;
+      padding: 12px 14px;
+      border: 1px solid rgba(193, 82, 59, 0.26);
+      border-radius: 14px;
+      color: var(--ink);
+      background: rgba(255, 250, 244, 0.9);
+      box-shadow: 0 10px 30px rgba(90, 51, 37, 0.1);
+      backdrop-filter: blur(10px);
+    }
+
+    .live-section-card span,
+    .live-section-card strong {
+      display: block;
+    }
+
+    .live-section-card span {
+      color: #94412f;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+    }
+
+    .live-section-card strong {
+      margin-top: 4px;
+      font-size: 14px;
+    }
+
+    .section-metrics {
+      margin-top: 18px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255, 253, 248, 0.72);
+    }
+
+    .section-metrics h3 {
+      margin: 0;
+      font-size: 15px;
+    }
+
+    .section-metrics-summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .section-metrics-summary span {
+      min-width: 0;
+      padding: 8px 4px;
+      border-radius: 9px;
+      text-align: center;
+      background: var(--paper);
+      font-size: 11px;
+      color: var(--ink-soft);
+    }
+
+    .section-metrics-summary strong {
+      display: block;
+      margin-top: 3px;
+      color: var(--ink);
+      font: 700 12px/1.2 ui-monospace, monospace;
+    }
+
+    .section-vertices {
+      max-height: 132px;
+      margin: 10px 0 0;
+      padding-left: 26px;
+      overflow: auto;
+      color: var(--ink-soft);
+      font: 11px/1.7 ui-monospace, monospace;
+    }
+
+    .section-empty {
+      margin: 10px 0 0;
+      color: var(--ink-soft);
+      font-size: 12px;
+    }
+
+    .axis-legend {
+      position: absolute;
+      right: 16px;
+      bottom: 16px;
+      z-index: 2;
+      display: flex;
+      gap: 10px;
+      padding: 9px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--ink-soft);
+      background: rgba(255, 253, 248, 0.86);
+      box-shadow: 0 8px 24px rgba(63, 47, 28, 0.08);
+      backdrop-filter: blur(10px);
+      font: 700 11px/1 ui-monospace, monospace;
+    }
+
+    .axis-x { color: #c65345; }
+    .axis-y { color: #3e8b67; }
+    .axis-z { color: #3975ad; }
+
+    .view-strip {
+      padding: 12px;
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+    }
+
+    .view-button {
+      padding: 9px 6px;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      color: var(--ink-soft);
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .view-button[aria-pressed="true"] {
+      color: var(--teal);
+      border-color: rgba(57, 115, 107, 0.18);
+      background: var(--teal-soft);
+      font-weight: 700;
+    }
+
+    .controls {
+      padding: 22px;
+      align-self: start;
+    }
+
+    .control-section + .control-section {
+      margin-top: 24px;
+      padding-top: 22px;
+      border-top: 1px solid var(--line);
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .field-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--ink-soft);
+      font-size: 13px;
+    }
+
+    .field output {
+      color: var(--teal);
+      font-variant-numeric: tabular-nums;
+    }
+
+    select {
+      width: 100%;
+      min-height: 42px;
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      color: var(--ink);
+      background: #fffdf8;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--teal);
+    }
+
+    .section-placeholder {
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      background: rgba(216, 183, 119, 0.07);
+    }
+
+    .mode-button {
+      min-height: 42px;
+      padding: 9px 12px;
+      border: 1px solid transparent;
+      border-radius: 11px;
+      color: var(--ink-soft);
+      background: transparent;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .mode-button[aria-pressed="true"] {
+      color: #94412f;
+      border-color: rgba(193, 82, 59, 0.24);
+      background: rgba(193, 82, 59, 0.1);
+      font-weight: 700;
+    }
+
+    .cut-note {
+      margin: 12px 0 0;
+      color: var(--ink-soft);
+      font-size: 12px;
+      line-height: 1.65;
+    }
+
+    .cutaway-toggle {
+      margin: 12px 0 16px;
+    }
+
+    .locked-point {
+      margin-bottom: 10px;
+    }
+    .locked-point .field-row {
+      margin-bottom: 4px;
+    }
+    .point-inputs {
+      display: flex;
+      gap: 8px;
+    }
+    .point-inputs label {
+      display: flex;
+      flex-direction: column;
+      font-size: 11px;
+      color: var(--ink-soft);
+      gap: 2px;
+    }
+    .point-inputs input {
+      width: 64px;
+      padding: 4px 6px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--paper);
+      color: var(--ink);
+      font-size: 12px;
+      text-align: center;
+    }
+    .cut-lock-status {
+      margin: 8px 0 0;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--teal);
+    }
+
+    .status-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      color: var(--teal);
+      background: var(--teal-soft);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .status-chip::before {
+      width: 7px;
+      height: 7px;
+      content: "";
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    @media (max-width: 1080px) {
+      .workspace {
+        grid-template-columns: minmax(210px, 250px) minmax(0, 1fr);
+        min-height: calc(100vh - 72px);
+      }
+
+      .controls {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 22px;
+      }
+
+      .control-section + .control-section {
+        margin-top: 0;
+        padding-top: 0;
+        padding-left: 22px;
+        border-top: 0;
+        border-left: 1px solid var(--line);
+      }
+    }
+
+    @media (min-width: 1081px) {
+      .app-header {
+        min-height: 56px;
+        height: 56px;
+        padding-block: 7px;
+      }
+
+      .brand-mark {
+        width: 38px;
+        height: 38px;
+      }
+
+      .brand-copy span,
+      .header-actions .button:first-child {
+        display: none;
+      }
+
+      .workspace {
+        height: calc(100dvh - 56px);
+        min-height: 0;
+        padding: 12px;
+        grid-template-columns: minmax(210px, 240px) minmax(480px, 1fr) minmax(270px, 310px);
+        gap: 12px;
+        overflow: hidden;
+      }
+
+      .sidebar,
+      .controls {
+        min-height: 0;
+        padding: 14px;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        scrollbar-width: thin;
+      }
+
+      .controls {
+        align-self: stretch;
+      }
+
+      .sidebar h1 {
+        margin-bottom: 6px;
+        font-size: 24px;
+      }
+
+      .intro {
+        margin-bottom: 12px;
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .model-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px;
+      }
+
+      .model-button {
+        padding: 9px 10px;
+        font-size: 13px;
+      }
+
+      .stage-column {
+        min-height: 0;
+        grid-template-rows: 52px minmax(0, 1fr) 48px;
+        gap: 8px;
+      }
+
+      .stage-heading {
+        padding: 0 4px;
+        align-items: center;
+      }
+
+      .stage-heading .eyebrow,
+      .stage-heading h1 {
+        margin-bottom: 2px;
+      }
+
+      .stage-heading h1 {
+        font-size: 24px;
+      }
+
+      .viewport {
+        min-height: 0;
+      }
+
+      .view-strip {
+        padding: 6px;
+        gap: 4px;
+      }
+
+      .view-button {
+        padding: 6px 4px;
+      }
+
+      .controls h2 {
+        margin-bottom: 10px;
+      }
+
+      .control-section + .control-section {
+        margin-top: 14px;
+        padding-top: 14px;
+      }
+
+      .field {
+        gap: 5px;
+        margin-bottom: 10px;
+      }
+
+      .section-placeholder {
+        padding: 7px;
+        gap: 4px;
+      }
+
+      .mode-button {
+        min-height: 34px;
+        padding: 6px 8px;
+        font-size: 12px;
+      }
+
+      .cutaway-toggle {
+        margin: 8px 0 10px;
+      }
+
+      .cut-note {
+        margin-top: 8px;
+        line-height: 1.45;
+      }
+
+      .section-metrics {
+        margin-top: 10px;
+        padding: 10px;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .app-header {
+        align-items: flex-start;
+      }
+
+      .header-actions .button:first-child {
+        display: none;
+      }
+
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        order: 2;
+      }
+
+      .stage-column {
+        order: 1;
+        grid-template-rows: auto minmax(380px, 58vh) auto;
+      }
+
+      .controls {
+        order: 3;
+        grid-column: auto;
+        grid-template-columns: 1fr;
+      }
+
+      .control-section + .control-section {
+        margin-top: 4px;
+        padding-top: 22px;
+        padding-left: 0;
+        border-top: 1px solid var(--line);
+        border-left: 0;
+      }
+
+      .model-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .view-strip {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    /* ── 5×5×5 搭建器网格 ── */
+    .builder-grid-panel {
+      margin-top: 16px;
+    }
+
+    .builder-layer-bar {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .builder-layer-btn {
+      min-width: 44px;
+      height: 36px;
+      padding: 0 6px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .builder-layer-btn[aria-pressed="true"] {
+      background: var(--ink);
+      color: #fffaf0;
+      border-color: var(--ink);
+    }
+
+    .builder-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      grid-template-rows: repeat(5, 1fr);
+      gap: 3px;
+      margin-bottom: 10px;
+    }
+
+    .builder-cell {
+      aspect-ratio: 1;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: var(--panel);
+      cursor: pointer;
+      transition: background 0.12s, transform 0.12s;
+      padding: 0;
+    }
+
+    .builder-cell:hover {
+      transform: scale(1.08);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    }
+
+    .builder-cell.filled {
+      border-color: var(--gold);
+    }
+
+    .builder-cell.filled.layer-0 { background: #6baed6; }
+    .builder-cell.filled.layer-1 { background: #fd8d3c; }
+    .builder-cell.filled.layer-2 { background: #74c476; }
+    .builder-cell.filled.layer-3 { background: #9e9ac8; }
+    .builder-cell.filled.layer-4 { background: #f768a1; }
+
+    .builder-cell.empty {
+      background: transparent;
+      border-style: dashed;
+    }
+
+    .builder-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--ink-soft);
+    }
+
+    .builder-footer output {
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .builder-footer button {
+      padding: 4px 12px;
+      font-size: 12px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--panel);
+      color: var(--ink);
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+
+    .builder-footer button:hover {
+      background: var(--paper-deep);
+    }
+
+    .builder-presets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-bottom: 10px;
+    }
+
+    .builder-preset-btn {
+      padding: 3px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--panel);
+      color: var(--ink-soft);
+      cursor: pointer;
+      transition: background 0.12s, color 0.12s, border-color 0.12s;
+      white-space: nowrap;
+    }
+
+    .builder-preset-btn:hover {
+      background: var(--ink);
+      color: #fffaf0;
+      border-color: var(--ink);
+    }
+  </style>
+</head>
+<body data-spatial-module="free-cut">
+  <link rel="stylesheet" href="/spatial-learning-shell.css?v=20260715e">
+  <header class="app-header">
+    <a class="brand" href="/spatial-learning.html" aria-label="返回立体图推学习中心">
+      <span class="brand-mark" aria-hidden="true">公</span>
+      <span class="brand-copy">
+        <strong>空间几何实验室</strong>
+        <span>GONGTU · SPATIAL LAB</span>
+      </span>
+    </a>
+    <nav class="spatial-module-nav" aria-label="立体图推学习路径"></nav>
+    <div class="header-actions">
+      <button class="button" type="button">使用说明</button>
+      <button class="button button-primary" type="button">进入题库</button>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <aside class="panel sidebar" aria-labelledby="model-library-title">
+      <p class="eyebrow">Model Library</p>
+      <h1 id="model-library-title">选择一个立体</h1>
+      <p class="intro">先从标准模型开始观察。之后可以添加组合体、题目图片和自定义参数。</p>
+
+      <nav class="model-list" aria-label="基础立体模型">
+        <button class="model-button" type="button" aria-pressed="true">
+          <span>正方体</span><span class="model-icon">□</span>
+        </button>
+        <button class="model-button" type="button" aria-pressed="false">
+          <span>长方体</span><span class="model-icon">▭</span>
+        </button>
+        <button class="model-button" type="button" aria-pressed="false">
+          <span>三棱柱</span><span class="model-icon">△</span>
+        </button>
+        <button class="model-button" type="button" aria-pressed="false">
+          <span>三棱锥</span><span class="model-icon">◇</span>
+        </button>
+        <button class="model-button" type="button" aria-pressed="false">
+          <span>圆柱</span><span class="model-icon">⬤</span>
+        </button>
+        <button class="model-button" type="button" aria-pressed="false">
+          <span>圆锥</span><span class="model-icon">▲</span>
+        </button>
+        <button class="model-button" type="button" aria-pressed="false">
+          <span>球体</span><span class="model-icon">●</span>
+        </button>
+        <button class="model-button" type="button" aria-pressed="false">
+          <span>阶梯组合体</span><span class="model-icon">⏌</span>
+        </button>
+        <button class="model-button" type="button" aria-pressed="false">
+          <span>5×5×5 搭建器</span><span class="model-icon">▦</span>
+        </button>
+      </nav>
+    </aside>
+
+    <section class="stage-column" aria-labelledby="stage-title">
+      <div class="stage-heading">
+        <div>
+          <p class="eyebrow">Interactive Viewport</p>
+          <h1 id="stage-title">观察与切割</h1>
+          <p>拖拽旋转 · 使用视图按钮缩放 · 移动切面</p>
+        </div>
+        <span class="status-chip">准备就绪</span>
+      </div>
+
+      <div class="panel viewport" aria-label="三维模型观察区域">
+        <canvas id="geometryCanvas">
+          当前浏览器不支持 Canvas，请升级浏览器后重试。
+        </canvas>
+        <div class="empty-stage" id="stagePlaceholder">
+          <div>
+            <div class="wire-cube" aria-hidden="true">
+              <div class="cut-plane-demo"></div>
+            </div>
+            <strong>在模型上直接看见切割过程</strong>
+            <span>拖动或倾斜红色切平面，模型与高亮截面将实时变化。</span>
+          </div>
+        </div>
+        <div class="interaction-tools" aria-label="三维交互模式">
+          <button class="interaction-button" type="button" data-interaction-mode="orbit" aria-pressed="true">旋转视角</button>
+          <button class="interaction-button" type="button" data-interaction-mode="plane" aria-pressed="false">拖动切面</button>
+        </div>
+        <div class="viewport-tools" aria-label="视图工具">
+          <button class="tool-button" type="button" aria-label="放大三维视图" title="放大三维视图">＋</button>
+          <button class="tool-button" type="button" aria-label="缩小三维视图" title="缩小三维视图">−</button>
+          <button class="tool-button" type="button" aria-label="复位视角">↺</button>
+          <button class="tool-button" type="button" aria-label="切换二维截面辅助图" aria-pressed="false">2D</button>
+          <button class="tool-button" type="button" aria-label="切换全屏">⛶</button>
+        </div>
+        <div class="section-2d-card" id="section2dCard" aria-label="二维截面辅助图" hidden>
+          <strong>二维截面辅助</strong>
+          <small id="section2dMeta">暂无有效截面</small>
+          <svg viewBox="0 0 220 160" role="img" aria-label="当前截面二维轮廓">
+            <polygon id="section2dPolygon" fill="rgba(242,184,75,.48)" stroke="#c1523b" stroke-width="3" vector-effect="non-scaling-stroke"></polygon>
+          </svg>
+        </div>
+        <div class="live-section-card" aria-label="实时截面状态">
+          <span>LIVE SECTION</span>
+          <strong>截面将在模型内部实时高亮</strong>
+        </div>
+        <div class="axis-legend" aria-label="坐标轴颜色">
+          <span class="axis-x">X 红</span>
+          <span class="axis-y">Y 绿</span>
+          <span class="axis-z">Z 蓝</span>
+        </div>
+      </div>
+
+      <div class="panel view-strip" aria-label="标准观察方向">
+        <button class="view-button" type="button" aria-pressed="true">透视</button>
+        <button class="view-button" type="button" aria-pressed="false">正视</button>
+        <button class="view-button" type="button" aria-pressed="false">后视</button>
+        <button class="view-button" type="button" aria-pressed="false">左视</button>
+        <button class="view-button" type="button" aria-pressed="false">右视</button>
+        <button class="view-button" type="button" aria-pressed="false">俯视</button>
+      </div>
+    </section>
+
+    <aside class="panel controls" aria-label="模型与切面控制">
+      <section class="control-section" aria-labelledby="model-settings-title">
+        <p class="eyebrow">Object</p>
+        <h2 id="model-settings-title">模型参数</h2>
+        <div id="model-params"></div>
+        <div id="builder-panel" class="builder-grid-panel" style="display:none">
+          <div class="field-row"><span>Y 层选择</span></div>
+          <div class="builder-layer-bar" id="builder-layer-bar"></div>
+          <div class="builder-presets" id="builder-presets"></div>
+          <div class="builder-grid" id="builder-grid"></div>
+          <div class="builder-footer">
+            <span>方块数: <output id="builder-count">0</output> / 125</span>
+            <button id="builder-clear" type="button">清空</button>
+            <button id="builder-fill" type="button">填满</button>
+          </div>
+        </div>
+        <label class="field">
+          <span class="field-row"><span>颜色</span></span>
+          <input type="color" value="#f5f1e8" aria-label="模型颜色" style="width:100%;height:34px;border:1px solid var(--color-border);border-radius:6px;cursor:pointer;">
+        </label>
+        <label class="field">
+          <span class="field-row"><span>透明度</span><output>100%</output></span>
+          <input type="range" min="10" max="100" step="5" value="100" aria-label="模型透明度">
+        </label>
+      </section>
+
+      <section class="control-section" aria-labelledby="cut-settings-title">
+        <p class="eyebrow">Cutting Plane</p>
+        <h2 id="cut-settings-title">无限切平面</h2>
+        <div class="section-placeholder" aria-label="切割模式">
+          <button class="mode-button" type="button" aria-pressed="true">自由切割 · 连续拖动与倾斜</button>
+          <button class="mode-button" type="button" aria-pressed="false">题目切割 · 由 A、B、C 三点锁定</button>
+        </div>
+        <div class="section-placeholder cutaway-toggle" aria-label="截面显示模式">
+          <button class="mode-button" type="button" data-cutaway-mode="teaching" aria-pressed="true">教学模式 · 完整模型</button>
+          <button class="mode-button" type="button" data-cutaway-mode="hidden" aria-pressed="false">真实剖开 · 隐藏被切侧</button>
+          <button class="mode-button" type="button" data-cutaway-mode="transparent" aria-pressed="false">透明显示被切侧</button>
+        </div>
+        <div class="section-placeholder cutaway-toggle" aria-label="视觉刀面显示">
+          <label style="display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--line);border-radius:11px;cursor:pointer;">
+            <input type="checkbox" checked id="cutplane-visual-toggle" aria-label="显示视觉刀面">
+            <span style="font-size:13px;color:var(--ink-soft);">显示视觉刀面</span>
+          </label>
+        </div>
+        <div id="cut-free-inputs">
+          <label class="field">
+            <span class="field-row"><span>平面位置</span><output>0.00</output></span>
+            <input type="range" min="-2" max="2" step="0.01" value="0" aria-label="切割平面位置">
+          </label>
+          <label class="field">
+            <span class="field-row"><span>水平倾角</span><output>0°</output></span>
+            <input type="range" min="-90" max="90" step="1" value="0" aria-label="切割平面水平倾角">
+          </label>
+          <label class="field">
+            <span class="field-row"><span>垂直倾角</span><output>0°</output></span>
+            <input type="range" min="-90" max="90" step="1" value="0" aria-label="切割平面垂直倾角">
+          </label>
+        </div>
+        <div id="cut-locked-inputs" style="display:none">
+          <div class="field locked-point">
+            <span class="field-row"><span>A 点坐标</span></span>
+            <span class="point-inputs">
+              <label>X<input type="number" value="0.5" step="0.01" aria-label="A点X坐标"></label>
+              <label>Y<input type="number" value="-2.0" step="0.01" aria-label="A点Y坐标"></label>
+              <label>Z<input type="number" value="0.0" step="0.01" aria-label="A点Z坐标"></label>
+            </span>
+          </div>
+          <div class="field locked-point">
+            <span class="field-row"><span>B 点坐标</span></span>
+            <span class="point-inputs">
+              <label>X<input type="number" value="-0.5" step="0.01" aria-label="B点X坐标"></label>
+              <label>Y<input type="number" value="-2.0" step="0.01" aria-label="B点Y坐标"></label>
+              <label>Z<input type="number" value="0.5" step="0.01" aria-label="B点Z坐标"></label>
+            </span>
+          </div>
+          <div class="field locked-point">
+            <span class="field-row"><span>C 点坐标</span></span>
+            <span class="point-inputs">
+              <label>X<input type="number" value="-0.5" step="0.01" aria-label="C点X坐标"></label>
+              <label>Y<input type="number" value="-1.0" step="0.01" aria-label="C点Y坐标"></label>
+              <label>Z<input type="number" value="-0.5" step="0.01" aria-label="C点Z坐标"></label>
+            </span>
+          </div>
+          <p class="cut-lock-status" id="cut-lock-status"></p>
+        </div>
+        <p class="cut-note">教学模式保留完整模型：刀移动到哪里，真实相交区域就在哪里以蓝色截面实时高亮；需要观察剖开效果时再切换辅助模式。</p>
+        <div class="section-metrics" id="sectionMetrics" aria-live="polite">
+          <h3>截面信息</h3>
+          <div id="sectionMetricsContent">
+            <p class="section-empty">暂无有效截面</p>
+          </div>
+        </div>
+      </section>
+    </aside>
+  </main>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "/node_modules/three/build/three.module.js"
+      }
+    }
+  </script>
+  <script type="module" src="/geometry/scene.js"></script>
+  <script type="module">
+    import { createBox, createCube } from "/geometry/box-generator.js";
+    import { createTriangularPrism } from "/geometry/prism-generator.js";
+    import { createTriangularPyramid } from "/geometry/pyramid-generator.js";
+    import { createCylinder } from "/geometry/cylinder-generator.js";
+    import { createCone } from "/geometry/cone-generator.js";
+    import { createSphere } from "/geometry/sphere-generator.js";
+    import { createStaircaseModel } from "/geometry/staircase-fixture.js";
+    import {
+      createBuilderModel,
+      toggleBlock,
+      hasBlock,
+      clearAll as builderClearAll,
+      fillAll as builderFillAll,
+      blockCount,
+      getLayerGrid,
+      setPositions,
+      GRID_RANGE,
+    } from "/geometry/builder-5x5.js";
+    import { BLOCK_PRESETS } from "/geometry/block-presets.js";
+    import {
+      collectWorldEdges,
+      intersectEdgesWithPlane,
+      orderAndCloseSection,
+    } from "/geometry/plane-intersections.js";
+    import { createSectionVisual } from "/geometry/section-visual.js";
+    import { createSectionVisualV2 } from "/geometry/section-visual-v2.js";
+    import { createCutawayVisual } from "/geometry/cutaway-visual.js";
+    import {
+      getSectionDisplayPolicy,
+      isSectionDisplayMode,
+    } from "/geometry/section-mode.js";
+    import { computeCutPlaneVisualSize, computeCutPlaneVisualCenter } from "/geometry/cutting-plane.js";
+    import { projectSectionTo2D, svgPointString } from "/geometry/section-2d.js";
+    import {
+      calculateSectionMetrics,
+      formatSectionNumber,
+    } from "/geometry/section-metrics.js";
+    import {
+      chooseSectionProductionEngine,
+      compareSectionV1V2,
+      computeSectionV2,
+      toSectionVisualV2Data,
+    } from "/geometry/section-engine-v2.js";
+    import { createViewportInteractionMode } from "/geometry/viewport-interaction-mode.js";
+
+    /* ── 每个模型类型对应的参数控件定义 ── */
+    const PARAM_DEFS = {
+      cube: {
+        size: { label: "边长", min: 0.3, max: 4, step: 0.1, default: 1.0 },
+      },
+      box: {
+        width: { label: "长", min: 0.3, max: 4, step: 0.1, default: 1.0 },
+        height: { label: "高", min: 0.3, max: 4, step: 0.1, default: 1.5 },
+        depth: { label: "宽", min: 0.3, max: 4, step: 0.1, default: 0.8 },
+      },
+      triangularPrism: {
+        baseSize: { label: "底边长", min: 0.3, max: 4, step: 0.1, default: 1.0 },
+        height: { label: "高", min: 0.3, max: 4, step: 0.1, default: 1.0 },
+      },
+      triangularPyramid: {
+        baseSize: { label: "底边长", min: 0.3, max: 4, step: 0.1, default: 1.0 },
+        height: { label: "高", min: 0.3, max: 4, step: 0.1, default: 1.0 },
+      },
+      cylinder: {
+        radiusTop: { label: "上半径", min: 0.1, max: 2, step: 0.05, default: 0.5 },
+        radiusBottom: { label: "下半径", min: 0.1, max: 2, step: 0.05, default: 0.5 },
+        height: { label: "高", min: 0.3, max: 4, step: 0.1, default: 1.0 },
+        segments: { label: "分段", min: 3, max: 128, step: 1, default: 32 },
+      },
+      cone: {
+        radius: { label: "半径", min: 0.1, max: 2, step: 0.05, default: 0.5 },
+        height: { label: "高", min: 0.3, max: 4, step: 0.1, default: 1.0 },
+        segments: { label: "分段", min: 3, max: 128, step: 1, default: 32 },
+      },
+      sphere: {
+        radius: { label: "半径", min: 0.1, max: 2, step: 0.05, default: 0.5 },
+        widthSegments: { label: "经线", min: 3, max: 64, step: 1, default: 32 },
+        heightSegments: { label: "纬线", min: 2, max: 64, step: 1, default: 16 },
+      },
+      staircase: {},
+      builder5x5: {},
+    };
+
+    /* ── DOM 引用 ── */
+    const modelButtons = document.querySelectorAll(".model-button");
+    const modelParamsEl = document.getElementById("model-params");
+    const colorInput = document.querySelector('input[aria-label="模型颜色"]');
+    const opacitySlider = document.querySelector('input[aria-label="模型透明度"]');
+    const opacityOutput = opacitySlider?.closest(".field")?.querySelector("output");
+    const cutSlider = document.querySelector('input[aria-label="切割平面位置"]');
+    const cutOutput = cutSlider?.closest(".field")?.querySelector("output");
+    const hTiltSlider = document.querySelector('input[aria-label="切割平面水平倾角"]');
+    const hTiltOutput = hTiltSlider?.closest(".field")?.querySelector("output");
+    const vTiltSlider = document.querySelector('input[aria-label="切割平面垂直倾角"]');
+    const vTiltOutput = vTiltSlider?.closest(".field")?.querySelector("output");
+    const cutFreeInputs = document.getElementById("cut-free-inputs");
+    const cutLockedInputs = document.getElementById("cut-locked-inputs");
+    const cutLockStatus = document.getElementById("cut-lock-status");
+    const cutModeButtons = document.querySelectorAll('[aria-label="切割模式"] .mode-button');
+    const cutawayModeButtons = document.querySelectorAll(
+      '[aria-label="截面显示模式"] [data-cutaway-mode]',
+    );
+    const section2dToggle = document.querySelector(
+      'button[aria-label="切换二维截面辅助图"]',
+    );
+    const section2dCard = document.getElementById("section2dCard");
+    const section2dPolygon = document.getElementById("section2dPolygon");
+    const section2dMeta = document.getElementById("section2dMeta");
+    const sectionMetricsContent = document.getElementById("sectionMetricsContent");
+    const cutplaneVisualToggle = document.getElementById("cutplane-visual-toggle");
+    const viewport = document.querySelector(".viewport");
+    const interactionModeButtons = document.querySelectorAll("[data-interaction-mode]");
+    let cutModeLocked = false;
+
+    /* ── 状态 ── */
+    let activeModel = null;
+    let currentType = "cube";
+    let currentOpacity = (parseInt(opacitySlider?.value, 10) || 100) / 100;
+    let currentColor = colorInput?.value || "#f5f1e8";
+    let paramValues = {};
+    let sectionVisual = null;
+    let sectionVisualV2 = null;
+    let cutawayVisual = null;
+    let cutawayMode = "teaching";
+    let latestSectionPolygon = null;
+    let section2dVisible = false;
+    const forceLegacySectionEngine = new URLSearchParams(window.location.search)
+      .get("sectionEngine") === "v1";
+    const viewportInteraction = createViewportInteractionMode();
+    let planeDragStartOffset = 0;
+
+    function syncViewportInteraction(nextMode = viewportInteraction.snapshot().mode) {
+      const previous = viewportInteraction.snapshot();
+      const state = viewportInteraction.setMode(nextMode);
+      const canvas = document.getElementById("geometryCanvas");
+      if (
+        previous.dragging
+        && !state.dragging
+        && canvas?.hasPointerCapture(previous.pointerId)
+      ) {
+        canvas.releasePointerCapture(previous.pointerId);
+      }
+      if (window.geometryLab?.controls) {
+        window.geometryLab.controls.enabled = state.mode === "orbit";
+      }
+      interactionModeButtons.forEach((button) => {
+        button.setAttribute(
+          "aria-pressed",
+          String(button.dataset.interactionMode === state.mode),
+        );
+      });
+      if (viewport) {
+        viewport.dataset.interactionMode = state.mode;
+        viewport.dataset.interactionDragging = String(state.dragging);
+      }
+      if (canvas) {
+        canvas.dataset.interactionMode = state.mode;
+        canvas.dataset.interactionDragging = String(state.dragging);
+        canvas.dataset.orbitEnabled = String(state.mode === "orbit");
+      }
+    }
+
+    interactionModeButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        syncViewportInteraction(button.dataset.interactionMode);
+      });
+    });
+
+    const interactionCanvas = document.getElementById("geometryCanvas");
+    interactionCanvas?.addEventListener("pointerdown", (event) => {
+      if (event.button !== 0 || cutModeLocked) return;
+      const started = viewportInteraction.begin(event.pointerId, event.clientY);
+      if (!started.accepted) return;
+      planeDragStartOffset = Number.parseFloat(cutSlider?.value ?? "0") || 0;
+      interactionCanvas.setPointerCapture(event.pointerId);
+      syncViewportInteraction();
+      event.preventDefault();
+    });
+    interactionCanvas?.addEventListener("pointermove", (event) => {
+      const moved = viewportInteraction.move(
+        event.pointerId,
+        event.clientY,
+        viewport?.clientHeight ?? 0,
+      );
+      if (!moved.accepted || !cutSlider) return;
+      const min = Number.parseFloat(cutSlider.min);
+      const max = Number.parseFloat(cutSlider.max);
+      const nextOffset = Math.min(
+        max,
+        Math.max(min, planeDragStartOffset - moved.deltaNormalized * (max - min)),
+      );
+      cutSlider.value = String(nextOffset);
+      updateCuttingPlane();
+      event.preventDefault();
+    });
+    function endPlanePointer(event) {
+      const ended = viewportInteraction.end(event.pointerId);
+      if (!ended.accepted) return;
+      if (interactionCanvas?.hasPointerCapture(event.pointerId)) {
+        interactionCanvas.releasePointerCapture(event.pointerId);
+      }
+      syncViewportInteraction();
+    }
+    interactionCanvas?.addEventListener("pointerup", endPlanePointer);
+    interactionCanvas?.addEventListener("pointercancel", endPlanePointer);
+    syncViewportInteraction();
+
+    /* 从 PARAM_DEFS 初始化各模型类型的默认参数 */
+    function initParamValues() {
+      paramValues = {};
+      for (const [type, defs] of Object.entries(PARAM_DEFS)) {
+        paramValues[type] = {};
+        for (const [key, def] of Object.entries(defs)) {
+          paramValues[type][key] = def.default;
+        }
+      }
+    }
+    initParamValues();
+
+    /* 根据模型包围盒和当前切面法向量动态调整视觉刀面尺寸与中心 */
+    function updateCutPlaneVisualScale(bounds, planeNormal) {
+      if (!bounds || !window.geometryLab?.cuttingPlane?.visual) return;
+      const normal = planeNormal ?? window.geometryLab.cuttingPlane.plane.normal;
+      const newSize = computeCutPlaneVisualSize(bounds, normal, 1.25);
+      const visual = window.geometryLab.cuttingPlane.visual;
+      const unitSize = visual.userData?.unitSize ?? 5;
+      visual.scale.setScalar(newSize / unitSize);
+      visual.userData.visualSize = newSize;
+
+      // 同步视觉刀面中心到包围盒在切面上的投影中心（含法向位移）
+      const center = computeCutPlaneVisualCenter(bounds, normal, window.geometryLab.cuttingPlane.plane);
+      if (center) visual.position.copy(center);
+
+      const canvas = document.getElementById("geometryCanvas");
+      if (canvas) {
+        canvas.dataset.cuttingPlaneVisualSize = String(newSize);
+      }
+    }
+
+    /* ── 视觉刀面显示/隐藏开关 ── */
+    cutplaneVisualToggle?.addEventListener("change", () => {
+      if (window.geometryLab?.cuttingPlane?.visual) {
+        window.geometryLab.cuttingPlane.visual.visible = cutplaneVisualToggle.checked;
+        const canvas = document.getElementById("geometryCanvas");
+        if (canvas) {
+          canvas.dataset.cuttingPlaneVisible = String(cutplaneVisualToggle.checked);
+        }
+      }
+    });
+
+    let rebuildTimer = null;
+    function debouncedPlaceModel() {
+      clearTimeout(rebuildTimer);
+      rebuildTimer = setTimeout(placeModel, 100);
+    }
+
+    function removeActiveModel() {
+      if (activeModel && window.geometryLab) {
+        const { scene } = window.geometryLab;
+        cutawayVisual?.clear();
+        scene.remove(activeModel);
+        disposeModel(activeModel);
+        activeModel = null;
+      }
+    }
+
+    function disposeModel(group) {
+      group.traverse((child) => {
+        if (child.geometry) child.geometry.dispose();
+        if (child.material) {
+          if (Array.isArray(child.material)) {
+            child.material.forEach((m) => m.dispose());
+          } else {
+            child.material.dispose();
+          }
+        }
+      });
+    }
+
+    /* ── 构建模型：根据当前类型和参数值调用对应生成器 ── */
+    function buildModel() {
+      const p = paramValues[currentType] || {};
+      const appearance = { opacity: currentOpacity, color: parseInt(currentColor.slice(1), 16) };
+      switch (currentType) {
+        case "cube":
+          return createCube(p.size ?? 1, appearance);
+        case "box":
+          return createBox(p.width ?? 1, p.height ?? 1.5, p.depth ?? 0.8, appearance);
+        case "triangularPrism":
+          return createTriangularPrism(p.baseSize ?? 1, p.height ?? 1, appearance);
+        case "triangularPyramid":
+          return createTriangularPyramid(p.baseSize ?? 1, p.height ?? 1, appearance);
+        case "cylinder":
+          return createCylinder(p.radiusTop ?? 0.5, p.radiusBottom ?? 0.5, p.height ?? 1, p.segments ?? 32, appearance);
+        case "cone":
+          return createCone(p.radius ?? 0.5, p.height ?? 1, p.segments ?? 32, appearance);
+        case "sphere":
+          return createSphere(p.radius ?? 0.5, p.widthSegments ?? 32, p.heightSegments ?? 16, appearance);
+        case "staircase":
+          return createStaircaseModel(appearance);
+        case "builder5x5":
+          return createBuilderModel();
+        default:
+          return createCube(1, appearance);
+      }
+    }
+
+    function placeModel() {
+      if (!window.geometryLab) return;
+      removeActiveModel();
+      const model = buildModel();
+      const bounds = new window.geometryLab.THREE.Box3().setFromObject(model);
+
+      /* 空模型（如搭建器清空后）跳过落位 */
+      if (bounds.isEmpty()) {
+        activeModel = model;
+        window.geometryLab.scene.add(model);
+        const canvas = document.getElementById("geometryCanvas");
+        if (canvas) {
+          canvas.dataset.activeModel = "empty";
+          canvas.dataset.activeModelBounds = "";
+        }
+        return;
+      }
+
+      model.position.y += -1.5 - bounds.min.y;
+
+      activeModel = model;
+      const placedBounds = new window.geometryLab.THREE.Box3().setFromObject(model);
+      updateCutSliderRange(placedBounds);
+      updateCutPlaneVisualScale(placedBounds, window.geometryLab.cuttingPlane.plane.normal);
+
+      window.geometryLab.scene.add(model);
+      const canvas = document.getElementById("geometryCanvas");
+      if (canvas) {
+        canvas.dataset.activeModel = model.userData.type;
+        canvas.dataset.activeModelBounds = [
+          placedBounds.min.x,
+          placedBounds.min.y,
+          placedBounds.min.z,
+          placedBounds.max.x,
+          placedBounds.max.y,
+          placedBounds.max.z,
+        ].map((value) => value.toFixed(3)).join(",");
+      }
+
+      if (cutModeLocked) {
+        lockPlaneFromThreePoints();
+      } else {
+        applyClipping();
+      }
+    }
+
+    /* ── 对 activeModel 的所有 Mesh 材质设置 clippingPlanes ── */
+    function applyClipping() {
+      if (!activeModel || !window.geometryLab) return;
+      const { cuttingPlane } = window.geometryLab;
+      const plane = cuttingPlane.plane;
+      const policy = getSectionDisplayPolicy(cutawayMode);
+      activeModel.traverse((child) => {
+        if (child.isMesh && child.material) {
+          const materials = Array.isArray(child.material) ? child.material : [child.material];
+          materials.forEach((mat) => {
+            const nextPlanes = policy.clipModel ? [plane] : [];
+            const alreadyBound = policy.clipModel
+              ? mat.clippingPlanes?.length === 1 && mat.clippingPlanes[0] === plane
+              : !mat.clippingPlanes?.length;
+            if (!alreadyBound) {
+              mat.clippingPlanes = nextPlanes;
+              mat.needsUpdate = true;
+            }
+            mat.clipShadows = policy.clipModel;
+          });
+        }
+      });
+      const canvas = document.querySelector("#geometryCanvas");
+      if (canvas) {
+        canvas.dataset.modelClipping = String(policy.clipModel);
+        canvas.dataset.sectionDisplayMode = cutawayMode;
+        canvas.dataset.modelComplete = String(!policy.clipModel);
+      }
+      if (policy.clipModel) {
+        syncCutawayVisual();
+      } else {
+        cutawayVisual?.clear();
+        if (canvas) canvas.dataset.cutawayVisible = "false";
+      }
+      updateSectionVisual();
+    }
+
+    function ensureCutawayVisual() {
+      if (!cutawayVisual && window.geometryLab) {
+        cutawayVisual = createCutawayVisual();
+        window.geometryLab.scene.add(cutawayVisual.group);
+      }
+      return cutawayVisual;
+    }
+
+    function syncCutawayVisual() {
+      if (!activeModel || !window.geometryLab) return;
+      const policy = getSectionDisplayPolicy(cutawayMode);
+      if (!policy.clipModel) {
+        cutawayVisual?.clear();
+        return;
+      }
+      const visual = ensureCutawayVisual();
+      visual.setSource(activeModel);
+      visual.setPlane(window.geometryLab.cuttingPlane.plane);
+      visual.setMode(policy.ghostMode);
+      const canvas = document.querySelector("#geometryCanvas");
+      if (canvas) {
+        canvas.dataset.cutawayMode = cutawayMode;
+        canvas.dataset.cutawayVisible = String(visual.group.visible);
+      }
+    }
+
+    function ensureSectionVisual() {
+      if (!sectionVisual && window.geometryLab) {
+        sectionVisual = createSectionVisual({
+          fillColor: 0x4f6df5,
+          outlineColor: 0x2446d8,
+          fillOpacity: 0.72,
+        });
+        sectionVisual.fill.material.depthTest = false;
+        sectionVisual.fill.material.needsUpdate = true;
+        window.geometryLab.scene.add(sectionVisual.group);
+      }
+      return sectionVisual;
+    }
+
+    function ensureSectionVisualV2() {
+      if (!sectionVisualV2 && window.geometryLab) {
+        sectionVisualV2 = createSectionVisualV2({
+          fillColor: 0x4f6df5,
+          outlineColor: 0x2446d8,
+          fillOpacity: 0.72,
+        });
+        sectionVisualV2.fill.material.depthTest = false;
+        sectionVisualV2.fill.material.needsUpdate = true;
+        window.geometryLab.scene.add(sectionVisualV2.group);
+      }
+      return sectionVisualV2;
+    }
+
+    function clearSectionVisual(status = "empty") {
+      latestSectionPolygon = null;
+      ensureSectionVisual()?.clear();
+      sectionVisualV2?.clear();
+      const canvas = document.querySelector("#geometryCanvas");
+      if (canvas) {
+        canvas.dataset.sectionStatus = status;
+        canvas.dataset.sectionVertexCount = "0";
+        canvas.dataset.sectionArea = "0";
+      }
+      renderSection2D();
+      renderSectionMetrics();
+    }
+
+    function renderSectionMetrics() {
+      const metrics = calculateSectionMetrics(latestSectionPolygon);
+      if (sectionMetricsContent) {
+        if (metrics.status === "empty") {
+          sectionMetricsContent.innerHTML = '<p class="section-empty">暂无有效截面</p>';
+        } else {
+          const vertices = metrics.vertices.map((point, index) => (
+            `<li>P${index + 1} (${formatSectionNumber(point.x)}, `
+            + `${formatSectionNumber(point.y)}, ${formatSectionNumber(point.z)})</li>`
+          )).join("");
+          sectionMetricsContent.innerHTML = `
+            <div class="section-metrics-summary">
+              <span>边数<strong>${metrics.edgeCount}</strong></span>
+              <span>面积<strong>${formatSectionNumber(metrics.area)}</strong></span>
+              <span>周长<strong>${formatSectionNumber(metrics.perimeter)}</strong></span>
+            </div>
+            <ol class="section-vertices" aria-label="截面有序三维顶点">${vertices}</ol>`;
+        }
+      }
+      const canvas = document.querySelector("#geometryCanvas");
+      if (canvas) {
+        canvas.dataset.sectionMetricsStatus = metrics.status;
+        canvas.dataset.sectionPerimeter = String(metrics.perimeter);
+        canvas.dataset.sectionVertices = JSON.stringify(metrics.vertices);
+      }
+    }
+
+    function renderSection2D() {
+      const projected = projectSectionTo2D(latestSectionPolygon);
+      if (section2dPolygon) {
+        section2dPolygon.setAttribute(
+          "points",
+          projected.status === "polygon" ? svgPointString(projected.points) : "",
+        );
+      }
+      if (section2dMeta) {
+        section2dMeta.textContent = latestSectionPolygon?.status === "polygon"
+          ? `${latestSectionPolygon.points.length} 个顶点 · 面积 ${latestSectionPolygon.signedArea.toFixed(3)}`
+          : "暂无有效截面";
+      }
+      if (section2dCard) section2dCard.hidden = !section2dVisible;
+      const canvas = document.querySelector("#geometryCanvas");
+      if (canvas) {
+        canvas.dataset.section2dVisible = String(section2dVisible);
+        canvas.dataset.section2dStatus = projected.status;
+      }
+    }
+
+    function updateSectionVisual() {
+      if (!activeModel || !window.geometryLab) {
+        clearSectionVisual("no-model");
+        return;
+      }
+      let legacySummary = { status: "error", area: 0 };
+      try {
+        const plane = window.geometryLab.cuttingPlane.plane;
+        const intersections = intersectEdgesWithPlane(
+          collectWorldEdges(activeModel),
+          plane,
+        );
+        const polygon = orderAndCloseSection(intersections.points, plane);
+        if (polygon.status !== "polygon") {
+          legacySummary = { status: polygon.reason, area: 0 };
+          clearSectionVisual(polygon.reason);
+        } else {
+          legacySummary = { status: "visible", area: polygon.signedArea };
+          latestSectionPolygon = polygon;
+          ensureSectionVisual().update(polygon);
+          renderSection2D();
+          renderSectionMetrics();
+          const canvas = document.querySelector("#geometryCanvas");
+          if (canvas) {
+            canvas.dataset.sectionStatus = "visible";
+            canvas.dataset.sectionVertexCount = String(polygon.points.length);
+            canvas.dataset.sectionArea = String(polygon.signedArea);
+          }
+        }
+      } catch (error) {
+        clearSectionVisual("error");
+        console.error("截面高亮更新失败", error);
+      }
+
+      try {
+        const v2Result = computeSectionV2(
+          activeModel,
+          window.geometryLab.cuttingPlane.plane,
+        );
+        const comparison = compareSectionV1V2(legacySummary, v2Result);
+        const production = chooseSectionProductionEngine(v2Result, {
+          forceLegacy: forceLegacySectionEngine,
+        });
+        const canvas = document.querySelector("#geometryCanvas");
+        if (production.engine === "v2") {
+          ensureSectionVisualV2().update(toSectionVisualV2Data(v2Result));
+          sectionVisual?.clear();
+          if (v2Result.status === "ok") {
+            const firstContour = v2Result.contours[0];
+            latestSectionPolygon = firstContour
+              ? {
+                  status: "polygon",
+                  points: firstContour.points,
+                  signedArea: v2Result.area,
+                }
+              : null;
+            renderSection2D();
+            renderSectionMetrics();
+          }
+        } else {
+          sectionVisualV2?.clear();
+        }
+        if (canvas) {
+          canvas.dataset.sectionEngine = production.engine;
+          canvas.dataset.sectionEngineReason = production.reason;
+          canvas.dataset.sectionV2Mode = production.engine === "v2" ? "production" : "fallback";
+          canvas.dataset.sectionV2Status = v2Result.status;
+          canvas.dataset.sectionV2Stage = v2Result.stage;
+          canvas.dataset.sectionV2ContourCount = String(v2Result.contourCount);
+          canvas.dataset.sectionV2Area = String(v2Result.area);
+          canvas.dataset.sectionV2Match = String(comparison.match);
+          canvas.dataset.sectionV2StatusMatch = String(comparison.statusMatch);
+          canvas.dataset.sectionV2ContourMatch = String(comparison.contourCountMatch);
+          canvas.dataset.sectionV2AreaMatch = String(comparison.areaMatch);
+          canvas.dataset.sectionV2AreaDelta = String(comparison.areaDelta);
+          canvas.dataset.sectionV2Error = v2Result.error ?? "";
+          if (production.engine === "v2") {
+            canvas.dataset.sectionStatus = v2Result.status === "ok" ? "visible" : "empty";
+            canvas.dataset.sectionVertexCount = String(
+              v2Result.contours.reduce((sum, contour) => sum + contour.points.length, 0),
+            );
+            canvas.dataset.sectionArea = String(v2Result.area);
+          }
+        }
+      } catch (error) {
+        const canvas = document.querySelector("#geometryCanvas");
+        if (canvas) {
+          canvas.dataset.sectionV2Mode = "fallback";
+          canvas.dataset.sectionEngine = "v1";
+          canvas.dataset.sectionEngineReason = "v2-exception";
+          canvas.dataset.sectionV2Status = "error";
+          canvas.dataset.sectionV2Stage = "orchestration";
+          canvas.dataset.sectionV2Match = "false";
+          canvas.dataset.sectionV2Error = error.message;
+        }
+        console.error("截面引擎 V2 影子计算失败", error);
+      }
+    }
+
+    function clearInvalidLockedPlane(message, errorCode) {
+      if (!window.geometryLab) return;
+      window.geometryLab.cuttingPlane.visual.visible = false;
+      cutawayVisual?.clear();
+      activeModel?.traverse((child) => {
+        if (!child.isMesh || !child.material) return;
+        const materials = Array.isArray(child.material) ? child.material : [child.material];
+        materials.forEach((material) => {
+          material.clippingPlanes = [];
+          material.needsUpdate = true;
+        });
+      });
+      const canvas = document.querySelector("#geometryCanvas");
+      if (canvas) {
+        canvas.dataset.cuttingPlaneLocked = "false";
+        canvas.dataset.cuttingPlaneError = errorCode;
+        canvas.dataset.modelClipping = "false";
+      }
+      clearSectionVisual("invalid-plane");
+      if (cutLockStatus) cutLockStatus.textContent = message;
+    }
+
+    /* ── 渲染当前模型类型的参数控件 ── */
+    function renderParams() {
+      if (!modelParamsEl) return;
+
+      /* 搭建器模式：显示网格面板，隐藏参数/颜色/透明度 */
+      const builderPanel = document.getElementById("builder-panel");
+      const colorField = colorInput?.closest(".field");
+      const opacityField = opacitySlider?.closest(".field");
+
+      if (currentType === "builder5x5") {
+        modelParamsEl.innerHTML = "";
+        modelParamsEl.style.display = "none";
+        if (builderPanel) builderPanel.style.display = "block";
+        if (colorField) colorField.style.display = "none";
+        if (opacityField) opacityField.style.display = "none";
+        renderBuilderGrid();
+        return;
+      }
+
+      /* 非搭建器：显示参数面板，隐藏搭建器 */
+      modelParamsEl.style.display = "block";
+      if (builderPanel) builderPanel.style.display = "none";
+      if (colorField) colorField.style.display = "";
+      if (opacityField) opacityField.style.display = "";
+
+      const defs = PARAM_DEFS[currentType];
+      if (!defs) return;
+      const p = paramValues[currentType] || {};
+      let html = "";
+      for (const [key, def] of Object.entries(defs)) {
+        const val = p[key] ?? def.default;
+        const stepStr = def.step < 1 ? Number(def.step.toFixed(2)).toString() : String(def.step);
+        html += `<label class="field">
+          <span class="field-row"><span>${def.label}</span><output>${val}</output></span>
+          <input type="range" min="${def.min}" max="${def.max}" step="${stepStr}" value="${val}" data-param="${key}" aria-label="${def.label}">
+        </label>`;
+      }
+      modelParamsEl.innerHTML = html;
+
+      /* 每个 slider 绑定 input 事件 */
+      modelParamsEl.querySelectorAll("input[type=range]").forEach((slider) => {
+        slider.addEventListener("input", () => {
+          const param = slider.dataset.param;
+          const value = parseFloat(slider.value);
+          const def = defs[param];
+          /* 整数步长的 slider 取整 */
+          const rounded = def.step >= 1 ? Math.round(value) : +value.toFixed(3);
+          paramValues[currentType][param] = rounded;
+          slider.value = rounded;
+          const output = slider.closest(".field")?.querySelector("output");
+          if (output) output.textContent = rounded;
+          debouncedPlaceModel();
+        });
+      });
+    }
+
+    function updateOpacityDisplay() {
+      if (opacityOutput) {
+        opacityOutput.textContent = Math.round(currentOpacity * 100) + "%";
+      }
+    }
+
+    /* ── 模型按钮切换 ── */
+    modelButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        modelButtons.forEach((b) => b.setAttribute("aria-pressed", "false"));
+        btn.setAttribute("aria-pressed", "true");
+
+        const label = btn.querySelector("span:first-child")?.textContent?.trim();
+        const map = {
+          "正方体": "cube",
+          "长方体": "box",
+          "三棱柱": "triangularPrism",
+          "三棱锥": "triangularPyramid",
+          "圆柱": "cylinder",
+          "圆锥": "cone",
+          "球体": "sphere",
+          "阶梯组合体": "staircase",
+          "5×5×5 搭建器": "builder5x5",
+        };
+        if (!map[label]) return;
+        currentType = map[label];
+        renderParams();
+        placeModel();
+      });
+    });
+
+    /* ── 5×5×5 搭建器网格交互 ── */
+    let builderCurrentLayer = 0;
+
+    function renderBuilderGrid() {
+      const layerBar = document.getElementById("builder-layer-bar");
+      const grid = document.getElementById("builder-grid");
+      const countEl = document.getElementById("builder-count");
+      if (!layerBar || !grid) return;
+
+      /* 层选择按钮 */
+      layerBar.innerHTML = "";
+      for (let y of GRID_RANGE) {
+        const btn = document.createElement("button");
+        btn.className = "builder-layer-btn";
+        btn.type = "button";
+        btn.textContent = `第${y + 1}层`;
+        btn.setAttribute("aria-pressed", y === builderCurrentLayer ? "true" : "false");
+        btn.addEventListener("click", () => {
+          builderCurrentLayer = y;
+          renderBuilderGrid();
+        });
+        layerBar.appendChild(btn);
+      }
+
+      /* 预设按钮 */
+      const presetsEl = document.getElementById("builder-presets");
+      if (presetsEl) {
+        presetsEl.innerHTML = "";
+        BLOCK_PRESETS.forEach((p) => {
+          const btn = document.createElement("button");
+          btn.className = "builder-preset-btn";
+          btn.type = "button";
+          btn.textContent = p.name;
+          btn.title = p.desc;
+          btn.addEventListener("click", () => {
+            setPositions(p.blocks);
+            placeModel();
+            renderBuilderGrid();
+          });
+          presetsEl.appendChild(btn);
+        });
+      }
+
+      /* 5×5 网格 */
+      grid.innerHTML = "";
+      const layerGrid = getLayerGrid(builderCurrentLayer);
+      for (let x of GRID_RANGE) {
+        for (let z of GRID_RANGE) {
+          const cell = document.createElement("button");
+          cell.className = "builder-cell";
+          cell.type = "button";
+          if (layerGrid[x][z]) {
+            cell.classList.add("filled", `layer-${builderCurrentLayer}`);
+            cell.setAttribute("aria-label", `已放置 (${x},${builderCurrentLayer},${z})`);
+          } else {
+            cell.classList.add("empty");
+            cell.setAttribute("aria-label", `空 (${x},${builderCurrentLayer},${z})`);
+          }
+          const cx = x, cz = z, cy = builderCurrentLayer;
+          cell.addEventListener("click", () => {
+            toggleBlock(cx, cy, cz);
+            placeModel();
+            renderBuilderGrid();
+          });
+          grid.appendChild(cell);
+        }
+      }
+
+      /* 方块数 */
+      if (countEl) countEl.textContent = String(blockCount());
+    }
+
+    /* 清空 / 填满按钮 */
+    document.getElementById("builder-clear")?.addEventListener("click", () => {
+      builderClearAll();
+      placeModel();
+      renderBuilderGrid();
+    });
+
+    document.getElementById("builder-fill")?.addEventListener("click", () => {
+      builderFillAll();
+      placeModel();
+      renderBuilderGrid();
+    });
+
+    /* ── 颜色与透明度 ── */
+    colorInput?.addEventListener("input", () => {
+      currentColor = colorInput.value;
+      debouncedPlaceModel();
+    });
+
+    opacitySlider?.addEventListener("input", () => {
+      currentOpacity = parseInt(opacitySlider.value, 10) / 100;
+      updateOpacityDisplay();
+      debouncedPlaceModel();
+    });
+
+    /* ── 切割平面三滑块：位置、水平倾角、垂直倾角联动实时裁剪 ── */
+    function updateCuttingPlane() {
+      if (!window.geometryLab) return;
+      const offset = cutSlider ? parseFloat(cutSlider.value) : 0;
+      const hDeg = hTiltSlider ? parseFloat(hTiltSlider.value) : 0;
+      const vDeg = vTiltSlider ? parseFloat(vTiltSlider.value) : 0;
+      if (cutOutput) cutOutput.textContent = offset.toFixed(2);
+      if (hTiltOutput) hTiltOutput.textContent = hDeg + "°";
+      if (vTiltOutput) vTiltOutput.textContent = vDeg + "°";
+
+      const T = window.geometryLab.THREE;
+      const hRad = T.MathUtils.degToRad(hDeg);
+      const vRad = T.MathUtils.degToRad(vDeg);
+      // 默认水平切面，法向量为模型局部 Y 轴（世界 Y）
+      const normal = new T.Vector3(0, 1, 0);
+      if (Math.abs(hRad) > 1e-9) normal.applyAxisAngle(new T.Vector3(1, 0, 0), hRad);
+      if (Math.abs(vRad) > 1e-9) normal.applyAxisAngle(new T.Vector3(0, 0, 1), vRad);
+
+      window.geometryLab.cuttingPlane.setPlane(normal, offset);
+
+      // P1修正: 切面倾斜时根据法向量重新投影包围盒计算刀面尺寸
+      if (activeModel) {
+        const modelBounds = new window.geometryLab.THREE.Box3().setFromObject(activeModel);
+        updateCutPlaneVisualScale(modelBounds, normal);
+      }
+
+      const plane = window.geometryLab.cuttingPlane.plane;
+      const canvas = document.querySelector("#geometryCanvas");
+      if (canvas) {
+        canvas.dataset.cuttingPlaneOffset = offset.toFixed(2);
+        canvas.dataset.cuttingPlaneNormal = plane.normal.toArray().join(",");
+        canvas.dataset.cuttingPlaneConstant = String(plane.constant);
+        canvas.dataset.cuttingPlaneHorizontalTilt = String(hDeg);
+        canvas.dataset.cuttingPlaneVerticalTilt = String(vDeg);
+      }
+      applyClipping();
+    }
+    cutSlider?.addEventListener("input", updateCuttingPlane);
+    hTiltSlider?.addEventListener("input", updateCuttingPlane);
+    vTiltSlider?.addEventListener("input", updateCuttingPlane);
+
+    /* 根据模型包围盒动态更新切面位置滑块范围 */
+    function updateCutSliderRange(bounds) {
+      if (!bounds || !cutSlider) return;
+      const pad = 1.0;
+      const minY = +(bounds.min.y - pad).toFixed(2);
+      const maxY = +(bounds.max.y + pad).toFixed(2);
+      cutSlider.min = String(minY);
+      cutSlider.max = String(maxY);
+      cutSlider.step = "0.01";
+      // 切面起始位于模型顶部
+      const initialOffset = +bounds.max.y.toFixed(2);
+      cutSlider.value = String(initialOffset);
+      if (cutOutput) cutOutput.textContent = initialOffset.toFixed(2);
+      updateCuttingPlane();
+    }
+
+    cutawayModeButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const nextMode = button.dataset.cutawayMode;
+        if (!isSectionDisplayMode(nextMode)) return;
+        cutawayMode = nextMode;
+        cutawayModeButtons.forEach((candidate) => {
+          candidate.setAttribute("aria-pressed", String(candidate === button));
+        });
+        applyClipping();
+      });
+    });
+
+    section2dToggle?.addEventListener("click", () => {
+      section2dVisible = !section2dVisible;
+      section2dToggle.setAttribute("aria-pressed", String(section2dVisible));
+      renderSection2D();
+    });
+
+    /* ── 切割模式切换：自由切割 ↔ 题目三点锁定 ── */
+    cutModeButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const isLocked = btn.textContent.includes("题目切割");
+        cutModeLocked = isLocked;
+        cutModeButtons.forEach((b) => b.setAttribute("aria-pressed", "false"));
+        btn.setAttribute("aria-pressed", "true");
+        cutFreeInputs.style.display = isLocked ? "none" : "";
+        cutLockedInputs.style.display = isLocked ? "" : "none";
+        const canvas = document.querySelector("#geometryCanvas");
+        if (isLocked) {
+          if (canvas) canvas.dataset.cuttingMode = "locked";
+          lockPlaneFromThreePoints();
+        } else {
+          window.geometryLab.cuttingPlane.visual.visible = cutplaneVisualToggle.checked;
+          if (canvas) {
+            canvas.dataset.cuttingMode = "free";
+            canvas.dataset.cuttingPlaneLocked = "false";
+            delete canvas.dataset.cuttingPlaneError;
+          }
+          cutLockStatus.textContent = "";
+          updateCuttingPlane();
+        }
+      });
+    });
+
+    /* ── 由 A、B、C 三点计算平面并锁定切面 ── */
+    function lockPlaneFromThreePoints() {
+      if (!window.geometryLab) return;
+      const inputs = cutLockedInputs?.querySelectorAll('input[type="number"]');
+      if (!inputs || inputs.length < 9) {
+        clearInvalidLockedPlane("缺少 A、B、C 三点坐标", "missing-points");
+        return;
+      }
+      const vals = Array.from(inputs).map((inp) => parseFloat(inp.value));
+      const a = new window.geometryLab.THREE.Vector3(vals[0], vals[1], vals[2]);
+      const b = new window.geometryLab.THREE.Vector3(vals[3], vals[4], vals[5]);
+      const c = new window.geometryLab.THREE.Vector3(vals[6], vals[7], vals[8]);
+      if (!Number.isFinite(a.x + a.y + a.z + b.x + b.y + b.z + c.x + c.y + c.z)) {
+        clearInvalidLockedPlane("坐标不合法", "invalid-coordinate");
+        return;
+      }
+      const ab = new window.geometryLab.THREE.Vector3().subVectors(b, a);
+      const ac = new window.geometryLab.THREE.Vector3().subVectors(c, a);
+      const normal = new window.geometryLab.THREE.Vector3().crossVectors(ab, ac);
+      const lenSq = normal.lengthSq();
+      if (lenSq < 1e-12) {
+        clearInvalidLockedPlane("A、B、C 三点共线，无法确定切面", "collinear-points");
+        return;
+      }
+      normal.normalize();
+      const offset = normal.dot(a);
+      window.geometryLab.cuttingPlane.visual.visible = cutplaneVisualToggle.checked;
+      window.geometryLab.cuttingPlane.setPlane(normal, offset);
+
+      // P1修正: 题目模式三点锁定后也根据法向量更新刀面尺寸
+      if (activeModel) {
+        const modelBounds = new window.geometryLab.THREE.Box3().setFromObject(activeModel);
+        updateCutPlaneVisualScale(modelBounds, normal);
+      }
+
+      const plane = window.geometryLab.cuttingPlane.plane;
+      const canvas = document.querySelector("#geometryCanvas");
+      if (canvas) {
+        canvas.dataset.cuttingPlaneLocked = "true";
+        canvas.dataset.cuttingPlanePointA = a.toArray().join(",");
+        canvas.dataset.cuttingPlanePointB = b.toArray().join(",");
+        canvas.dataset.cuttingPlanePointC = c.toArray().join(",");
+        canvas.dataset.cuttingPlaneNormal = plane.normal.toArray().join(",");
+        canvas.dataset.cuttingPlaneConstant = String(plane.constant);
+        canvas.dataset.cuttingMode = "locked";
+        delete canvas.dataset.cuttingPlaneError;
+      }
+      if (cutLockStatus) cutLockStatus.textContent = "已锁定切面";
+      applyClipping();
+    }
+
+    /* 三点坐标输入实时更新切面（100ms 防抖） */
+    let lockDebounceTimer = null;
+    cutLockedInputs?.addEventListener("input", () => {
+      clearTimeout(lockDebounceTimer);
+      lockDebounceTimer = setTimeout(() => {
+        if (cutModeLocked) lockPlaneFromThreePoints();
+      }, 100);
+    });
+
+    /* ── 初始化：支持 URL hash 切换初始模型 ── */
+    function applyHashModel() {
+      const hash = window.location.hash?.replace("#", "");
+      const reverse = { cube: "正方体", box: "长方体", triangularPrism: "三棱柱", triangularPyramid: "三棱锥", cylinder: "圆柱", cone: "圆锥", sphere: "球体", staircase: "阶梯组合体", builder5x5: "5×5×5 搭建器" };
+      if (reverse[hash]) {
+        currentType = hash;
+        modelButtons.forEach((b) => {
+          const lbl = b.querySelector("span:first-child")?.textContent?.trim();
+          b.setAttribute("aria-pressed", lbl === reverse[hash] ? "true" : "false");
+        });
+      }
+    }
+    applyHashModel();
+    renderParams();
+    updateOpacityDisplay();
+
+    if (window.geometryLab) {
+      placeModel();
+    } else {
+      window.addEventListener("geometry:scene-ready", placeModel, { once: true });
+    }
+  </script>
+  <script src="/gontu-auth-client.js"></script>
+  <script type="module" src="/spatial-learning-shell.js?v=20260715e"></script>
+</body>
+</html>

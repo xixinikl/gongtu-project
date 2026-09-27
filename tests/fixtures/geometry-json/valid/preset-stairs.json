@@ -1,0 +1,21 @@
+{
+  "version": "1.0",
+  "id": "preset-stairs",
+  "name": "阶梯",
+  "description": "3 阶楼梯，6 块跨 3 层",
+  "type": "unitCubeArray",
+  "source": "builtin",
+  "tags": ["三视图", "多层", "阶梯"],
+  "positions": [
+    [1,0,2], [2,0,2], [2,1,2],
+    [3,0,2], [3,1,2], [3,2,2]
+  ],
+  "appearance": { "colorScheme": "layered" },
+  "grid": { "size": 5, "origin": [0, 0, 0] },
+  "cutPlane": { "axis": "y", "defaultOffset": 0.0, "range": [-2.5, 2.5] },
+  "question": {
+    "type": "block-count",
+    "difficulty": 2,
+    "answer": { "count": 6 }
+  }
+}

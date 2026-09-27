@@ -1,0 +1,7 @@
+{
+  "version": "1.0",
+  "id": "empty-positions",
+  "name": "空方块",
+  "type": "unitCubeArray",
+  "positions": []
+}

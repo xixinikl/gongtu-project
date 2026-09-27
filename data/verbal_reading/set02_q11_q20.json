@@ -1,0 +1,484 @@
+{
+  "version": 1,
+  "set_id": "verbal_hs13_set02",
+  "source_name": "2025年花生片段阅读600题",
+  "range": "q11-q20",
+  "status": "visual_verified_minimal_practice",
+  "transcription_scope": {
+    "question_stem_and_options": "full_visual_transcription_from_question_book",
+    "answer_and_type": "visual_verified_from_analysis_book",
+    "official_analysis": "core_summary_from_visual_review",
+    "peanut_notes": "core_method_points_from_visual_review",
+    "ai_brief_example": "supplemental_ai_tutor_hint"
+  },
+  "source_pages": {
+    "question_book": {
+      "pdf": "/Users/miduoduo/Downloads/2025年花生片段阅读600题-题本【上】.pdf",
+      "rendered_images": [
+        "tmp/pdfs/verbal-reading-set01c/questions_up-12.png",
+        "tmp/pdfs/verbal-reading-set01c/questions_up-13.png",
+        "tmp/pdfs/verbal-reading-set01c/questions_up-14.png"
+      ],
+      "printed_pages": [10, 11, 12]
+    },
+    "analysis_book": {
+      "pdf": "/Users/miduoduo/Downloads/2025年花生片段阅读600题-解析【上】.pdf",
+      "rendered_images": [
+        "tmp/pdfs/verbal-reading-set01c/analysis_up-024.png",
+        "tmp/pdfs/verbal-reading-set01c/analysis_up-025.png",
+        "tmp/pdfs/verbal-reading-set01c/analysis_up-026.png",
+        "tmp/pdfs/verbal-reading-set01c/analysis_up-027.png",
+        "tmp/pdfs/verbal-reading-set01c/analysis_up-028.png",
+        "tmp/pdfs/verbal-reading-set01c/analysis_up-029.png",
+        "tmp/pdfs/verbal-reading-set01c/analysis_up-030.png"
+      ],
+      "printed_pages": [22, 23, 24, 25, 26, 27, 28]
+    }
+  },
+  "questions": [
+    {
+      "id": "verbal_hs13_set02_q11",
+      "question_no": 11,
+      "source": {
+        "question_images": ["questions_up-12.png"],
+        "analysis_images": ["analysis_up-024.png"]
+      },
+      "content": {
+        "stem": "与国外相比，我国景区生存经营还普遍存在“门票依赖”的情况。适时推动景区门票价格降低，虽然会在短时间内影响景区门票收入，但是从中长期来看却能带来客流量的增长。这时，如果景区把握住机会，提供更多满足游客需要的产品和服务，就会实现更大的经济收益。从这个意义上来说，________________。",
+        "prompt": "填入文中画横线部分最恰当的一项是：",
+        "options": [
+          { "key": "A", "text": "降低门票价格是未来景区发展的必然趋势" },
+          { "key": "B", "text": "景区门票降价有助于促进民众、景区、商家共赢" },
+          { "key": "C", "text": "配套服务业水平对旅游消费体验的影响比票价更大" },
+          { "key": "D", "text": "要在更广范围内、更大程度上降低相关景区门票价格" }
+        ]
+      },
+      "answer": "B",
+      "analysis_source": {
+        "source_type_label": "语句填入类 + 说理类文章",
+        "answer_source": "analysis_page_visual_verified"
+      },
+      "learning_tags": {
+        "question_type": "语句填入题",
+        "passage_type": "说理类文章",
+        "method_tags": ["文末总结", "概括上文", "区分比较关系", "避免无中生有"],
+        "option_trap_tags": {
+          "A": ["绝对化", "与事实不符"],
+          "B": ["正确总结", "逻辑完整"],
+          "C": ["区分比较关系", "脱离原文重点"],
+          "D": ["无中生有"]
+        },
+        "weak_steps": ["文末总结上文", "把握共赢逻辑", "避免扩大对策"],
+        "estimated_seconds": 55
+      },
+      "official_analysis": "横线在文末，应概括上文。文段先指出景区“门票依赖”问题，再说明降价短期影响收入、中长期带来客流增长，若景区提供更多产品和服务，可实现更大经济收益。B 项能概括门票降价带来民众、景区、商家共赢的意义。A 过于绝对且与事实不符；C 比较“服务”和“票价”影响大小，原文未作此比较；D 扩大为更广范围降价，属无中生有。",
+      "peanut_notes": [
+        "文末横线通常需要对上文概括总结。",
+        "若上文依次介绍“提高配套服务水平”和“降低门票价格”带来的影响，才可选比较类选项。",
+        "各景区情况不同，不能简单推出“门票降价是必然趋势”。",
+        "商家虽未直接出现，但客流增加带动景区商业，符合常识与行文逻辑。"
+      ],
+      "ai_brief_example": "这题横线在最后，别急着找新对策，要收束前文。降价带来客流，景区再提供产品服务，最后落点是多方共赢。"
+    },
+    {
+      "id": "verbal_hs13_set02_q12",
+      "question_no": 12,
+      "source": {
+        "question_images": ["questions_up-12.png"],
+        "analysis_images": ["analysis_up-024.png", "analysis_up-025.png"]
+      },
+      "content": {
+        "stem": "目前一些地区产生相对贫困问题，就是由于这些地区的人群缺乏信息和资源。在现代信息社会中，掌握较多信息和资源的人群能够获得更多的致富机会；相反，缺少信息和资源的一部分人群就会被逐渐分化，成为相对贫困人群。要针对相对贫困问题的产生根源和主要特征，在进一步加大政策扶持和资金投入力度、加快基础设施建设的同时，形成产业扶贫、金融扶贫、技术扶贫、信息扶贫、教育扶贫、就业扶贫、文化扶贫、减灾扶贫、医疗扶贫等解决相对贫困的多层次资源支撑和保障。",
+        "prompt": "这段文字意在说明：",
+        "options": [
+          { "key": "A", "text": "相对贫困受到各种条件与因素的制约" },
+          { "key": "B", "text": "形成解决相对贫困的多层次资源支撑" },
+          { "key": "C", "text": "信息和资源是造成相对贫困的主要因素" },
+          { "key": "D", "text": "解决相对贫困是扶贫的重要内容与途径" }
+        ]
+      },
+      "answer": "B",
+      "analysis_source": {
+        "source_type_label": "中心理解题 + 说理类文章",
+        "answer_source": "analysis_page_visual_verified"
+      },
+      "learning_tags": {
+        "question_type": "中心理解题",
+        "passage_type": "说理类文章",
+        "method_tags": ["后对策结构", "对策优先", "问题分析", "避免强干扰项"],
+        "option_trap_tags": {
+          "A": ["问题表述", "中性表述"],
+          "B": ["正确对策", "完整概括"],
+          "C": ["问题表述", "中性表述"],
+          "D": ["对策有误", "问题与对策不一致"]
+        },
+        "weak_steps": ["识别后对策", "对准问题和对策", "排除问题表述"],
+        "estimated_seconds": 55
+      },
+      "official_analysis": "文段先提出相对贫困问题由缺乏信息和资源导致，再分析其表现，最后给出对策：形成产业、金融、技术、信息、教育等多层次资源支撑和保障。B 项是对对策句的准确提炼。A、C 仍停留在问题分析；D 把问题和对策表述错位，不能对应原文。",
+      "peanut_notes": [
+        "相对贫困问题是全文论述话题。",
+        "行文结构为后对策结构：提出问题、分析问题、最后提出对策。",
+        "说理类文段一般不选中性表述。",
+        "例如“想要减肥，可以跑步”，问题是减肥，对策是跑步，不能把问题和对策混写。"
+      ],
+      "ai_brief_example": "这题是典型“问题-分析-对策”。主旨问意图时，最后的解决方案优先：多层次资源支撑，而不是贫困的原因。"
+    },
+    {
+      "id": "verbal_hs13_set02_q13",
+      "question_no": 13,
+      "source": {
+        "question_images": ["questions_up-12.png"],
+        "analysis_images": ["analysis_up-025.png"]
+      },
+      "content": {
+        "stem": "《诗经》是周代典礼活动中用于歌唱的音乐文本，其乐歌属性已成为普遍的共识。近年来，学者们试图通过《诗经》文本中遗存的相关歌唱信息，来考察《诗经》歌唱形态以及周代诗乐制度等问题，取得了不少重要的突破，但是，今本《诗经》已经是高度文本化、经典化之后的文本，与乐用形态下的歌诗相比，其文本已损失了大量的乐用信息，甚至偏离了实际乐用时的诗乐形貌。因此，借由《诗经》文本探寻《诗经》歌唱诸问题，难免会有隔阂甚至偏差，并不能完整、全面地呈现周代歌诗乐用的真实面貌。",
+        "prompt": "这段文字意在强调：",
+        "options": [
+          { "key": "A", "text": "要弄清楚周代诗乐的生成与乐用机制并非易事" },
+          { "key": "B", "text": "探寻周代诗乐形貌须以更加客观全面的史料为依托" },
+          { "key": "C", "text": "周代歌诗乐用的真实面貌很难通过今本《诗经》完整还原" },
+          { "key": "D", "text": "今本《诗经》经过时代的洗礼其所藏乐用信息已非常有限" }
+        ]
+      },
+      "answer": "C",
+      "analysis_source": {
+        "source_type_label": "中心理解题 + 说理类文章",
+        "answer_source": "analysis_page_visual_verified"
+      },
+      "learning_tags": {
+        "question_type": "中心理解题",
+        "passage_type": "说理类文章",
+        "method_tags": ["后观点结构", "尾句观点", "同义替换", "关键词保留"],
+        "option_trap_tags": {
+          "A": ["缺少关键词"],
+          "B": ["缺少关键词"],
+          "C": ["正确同义替换"],
+          "D": ["出处有误"]
+        },
+        "weak_steps": ["锁定尾句观点", "保留主题词", "辨别出处有误"],
+        "estimated_seconds": 55
+      },
+      "official_analysis": "文段先介绍《诗经》的乐歌属性和研究进展，转折后指出今本《诗经》损失大量乐用信息，尾句给出观点：借由《诗经》文本难以完整、全面呈现周代歌诗乐用真实面貌。C 是尾句观点的同义替换。A、B 缺少关键词《诗经》；D 中“其所藏乐用信息已非常有限”对应的是解释说明部分，且表述出处有误。",
+      "peanut_notes": [
+        "《诗经》是全文论述主体。",
+        "行文结构为后观点结构。",
+        "尾句观点：通过《诗经》文本难以完整、全面地呈现周代歌诗乐用的真实面貌。",
+        "正确项可对原观点做语序调整。"
+      ],
+      "ai_brief_example": "看到“但是”“因此”，主旨基本往后找。C 把尾句换了个说法；A、B 太泛，D 只是解释层。"
+    },
+    {
+      "id": "verbal_hs13_set02_q14",
+      "question_no": 14,
+      "source": {
+        "question_images": ["questions_up-12.png", "questions_up-13.png"],
+        "analysis_images": ["analysis_up-026.png"]
+      },
+      "content": {
+        "stem": "现代信息技术与高等教育教学的融合，衍生出大规模在线开放课程，打破了传统教育的时空界限和学校围墙。六年来，中国慕课从无到有，从小到大，在实践中总在向一个共识靠近，那就是高等教育作为高层次人才的主要供给者，知识创新的主要推动者，要回应时代需求，就必须创新发展，把慕课建设作为加快中国教育现代化、发展“互联网+教育”“智能+教育”的战略先手棋，推进这场深度融合信息技术与教育教学的课堂革命向纵深发展。这就意味着，慕课的建设与发展必然离不开高校的参与和支持、学校与社会的共同协力。",
+        "prompt": "这段文字意在：",
+        "options": [
+          { "key": "A", "text": "介绍中国慕课的发展理念和现状" },
+          { "key": "B", "text": "强调高校应在慕课发展中发挥重要作用" },
+          { "key": "C", "text": "说明高校需重视高级人才的培养和储备" },
+          { "key": "D", "text": "探讨中国慕课突破传统的新思路" }
+        ]
+      },
+      "answer": "B",
+      "analysis_source": {
+        "source_type_label": "中心理解题 + 说理类文章",
+        "answer_source": "analysis_page_visual_verified"
+      },
+      "learning_tags": {
+        "question_type": "中心理解题",
+        "passage_type": "说理类文章",
+        "method_tags": ["后对策结构", "必要条件", "尾句对策", "宽窄辨析"],
+        "option_trap_tags": {
+          "A": ["中性表述"],
+          "B": ["正确对策", "同义替换"],
+          "C": ["无主体"],
+          "D": ["杂糅"]
+        },
+        "weak_steps": ["识别必要条件对策", "把握主体慕课", "排除中性表述"],
+        "estimated_seconds": 55
+      },
+      "official_analysis": "文段先以背景知识引出中国慕课，再指出慕课发展需要创新，尾句给出必要条件：慕课建设与发展离不开高校参与和支持、学校与社会共同协力。B 项“高校应在慕课发展中发挥重要作用”是对尾句的同义替换。A 为中性介绍；C 缺少主体“慕课”；D 将慕课建设误解为突破传统的新思路，属于杂糅。",
+      "peanut_notes": [
+        "中国慕课是全文论述主体。",
+        "行文结构为后对策结构：背景引出、分析介绍、尾句给出必要条件。",
+        "B 虽提到“学校与社会的共同协力”，但全文论述的是高校参与，社会只是顺带提及。",
+        "本题关键不是慕课突破传统，而是慕课建设需要高校参与。"
+      ],
+      "ai_brief_example": "主旨别被“互联网+教育”这些大词带跑。最后一句的“离不开高校参与和支持”才是落点，所以选 B。"
+    },
+    {
+      "id": "verbal_hs13_set02_q15",
+      "question_no": 15,
+      "source": {
+        "question_images": ["questions_up-13.png"],
+        "analysis_images": ["analysis_up-026.png", "analysis_up-027.png"]
+      },
+      "content": {
+        "stem": "共享经济模式的核心特征之一，是信任陌生人。数以亿计的网约车用户之所以信赖那些司机，是因为大家觉得相关企业会对从业者资质进行严格审核。遗憾的是，有一些提供网约车服务的平台，显然辜负了公众的信任。仅从媒体报道来看，乘客遭劫杀、被性骚扰等恶性安全事件，已非个案，不少地方都有。",
+        "prompt": "作者接下来最有可能讲述的是：",
+        "options": [
+          { "key": "A", "text": "网约车乱象的根源分析" },
+          { "key": "B", "text": "网约车行业如何提高行业门槛" },
+          { "key": "C", "text": "政府部门如何加强对网约车平台的监管" },
+          { "key": "D", "text": "共享经济时代下行业和企业应该爱惜好自己的品牌" }
+        ]
+      },
+      "answer": "A",
+      "analysis_source": {
+        "source_type_label": "下文推断类 + 提出问题→分析问题",
+        "answer_source": "analysis_page_visual_verified"
+      },
+      "learning_tags": {
+        "question_type": "下文推断题",
+        "passage_type": "说理类文章",
+        "method_tags": ["下文推断", "提出问题", "先分析后解决", "衔接逻辑"],
+        "option_trap_tags": {
+          "A": ["正确衔接", "先分析原因"],
+          "B": ["未提及问题"],
+          "C": ["解决对策过早"],
+          "D": ["未提及问题"]
+        },
+        "weak_steps": ["判断上文最后话题", "按提出问题后续展开", "避免直接跳到对策"],
+        "estimated_seconds": 55
+      },
+      "official_analysis": "上文末尾提出问题：部分网约车平台辜负公众信任，存在不少恶性安全事件。下文应分析或解决这一问题。A 分析网约车乱象根源，C 讲监管对策，二者都可衔接，但通常先分析问题再解决问题，因此 A 更合适。B、D 未能承接上文具体问题。",
+      "peanut_notes": [
+        "下文推断常见结构：上文提出问题，下文分析问题或解决问题。",
+        "若“分析问题”和“解决问题”同时出现，一般先分析问题，再给对策。",
+        "本题 A、C 都有衔接性，但 A 更符合行文顺序。"
+      ],
+      "ai_brief_example": "下文推断题看最后一句：已经抛出网约车安全乱象。下一步通常不是立刻喊监管，而是先分析乱象根源。"
+    },
+    {
+      "id": "verbal_hs13_set02_q16",
+      "question_no": 16,
+      "source": {
+        "question_images": ["questions_up-13.png"],
+        "analysis_images": ["analysis_up-027.png"]
+      },
+      "content": {
+        "stem": "①两个“推动构建”为新时代中国特色大国外交指明了方向。\n②推动构建人类命运共同体，旨在回答人类与世界何向处去这一重大哲学和历史命题。\n③“大道之行，天下为公”。\n④推动构建“相互尊重，公平正义，合作共赢”的新型国际关系，其实质就是寻求处理国与国之间关系的新路。\n⑤习近平总书记在党的十九大报告中指出：中国特色大国外交要推动构建新型国际关系，推动构建人类命运共同体。",
+        "prompt": "将以上5个句子重新排列，语序正确的是：",
+        "options": [
+          { "key": "A", "text": "③⑤②④①" },
+          { "key": "B", "text": "①④⑤③②" },
+          { "key": "C", "text": "③⑤①④②" },
+          { "key": "D", "text": "⑤④②③①" }
+        ]
+      },
+      "answer": "C",
+      "analysis_source": {
+        "source_type_label": "语句排序类 + 科普介绍文章",
+        "answer_source": "analysis_page_visual_verified"
+      },
+      "learning_tags": {
+        "question_type": "语句排序题",
+        "passage_type": "科普介绍类文章",
+        "method_tags": ["总分结构", "古语引出", "句群排序", "实战秒杀"],
+        "option_trap_tags": {
+          "A": ["句群顺序错误"],
+          "B": ["首句不当"],
+          "C": ["正确排序"],
+          "D": ["首句不当"]
+        },
+        "weak_steps": ["找首句", "识别并列对象", "验证句群内部顺序"],
+        "estimated_seconds": 70
+      },
+      "official_analysis": "可从“总分结构”的小组合入手。⑤提出新型国际关系和人类命运共同体两个“推动构建”，①承接说明其作用；④、②分别介绍两个推动构建。③为古语引出，应置于首句总起。③⑤①④②逻辑最顺。",
+      "peanut_notes": [
+        "行文逻辑：③古语引出，⑤提出两个推动构建，①介绍作用，④②分别介绍两个推动构建。",
+        "实战可先从①③⑤找首句，⑤是“A且B”结构，后面应分别展开。",
+        "③放在②后既无作用又显突兀。"
+      ],
+      "ai_brief_example": "排序题看“两个推动构建”。⑤提出两个对象，①总结作用，④②分别展开；③像开场白，所以放最前。"
+    },
+    {
+      "id": "verbal_hs13_set02_q17",
+      "question_no": 17,
+      "source": {
+        "question_images": ["questions_up-13.png"],
+        "analysis_images": ["analysis_up-028.png"]
+      },
+      "content": {
+        "stem": "①上个世纪30年代，徽州的一些文献陆续流往杭州、南京等地\n②抗战结束之初，历史学家方豪在南京购得一批徽州文书，于上世纪70年代撰写并发表了十几篇论文，这是目前所知学术界对徽州文书的第一次收集\n③徽州文书是徽州民众在日常生活、商业活动和其他社会活动中形成的原始档案\n④目前所知从徽州外流最早的文书，是现藏于美国哈佛大学燕京图书馆的明代歙县方氏信函700通。这批尺牍在晚清光绪以前就已流入日本\n⑤随着时代的变迁，这些文书档案逐渐散落出来\n⑥它们原先主要保存在私人手中，还有的保存于祠堂、文会等各类基层组织的管理者手中",
+        "prompt": "将以上6个句子重新排列，语序正确的是：",
+        "options": [
+          { "key": "A", "text": "②③⑥⑤④①" },
+          { "key": "B", "text": "②③⑤④⑥①" },
+          { "key": "C", "text": "③①⑥⑤④②" },
+          { "key": "D", "text": "③⑥⑤④①②" }
+        ]
+      },
+      "answer": "D",
+      "analysis_source": {
+        "source_type_label": "语句排序类 + 科普介绍文章",
+        "answer_source": "analysis_page_visual_verified"
+      },
+      "learning_tags": {
+        "question_type": "语句排序题",
+        "passage_type": "科普介绍类文章",
+        "method_tags": ["下定义首句", "指代衔接", "时间顺序", "选项对比"],
+        "option_trap_tags": {
+          "A": ["首句不当"],
+          "B": ["首句不当"],
+          "C": ["第二句衔接不当"],
+          "D": ["正确排序"]
+        },
+        "weak_steps": ["找定义句", "识别指代对象", "按时间顺序验证"],
+        "estimated_seconds": 70
+      },
+      "official_analysis": "③句介绍徽州文书是什么，适合作首句；②介绍徽州文书的相关情况，明显应在③之后。⑥中的“它们”可指代③中的徽州文书，并介绍其原来保存地点，⑤再说随着时代变迁逐渐散落，④、①、②按外流与收集时间展开，因此答案为③⑥⑤④①②。",
+      "peanut_notes": [
+        "“下定义”作首句很常见。",
+        "首句在②③中选，③先介绍徽州文书是什么，②再介绍相关情况。",
+        "⑥的“它们”指代③中的徽州文书，应与③衔接。",
+        "后文按外流和收集的时间线展开。"
+      ],
+      "ai_brief_example": "看到③是定义句，优先放开头。⑥的“它们”接③最顺，再讲散落、外流、收集，D 的时间线最稳。"
+    },
+    {
+      "id": "verbal_hs13_set02_q18",
+      "question_no": 18,
+      "source": {
+        "question_images": ["questions_up-14.png"],
+        "analysis_images": ["analysis_up-028.png", "analysis_up-029.png"]
+      },
+      "content": {
+        "stem": "当前我国城市建设面临经济发展与产业结构调整、环境保护、社会治理模式、民生保障等多方面矛盾，建设智慧城市是大势所趋。我国在智慧城市的很多应用方面已经走在了世界前列，像网约车、共享单车等。但也存在一些问题，如顶层设计不足、缺乏体系性规划与创新等。另外，智慧城市建设有许多方面没有考虑到与市民切身相关的问题，市民的感知度并不明显。如何把城市建设和市民利益结合起来，注意群众需求，是推进智慧城市建设、解决智慧城市落地问题的关键。",
+        "prompt": "这段文字意在强调：",
+        "options": [
+          { "key": "A", "text": "我国智慧城市建设已走在世界前列" },
+          { "key": "B", "text": "智慧城市建设面临许多综合性问题" },
+          { "key": "C", "text": "建设智慧城市可以解决城市建设诸多矛盾" },
+          { "key": "D", "text": "建设智慧城市要接地气与群众需求相联系" }
+        ]
+      },
+      "answer": "D",
+      "analysis_source": {
+        "source_type_label": "中心理解题 + 说理类文章",
+        "answer_source": "analysis_page_visual_verified"
+      },
+      "learning_tags": {
+        "question_type": "中心理解题",
+        "passage_type": "说理类文章",
+        "method_tags": ["后对策结构", "尾句对策", "同义替换", "排除问题表述"],
+        "option_trap_tags": {
+          "A": ["出处有误"],
+          "B": ["问题表述"],
+          "C": ["中性表述", "出处有误"],
+          "D": ["正确对策", "同义替换"]
+        },
+        "weak_steps": ["锁定尾句对策", "避免问题项", "辨别出处位置"],
+        "estimated_seconds": 55
+      },
+      "official_analysis": "文段先引出智慧城市建设趋势，再转折提出问题：顶层设计不足、缺乏体系规划，且没有充分考虑市民切身问题。尾句给出对策：把城市建设和市民利益结合起来，注意群众需求。D 是尾句对策的同义替换。A 来自转折前，C 来自首句引出话题，均出处有误；B 是问题表述。",
+      "peanut_notes": [
+        "建设智慧城市是全文论述话题。",
+        "行文结构为后对策结构：引出话题、转折提出问题、最后给出对策。",
+        "建设智慧城市的关键是注意群众需求。",
+        "原文有对策时，主旨题优先选对策。"
+      ],
+      "ai_brief_example": "这题别选 B，B 只是问题。真正的主旨是尾句“关键”：智慧城市要和市民利益、群众需求连起来。"
+    },
+    {
+      "id": "verbal_hs13_set02_q19",
+      "question_no": 19,
+      "source": {
+        "question_images": ["questions_up-14.png"],
+        "analysis_images": ["analysis_up-029.png"]
+      },
+      "content": {
+        "stem": "守护好儿童健康就是守护好全民健康的基础。一方面，要“破”。“有抑郁症？会不会伤害我？”尽管人们对心理健康有了越来越多的认识，但污名化的影子仍在。这不仅让一些家长对孩子的心理健康问题“讳疾忌医”，也阻碍了孩子在遭遇心理困扰时寻求帮助。因此，有必要全力消除心理健康的污名化。另一方面，要“立”。《健康中国行动——儿童青少年心理健康行动方案（2019～2022年）》已提出，将儿童心理健康纳入家庭教育指导，这是很好的路径。要随着家庭教育指导的深入，帮助不同年龄段儿童的家长正确认识孩子的心理发育规律，学会与孩子沟通、交流，做好源头预防。",
+        "prompt": "这段文字意在强调：",
+        "options": [
+          { "key": "A", "text": "对于儿童健康，人们容易陷入“重身体而轻心理”的误区" },
+          { "key": "B", "text": "要让全社会正确认识儿童心理健康问题，树立“身心健康同样重要”的意识" },
+          { "key": "C", "text": "要不断完善儿童心理健康问题干预体系" },
+          { "key": "D", "text": "守护儿童心理健康是一项系统工程，需要学校、家庭和社会共同的努力" }
+        ]
+      },
+      "answer": "B",
+      "analysis_source": {
+        "source_type_label": "中心理解题 + 说理类文章",
+        "answer_source": "analysis_page_visual_verified"
+      },
+      "learning_tags": {
+        "question_type": "中心理解题",
+        "passage_type": "说理类文章",
+        "method_tags": ["并列对策", "A且B类选项", "破立结构", "避免无中生有"],
+        "option_trap_tags": {
+          "A": ["问题表述"],
+          "B": ["正确概括", "A且B类选项"],
+          "C": ["无中生有"],
+          "D": ["无中生有"]
+        },
+        "weak_steps": ["识别并列对策", "合并破与立", "排除无中生有"],
+        "estimated_seconds": 55
+      },
+      "official_analysis": "文段围绕儿童心理健康，依次给出两个对策：“破”即破除对心理健康的错误认识和污名化；“立”即将儿童心理健康纳入家庭教育指导，帮助家长正确认识儿童心理发育规律。B 可同时概括两个对策。A 仅是问题表述；C 的“干预体系”和 D 的“学校、家庭和社会”原文未提及，属无中生有。",
+      "peanut_notes": [
+        "行文结构为并列对策。",
+        "开篇引出话题：守护好儿童健康。",
+        "依次给出两个对策：破除错误认识；树立关注儿童心理健康的意识。",
+        "B 是“A且B”类综合选项，能覆盖“破”和“立”。"
+      ],
+      "ai_brief_example": "这题的骨架是“破”和“立”。正确答案要同时吃到破除误解、树立意识，B 最完整。"
+    },
+    {
+      "id": "verbal_hs13_set02_q20",
+      "question_no": 20,
+      "source": {
+        "question_images": ["questions_up-14.png"],
+        "analysis_images": ["analysis_up-030.png"]
+      },
+      "content": {
+        "stem": "发呆是跟思绪相对应的。人发呆的时候，脑子里没有思绪，是一种活在当下、沉浸在现实中的感受。而思绪关注的则是过去和未来。思绪太多，人就会逐渐失去与真实世界的联系，陷入各种情绪中。这时候，需要适时地断一断电，关掉思绪，把注意力拉回到现实，重新和这个真实世界建立联系。",
+        "prompt": "这段文字意在强调：",
+        "options": [
+          { "key": "A", "text": "思绪是胡思乱想，发呆才是关注当下" },
+          { "key": "B", "text": "思绪太多有风险，必须时时发发呆" },
+          { "key": "C", "text": "发呆能有效对抗那些不切实际的幻想" },
+          { "key": "D", "text": "发呆即活在当下，它具有现实的意义" }
+        ]
+      },
+      "answer": "B",
+      "analysis_source": {
+        "source_type_label": "中心理解题 + 说理类文章",
+        "answer_source": "analysis_page_visual_verified"
+      },
+      "learning_tags": {
+        "question_type": "中心理解题",
+        "passage_type": "说理类文章",
+        "method_tags": ["后对策结构", "析使句", "对策优先", "区分比较关系"],
+        "option_trap_tags": {
+          "A": ["区分比较关系", "非对策"],
+          "B": ["正确对策", "完美选项"],
+          "C": ["无中生有"],
+          "D": ["中性表述"]
+        },
+        "weak_steps": ["识别尾句对策", "对策优先", "不被概念解释项吸引"],
+        "estimated_seconds": 55
+      },
+      "official_analysis": "文段是典型后对策结构，通过析使句“需要……”给出对策：当思绪过多时，需要适时发呆、关掉思绪，把注意力拉回现实。B 项对应问题和对策，是完整选项。A 为比较解释类内容，原文有对策应优先选对策；C 的“不切实际的幻想”无中生有；D 只是中性表述。",
+      "peanut_notes": [
+        "行文结构为后对策结构：先介绍发呆与思绪的关系，再提出问题，最后用析使句给出对策。",
+        "“必须……”是对策表述，为原文对策句的同义替换。",
+        "四类常见选项：原因类、历程类、区别比较关系类、具体类。",
+        "若选 A，文段类型会变成科普介绍类；若选 D，也只是介绍发呆概念及意义。"
+      ],
+      "ai_brief_example": "尾句有“需要”，这是主旨题的信号灯。文段不是单纯解释发呆，而是在说思绪太多时要适时发呆。"
+    }
+  ],
+  "answer_sequence": "BBCBACDDBB",
+  "quality_notes": [
+    "题干、选项、答案、题型与解析均根据渲染页图视觉核对。",
+    "official_analysis 为原书解析核心摘要，不是逐字全量转录。",
+    "peanut_notes 保留花生批注中的核心结构与方法点；ai_brief_example 为额外导师提示。"
+  ]
+}

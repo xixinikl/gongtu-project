@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <script src="/gontu-auth-client.js"></script>
+  <script>window.GontuAuth && window.GontuAuth.guardVipPage();</script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#eef4f2">
+  <title>基础截面 · 立体图推</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/section-foundation.css?v=20260705c">
+  <link rel="stylesheet" href="/spatial-learning-shell.css?v=20260715e">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "/node_modules/three/build/three.module.js"
+      }
+    }
+  </script>
+</head>
+<body data-spatial-module="foundation">
+  <header class="topbar">
+    <a class="brand" href="/spatial-learning.html" aria-label="返回立体图推学习中心">
+      <span class="brand-mark">公途</span>
+      <span>
+        <strong>基础截面训练</strong>
+        <small>先知道能截什么，再判断题目</small>
+      </span>
+    </a>
+    <nav class="product-links" aria-label="立体图推学习路径"></nav>
+  </header>
+
+  <main class="foundation-shell">
+    <section class="solid-panel panel" aria-labelledby="solid-heading">
+      <div class="panel-heading">
+        <span class="eyebrow">基础图形</span>
+        <span class="count-badge">5 类</span>
+      </div>
+      <h1 id="solid-heading">常见几何体截面</h1>
+      <div id="solid-list" class="solid-list" role="list"></div>
+    </section>
+
+    <section class="knowledge-panel panel" aria-labelledby="knowledge-heading">
+      <div class="panel-heading">
+        <span class="eyebrow">能与不能</span>
+        <span id="solid-tag" class="count-badge">正方体</span>
+      </div>
+      <h2 id="knowledge-heading">先把底层规则看清楚</h2>
+      <div id="knowledge-grid" class="knowledge-grid"></div>
+      <div class="rule-card">
+        <span>判断口诀</span>
+        <strong id="solid-rule"></strong>
+      </div>
+    </section>
+
+    <section class="demo-panel panel" aria-labelledby="demo-heading">
+      <div class="panel-heading">
+        <span class="eyebrow">典型切法</span>
+        <span id="demo-verdict" class="count-badge">可行</span>
+      </div>
+      <h2 id="demo-heading">这刀怎么摆</h2>
+      <article class="explain-card active-cut-card" aria-live="polite">
+        <span id="demo-label"></span>
+        <strong id="demo-title"></strong>
+        <p id="demo-copy"></p>
+      </article>
+      <div class="demo-stage demo-stage-3d">
+        <div class="viewer-pane">
+          <canvas id="foundation-3d" aria-label="基础截面三维验证"></canvas>
+          <div class="viewer-tools" aria-label="三维截面操作">
+            <button id="reset-section" type="button">复位</button>
+            <span id="drag-status">上下拖动切面</span>
+          </div>
+        </div>
+        <div class="live-section-card" aria-label="实时截面图">
+          <div class="live-section-head">
+            <span>实时截面</span>
+            <strong id="live-section-verdict">能截出</strong>
+          </div>
+          <svg id="live-section-svg" viewBox="0 0 220 180" role="img" aria-label="当前截面轮廓"></svg>
+          <p id="live-section-caption">当前截面</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="/section-foundation.js?v=20260705c"></script>
+  <script src="/gontu-auth-client.js"></script>
+  <script type="module" src="/spatial-learning-shell.js?v=20260715e"></script>
+  <noscript>基础截面训练需要启用 JavaScript。</noscript>
+</body>
+</html>

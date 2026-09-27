@@ -1,0 +1,17 @@
+.gongtu-coach-theme body{background:radial-gradient(circle at 14% 8%,rgba(201,169,110,.09),transparent 28%),#f7f2e7;color:#2c2618;font-family:"Noto Serif SC","Songti SC",serif}
+.gongtu-coach-theme body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.22;background-image:linear-gradient(90deg,rgba(176,138,58,.08) 1px,transparent 1px),linear-gradient(rgba(176,138,58,.06) 1px,transparent 1px);background-size:46px 46px}
+.gongtu-coach-theme .shell{position:relative;grid-template-columns:252px minmax(500px,1fr) 360px}
+.gongtu-coach-theme .sidebar{background:rgba(253,250,242,.9);border-right:1px solid #dfd2b9}
+.gongtu-coach-theme .brand{margin:-24px -18px 27px;padding:18px;background:#1c1811;color:#e8d9b8;border-bottom:1px solid rgba(201,169,110,.25)}
+.gongtu-coach-theme .brand .seal{width:38px;height:38px;border-radius:7px;background:linear-gradient(135deg,#c9a96e,#e8d5a3);border:0;color:#1c1811}
+.gongtu-coach-theme .brand strong{letter-spacing:.16em}.gongtu-coach-theme .brand span{color:rgba(232,217,184,.6)}
+.gongtu-coach-theme .module-btn{border-radius:6px}.gongtu-coach-theme .module-btn:hover,.gongtu-coach-theme .module-btn.active{border-color:rgba(176,138,58,.34);background:#fffdf7;box-shadow:0 5px 16px rgba(75,57,25,.06)}
+.gongtu-coach-theme .module-icon{border-radius:6px;background:#f2ead9;color:#8d6729}.gongtu-coach-theme .count{border-radius:6px;background:#f1e3c1}
+.gongtu-coach-theme .main{padding:26px 30px}.gongtu-coach-theme .teacher-card,.gongtu-coach-theme .chat-panel,.gongtu-coach-theme .composer,.gongtu-coach-theme .problem-card,.gongtu-coach-theme .guide-card,.gongtu-coach-theme .coverage-card,.gongtu-coach-theme .ledger-card{border-color:#dfd2b9;border-radius:9px;box-shadow:0 6px 24px rgba(72,55,25,.045);background:rgba(255,253,248,.92)}
+.gongtu-coach-theme .teacher-card h1,.gongtu-coach-theme .ledger h2{font-family:"ZCOOL XiaoWei","Noto Serif SC",serif;letter-spacing:.08em}
+.gongtu-coach-theme .tab.active,.gongtu-coach-theme .view-btn.active{background:#f6edd9;color:#805f25;border-color:rgba(176,138,58,.35)}
+.gongtu-coach-theme .bubble{border-radius:7px;border-color:#dfd2b9;background:#fffdf8}.gongtu-coach-theme .bubble-row.user .bubble{background:#242019;color:#f6eedb}
+.gongtu-coach-theme .ask-btn{border-radius:6px;background:linear-gradient(135deg,#bb9138,#8d6729);box-shadow:none}.gongtu-coach-theme .save-btn,.gongtu-coach-theme .back{border-radius:6px}
+.gongtu-coach-theme .ledger{background:rgba(250,246,236,.76);border-left:1px solid #dfd2b9}.gongtu-coach-theme .guide-card{background:#f5f1e6}.gongtu-coach-theme .tag{border-radius:5px}
+@media(max-width:1180px){.gongtu-coach-theme .shell{grid-template-columns:220px minmax(440px,1fr)}.gongtu-coach-theme .ledger{grid-column:1/-1}}
+@media(max-width:760px){.gongtu-coach-theme .shell{display:block}.gongtu-coach-theme .sidebar{border-right:0}.gongtu-coach-theme .brand{margin:-24px -18px 18px}.gongtu-coach-theme .main{padding:20px 14px}}

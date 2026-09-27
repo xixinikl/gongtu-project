@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="gongtu-coach-theme">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>公途 AI 教练</title>
+  <link rel="stylesheet" href="/doc/prototypes/ai-coach-gongtu-theme.css?v=20260713b">
+  <style>
+    :root {
+      --paper: #fbfaf6;
+      --panel: #ffffff;
+      --panel-soft: #f4f0e7;
+      --ink: #211d18;
+      --ink-mid: #6c6255;
+      --ink-light: #9b9182;
+      --line: #ded6c8;
+      --gold: #ae8837;
+      --gold-deep: #76581e;
+      --green: #527d67;
+      --blue: #526f9f;
+      --red: #b45c50;
+      --shadow: 0 18px 48px rgba(52, 42, 27, 0.10);
+      --mint: #eef6f2;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      height: 100vh;
+      min-height: 0;
+      overflow: hidden;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(174,136,55,0.06) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(174,136,55,0.04) 1px, transparent 1px),
+        var(--paper);
+      background-size: 42px 42px;
+      font-family: "Source Han Serif SC", "Noto Serif SC", "Songti SC", serif;
+    }
+
+    button, textarea, select {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .shell {
+      display: grid;
+      grid-template-columns: 252px minmax(460px, 1fr) 360px;
+      height: 100vh;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .sidebar {
+      border-right: 1px solid var(--line);
+      background: rgba(255,255,255,0.72);
+      padding: 24px 18px;
+      min-height: 0;
+      overflow-y: auto;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .seal {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 1px solid rgba(174,136,55,0.35);
+      display: grid;
+      place-items: center;
+      color: var(--gold-deep);
+      background: #fffaf0;
+    }
+
+    .brand strong {
+      display: block;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    .brand span {
+      display: block;
+      margin-top: 3px;
+      font-size: 12px;
+      color: var(--ink-light);
+    }
+
+    .nav-label {
+      margin: 24px 8px 10px;
+      font-size: 12px;
+      color: var(--ink-light);
+    }
+
+    .module-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .module-btn {
+      width: 100%;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      padding: 12px;
+      background: transparent;
+      color: var(--ink-mid);
+      text-align: left;
+      display: grid;
+      grid-template-columns: 32px 1fr auto;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .module-btn:hover,
+    .module-btn.active {
+      border-color: rgba(174,136,55,0.28);
+      background: #fff;
+      box-shadow: 0 8px 22px rgba(52,42,27,0.06);
+      color: var(--ink);
+    }
+
+    .module-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: var(--panel-soft);
+      color: var(--gold-deep);
+    }
+
+    .module-btn strong {
+      display: block;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .module-btn span {
+      display: block;
+      margin-top: 2px;
+      font-size: 12px;
+      color: var(--ink-light);
+    }
+
+    .count {
+      min-width: 24px;
+      height: 24px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      color: var(--gold-deep);
+      background: #f7ecd1;
+    }
+
+    .main {
+      min-height: 0;
+      padding: 16px 18px;
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr) auto;
+      gap: 10px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--ink-mid);
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .status-strip {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.72);
+      border-radius: 999px;
+      padding: 7px 10px;
+      color: var(--ink-mid);
+      font-size: 12px;
+    }
+
+    .teacher-head {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.86);
+      border-radius: 8px;
+      padding: 12px 14px;
+      box-shadow: var(--shadow);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 16px;
+      align-items: center;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    .teacher-head p {
+      margin: 4px 0 0;
+      max-width: 680px;
+      color: var(--ink-mid);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .context-box {
+      min-width: 186px;
+      border-left: 1px solid var(--line);
+      padding-left: 16px;
+      color: var(--ink-mid);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .context-box strong {
+      display: block;
+      color: var(--ink);
+      font-size: 15px;
+    }
+    .context-box small {
+      display: block;
+      margin-top: 5px;
+      color: var(--gold-dark);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .chat {
+      min-height: 0;
+      border: 0;
+      background: rgba(255,255,255,0.76);
+      border-radius: 10px;
+      box-shadow: inset 0 0 0 1px rgba(174,136,55,.16), 0 10px 30px rgba(52,42,27,.05);
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+    }
+
+    .chat-toolbar {
+      border-bottom: 1px solid var(--line);
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: #fffdf8;
+    }
+
+    .mode-tabs {
+      display: flex;
+      gap: 6px;
+    }
+
+    .mode-btn {
+      border: 1px solid transparent;
+      background: transparent;
+      border-radius: 7px;
+      padding: 7px 10px;
+      color: var(--ink-mid);
+      font-size: 13px;
+    }
+
+    .mode-btn.active {
+      border-color: rgba(174,136,55,0.32);
+      background: #f8f0dc;
+      color: var(--gold-deep);
+    }
+
+    .source-select {
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 7px 9px;
+      color: var(--ink-mid);
+      background: #fff;
+      font-size: 13px;
+    }
+
+    .messages {
+      min-height: 0;
+      padding: 14px;
+      overflow: auto;
+    }
+
+    .bubble-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      align-items: flex-start;
+    }
+
+    .bubble-row.user {
+      justify-content: flex-end;
+    }
+
+    .avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      flex: none;
+      background: #f4ead4;
+      color: var(--gold-deep);
+    }
+
+    .bubble {
+      max-width: min(680px, 82%);
+      border-radius: 8px;
+      padding: 13px 14px;
+      line-height: 1.8;
+      font-size: 14px;
+      background: #fff;
+      border: 1px solid var(--line);
+    }
+
+    .bubble-row.user .bubble {
+      background: #2b2924;
+      color: #fffaf0;
+      border-color: #2b2924;
+    }
+
+    .answer-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .mini-panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: #fffdf8;
+    }
+
+    .mini-panel strong {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--gold-deep);
+      font-size: 13px;
+    }
+
+    .composer {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 8px;
+      padding: 8px 10px;
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 10px;
+      align-items: end;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 42px;
+      max-height: 84px;
+      resize: vertical;
+      border: 0;
+      outline: none;
+      color: var(--ink);
+      background: transparent;
+      line-height: 1.6;
+    }
+
+    .ghost-btn,
+    .send-btn {
+      border-radius: 8px;
+      min-height: 42px;
+      padding: 0 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink-mid);
+    }
+
+    .send-btn {
+      border-color: var(--gold);
+      background: var(--gold);
+      color: #fff;
+    }
+
+    .ledger {
+      border-left: 1px solid var(--line);
+      background: rgba(255,255,255,0.72);
+      padding: 24px 18px;
+      overflow: auto;
+    }
+
+    .ledger h2 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .ledger-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .view-switch {
+      display: inline-flex;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 3px;
+      flex: none;
+    }
+
+    .view-switch button {
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--ink-mid);
+      padding: 6px 8px;
+      font-size: 12px;
+    }
+
+    .view-switch button.active {
+      background: #f8f0dc;
+      color: var(--gold-deep);
+    }
+
+    .guide {
+      border: 1px solid rgba(82,125,103,0.26);
+      background: var(--mint);
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+
+    .guide h3 {
+      margin: 0 0 8px;
+      font-size: 15px;
+    }
+
+    .guide ol {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--ink-mid);
+      font-size: 13px;
+      line-height: 1.75;
+    }
+
+    .guide-example {
+      margin-top: 10px;
+      border: 1px dashed rgba(82,125,103,0.38);
+      border-radius: 7px;
+      padding: 9px;
+      color: var(--green);
+      background: rgba(255,255,255,0.58);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .ledger-subtitle {
+      margin: 6px 0 18px;
+      color: var(--ink-light);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .summary-band {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+
+    .summary-band strong {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .idea-map {
+      border: 1px solid var(--line);
+      background: #fffdf8;
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+
+    .idea-map h3 {
+      margin: 0 0 10px;
+      font-size: 15px;
+    }
+
+    .idea-row {
+      display: grid;
+      grid-template-columns: 20px 1fr;
+      gap: 8px;
+      align-items: start;
+      color: var(--ink-mid);
+      font-size: 13px;
+      line-height: 1.65;
+      margin-top: 8px;
+    }
+
+    .check {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #e7f0eb;
+      color: var(--green);
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      margin-top: 1px;
+    }
+
+    .empty-filter {
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      padding: 18px;
+      color: var(--ink-light);
+      background: rgba(255,255,255,0.56);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .meter {
+      height: 8px;
+      border-radius: 999px;
+      background: #eee7db;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .meter span {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold), var(--green));
+    }
+
+    .evidence {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      text-align: center;
+      color: var(--ink-mid);
+      font-size: 12px;
+    }
+
+    .evidence b {
+      display: block;
+      color: var(--ink);
+      font-size: 18px;
+    }
+
+    .card-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .problem-card {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 8px;
+      padding: 13px;
+    }
+
+    .problem-card.active {
+      border-color: rgba(174,136,55,0.52);
+      box-shadow: 0 10px 30px rgba(52,42,27,0.08);
+    }
+
+    .card-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      color: var(--ink-light);
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+
+    .problem-card h3 {
+      margin: 0 0 8px;
+      font-size: 15px;
+      line-height: 1.45;
+    }
+
+    .problem-card p {
+      margin: 0 0 10px;
+      color: var(--ink-mid);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tag {
+      border-radius: 999px;
+      padding: 4px 7px;
+      background: #f3ecdf;
+      color: var(--gold-deep);
+      font-size: 12px;
+    }
+
+    .tag.green { background: #e7f0eb; color: var(--green); }
+    .tag.blue { background: #e7edf7; color: var(--blue); }
+    .tag.red { background: #f7e8e5; color: var(--red); }
+
+    @media (max-width: 1120px) {
+      .shell {
+        grid-template-columns: 210px 1fr;
+      }
+      .ledger {
+        grid-column: 1 / -1;
+        border-left: 0;
+        border-top: 1px solid var(--line);
+      }
+      .card-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 760px) {
+      .shell {
+        grid-template-columns: 1fr;
+      }
+      .sidebar {
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .module-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .main {
+        padding: 16px;
+      }
+      .teacher-head {
+        grid-template-columns: 1fr;
+      }
+      .context-box {
+        border-left: 0;
+        border-top: 1px solid var(--line);
+        padding: 12px 0 0;
+      }
+      .answer-grid,
+      .card-list {
+        grid-template-columns: 1fr;
+      }
+      .composer {
+        grid-template-columns: 1fr;
+      }
+    }
+    .thread-list,.run-list { display:grid; gap:8px; }
+    .thread-btn { width:100%; border:1px solid transparent; background:transparent; color:inherit; padding:10px 12px; border-radius:10px; text-align:left; cursor:pointer; }
+    .thread-btn:hover,.thread-btn.active { border-color:var(--gold-line); background:rgba(255,255,255,.08); }
+    .thread-btn strong,.thread-btn small { display:block; }
+    .thread-btn small { opacity:.66; margin-top:4px; }
+    .empty-state { border:1px dashed var(--line); border-radius:14px; padding:28px 20px; color:var(--ink-light); text-align:center; line-height:1.8; }
+    .message-text { display:grid; gap:8px; white-space:normal; overflow-wrap:anywhere; }
+    .message-text.user-plain { display:block; white-space:pre-wrap; }
+    .message-text p { margin:0; line-height:1.8; }
+    .message-text p + p { padding-top:8px; border-top:1px solid rgba(174,136,55,.1); }
+    .message-heading { margin:0; color:var(--ink); font-weight:700; line-height:1.6; }
+    .message-formula { display:inline-block; margin:0 2px; padding:1px 5px; border-radius:5px; background:#f8f1df; color:#76571f; font-family:"SFMono-Regular",Consolas,monospace; font-size:.92em; white-space:nowrap; }
+    .message-step { display:grid; grid-template-columns:24px minmax(0,1fr); gap:8px; align-items:start; line-height:1.75; }
+    .message-step b { width:24px; height:24px; display:grid; place-items:center; border-radius:50%; background:#f5ecd8; color:var(--gold-deep); font-size:11px; }
+    .thinking-bubble { display:flex; align-items:center; gap:10px; color:var(--ink-light); }
+    .thinking-dot { width:7px; height:7px; border-radius:50%; background:var(--gold); box-shadow:11px 0 0 rgba(174,136,55,.55),22px 0 0 rgba(174,136,55,.25); margin-right:22px; animation:thinkingPulse 1s ease-in-out infinite alternate; }
+    @keyframes thinkingPulse { to { opacity:.35; transform:translateY(-1px); } }
+    .message-meta { margin-top:6px; color:var(--ink-faint); font-size:11px; }
+    .error-panel { border:0; border-left:3px solid #b45c50; background:#fbf2ee; color:#8d443b; border-radius:4px 10px 10px 4px; margin:0 14px 12px; padding:9px 11px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .error-panel[hidden], .error-panel .ghost-btn[hidden] { display:none !important; }
+    .error-panel .ghost-btn { white-space:nowrap; flex:none; }
+    .status-note { color:var(--ink-light); font-size:12px; }
+    .problem-card button { margin-top:12px; }
+    .problem-card [data-role="evidence"] { font-size:12px; color:var(--ink-light); margin-top:8px; }
+    .loading-dots::after { content:'…'; animation:pulse 1s infinite alternate; }
+    @keyframes pulse { from { opacity:.25 } to { opacity:1 } }
+    @media (max-width:390px) {
+      html,body { overflow-x:hidden; }
+      .module-list { grid-template-columns:1fr 1fr; }
+      .module-btn { min-width:0; }
+      .topbar,.chat-toolbar { align-items:flex-start; flex-direction:column; }
+      .messages { min-height:320px; }
+      .composer textarea { min-width:0; width:100%; }
+      .ledger { padding:16px; }
+    }
+  </style>
+  <script src="/gontu-auth-client.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand"><div class="seal">公</div><div><strong>公途问老师</strong><span>真实问答 · 问题本 · 下一步</span></div></div>
+      <div class="nav-label">选择提问模块</div>
+      <div class="module-list" id="moduleList" aria-live="polite"></div>
+      <div class="nav-label">最近对话</div>
+      <div class="thread-list" id="threadList"></div>
+      <button class="ghost-btn" id="newThreadBtn" type="button">＋ 新对话</button>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <a class="back" id="returnLink" href="/app">← 返回原训练</a>
+        <div class="status-strip"><span class="pill" id="providerStatus">正在连接服务</span><span class="pill" id="saveStatus">消息按账号保存</span></div>
+      </div>
+      <section class="teacher-head">
+        <div><h1 id="teacherTitle">AI 教练</h1><p id="teacherIntro">选择一个模块，新建或继续真实对话。</p></div>
+        <div class="context-box"><strong>当前上下文</strong><span id="contextText">尚未建立对话</span><small id="skillText">Skill 将由后端按模块选择</small></div>
+      </section>
+      <section class="chat" aria-label="AI教练对话">
+        <div class="chat-toolbar"><strong id="threadTitle">未选择对话</strong><span class="status-note" id="runMeta"></span></div>
+        <div class="messages" id="messages"><div class="empty-state">这里不会展示示例对话。新建对话后，真实消息会保存在你的账号下。</div></div>
+        <div class="error-panel" id="errorPanel" hidden><span id="errorText"></span><button class="ghost-btn" id="retryBtn" type="button">重试</button></div>
+      </section>
+      <section class="composer" aria-label="提问输入">
+        <textarea id="questionInput" placeholder="输入当前问题。外部题请说明题干、你的答案，以及答案来源是否确定。"></textarea>
+        <button class="send-btn" id="askBtn" type="button">发送</button>
+      </section>
+    </main>
+
+    <aside class="ledger">
+      <div class="ledger-head"><div><h2 id="ledgerTitle">问题本</h2><p class="ledger-subtitle">AI 只提出候选问题；你确认后才保存。</p></div></div>
+      <div class="card-list" id="cardList"><div class="empty-state">当前没有待确认的问题卡。</div></div>
+    </aside>
+  </div>
+
+  <script>
+    // 与后端对齐只需调整这个集中合同；页面其他逻辑不拼接 API 路径。
+    const API_BASE = window.__GONTU_API_BASE__ || (location.port === '8089' ? 'http://127.0.0.1:8888' : location.origin);
+    const API = Object.freeze({
+      modules: '/api/ai-coach/modules',
+      threads: '/api/ai-coach/threads',
+      thread: id => `/api/ai-coach/threads/${encodeURIComponent(id)}`,
+      messages: id => `/api/ai-coach/threads/${encodeURIComponent(id)}/messages`,
+      retry: (threadId, runId) => `/api/ai-coach/threads/${encodeURIComponent(threadId)}/runs/${encodeURIComponent(runId)}/retry`,
+      saveProposal: proposalId => `/api/ai-coach/issue-proposals/${encodeURIComponent(proposalId)}/save`
+    });
+    const MODULE_ALIASES = Object.freeze({'言语理解':'verbal.reading','申论':'shenlun.review','数量关系':'quantity.practice','图形推理':'reasoning.spatial','学习规划':'planning.global'});
+    const state = {modules:[],activeModule:'',threads:[],thread:null,lastFailedRun:null,sending:false,providerConfigured:false};
+    const $ = id => document.getElementById(id);
+
+    function safeReturnUrl() {
+      const candidate = new URLSearchParams(location.search).get('return_url');
+      if (!candidate) return '/app';
+      try { const parsed = new URL(candidate, location.origin); return parsed.origin === location.origin && parsed.pathname.startsWith('/') ? parsed.pathname + parsed.search + parsed.hash : '/app'; }
+      catch (_) { return '/app'; }
+    }
+    function token() { return localStorage.getItem('gontu_token') || ''; }
+    function loginUrl() { return `/login.html?next=${encodeURIComponent(location.pathname + location.search)}`; }
+    async function api(path, options={}) {
+      if (!token()) { location.assign(loginUrl()); throw new Error('auth_required'); }
+      const response = await fetch(API_BASE + path, {...options,headers:{'Content-Type':'application/json','Authorization':`Bearer ${token()}`,...(options.headers||{})}});
+      if (response.status === 401) { localStorage.removeItem('gontu_token'); localStorage.removeItem('gontu_user'); location.assign(loginUrl()); throw new Error('auth_required'); }
+      const payload = await response.json().catch(() => ({}));
+      if ((response.status === 402 || response.status === 403) && window.GontuAuth) {
+        window.GontuAuth.showVipGate((payload && (payload.detail || payload.error)) || '该功能仅限 VIP 用户使用');
+      }
+      if (!response.ok) { const error = new Error(payload.detail || payload.error || `request_${response.status}`); error.status=response.status; error.payload=payload; throw error; }
+      return payload;
+    }
+    function el(tag,className,text) { const node=document.createElement(tag); if(className)node.className=className; if(text!==undefined)node.textContent=String(text); return node; }
+    function appendRichInline(parent,text) {
+      const source=String(text||'');
+      const token=/\*\*([^*]+)\*\*|(\d+(?:\.\d+)?(?:\s*[×÷+\-=:]\s*\d+(?:\.\d+)?)+|\d+\/\d+)/g;
+      let cursor=0,match;
+      while((match=token.exec(source))){
+        if(match.index>cursor)parent.append(document.createTextNode(source.slice(cursor,match.index)));
+        parent.append(el(match[1]?'strong':'span',match[1]?'':'message-formula',match[1]||match[2]));
+        cursor=token.lastIndex;
+      }
+      if(cursor<source.length)parent.append(document.createTextNode(source.slice(cursor)));
+    }
+    function paragraphChunks(line) {
+      if(line.length<=105)return[line];
+      const sentences=line.match(/[^。！？!?]+[。！？!?]?/g)||[line];
+      const chunks=[];let current='';
+      sentences.forEach(sentence=>{if(current&&current.length+sentence.length>105){chunks.push(current);current='';}current+=sentence;});
+      if(current)chunks.push(current);
+      return chunks;
+    }
+    function appendMessageText(bubble,content) {
+      const box=el('div','message-text');
+      const normalized=String(content||'')
+        .replace(/([。；;!?！？])\s*(?=\d+(?:\.\s+|、))/g,'$1\n')
+        .replace(/\s+(?=\d+(?:\.\s+|、))/g,'\n');
+      normalized.split(/\n+/).filter(Boolean).forEach(line=>{
+        const step=line.match(/^(\d+)(?:\.\s+|、\s*)(.+)$/);
+        if(step){const row=el('div','message-step'),copy=el('span');appendRichInline(copy,step[2]);row.append(el('b','',step[1]),copy);box.append(row);return;}
+        paragraphChunks(line).forEach(chunk=>{const node=el(chunk.length<=32&&/[：:]$/.test(chunk)?'h4':'p',chunk.length<=32&&/[：:]$/.test(chunk)?'message-heading':'');appendRichInline(node,chunk);box.append(node);});
+      });
+      bubble.append(box);
+    }
+    function arrayPayload(payload,key) { return Array.isArray(payload) ? payload : (Array.isArray(payload?.[key]) ? payload[key] : []); }
+    function moduleIdFromQuery() { const raw=new URLSearchParams(location.search).get('module')||''; return MODULE_ALIASES[raw]||raw; }
+    function contextRefFromQuery() { const p=new URLSearchParams(location.search),kind=p.get('context_kind'),id=p.get('context_id'); return kind&&id ? {kind,id} : null; }
+    function activeSkillText() { const module=state.modules.find(item=>item.id===state.activeModule); return module?.skill_id ? `Skill ${module.skill_id} · v${module.skill_version}` : 'Skill 由后端按模块选择'; }
+    function renderIncomingContext() { const ref=contextRefFromQuery(); if(!ref||state.thread)return; $('contextText').textContent='已携带本次训练引用；新建对话后由服务端核验题目、作答与用时。'; $('skillText').textContent=`${activeSkillText()} · 网址不传答案，训练事实按当前账号核验`; }
+
+    function renderModules() {
+      $('moduleList').replaceChildren();
+      if (!state.modules.length) { $('moduleList').append(el('div','empty-state','暂无可用模块')); return; }
+      state.modules.forEach(module => {
+        const button=el('button','module-btn'); button.type='button'; button.dataset.module=module.id; button.classList.toggle('active',module.id===state.activeModule);button.setAttribute('aria-pressed',String(module.id===state.activeModule));
+        button.append(el('span','module-icon','卷'));
+        const copy=el('span'); copy.append(el('strong','',module.label||module.id),el('span','',module.description||'由后端提供方法与上下文'));
+        button.append(copy);
+        button.addEventListener('click',()=>selectModule(module.id)); $('moduleList').append(button);
+      });
+    }
+    function renderThreads() {
+      $('threadList').replaceChildren();
+      const visible=state.threads.filter(item=>item.module_id===state.activeModule);
+      if(!visible.length){$('threadList').append(el('div','status-note','这个模块还没有对话'));return;}
+      visible.forEach(item=>{const b=el('button','thread-btn');b.type='button';b.classList.toggle('active',state.thread?.id===item.id);b.append(el('strong','',item.title||'未命名对话'),el('small','',item.updated_at||''));b.addEventListener('click',()=>openThread(item.id));$('threadList').append(b);});
+    }
+    function renderMessages() {
+      $('messages').replaceChildren();
+      const items=state.thread?.messages||[];
+      if(!items.length&&!state.sending){$('messages').append(el('div','empty-state','还没有消息。发送后会调用真实 AI 服务。'));return;}
+      const statusText={sending:'正在发送',failed:'发送失败，问题已保存',timed_out:'AI 响应超时'};
+      items.forEach(message=>{const row=el('div',`bubble-row ${message.role==='user'?'user':''}`);const bubble=el('div','bubble');if(message.role==='user')bubble.append(el('div','message-text user-plain',message.content||''));else appendMessageText(bubble,message.content||'');if(message.status&&message.status!=='completed')bubble.append(el('div','message-meta',statusText[message.status]||'暂未完成'));row.append(bubble);$('messages').append(row);});
+      if(state.sending){const row=el('div','bubble-row thinking');const bubble=el('div','bubble thinking-bubble');bubble.append(el('span','thinking-dot'),el('span','','思考中'));row.append(bubble);$('messages').append(row);}
+      $('messages').scrollTop=$('messages').scrollHeight;
+    }
+    function renderProposals() {
+      $('cardList').replaceChildren(); const proposals=state.thread?.issue_proposals||[];
+      if(!proposals.length){$('cardList').append(el('div','empty-state','AI 尚未提出可保存的问题卡。'));return;}
+      proposals.forEach(p=>{const card=el('article','problem-card');card.append(el('h3','',p.title||'待确认问题'),el('p','',p.summary||p.reason||''),el('div','','证据：'+(p.evidence_label||'由后端核验')));card.lastChild.dataset.role='evidence';const btn=el('button','ghost-btn',p.saved?'已保存':'加入问题本');btn.type='button';btn.disabled=!!p.saved;btn.addEventListener('click',()=>saveProposal(p.id,btn));card.append(btn);$('cardList').append(card);});
+    }
+    function applyThread(payload) {
+      state.thread=payload.thread||payload; $('threadTitle').textContent=state.thread.title||'当前对话';
+      const verifiedContext=state.thread.context||{};
+      const evidenceCount=Array.isArray(verifiedContext.evidence)?verifiedContext.evidence.length:0;
+      $('contextText').textContent=state.thread.activity_id
+        ? `已核验本次训练 · ${evidenceCount} 条题目/作答证据`
+        : (state.thread.context_label||'自由方法咨询');
+      $('skillText').textContent=`${activeSkillText()} · 训练事实由服务端按当前账号核验`;
+      const run=state.thread.latest_run; $('runMeta').textContent=run ? [run.provider,run.model,run.skill_version,run.status].filter(Boolean).join(' · ') : '';
+      clearFailure();
+      renderThreads();renderMessages();renderProposals();
+    }
+    function showFailure(error,runId=null) {state.lastFailedRun=runId||error.payload?.run_id||null;$('errorText').textContent=error.message||'AI 服务暂时不可用';$('retryBtn').hidden=!state.lastFailedRun;$('errorPanel').hidden=false;$('providerStatus').textContent='AI 暂不可用';}
+    function clearFailure() {$('errorPanel').hidden=true;$('retryBtn').hidden=true;state.lastFailedRun=null;$('providerStatus').textContent=state.providerConfigured?'AI 教练可用':'AI 待配置 · 可查看历史';}
+
+    async function loadThreads(){const payload=await api(`${API.threads}?module_id=${encodeURIComponent(state.activeModule)}`);state.threads=arrayPayload(payload,'threads');renderThreads();}
+    async function selectModule(moduleId){state.activeModule=moduleId;state.thread=null;const module=state.modules.find(m=>m.id===moduleId);$('teacherTitle').textContent=(module?.label||moduleId)+'老师';$('teacherIntro').textContent=module?.description||'围绕当前模块解决问题。';$('contextText').textContent='尚未建立对话';$('skillText').textContent=activeSkillText();renderModules();renderMessages();renderProposals();renderIncomingContext();await loadThreads();}
+    async function openThread(id){try{clearFailure();applyThread(await api(API.thread(id)));}catch(error){showFailure(error);}}
+    async function newThread(){try{clearFailure();const body={module_id:state.activeModule,return_url:safeReturnUrl()};const ref=contextRefFromQuery();if(ref)body.context_ref=ref;const created=await api(API.threads,{method:'POST',body:JSON.stringify(body)});state.threads.unshift(created.thread||created);applyThread(created.thread||created);}catch(error){showFailure(error);}}
+    async function sendMessage(){const content=$('questionInput').value.trim();if(!content||state.sending)return;if(!state.thread)await newThread();if(!state.thread)return;state.sending=true;$('askBtn').disabled=true;$('providerStatus').textContent='AI 正在思考';clearFailure();const pending={role:'user',content,status:'sending'};state.thread.messages=[...(state.thread.messages||[]),pending];renderMessages();try{const payload=await api(API.messages(state.thread.id),{method:'POST',body:JSON.stringify({content,client_message_id:crypto.randomUUID()})});$('questionInput').value='';state.sending=false;applyThread(payload);}catch(error){state.sending=false;pending.status='failed';renderMessages();showFailure(error);}finally{state.sending=false;$('askBtn').disabled=false;}}
+    async function retry(){if(!state.thread||!state.lastFailedRun)return;const runId=state.lastFailedRun;try{clearFailure();applyThread(await api(API.retry(state.thread.id,runId),{method:'POST'}));}catch(error){showFailure(error,runId);}}
+    async function saveProposal(id,button){try{button.disabled=true;await api(API.saveProposal(id),{method:'POST'});button.textContent='已保存';if(state.thread){const p=(state.thread.issue_proposals||[]).find(item=>item.id===id);if(p)p.saved=true;}}catch(error){button.disabled=false;showFailure(error);}}
+    async function init(){ $('returnLink').href=safeReturnUrl(); try{const payload=await api(API.modules);state.modules=arrayPayload(payload,'modules');state.providerConfigured=payload?.provider?.configured===true;const requested=moduleIdFromQuery();state.activeModule=state.modules.some(m=>m.id===requested)?requested:(state.modules[0]?.id||'');renderModules();if(state.activeModule)await selectModule(state.activeModule);renderIncomingContext();$('providerStatus').textContent=state.providerConfigured?'AI 教练可用':'AI 待配置 · 可查看历史';}catch(error){if(error.message!=='auth_required')showFailure(error);}}
+    $('newThreadBtn').addEventListener('click',newThread);$('askBtn').addEventListener('click',sendMessage);$('retryBtn').addEventListener('click',retry);$('questionInput').addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage();}});init();
+  </script>
+</body>
+</html>

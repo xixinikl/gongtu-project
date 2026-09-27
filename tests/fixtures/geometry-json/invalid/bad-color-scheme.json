@@ -1,0 +1,8 @@
+{
+  "version": "1.0",
+  "id": "bad-color-scheme",
+  "name": "配色方案错误",
+  "type": "unitCubeArray",
+  "positions": [[0,0,0]],
+  "appearance": { "colorScheme": "rainbow" }
+}

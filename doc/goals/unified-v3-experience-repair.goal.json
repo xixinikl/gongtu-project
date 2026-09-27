@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "unified-v3-experience-repair",
+  "title": "公途 V3 统一体验与 AI 闭环修复",
+  "objective": "以原始 gongtu-unified-learning-platform Goal 和已确认的 verbal-ai-v3 Demo 为准，将真实正式页面恢复为统一、可用的学习外壳，并让言语、数量、平面图推、立体图推、申论能带真实训练上下文进入 AI 教练并安全返回原任务。",
+  "status": "active",
+  "tasks": [
+    {"id":"V3R-1","title":"冻结 V3 Demo 与正式路径基线","acceptance":"记录确认 Demo 的视觉/导航原则、六条正式路由及其桌面/手机基线；每个已知断层都有可复查证据。","dependsOn":[],"status":"pending","evidence":[]},
+    {"id":"V3R-2","title":"恢复真实统一外壳与可用导航","acceptance":"所有正式模块采用一致 V3 层级和可发现导航；空间页不依赖隐藏横向滚动，专业页可回学习中心。","dependsOn":["V3R-1"],"status":"pending","evidence":[]},
+    {"id":"V3R-3","title":"接入言语与数量的 AI 上下文闭环","acceptance":"真实言语和数量训练页均有清晰 AI 入口，只交接允许上下文并可返回原任务。","dependsOn":["V3R-2"],"status":"pending","evidence":[]},
+    {"id":"V3R-4","title":"接入图推与申论的 AI 上下文闭环","acceptance":"平面、立体和申论页均有清晰 AI 入口，正确 Skill、服务端上下文与安全返回均可验证。","dependsOn":["V3R-2"],"status":"pending","evidence":[]},
+    {"id":"V3R-5","title":"回归记录、Skill 与安全合同","acceptance":"自动测试覆盖用户隔离、记录、上下文字段、Skill 路由、AI 失败提示和同源 return_url。","dependsOn":["V3R-3","V3R-4"],"status":"pending","evidence":[]},
+    {"id":"V3R-6","title":"完成真实视觉与用户验收","acceptance":"桌面和手机实际验证六条正式路径、导航与 AI 往返；关键页面由用户确认后才能完成。","dependsOn":["V3R-5"],"status":"pending","evidence":[]}
+  ],
+  "runs": [],
+  "blockers": [],
+  "progress": {"verified": 0, "total": 6, "percent": 0},
+  "currentTaskId": null,
+  "nextTaskId": "V3R-1"
+}

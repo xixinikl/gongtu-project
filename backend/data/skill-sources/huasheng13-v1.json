@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "source_id": "huasheng13-public-skill",
+  "repository": "https://github.com/WangJunqing-coder/huasheng13-skill",
+  "commit": "6a43d776741f69a231eb2d75f9d5d59efe870659",
+  "audited_at": "2026-07-13",
+  "upstream_shape": {
+    "skill_entry": "SKILL.md",
+    "reference_file_count": 20,
+    "total_markdown_lines": 9326
+  },
+  "license_observation": "README displays an MIT badge and footer, but the referenced LICENSE file is absent at the pinned commit.",
+  "integration_policy": "Do not vendor or prompt-load the upstream corpus. Use repository-owned, task-scoped adapters that cite the exact upstream section and preserve official question data as the highest-priority fact source.",
+  "excluded_by_default": [
+    "examples/*",
+    "references/zhenti-shili.md",
+    "references/shenlun-sucai.md",
+    "references/shizheng-redian.md",
+    "references/strategy.md",
+    "references/beikao-jihua.md"
+  ]
+}

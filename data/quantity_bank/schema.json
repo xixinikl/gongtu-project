@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "record_type": "quantity_question",
+  "fields": {
+    "id": "quantity_hs13_set01_q01",
+    "source": {
+      "name": "数量关系600题",
+      "set_no": 1,
+      "question_no": 1,
+      "question_pdf": "数量关系600题.pdf",
+      "analysis_pdf": "数量关系1-17解析.pdf",
+      "review_status": "raw_ocr | ai_cleaned | human_checked | approved"
+    },
+    "content": {
+      "stem": "题干文本",
+      "options": [
+        { "key": "A", "text": "选项 A" },
+        { "key": "B", "text": "选项 B" },
+        { "key": "C", "text": "选项 C" },
+        { "key": "D", "text": "选项 D" }
+      ],
+      "answer": "D",
+      "analysis": "清洗后的解析",
+      "media": [
+        {
+          "type": "question_figure_crop",
+          "asset": "data/quantity_bank/assets/quantity_hs13_set09_q05_figure.png",
+          "source_pdf": "数量关系600题.pdf",
+          "source_page": 22,
+          "crop_box": [0, 0, 0, 0],
+          "note": "只保存题干作答必需的局部图形/表格/路线/统计图，不保存整页题目、解析页或答案截图。"
+        }
+      ],
+      "raw_ocr": {
+        "question_text": "OCR 原文",
+        "analysis_text": "OCR 原文"
+      }
+    },
+    "learning_tags": {
+      "primary_topic": "和差倍比问题",
+      "secondary_topics": ["比例关系", "方程思想"],
+      "source_topic_label": "解析原文中的题型分类",
+      "methods": ["赋值法"],
+      "difficulty_score": 3,
+      "exam_decision": "must_do | can_do | skip_first",
+      "estimated_seconds": 90,
+      "decision_reason": ["题干短", "模型明显", "计算量可控"],
+      "weak_steps": ["题型识别", "设量建模", "列式关系", "计算速度", "审题遗漏"]
+    },
+    "training_modes": {
+      "single_diagnosis": true,
+      "set_strategy": true,
+      "topic_recognition": true,
+      "step_practice": true,
+      "mixed_practice": true
+    }
+  }
+}

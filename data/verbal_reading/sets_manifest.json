@@ -1,0 +1,307 @@
+{
+  "version": 1,
+  "source_name": "2025年花生片段阅读600题",
+  "default_set_id": "verbal_hs13_set01",
+  "sets": [
+    {
+      "set_id": "verbal_hs13_set01",
+      "label": "练习题 01 套",
+      "question_count": 20,
+      "files": [
+        "data/verbal_reading/set01_q01_q10.json",
+        "data/verbal_reading/set01_q11_q20.json"
+      ],
+      "status": "visual_verified_minimal_practice"
+    },
+    {
+      "set_id": "verbal_hs13_set02",
+      "label": "练习题 02 套",
+      "question_count": 20,
+      "files": [
+        "data/verbal_reading/set02_q01_q10.json",
+        "data/verbal_reading/set02_q11_q20.json"
+      ],
+      "status": "visual_verified_minimal_practice"
+    },
+    {
+      "set_id": "verbal_hs13_set03",
+      "label": "练习题 03 套",
+      "question_count": 20,
+      "files": [
+        "data/verbal_reading/set03_q01_q10.json",
+        "data/verbal_reading/set03_q11_q20.json"
+      ],
+      "status": "visual_verified_minimal_practice"
+    },
+    {
+      "set_id": "verbal_hs13_set04",
+      "label": "练习题 04 套",
+      "question_count": 20,
+      "files": [
+        "data/verbal_reading/set04_q01_q10.json",
+        "data/verbal_reading/set04_q11_q20.json"
+      ],
+      "status": "visual_verified_minimal_practice"
+    },
+    {
+      "set_id": "verbal_hs13_set05",
+      "label": "练习题 05 套",
+      "question_count": 20,
+      "files": [
+        "data/verbal_reading/set05_q01_q10.json",
+        "data/verbal_reading/set05_q11_q20.json"
+      ],
+      "status": "visual_verified_minimal_practice"
+    },
+    {
+      "set_id": "verbal_hs13_set06",
+      "label": "练习题 06 套",
+      "question_count": 20,
+      "files": [
+        "data/verbal_reading/set06_q01_q10.json",
+        "data/verbal_reading/set06_q11_q20.json"
+      ],
+      "status": "visual_verified_minimal_practice"
+    },
+    {
+      "set_id": "verbal_hs13_set07",
+      "label": "练习题 07 套",
+      "question_count": 20,
+      "files": [
+        "data/verbal_reading/set07_q01_q10.json",
+        "data/verbal_reading/set07_q11_q20.json"
+      ],
+      "status": "visual_verified_minimal_practice"
+    },
+    {
+      "set_id": "verbal_hs13_set08",
+      "label": "练习题 08 套",
+      "question_count": 20,
+      "files": [
+        "data/verbal_reading/set08_q01_q10.json",
+        "data/verbal_reading/set08_q11_q20.json"
+      ],
+      "status": "visual_verified_minimal_practice"
+    },
+    {
+      "set_id": "verbal_hs13_set09",
+      "label": "练习题 09 套",
+      "question_count": 20,
+      "files": [
+        "data/verbal_reading/set09_q01_q10.json",
+        "data/verbal_reading/set09_q11_q20.json"
+      ],
+      "status": "visual_verified_minimal_practice"
+    },
+    {
+      "set_id": "verbal_hs13_set10",
+      "label": "练习题 10 套",
+      "question_count": 20,
+      "files": [
+        "data/verbal_reading/set10_q01_q10.json",
+        "data/verbal_reading/set10_q11_q20.json"
+      ],
+      "status": "visual_verified_minimal_practice"
+    },
+    {
+      "set_id": "verbal_hs13_set11",
+      "label": "练习题 11 套",
+      "question_count": 20,
+      "files": [
+        "data/verbal_reading/set11_q01_q10.json",
+        "data/verbal_reading/set11_q11_q20.json"
+      ],
+      "status": "visual_verified_minimal_practice"
+    },
+    {
+      "set_id": "verbal_hs13_set12",
+      "label": "练习题 12 套",
+      "question_count": 20,
+      "files": [
+        "data/verbal_reading/set12_q01_q10.json",
+        "data/verbal_reading/set12_q11_q20.json"
+      ],
+      "status": "visual_verified_minimal_practice"
+    },
+    {
+      "set_id": "verbal_hs13_set13",
+      "label": "练习题 13 套",
+      "question_count": 20,
+      "files": [
+        "data/verbal_reading/set13_q01_q10.json",
+        "data/verbal_reading/set13_q11_q20.json"
+      ],
+      "status": "visual_verified_minimal_practice"
+    },
+    {
+      "set_id": "verbal_hs13_set14",
+      "label": "练习题 14 套",
+      "question_count": 20,
+      "files": [
+        "data/verbal_reading/set14_q01_q10.json",
+        "data/verbal_reading/set14_q11_q20.json"
+      ],
+      "status": "visual_verified_minimal_practice"
+    },
+    {
+      "set_id": "verbal_hs13_set15",
+      "label": "练习题 15 套",
+      "question_count": 20,
+      "files": [
+        "data/verbal_reading/set15_q01_q10.json",
+        "data/verbal_reading/set15_q11_q20.json"
+      ],
+      "status": "visual_verified_minimal_practice"
+    },
+    {
+      "set_id": "verbal_hs13_set16",
+      "label": "练习题 16 套",
+      "question_count": 20,
+      "files": [
+        "data/verbal_reading/set16_q01_q10.json",
+        "data/verbal_reading/set16_q11_q20.json"
+      ],
+      "status": "visual_verified_minimal_practice"
+    },
+    {
+      "set_id": "verbal_hs13_set17",
+      "label": "练习题 17 套",
+      "question_count": 20,
+      "files": [
+        "data/verbal_reading/set17_q01_q10.json",
+        "data/verbal_reading/set17_q11_q20.json"
+      ],
+      "status": "visual_verified_minimal_practice"
+    },
+    {
+      "set_id": "verbal_hs13_set18",
+      "label": "练习题 18 套",
+      "question_count": 20,
+      "files": [
+        "data/verbal_reading/set18_q01_q10.json",
+        "data/verbal_reading/set18_q11_q20.json"
+      ],
+      "status": "visual_verified_minimal_practice"
+    },
+    {
+      "set_id": "verbal_hs13_set19",
+      "label": "练习题 19 套",
+      "question_count": 20,
+      "files": [
+        "data/verbal_reading/set19_q01_q10.json",
+        "data/verbal_reading/set19_q11_q20.json"
+      ],
+      "status": "visual_verified_minimal_practice"
+    },
+    {
+      "set_id": "verbal_hs13_set20",
+      "label": "练习题 20 套",
+      "question_count": 20,
+      "files": [
+        "data/verbal_reading/set20_q01_q10.json",
+        "data/verbal_reading/set20_q11_q20.json"
+      ],
+      "status": "visual_verified_minimal_practice"
+    },
+    {
+      "set_id": "verbal_hs13_set21",
+      "label": "练习题 21 套",
+      "question_count": 20,
+      "files": [
+        "data/verbal_reading/set21_q01_q10.json",
+        "data/verbal_reading/set21_q11_q20.json"
+      ],
+      "status": "visual_verified_minimal_practice"
+    },
+    {
+      "set_id": "verbal_hs13_set22",
+      "label": "练习题 22 套",
+      "question_count": 20,
+      "files": [
+        "data/verbal_reading/set22_q01_q10.json",
+        "data/verbal_reading/set22_q11_q20.json"
+      ],
+      "status": "visual_verified_minimal_practice"
+    },
+    {
+      "set_id": "verbal_hs13_set23",
+      "label": "练习题 23 套",
+      "question_count": 20,
+      "files": [
+        "data/verbal_reading/set23_q01_q10.json",
+        "data/verbal_reading/set23_q11_q20.json"
+      ],
+      "status": "visual_verified_minimal_practice"
+    },
+    {
+      "set_id": "verbal_hs13_set24",
+      "label": "练习题 24 套",
+      "question_count": 20,
+      "files": [
+        "data/verbal_reading/set24_q01_q10.json",
+        "data/verbal_reading/set24_q11_q20.json"
+      ],
+      "status": "visual_verified_minimal_practice"
+    },
+    {
+      "set_id": "verbal_hs13_set25",
+      "label": "练习题 25 套",
+      "question_count": 20,
+      "files": [
+        "data/verbal_reading/set25_q01_q10.json",
+        "data/verbal_reading/set25_q11_q20.json"
+      ],
+      "status": "visual_verified_minimal_practice"
+    },
+    {
+      "set_id": "verbal_hs13_set26",
+      "label": "练习题 26 套",
+      "question_count": 20,
+      "files": [
+        "data/verbal_reading/set26_q01_q10.json",
+        "data/verbal_reading/set26_q11_q20.json"
+      ],
+      "status": "visual_verified_minimal_practice"
+    },
+    {
+      "set_id": "verbal_hs13_set27",
+      "label": "练习题 27 套",
+      "question_count": 20,
+      "files": [
+        "data/verbal_reading/set27_q01_q10.json",
+        "data/verbal_reading/set27_q11_q20.json"
+      ],
+      "status": "visual_verified_minimal_practice"
+    },
+    {
+      "set_id": "verbal_hs13_set28",
+      "label": "练习题 28 套",
+      "question_count": 20,
+      "files": [
+        "data/verbal_reading/set28_q01_q10.json",
+        "data/verbal_reading/set28_q11_q20.json"
+      ],
+      "status": "visual_verified_minimal_practice"
+    },
+    {
+      "set_id": "verbal_hs13_set29",
+      "label": "练习题 29 套",
+      "question_count": 20,
+      "files": [
+        "data/verbal_reading/set29_q01_q10.json",
+        "data/verbal_reading/set29_q11_q20.json"
+      ],
+      "status": "visual_verified_minimal_practice"
+    },
+    {
+      "set_id": "verbal_hs13_set30",
+      "label": "练习题 30 套",
+      "question_count": 20,
+      "files": [
+        "data/verbal_reading/set30_q01_q10.json",
+        "data/verbal_reading/set30_q11_q20.json"
+      ],
+      "status": "visual_verified_minimal_practice"
+    }
+  ]
+}
